@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { MarketListing, BREEDS } from '@/types/game';
 import { Badge } from '@/components/ui/badge';
+import { useConfetti } from '@/hooks/useConfetti';
 
 interface MarketPanelProps {
   listings: MarketListing[];
@@ -23,13 +24,25 @@ const catEmojis: Record<string, string> = {
 
 export function MarketPanel({ listings, money, hasSpace, onBuy }: MarketPanelProps) {
   const [animatingListing, setAnimatingListing] = useState<string | null>(null);
+  const { fireConfetti, fireStars } = useConfetti();
 
-  const handleBuy = (listingId: string, price: number) => {
-    if (money >= price && hasSpace) {
-      setAnimatingListing(listingId);
+  const handleBuy = (listing: MarketListing) => {
+    if (money >= listing.price && hasSpace) {
+      setAnimatingListing(listing.id);
       setTimeout(() => setAnimatingListing(null), 600);
+      
+      // Trigger confetti for rare breeds (rarity >= 5) or expensive cats ($500+)
+      const breed = BREEDS[listing.cat.breed];
+      const isRare = breed.rarity >= 5;
+      const isExpensive = listing.price >= 500;
+      
+      if (isRare) {
+        fireStars(); // Star confetti for rare breeds
+      } else if (isExpensive) {
+        fireConfetti(); // Regular confetti for expensive purchases
+      }
     }
-    onBuy(listingId);
+    onBuy(listing.id);
   };
 
   return (
@@ -77,7 +90,7 @@ export function MarketPanel({ listings, money, hasSpace, onBuy }: MarketPanelPro
                     </p>
                     <Button
                       size="sm"
-                      onClick={() => handleBuy(listing.id, listing.price)}
+                      onClick={() => handleBuy(listing)}
                       disabled={money < listing.price || !hasSpace}
                       className="mt-1 h-7 text-xs"
                     >
