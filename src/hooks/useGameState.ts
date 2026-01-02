@@ -1025,18 +1025,177 @@ export function useGameState(
     }));
   }, []);
 
+  // Bulk heal all sick cats
+  const healAllSickCats = useCallback(() => {
+    setState(prev => {
+      const sickCats = prev.cats.filter(c => c.health < 70);
+      if (sickCats.length === 0) {
+        showMessage("All cats are healthy! 💚", 'info');
+        return prev;
+      }
+      if (prev.resources.medicine < sickCats.length) {
+        showMessage(`Need ${sickCats.length} medicine to heal all sick cats!`, 'warning');
+        playSound?.('error');
+        return prev;
+      }
+      showMessage(`Healed ${sickCats.length} cats! All better now! 💚`, 'success');
+      playSound?.('success');
+      return {
+        ...prev,
+        resources: { ...prev.resources, medicine: prev.resources.medicine - sickCats.length },
+        cats: prev.cats.map(c => c.health < 70 ? { ...c, health: 100 } : c),
+      };
+    });
+  }, [playSound]);
+
+  // Bulk rest all tired cats
+  const restAllTiredCats = useCallback(() => {
+    setState(prev => {
+      const tiredCats = prev.cats.filter(c => c.restLevel < 50);
+      if (tiredCats.length === 0) {
+        showMessage("All cats are well-rested! 😴", 'info');
+        return prev;
+      }
+      showMessage(`${tiredCats.length} tired cats are resting... 😴`, 'success');
+      playSound?.('purr');
+      return {
+        ...prev,
+        cats: prev.cats.map(c => {
+          if (c.restLevel >= 50) return c;
+          const newRest = Math.min(100, c.restLevel + 30);
+          const gradeBonus = newRest >= 80 && c.restLevel < 80 ? 0.25 : 0;
+          return { 
+            ...c, 
+            restLevel: newRest, 
+            grade: Math.min(20, c.grade + gradeBonus), 
+            happiness: Math.min(100, c.happiness + 5) 
+          };
+        }),
+      };
+    });
+  }, [playSound]);
+
+  // Bulk comfort all unhappy cats
+  const comfortAllUnhappyCats = useCallback(() => {
+    setState(prev => {
+      const unhappyCats = prev.cats.filter(c => c.happiness < 50);
+      if (unhappyCats.length === 0) {
+        showMessage("All cats are happy! 😊", 'info');
+        return prev;
+      }
+      showMessage(`Comforted ${unhappyCats.length} unhappy cats! They feel loved! 💕`, 'success');
+      playSound?.('purr');
+      return {
+        ...prev,
+        cats: prev.cats.map(c => 
+          c.happiness < 50 
+            ? { ...c, happiness: Math.min(100, c.happiness + 30), health: Math.min(100, c.health + 5) }
+            : c
+        ),
+      };
+    });
+  }, [playSound]);
+
+  // Bulk train all available cats
+  const trainAllAvailableCats = useCallback(() => {
+    setState(prev => {
+      const trainableCats = prev.cats.filter(c => 
+        c.lastTrainingDay < prev.day && 
+        TRICKS.some(t => !c.tricksLearned.includes(t.id))
+      );
+      if (trainableCats.length === 0) {
+        showMessage("No cats available for training today!", 'info');
+        return prev;
+      }
+      const resourceCost = trainableCats.length;
+      if (prev.resources.treats < resourceCost || prev.resources.toys < resourceCost) {
+        showMessage(`Need ${resourceCost} treats and ${resourceCost} toys to train all!`, 'warning');
+        playSound?.('error');
+        return prev;
+      }
+      
+      let trainedCount = 0;
+      let tricksLearned = 0;
+      const updatedCats = prev.cats.map(c => {
+        if (c.lastTrainingDay >= prev.day) return c;
+        const nextTrick = TRICKS.find(t => !c.tricksLearned.includes(t.id));
+        if (!nextTrick) return c;
+        
+        trainedCount++;
+        const restBonus = c.restLevel >= 80 ? 10 : 0;
+        const progressGain = 20 + Math.floor(Math.random() * 20) + restBonus;
+        const newProgress = Math.min(100, (c.trickProgress[nextTrick.id] || 0) + progressGain);
+        const learned = newProgress >= 100;
+        
+        if (learned) tricksLearned++;
+        
+        return {
+          ...c,
+          trickProgress: { ...c.trickProgress, [nextTrick.id]: newProgress },
+          tricksLearned: learned && !c.tricksLearned.includes(nextTrick.id) 
+            ? [...c.tricksLearned, nextTrick.id] 
+            : c.tricksLearned,
+          grade: learned ? Math.min(20, c.grade + nextTrick.gradeBonus) : c.grade,
+          restLevel: Math.max(0, c.restLevel - 10),
+          lastTrainingDay: prev.day,
+        };
+      });
+      
+      let msg = `Trained ${trainedCount} cats today! 🎾`;
+      if (tricksLearned > 0) {
+        msg = `Trained ${trainedCount} cats - ${tricksLearned} learned new tricks! 🎉`;
+      }
+      showMessage(msg, 'success');
+      playSound?.('success');
+      onChallengeProgress?.('train_tricks', tricksLearned);
+      
+      return {
+        ...prev,
+        resources: { 
+          ...prev.resources, 
+          treats: prev.resources.treats - trainedCount, 
+          toys: prev.resources.toys - trainedCount 
+        },
+        cats: updatedCats,
+      };
+    });
+  }, [playSound, onChallengeProgress]);
+
+  // Bulk sell selected cats
+  const sellSelectedCats = useCallback((catIds: string[]) => {
+    if (catIds.length === 0) return;
+    setState(prev => {
+      let totalEarnings = 0;
+      const catsToSell = prev.cats.filter(c => catIds.includes(c.id));
+      catsToSell.forEach(cat => {
+        const sellPrice = Math.floor(cat.value * (1 + cat.showWins * 0.1));
+        totalEarnings += sellPrice;
+        relationshipSystem.removeCatRelationships(cat.id);
+      });
+      showMessage(`Sold ${catsToSell.length} cats for $${totalEarnings}! 💰`, 'success');
+      playSound?.('coin');
+      return {
+        ...prev,
+        money: prev.money + totalEarnings,
+        cats: prev.cats.filter(c => !catIds.includes(c.id)),
+      };
+    });
+  }, [relationshipSystem, playSound]);
+
   const actions = useMemo(() => ({
     addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
     catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
     doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
-    addReceivedCat, addReward,
+    addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
+    trainAllAvailableCats, sellSelectedCats,
   }), [
     addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
     catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
     doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
-    addReceivedCat, addReward,
+    addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
+    trainAllAvailableCats, sellSelectedCats,
   ]);
 
   return {

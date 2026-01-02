@@ -34,6 +34,7 @@ import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { DailyEventToast } from './DailyEventToast';
 import { LeaderboardPanel } from './LeaderboardPanel';
 import { DailyRewardsPanel } from './DailyRewardsPanel';
+import { BulkActionsPanel } from './BulkActionsPanel';
 
 import { FriendsPanel } from './FriendsPanel';
 import { PlayerProfilePanel } from './PlayerProfilePanel';
@@ -483,6 +484,7 @@ export function CatFarm() {
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="costumes" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'costumes' ? 'ring-2 ring-primary animate-pulse' : ''}`}>👗</TabsTrigger></TooltipTrigger><TooltipContent>Costumes</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="breeding" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'breeding' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💕</TabsTrigger></TooltipTrigger><TooltipContent>Breeding</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="training" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'training' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💪</TabsTrigger></TooltipTrigger><TooltipContent>Training</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="bulk" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'bulk' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚡</TabsTrigger></TooltipTrigger><TooltipContent>Bulk Actions</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="social" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'social' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🤝</TabsTrigger></TooltipTrigger><TooltipContent>Social</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="leaderboard" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'leaderboard' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🏆</TabsTrigger></TooltipTrigger><TooltipContent>Leaderboard</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="friends" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'friends' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Users className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Friends</TooltipContent></Tooltip>
@@ -554,6 +556,19 @@ export function CatFarm() {
             <TabsContent value="training" className="mt-0">
               <TrainingPanel cats={state.cats} treats={state.resources.treats} toys={state.resources.toys}
                 day={state.day} onTrain={actions.trainCat} onRest={actions.restCat} />
+            </TabsContent>
+            <TabsContent value="bulk" className="mt-0">
+              <BulkActionsPanel 
+                cats={state.cats}
+                resources={state.resources}
+                day={state.day}
+                relationships={relationshipSystem.relationships}
+                onHealAll={actions.healAllSickCats}
+                onRestAll={actions.restAllTiredCats}
+                onComfortAll={actions.comfortAllUnhappyCats}
+                onTrainAll={actions.trainAllAvailableCats}
+                onSellSelected={actions.sellSelectedCats}
+              />
             </TabsContent>
             <TabsContent value="social" className="mt-0 space-y-4">
               <SocializePanel cats={state.cats} treats={state.resources.treats}
