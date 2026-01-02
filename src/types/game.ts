@@ -64,6 +64,8 @@ export interface GameState {
   achievements: Achievement[];
   breedingCooldown: number;
   showCooldown: number; // Days until next show allowed
+  ownedCostumes: string[]; // Costume IDs
+  catCostumes: Record<string, string>; // catId -> costumeId
 }
 
 export const CAT_NAMES = [

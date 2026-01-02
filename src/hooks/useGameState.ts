@@ -9,6 +9,8 @@ import { SoundType } from './useSoundEffects';
 import { 
   ShowTier, SHOW_TIERS, getCurrentSeasonalEvent, getSpecialEvent 
 } from '@/types/showEvents';
+import { getRandomDailyEvent, DailyEvent } from '@/types/dailyEvents';
+import { getCostumeById } from '@/types/costumes';
 
 const SAVE_KEY = 'cat-farm-save';
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -91,6 +93,8 @@ const createInitialState = (): GameState => ({
   achievements: createInitialAchievements(),
   breedingCooldown: 0,
   showCooldown: 0,
+  ownedCostumes: [],
+  catCostumes: {},
 });
 
 
@@ -98,6 +102,8 @@ export function useGameState(playSound?: (type: SoundType) => void) {
   const [state, setState] = useState<GameState>(createInitialState);
   const [message, setMessage] = useState<string>('Welcome to Cat Farm! Start your feline empire! 🐱');
   const [messageType, setMessageType] = useState<'info' | 'success' | 'warning' | 'error'>('info');
+  const [kittensBreed, setKittensBreed] = useState(0);
+  const [currentDailyEvent, setCurrentDailyEvent] = useState<DailyEvent | null>(null);
   const [kittensBreed, setKittensBreed] = useState(0);
 
   const relationshipSystem = useRelationships();
@@ -876,13 +882,100 @@ export function useGameState(playSound?: (type: SoundType) => void) {
     });
   }, [playSound]);
 
+  const buyCostume = useCallback((costumeId: string) => {
+    const costume = getCostumeById(costumeId);
+    if (!costume) return;
+    
+    setState(prev => {
+      if (prev.ownedCostumes.includes(costumeId)) {
+        showMessage("You already own this costume!", 'warning');
+        return prev;
+      }
+      if (prev.money < costume.price) {
+        showMessage("Not enough money!", 'error');
+        playSound?.('error');
+        return prev;
+      }
+      
+      showMessage(`Bought ${costume.name}! ${costume.emoji}`, 'success');
+      playSound?.('coin');
+      return {
+        ...prev,
+        money: prev.money - costume.price,
+        ownedCostumes: [...prev.ownedCostumes, costumeId],
+      };
+    });
+  }, [playSound]);
+
+  const equipCostume = useCallback((catId: string, costumeId: string | null) => {
+    setState(prev => {
+      const cat = prev.cats.find(c => c.id === catId);
+      if (!cat) return prev;
+      
+      const newCatCostumes = { ...prev.catCostumes };
+      if (costumeId === null) {
+        delete newCatCostumes[catId];
+        showMessage(`Removed ${cat.name}'s costume.`, 'info');
+      } else {
+        const costume = getCostumeById(costumeId);
+        if (costume) {
+          newCatCostumes[catId] = costumeId;
+          showMessage(`${cat.name} is now wearing ${costume.name}! ${costume.emoji}`, 'success');
+        }
+      }
+      
+      return { ...prev, catCostumes: newCatCostumes };
+    });
+  }, []);
+
+  const processDailyEvent = useCallback(() => {
+    const event = getRandomDailyEvent(state.day);
+    if (!event) return;
+    
+    setCurrentDailyEvent(event);
+    playSound?.('dailyEvent');
+    
+    setState(prev => {
+      let newState = { ...prev };
+      
+      if (event.moneyChange) {
+        newState.money = Math.max(0, newState.money + event.moneyChange);
+      }
+      if (event.reputationChange) {
+        newState.reputation += event.reputationChange;
+      }
+      if (event.resourceChange) {
+        newState.resources = {
+          food: Math.max(0, newState.resources.food + (event.resourceChange.food || 0)),
+          medicine: Math.max(0, newState.resources.medicine + (event.resourceChange.medicine || 0)),
+          toys: Math.max(0, newState.resources.toys + (event.resourceChange.toys || 0)),
+          treats: Math.max(0, newState.resources.treats + (event.resourceChange.treats || 0)),
+        };
+      }
+      if (event.catEffect) {
+        newState.cats = newState.cats.map(cat => ({
+          ...cat,
+          health: Math.max(0, Math.min(100, cat.health + (event.catEffect?.healthChange || 0))),
+          happiness: Math.max(0, Math.min(100, cat.happiness + (event.catEffect?.happinessChange || 0))),
+          hunger: Math.max(0, Math.min(100, cat.hunger + (event.catEffect?.hungerChange || 0))),
+        }));
+      }
+      
+      return newState;
+    });
+  }, [state.day, playSound]);
+
+  const clearDailyEvent = useCallback(() => {
+    setCurrentDailyEvent(null);
+  }, []);
+
   return {
-    state, message, messageType, kittensBreed, relationshipSystem,
+    state, message, messageType, kittensBreed, relationshipSystem, currentDailyEvent,
     actions: {
       addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
       catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
       doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
-      comfortCat,
+      comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent,
     },
   };
 }

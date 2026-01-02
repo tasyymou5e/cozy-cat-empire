@@ -12,7 +12,11 @@ type SoundType =
   | 'levelUp'
   | 'coin'
   | 'achievement'
-  | 'nextDay';
+  | 'nextDay'
+  | 'cardFlip'
+  | 'moodHappy'
+  | 'moodSad'
+  | 'dailyEvent';
 
 type MusicMood = 'morning' | 'afternoon' | 'evening' | 'night' | 'celebration' | 'tense';
 
@@ -139,6 +143,24 @@ const SOUND_CONFIGS: Record<SoundType, SoundConfig | SoundConfig[]> = {
   nextDay: [
     { frequency: 440, type: 'sine', duration: 0.2, volume: 0.15 },
     { frequency: 550, type: 'sine', duration: 0.3, volume: 0.2 },
+  ],
+  cardFlip: [
+    { frequency: 1200, type: 'sine', duration: 0.05, volume: 0.15 },
+    { frequency: 800, type: 'sine', duration: 0.08, volume: 0.12 },
+  ],
+  moodHappy: [
+    { frequency: 600, type: 'sine', duration: 0.1, volume: 0.2 },
+    { frequency: 800, type: 'sine', duration: 0.12, volume: 0.22 },
+    { frequency: 1000, type: 'sine', duration: 0.15, volume: 0.18 },
+  ],
+  moodSad: [
+    { frequency: 400, type: 'sine', duration: 0.15, volume: 0.15, ramp: 'down' },
+    { frequency: 300, type: 'sine', duration: 0.2, volume: 0.12, ramp: 'down' },
+  ],
+  dailyEvent: [
+    { frequency: 523, type: 'sine', duration: 0.1, volume: 0.2 },
+    { frequency: 659, type: 'sine', duration: 0.1, volume: 0.22 },
+    { frequency: 784, type: 'sine', duration: 0.15, volume: 0.25 },
   ],
 };
 

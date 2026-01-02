@@ -6,6 +6,7 @@ import { GradeBadge } from './GradeBadge';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Star, Heart, HeartCrack, Trophy, Zap, RotateCcw } from 'lucide-react';
+import { useSound } from '@/contexts/SoundContext';
 
 interface FlippableTradingCardProps {
   cat: Cat;
@@ -33,6 +34,7 @@ export function FlippableTradingCard({ cat, relationships, allCats, onClick }: F
   const [isFlipped, setIsFlipped] = useState(false);
   const tier = getGradeTier(cat.grade);
   const stars = getGradeStars(cat.grade);
+  const { playSound } = useSound();
   
   const catRelationships = relationships.filter(r => r.catId1 === cat.id || r.catId2 === cat.id);
   const friends = catRelationships.filter(r => {
@@ -66,6 +68,7 @@ export function FlippableTradingCard({ cat, relationships, allCats, onClick }: F
 
   const handleFlip = (e: React.MouseEvent) => {
     e.stopPropagation();
+    playSound('cardFlip');
     setIsFlipped(!isFlipped);
   };
 
