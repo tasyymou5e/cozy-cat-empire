@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      cat_gifts: {
+        Row: {
+          cat_data: Json
+          created_at: string | null
+          id: string
+          message: string | null
+          recipient_id: string
+          sender_id: string
+          status: string | null
+        }
+        Insert: {
+          cat_data: Json
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          recipient_id: string
+          sender_id: string
+          status?: string | null
+        }
+        Update: {
+          cat_data?: Json
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          recipient_id?: string
+          sender_id?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
       game_saves: {
         Row: {
           created_at: string | null
@@ -165,6 +195,54 @@ export type Database = {
           id?: string
           updated_at?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      trade_offers: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          message: string | null
+          offered_cats: Json | null
+          offered_money: number | null
+          offered_resources: Json | null
+          recipient_id: string
+          requested_cats: Json | null
+          requested_money: number | null
+          requested_resources: Json | null
+          sender_id: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          offered_cats?: Json | null
+          offered_money?: number | null
+          offered_resources?: Json | null
+          recipient_id: string
+          requested_cats?: Json | null
+          requested_money?: number | null
+          requested_resources?: Json | null
+          sender_id: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          offered_cats?: Json | null
+          offered_money?: number | null
+          offered_resources?: Json | null
+          recipient_id?: string
+          requested_cats?: Json | null
+          requested_money?: number | null
+          requested_resources?: Json | null
+          sender_id?: string
+          status?: string | null
         }
         Relationships: []
       }

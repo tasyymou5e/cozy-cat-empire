@@ -1,3 +1,4 @@
+import React from 'react';
 import { GameState, HOUSE_UPGRADES } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
 import { ShowTier, getSeason, SEASONS, getCurrentSeasonalEvent, getSpecialEvent } from '@/types/showEvents';
@@ -20,7 +21,8 @@ const houseEmojis = {
   farm: '🌾',
 };
 
-export function StatusBar({ state, onUpgrade, onCatShow, relationships = [] }: StatusBarProps) {
+export const StatusBar = React.forwardRef<HTMLDivElement, StatusBarProps>(
+  function StatusBar({ state, onUpgrade, onCatShow, relationships = [] }, ref) {
   let nextCost: number;
   let canUpgrade: boolean;
   
@@ -135,4 +137,6 @@ export function StatusBar({ state, onUpgrade, onCatShow, relationships = [] }: S
       </div>
     </div>
   );
-}
+});
+
+StatusBar.displayName = 'StatusBar';

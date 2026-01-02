@@ -34,11 +34,14 @@ import { GlobalLeaderboardPanel } from './GlobalLeaderboardPanel';
 import { FriendsPanel } from './FriendsPanel';
 import { PlayerProfilePanel } from './PlayerProfilePanel';
 import { CostumeShopPanel } from './CostumeShopPanel';
+import { CatGiftingPanel } from './CatGiftingPanel';
+import { TradingPanel } from './TradingPanel';
+import { NotificationCenter } from './NotificationCenter';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight } from 'lucide-react';
 
 const MOOD_LABELS = {
   morning: '🌅 Morning',
