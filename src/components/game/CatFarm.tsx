@@ -19,7 +19,9 @@ import { RelationshipAnimations } from './RelationshipAnimations';
 import { CatCard } from './CatCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Volume2, VolumeX, Music, Music2 } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Volume2, VolumeX, Music, Music2, Settings2 } from 'lucide-react';
 
 const MOOD_LABELS = {
   morning: '🌅 Morning',
@@ -32,8 +34,8 @@ const MOOD_LABELS = {
 
 export function CatFarm() {
   const { 
-    playSound, setEnabled, isEnabled, 
-    startMusic, stopMusic, isMusicPlaying, 
+    playSound, setEnabled, isEnabled, setVolume, getVolume,
+    startMusic, stopMusic, isMusicPlaying, setMusicVolume,
     updateMusicForDay, getCurrentMood, triggerCelebration, triggerTense 
   } = useSoundEffects();
   const { state, message, messageType, kittensBreed, relationshipSystem, actions } = useGameState(playSound);
@@ -41,6 +43,8 @@ export function CatFarm() {
   const [soundOn, setSoundOn] = useState(true);
   const [musicOn, setMusicOn] = useState(false);
   const [currentMoodLabel, setCurrentMoodLabel] = useState('');
+  const [sfxVolume, setSfxVolume] = useState(50);
+  const [musicVolume, setMusicVolumeState] = useState(40);
 
   // Update music mood when day changes
   useEffect(() => {
@@ -89,6 +93,18 @@ export function CatFarm() {
     }
   };
 
+  const handleSfxVolumeChange = (value: number[]) => {
+    const vol = value[0];
+    setSfxVolume(vol);
+    setVolume(vol / 100);
+  };
+
+  const handleMusicVolumeChange = (value: number[]) => {
+    const vol = value[0];
+    setMusicVolumeState(vol);
+    setMusicVolume((vol / 100) * 0.3); // Scale to max 0.3
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <RelationshipAnimations events={relationshipSystem.events} lastEventId={relationshipSystem.lastEventId} />
@@ -102,6 +118,47 @@ export function CatFarm() {
           {musicOn && currentMoodLabel && (
             <span className="text-xs text-muted-foreground hidden sm:inline">{currentMoodLabel}</span>
           )}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" title="Audio settings">
+                <Settings2 className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64" align="end">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Volume2 className="h-4 w-4" /> Sound Effects
+                    </label>
+                    <span className="text-xs text-muted-foreground">{sfxVolume}%</span>
+                  </div>
+                  <Slider
+                    value={[sfxVolume]}
+                    onValueChange={handleSfxVolumeChange}
+                    max={100}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Music className="h-4 w-4" /> Music
+                    </label>
+                    <span className="text-xs text-muted-foreground">{musicVolume}%</span>
+                  </div>
+                  <Slider
+                    value={[musicVolume]}
+                    onValueChange={handleMusicVolumeChange}
+                    max={100}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
           <Button variant="ghost" size="sm" onClick={toggleMusic} title={musicOn ? "Stop music" : "Play ambient music"}>
             {musicOn ? <Music2 className="h-4 w-4 text-primary" /> : <Music className="h-4 w-4" />}
           </Button>
