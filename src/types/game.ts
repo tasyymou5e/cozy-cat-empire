@@ -1,3 +1,5 @@
+import { TrickId } from './grading';
+
 export type CatBreed = 'stray' | 'tabby' | 'persian' | 'siamese' | 'maine-coon' | 'british-shorthair' | 'ragdoll' | 'bengal';
 export type CatPersonality = 'lazy' | 'playful' | 'affectionate' | 'independent' | 'curious' | 'shy';
 
@@ -14,6 +16,13 @@ export interface Cat {
   personality: CatPersonality;
   showWins: number;
   isForSale: boolean;
+  // Grading system
+  grade: number; // 1-20
+  tricksLearned: TrickId[];
+  trickProgress: Record<TrickId, number>; // 0-100 for each trick
+  restLevel: number; // 0-100
+  feedingScore: number; // Cumulative feeding contribution
+  lastTrainingDay: number;
 }
 
 export interface Resources {
