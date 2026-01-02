@@ -13,6 +13,7 @@ import { SocializePanel } from './SocializePanel';
 import { RelationshipPanel } from './RelationshipPanel';
 import { MatchmakingPanel } from './MatchmakingPanel';
 import { GroupActivitiesPanel } from './GroupActivitiesPanel';
+import { TrainingPanel } from './TrainingPanel';
 import { CatCard } from './CatCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,38 +26,23 @@ export function CatFarm() {
     <div className="min-h-screen bg-background">
       <header className="game-header">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-            🐱 Cat Farm
-          </h1>
-          <span className="text-xs text-muted-foreground hidden sm:inline">
-            Build your 100-acre cat empire!
-          </span>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">🐱 Cat Farm</h1>
+          <span className="text-xs text-muted-foreground hidden sm:inline">Build your 100-acre cat empire!</span>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={actions.saveGame}>
-            💾
-          </Button>
-          <Button variant="ghost" size="sm" onClick={actions.resetGame}>
-            New Game
-          </Button>
+          <Button variant="ghost" size="sm" onClick={actions.saveGame}>💾</Button>
+          <Button variant="ghost" size="sm" onClick={actions.resetGame}>New Game</Button>
         </div>
       </header>
 
-      <StatusBar 
-        state={state} 
-        onUpgrade={actions.upgradeHouse}
-        onCatShow={actions.catShow}
-        relationships={relationshipSystem.relationships}
-      />
+      <StatusBar state={state} onUpgrade={actions.upgradeHouse} onCatShow={actions.catShow} relationships={relationshipSystem.relationships} />
       <MessageBar message={message} type={messageType} />
 
       <main className="game-main">
         <section className="cat-grid-section">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-foreground">Your Cats</h2>
-            <span className="text-sm text-muted-foreground">
-              {state.cats.length} / {state.space} capacity
-            </span>
+            <span className="text-sm text-muted-foreground">{state.cats.length} / {state.space} capacity</span>
           </div>
           
           {state.cats.length === 0 ? (
@@ -68,14 +54,8 @@ export function CatFarm() {
           ) : (
             <div className="cat-grid">
               {state.cats.map(cat => (
-                <CatCard 
-                  key={cat.id} 
-                  cat={cat} 
-                  onSell={actions.sellCat}
-                  onHeal={actions.useMedicine}
-                  relationships={relationshipSystem.relationships}
-                  allCats={state.cats}
-                />
+                <CatCard key={cat.id} cat={cat} onSell={actions.sellCat} onHeal={actions.useMedicine}
+                  relationships={relationshipSystem.relationships} allCats={state.cats} />
               ))}
             </div>
           )}
@@ -83,107 +63,51 @@ export function CatFarm() {
 
         <aside className="action-sidebar">
           <Tabs value={sideTab} onValueChange={setSideTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-7 mb-4">
+            <TabsList className="grid w-full grid-cols-8 mb-4">
               <TabsTrigger value="actions" className="text-xs">🐾</TabsTrigger>
               <TabsTrigger value="chores" className="text-xs">🧹</TabsTrigger>
               <TabsTrigger value="supplies" className="text-xs">📦</TabsTrigger>
               <TabsTrigger value="market" className="text-xs">🛒</TabsTrigger>
               <TabsTrigger value="breeding" className="text-xs">💕</TabsTrigger>
+              <TabsTrigger value="training" className="text-xs">💪</TabsTrigger>
               <TabsTrigger value="social" className="text-xs">🤝</TabsTrigger>
               <TabsTrigger value="more" className="text-xs">⚙️</TabsTrigger>
             </TabsList>
             
             <TabsContent value="actions" className="mt-0">
-              <ActionPanel
-                onAddCat={actions.addCat}
-                onNextDay={actions.nextDay}
-                money={state.money}
-                space={state.space}
-                catCount={state.cats.length}
-              />
+              <ActionPanel onAddCat={actions.addCat} onNextDay={actions.nextDay} money={state.money} space={state.space} catCount={state.cats.length} />
             </TabsContent>
-            
-            <TabsContent value="chores" className="mt-0">
-              <ChorePanel onDoChore={actions.doChore} />
-            </TabsContent>
-            
+            <TabsContent value="chores" className="mt-0"><ChorePanel onDoChore={actions.doChore} /></TabsContent>
             <TabsContent value="supplies" className="mt-0">
-              <ResourcePanel
-                resources={state.resources}
-                money={state.money}
-                catCount={state.cats.length}
-                onBuyResource={actions.buyResource}
-                onFeedCats={actions.feedCats}
-                onUseToys={actions.useToys}
-              />
+              <ResourcePanel resources={state.resources} money={state.money} catCount={state.cats.length}
+                onBuyResource={actions.buyResource} onFeedCats={actions.feedCats} onUseToys={actions.useToys} />
             </TabsContent>
-            
             <TabsContent value="market" className="mt-0">
-              <MarketPanel
-                listings={state.marketListings}
-                money={state.money}
-                hasSpace={state.cats.length < state.space}
-                onBuy={actions.buyFromMarket}
-              />
+              <MarketPanel listings={state.marketListings} money={state.money} hasSpace={state.cats.length < state.space} onBuy={actions.buyFromMarket} />
             </TabsContent>
-            
             <TabsContent value="breeding" className="mt-0">
-              <BreedingPanel
-                cats={state.cats}
-                cooldown={state.breedingCooldown}
-                hasSpace={state.cats.length < state.space}
-                onBreed={actions.breedCats}
-                getBreedingCompatibility={relationshipSystem.getBreedingCompatibility}
-              />
+              <BreedingPanel cats={state.cats} cooldown={state.breedingCooldown} hasSpace={state.cats.length < state.space}
+                onBreed={actions.breedCats} getBreedingCompatibility={relationshipSystem.getBreedingCompatibility} />
             </TabsContent>
-
+            <TabsContent value="training" className="mt-0">
+              <TrainingPanel cats={state.cats} treats={state.resources.treats} toys={state.resources.toys}
+                day={state.day} onTrain={actions.trainCat} onRest={actions.restCat} />
+            </TabsContent>
             <TabsContent value="social" className="mt-0 space-y-4">
-              <SocializePanel
-                cats={state.cats}
-                treats={state.resources.treats}
-                getRelationship={relationshipSystem.getRelationship}
-                onSocialize={actions.socializeCats}
-              />
-              <MatchmakingPanel
-                cats={state.cats}
-                relationships={relationshipSystem.relationships}
-                onSocialize={actions.socializeCats}
-                treats={state.resources.treats}
-              />
-              <GroupActivitiesPanel
-                cats={state.cats}
-                groups={relationshipSystem.groups}
-                treats={state.resources.treats}
-                toys={state.resources.toys}
-                onGroupActivity={actions.doGroupActivity}
-              />
-              <RelationshipPanel
-                cats={state.cats}
-                relationships={relationshipSystem.relationships}
-                groups={relationshipSystem.groups}
-                events={relationshipSystem.events}
-              />
+              <SocializePanel cats={state.cats} treats={state.resources.treats}
+                getRelationship={relationshipSystem.getRelationship} onSocialize={actions.socializeCats} />
+              <MatchmakingPanel cats={state.cats} relationships={relationshipSystem.relationships}
+                onSocialize={actions.socializeCats} treats={state.resources.treats} />
+              <GroupActivitiesPanel cats={state.cats} groups={relationshipSystem.groups}
+                treats={state.resources.treats} toys={state.resources.toys} onGroupActivity={actions.doGroupActivity} />
+              <RelationshipPanel cats={state.cats} relationships={relationshipSystem.relationships}
+                groups={relationshipSystem.groups} events={relationshipSystem.events} />
             </TabsContent>
-            
             <TabsContent value="more" className="mt-0 space-y-4">
-              <AchievementsPanel 
-                achievements={state.achievements}
-                currentStats={{
-                  cats: state.cats.length,
-                  showWins: state.totalShowWins,
-                  money: state.totalMoneyEarned,
-                  breeding: kittensBreed,
-                  house: state.houseSize !== 'apartment',
-                  farm: state.houseSize === 'farm',
-                  acres: state.acres,
-                }}
-              />
-              <SaveLoadPanel
-                onSave={actions.saveGame}
-                onLoad={actions.loadGame}
-                hasSave={actions.hasSaveGame()}
-                lastSaveDay={actions.getSaveDay()}
-              />
+              <AchievementsPanel achievements={state.achievements}
+                currentStats={{ cats: state.cats.length, showWins: state.totalShowWins, money: state.totalMoneyEarned,
+                  breeding: kittensBreed, house: state.houseSize !== 'apartment', farm: state.houseSize === 'farm', acres: state.acres }} />
+              <SaveLoadPanel onSave={actions.saveGame} onLoad={actions.loadGame} hasSave={actions.hasSaveGame()} lastSaveDay={actions.getSaveDay()} />
             </TabsContent>
           </Tabs>
         </aside>

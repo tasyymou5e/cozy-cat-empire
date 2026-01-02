@@ -4,9 +4,14 @@ import {
   CAT_COSTS, HOUSE_UPGRADES, CatBreed, MarketListing, Achievement, ACHIEVEMENT_DEFS 
 } from '@/types/game';
 import { useRelationships } from './useRelationships';
+import { generateRandomGrade, TrickId, TRICKS } from '@/types/grading';
 
 const SAVE_KEY = 'cat-farm-save';
 const generateId = () => Math.random().toString(36).substr(2, 9);
+
+const createDefaultTrickProgress = (): Record<TrickId, number> => ({
+  sit: 0, paw: 0, rollOver: 0, jump: 0, fetch: 0
+});
 
 const getRandomBreed = (type: Cat['type']): CatBreed => {
   if (type === 'stray') return 'stray';
@@ -52,6 +57,12 @@ function generateMarketListings(): MarketListing[] {
         personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],
         showWins: 0,
         isForSale: false,
+        grade: generateRandomGrade(),
+        tricksLearned: [],
+        trickProgress: createDefaultTrickProgress(),
+        restLevel: 70 + Math.floor(Math.random() * 30),
+        feedingScore: 0,
+        lastTrainingDay: 0,
       },
       price: baseValue + 50 + Math.floor(Math.random() * 150),
       seller: sellers[Math.floor(Math.random() * sellers.length)],
@@ -181,6 +192,12 @@ export function useGameState() {
         personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],
         showWins: 0,
         isForSale: false,
+        grade: generateRandomGrade(),
+        tricksLearned: [],
+        trickProgress: createDefaultTrickProgress(),
+        restLevel: 100,
+        feedingScore: 0,
+        lastTrainingDay: 0,
       };
       
       showMessage(`Welcome ${name} the ${BREEDS[breed].name}! 🎉`, 'success');
@@ -592,6 +609,11 @@ export function useGameState() {
       const healthBonus = Math.floor(compatibility.bonus / 2);
       const happinessBonus = Math.floor(compatibility.bonus / 2);
 
+      // Kitten grade based on parent average with variance
+      const parentAvgGrade = Math.floor((parent1.grade + parent2.grade) / 2);
+      const gradeVariance = Math.floor(Math.random() * 5) - 2; // -2 to +2
+      const kittenGrade = Math.max(1, Math.min(20, parentAvgGrade + gradeVariance + Math.floor(compatibility.bonus / 10)));
+
       const kitten: Cat = {
         id: generateId(),
         type: 'pure',
@@ -605,6 +627,12 @@ export function useGameState() {
         personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],
         showWins: 0,
         isForSale: false,
+        grade: kittenGrade,
+        tricksLearned: [],
+        trickProgress: createDefaultTrickProgress(),
+        restLevel: 100,
+        feedingScore: 0,
+        lastTrainingDay: 0,
       };
 
       // Breeding improves parent relationship
@@ -737,6 +765,94 @@ export function useGameState() {
     });
   }, [relationshipSystem]);
 
+  // Train a cat on a trick
+  const trainCat = useCallback((catId: string, trickId: TrickId) => {
+    setState(prev => {
+      if (prev.resources.treats < 1 || prev.resources.toys < 1) {
+        showMessage("Need 1 treat and 1 toy to train! 🎾", 'warning');
+        return prev;
+      }
+
+      const cat = prev.cats.find(c => c.id === catId);
+      if (!cat) return prev;
+
+      if (cat.lastTrainingDay >= prev.day) {
+        showMessage(`${cat.name} already trained today! Try tomorrow.`, 'warning');
+        return prev;
+      }
+
+      const trick = TRICKS.find(t => t.id === trickId);
+      if (!trick) return prev;
+
+      // Calculate progress gain (20-40 based on rest level)
+      const restBonus = cat.restLevel >= 80 ? 10 : 0;
+      const progressGain = 20 + Math.floor(Math.random() * 20) + restBonus;
+      const newProgress = Math.min(100, (cat.trickProgress[trickId] || 0) + progressGain);
+      const learned = newProgress >= 100;
+
+      const newTrickProgress = { ...cat.trickProgress, [trickId]: newProgress };
+      const newTricksLearned = learned && !cat.tricksLearned.includes(trickId)
+        ? [...cat.tricksLearned, trickId]
+        : cat.tricksLearned;
+
+      // Calculate grade bonus from tricks
+      let gradeBonus = 0;
+      if (learned && !cat.tricksLearned.includes(trickId)) {
+        gradeBonus = trick.gradeBonus;
+        showMessage(`🎉 ${cat.name} learned ${trick.name}! (+${gradeBonus} grade)`, 'success');
+      } else {
+        showMessage(`${cat.name} practiced ${trick.name}! (${newProgress}% progress)`, 'info');
+      }
+
+      return {
+        ...prev,
+        resources: {
+          ...prev.resources,
+          treats: prev.resources.treats - 1,
+          toys: prev.resources.toys - 1,
+        },
+        cats: prev.cats.map(c => {
+          if (c.id !== catId) return c;
+          return {
+            ...c,
+            trickProgress: newTrickProgress,
+            tricksLearned: newTricksLearned,
+            grade: Math.min(20, c.grade + gradeBonus),
+            restLevel: Math.max(0, c.restLevel - 10),
+            lastTrainingDay: prev.day,
+          };
+        }),
+      };
+    });
+  }, []);
+
+  // Rest a cat
+  const restCat = useCallback((catId: string) => {
+    setState(prev => {
+      const cat = prev.cats.find(c => c.id === catId);
+      if (!cat) return prev;
+
+      const restGain = 20;
+      const newRest = Math.min(100, cat.restLevel + restGain);
+      const gradeBonus = newRest >= 80 && cat.restLevel < 80 ? 0.25 : 0;
+
+      showMessage(`${cat.name} is resting... 😴`, 'info');
+
+      return {
+        ...prev,
+        cats: prev.cats.map(c => {
+          if (c.id !== catId) return c;
+          return {
+            ...c,
+            restLevel: newRest,
+            grade: Math.min(20, c.grade + gradeBonus),
+            happiness: Math.min(100, c.happiness + 5),
+          };
+        }),
+      };
+    });
+  }, []);
+
   return {
     state,
     message,
@@ -759,6 +875,8 @@ export function useGameState() {
       breedCats,
       socializeCats,
       doGroupActivity,
+      trainCat,
+      restCat,
       saveGame,
       loadGame,
       hasSaveGame,
