@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useSoundEffects, SoundType } from '@/hooks/useSoundEffects';
+import { useSoundEffects, SoundType, MusicMood } from '@/hooks/useSoundEffects';
 
 interface SoundContextType {
   playSound: (type: SoundType) => void;
@@ -7,10 +7,15 @@ interface SoundContextType {
   setVolume: (volume: number) => void;
   isEnabled: () => boolean;
   getVolume: () => number;
-  startMusic: () => void;
+  startMusic: (mood?: MusicMood) => void;
   stopMusic: () => void;
   setMusicVolume: (volume: number) => void;
   isMusicPlaying: () => boolean;
+  setMusicMood: (mood: MusicMood) => void;
+  getCurrentMood: () => MusicMood;
+  updateMusicForDay: (day: number) => void;
+  triggerCelebration: () => void;
+  triggerTense: () => void;
 }
 
 const SoundContext = createContext<SoundContextType | null>(null);
