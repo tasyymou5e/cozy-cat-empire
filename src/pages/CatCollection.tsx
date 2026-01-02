@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/useGameState';
-import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useSound } from '@/contexts/SoundContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
@@ -19,7 +19,7 @@ type FilterBreed = CatBreed | 'all';
 type FilterTier = 'all' | 'common' | 'uncommon' | 'rare' | 'veryRare' | 'ultraRare';
 
 export default function CatCollection() {
-  const { playSound } = useSoundEffects();
+  const { playSound } = useSound();
   const { state, relationshipSystem, actions } = useGameState(playSound);
   const isMobile = useIsMobile();
   const { user } = useAuth();
