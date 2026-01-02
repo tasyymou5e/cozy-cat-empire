@@ -5,12 +5,23 @@ import { useChallengeAchievements } from '@/hooks/useChallengeAchievements';
 import type { ChallengeWithProgress, ChallengeType, WeeklyChallenge, PlayerChallengeProgress } from '@/types/challenges';
 import type { SoundType } from '@/hooks/useSoundEffects';
 
-export function useWeeklyChallenges(userId: string | undefined, playSound?: (type: SoundType) => void) {
+interface HapticFunctions {
+  vibrateProgress: () => void;
+  vibrateComplete: () => void;
+  vibrateAchievement: () => void;
+}
+
+export function useWeeklyChallenges(
+  userId: string | undefined, 
+  playSound?: (type: SoundType) => void,
+  fireChallengeBurst?: () => void,
+  haptics?: HapticFunctions
+) {
   const [challenges, setChallenges] = useState<ChallengeWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastProgressUpdate, setLastProgressUpdate] = useState<{ type: ChallengeType; value: number } | null>(null);
   
-  const { totalChallengesCompleted, incrementCompleted } = useChallengeAchievements(userId, playSound);
+  const { totalChallengesCompleted, currentStreak, longestStreak, incrementCompleted } = useChallengeAchievements(userId, playSound, haptics?.vibrateAchievement);
 
   const fetchChallenges = useCallback(async () => {
     if (!userId) {
@@ -146,6 +157,8 @@ export function useWeeklyChallenges(userId: string | undefined, playSound?: (typ
 
       if (isCompleted) {
         playSound?.('challengeComplete');
+        fireChallengeBurst?.();
+        haptics?.vibrateComplete();
         toast({
           title: `${challenge.emoji} Challenge Complete!`,
           description: `You completed "${challenge.name}"! Claim your reward!`,
@@ -156,6 +169,7 @@ export function useWeeklyChallenges(userId: string | undefined, playSound?: (typ
     // Trigger animation and sound if progress was made
     if (progressMade) {
       playSound?.('challengeProgress');
+      haptics?.vibrateProgress();
       setLastProgressUpdate({ type: challengeType, value: increment });
     }
 
@@ -197,7 +211,7 @@ export function useWeeklyChallenges(userId: string | undefined, playSound?: (typ
 
     fetchChallenges();
     return { coins: challenge.reward_coins, badge: challenge.reward_badge };
-  }, [userId, challenges, fetchChallenges, incrementCompleted]);
+  }, [userId, challenges, fetchChallenges, incrementCompleted, playSound]);
 
   const getTimeRemaining = useCallback(() => {
     if (challenges.length === 0) return null;
@@ -226,6 +240,8 @@ export function useWeeklyChallenges(userId: string | undefined, playSound?: (typ
     refetch: fetchChallenges,
     lastProgressUpdate,
     clearProgressUpdate: () => setLastProgressUpdate(null),
-    totalChallengesCompleted
+    totalChallengesCompleted,
+    currentStreak,
+    longestStreak
   };
 }

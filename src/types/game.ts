@@ -140,6 +140,10 @@ export const ACHIEVEMENT_DEFS = [
   { id: 'challenge_starter', name: 'Challenge Starter', description: 'Complete 5 weekly challenges', target: 5, type: 'challengesCompleted' },
   { id: 'challenge_master', name: 'Challenge Master', description: 'Complete 10 weekly challenges', target: 10, type: 'challengesCompleted' },
   { id: 'challenge_legend', name: 'Challenge Legend', description: 'Complete 25 weekly challenges', target: 25, type: 'challengesCompleted' },
+  // Streak achievements
+  { id: 'streak_warrior', name: 'Streak Warrior', description: 'Maintain a 3-week challenge streak', target: 3, type: 'streak' },
+  { id: 'streak_champion', name: 'Streak Champion', description: 'Maintain a 5-week challenge streak', target: 5, type: 'streak' },
+  { id: 'streak_legend', name: 'Streak Legend', description: 'Maintain a 10-week challenge streak', target: 10, type: 'streak' },
 ] as const;
 
 export type AchievementType = typeof ACHIEVEMENT_DEFS[number]['type'];

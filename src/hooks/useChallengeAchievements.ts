@@ -1,30 +1,40 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import type { SoundType } from '@/hooks/useSoundEffects';
 
 interface ChallengeStats {
   totalCompleted: number;
+  currentStreak: number;
+  longestStreak: number;
   loading: boolean;
 }
 
 const ACHIEVEMENT_MILESTONES = [5, 10, 25];
+const STREAK_MILESTONES = [3, 5, 10];
 
-export function useChallengeAchievements(userId: string | undefined, playSound?: (type: SoundType) => void) {
+export function useChallengeAchievements(
+  userId: string | undefined, 
+  playSound?: (type: SoundType) => void,
+  vibrateAchievement?: () => void
+) {
   const [stats, setStats] = useState<ChallengeStats>({
     totalCompleted: 0,
+    currentStreak: 0,
+    longestStreak: 0,
     loading: true
   });
 
   const fetchStats = useCallback(async () => {
     if (!userId) {
-      setStats({ totalCompleted: 0, loading: false });
+      setStats({ totalCompleted: 0, currentStreak: 0, longestStreak: 0, loading: false });
       return;
     }
 
     try {
       const { data, error } = await supabase
         .from('player_challenge_stats')
-        .select('total_challenges_completed')
+        .select('total_challenges_completed, current_streak, longest_streak')
         .eq('user_id', userId)
         .maybeSingle();
 
@@ -32,11 +42,13 @@ export function useChallengeAchievements(userId: string | undefined, playSound?:
 
       setStats({
         totalCompleted: data?.total_challenges_completed || 0,
+        currentStreak: data?.current_streak || 0,
+        longestStreak: data?.longest_streak || 0,
         loading: false
       });
     } catch (error) {
       console.error('Error fetching challenge stats:', error);
-      setStats({ totalCompleted: 0, loading: false });
+      setStats({ totalCompleted: 0, currentStreak: 0, longestStreak: 0, loading: false });
     }
   }, [userId]);
 
@@ -48,21 +60,39 @@ export function useChallengeAchievements(userId: string | undefined, playSound?:
     if (!userId) return;
 
     try {
-      // Upsert the stats
+      // Get existing stats including streak data
       const { data: existing } = await supabase
         .from('player_challenge_stats')
-        .select('id, total_challenges_completed')
+        .select('id, total_challenges_completed, current_streak, longest_streak, last_week_completed')
         .eq('user_id', userId)
         .maybeSingle();
 
       const previousTotal = existing?.total_challenges_completed || 0;
       const newTotal = previousTotal + 1;
 
+      // Streak logic
+      const now = new Date();
+      const lastWeek = existing?.last_week_completed ? new Date(existing.last_week_completed) : null;
+      
+      // Check if this is a consecutive week (within 14 days of last completion)
+      let newStreak = 1;
+      if (lastWeek) {
+        const daysSinceLast = Math.floor((now.getTime() - lastWeek.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysSinceLast <= 14) {
+          newStreak = (existing?.current_streak || 0) + 1;
+        }
+      }
+      
+      const longestStreak = Math.max(newStreak, existing?.longest_streak || 0);
+
       if (existing) {
         await supabase
           .from('player_challenge_stats')
           .update({ 
-            total_challenges_completed: newTotal 
+            total_challenges_completed: newTotal,
+            current_streak: newStreak,
+            longest_streak: longestStreak,
+            last_week_completed: now.toISOString()
           })
           .eq('id', existing.id);
       } else {
@@ -70,13 +100,27 @@ export function useChallengeAchievements(userId: string | undefined, playSound?:
           .from('player_challenge_stats')
           .insert({ 
             user_id: userId, 
-            total_challenges_completed: 1 
+            total_challenges_completed: 1,
+            current_streak: 1,
+            longest_streak: 1,
+            last_week_completed: now.toISOString()
           });
       }
 
-      // Check if milestone reached and play achievement sound
+      // Check if challenge count milestone reached
       if (ACHIEVEMENT_MILESTONES.includes(newTotal)) {
         playSound?.('achievement');
+        vibrateAchievement?.();
+      }
+
+      // Check if streak milestone reached
+      if (STREAK_MILESTONES.includes(newStreak)) {
+        playSound?.('achievement');
+        vibrateAchievement?.();
+        toast({
+          title: `🔥 ${newStreak} Week Streak!`,
+          description: `Amazing dedication! You've completed challenges for ${newStreak} weeks in a row!`,
+        });
       }
 
       // Refresh stats
@@ -84,10 +128,12 @@ export function useChallengeAchievements(userId: string | undefined, playSound?:
     } catch (error) {
       console.error('Error incrementing challenge stats:', error);
     }
-  }, [userId, fetchStats]);
+  }, [userId, fetchStats, playSound, vibrateAchievement]);
 
   return {
     totalChallengesCompleted: stats.totalCompleted,
+    currentStreak: stats.currentStreak,
+    longestStreak: stats.longestStreak,
     loading: stats.loading,
     incrementCompleted,
     refetch: fetchStats

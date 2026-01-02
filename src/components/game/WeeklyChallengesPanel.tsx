@@ -17,6 +17,8 @@ interface WeeklyChallengesPanelProps {
   lastProgressUpdate?: { type: ChallengeType; value: number } | null;
   onProgressAnimationComplete?: () => void;
   totalChallengesCompleted?: number;
+  currentStreak?: number;
+  longestStreak?: number;
 }
 
 const difficultyColors: Record<ChallengeDifficulty, string> = {
@@ -40,7 +42,9 @@ export function WeeklyChallengesPanel({
   onRewardClaimed,
   lastProgressUpdate,
   onProgressAnimationComplete,
-  totalChallengesCompleted = 0
+  totalChallengesCompleted = 0,
+  currentStreak = 0,
+  longestStreak = 0
 }: WeeklyChallengesPanelProps) {
   const { animations, triggerAnimation, clearAnimation } = useProgressAnimations();
 
@@ -117,6 +121,26 @@ export function WeeklyChallengesPanel({
           )}
         </div>
         
+        {/* Streak Display */}
+        {currentStreak > 0 && (
+          <div className="mt-3 p-3 rounded-lg bg-orange-500/10 border border-orange-500/30">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🔥</span>
+                <div>
+                  <span className="font-bold text-orange-400">{currentStreak}</span>
+                  <span className="text-sm text-muted-foreground ml-1">week streak</span>
+                </div>
+              </div>
+              {longestStreak > currentStreak && (
+                <Badge variant="outline" className="text-xs border-orange-500/30 text-orange-400">
+                  Best: {longestStreak}
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Challenge Achievement Progress */}
         <div className="mt-3 p-3 rounded-lg bg-muted/30 border border-border/30">
           <div className="flex items-center justify-between mb-2">
