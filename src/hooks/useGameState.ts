@@ -979,6 +979,26 @@ export function useGameState(playSound?: (type: SoundType) => void) {
     setCurrentDailyEvent(null);
   }, []);
 
+  // Add received cat from gift or trade
+  const addReceivedCat = useCallback((cat: Cat) => {
+    setState(prev => {
+      if (prev.cats.length >= prev.space) {
+        showMessage("No space for this cat!", 'error');
+        return prev;
+      }
+      
+      // Give cat a new ID to avoid conflicts
+      const newCat = { ...cat, id: Date.now().toString() + Math.random().toString(36).slice(2) };
+      showMessage(`${cat.name} has joined your family! 🎁`, 'success');
+      playSound?.('success');
+      
+      return {
+        ...prev,
+        cats: [...prev.cats, newCat],
+      };
+    });
+  }, [playSound]);
+
   return {
     state, message, messageType, kittensBreed, relationshipSystem, currentDailyEvent,
     actions: {
@@ -986,6 +1006,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
       catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
       doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
       comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
+      addReceivedCat,
     },
   };
 }
