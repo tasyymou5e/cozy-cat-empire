@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { logAuthAttempt } from '@/hooks/useAdminActivityLog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -30,10 +31,23 @@ export default function AdminAuth() {
     if (adminLoading) return;
     
     if (user && isAdmin) {
-      // Admin verified, redirect to home (or admin dashboard later)
-      navigate('/');
+      // Log successful admin login
+      logAuthAttempt({
+        email: user.email || 'unknown',
+        attemptType: 'admin_login',
+        success: true,
+        userId: user.id,
+      });
+      navigate('/catking/dashboard');
     } else if (user && !isAdmin) {
-      // User logged in but not admin
+      // Log access denied
+      logAuthAttempt({
+        email: user.email || 'unknown',
+        attemptType: 'access_denied',
+        success: false,
+        userId: user.id,
+        errorMessage: 'User does not have admin role',
+      });
       setAccessDenied(true);
       signOut();
     }
@@ -50,6 +64,13 @@ export default function AdminAuth() {
       const { error: signInError } = await signIn(validated.email, validated.password);
       
       if (signInError) {
+        // Log failed login attempt
+        await logAuthAttempt({
+          email: validated.email,
+          attemptType: 'admin_login_failed',
+          success: false,
+          errorMessage: signInError.message,
+        });
         setError(signInError.message);
       }
       // Admin check happens in useEffect after auth state changes
@@ -57,6 +78,12 @@ export default function AdminAuth() {
       if (err instanceof z.ZodError) {
         setError(err.errors[0].message);
       } else {
+        await logAuthAttempt({
+          email,
+          attemptType: 'admin_login_failed',
+          success: false,
+          errorMessage: 'Unexpected error during login',
+        });
         setError('An unexpected error occurred');
       }
     } finally {
