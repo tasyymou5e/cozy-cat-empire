@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Cat, BREEDS } from '@/types/game';
+import { getRelationshipEmoji, getRelationshipColor } from '@/types/relationships';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -15,14 +16,25 @@ interface BreedingPanelProps {
   cooldown: number;
   hasSpace: boolean;
   onBreed: (cat1Id: string, cat2Id: string) => void;
+  getBreedingCompatibility?: (cat1Id: string, cat2Id: string) => {
+    canBreed: boolean;
+    bonus: number;
+    message: string;
+  };
 }
 
-export function BreedingPanel({ cats, cooldown, hasSpace, onBreed }: BreedingPanelProps) {
+export function BreedingPanel({ cats, cooldown, hasSpace, onBreed, getBreedingCompatibility }: BreedingPanelProps) {
   const [parent1, setParent1] = useState<string>('');
   const [parent2, setParent2] = useState<string>('');
 
   const eligibleCats = cats.filter(c => c.health >= 60 && c.age >= 1);
-  const canBreed = cooldown === 0 && parent1 && parent2 && parent1 !== parent2 && hasSpace;
+  
+  const compatibility = parent1 && parent2 && parent1 !== parent2 && getBreedingCompatibility
+    ? getBreedingCompatibility(parent1, parent2)
+    : null;
+
+  const canBreed = cooldown === 0 && parent1 && parent2 && parent1 !== parent2 && hasSpace && 
+    (compatibility?.canBreed !== false);
 
   const handleBreed = () => {
     if (canBreed) {
@@ -84,12 +96,28 @@ export function BreedingPanel({ cats, cooldown, hasSpace, onBreed }: BreedingPan
               </Select>
             </div>
 
+            {compatibility && (
+              <div className={`text-sm p-2 rounded-lg ${
+                compatibility.bonus > 0 ? 'bg-green-50 text-green-700 border border-green-200' :
+                compatibility.bonus < 0 ? 'bg-red-50 text-red-700 border border-red-200' :
+                'bg-secondary/50 text-muted-foreground'
+              }`}>
+                <span className="mr-2">
+                  {compatibility.bonus > 0 ? '💕' : compatibility.bonus < 0 ? '😾' : '😐'}
+                </span>
+                {compatibility.message}
+              </div>
+            )}
+
             <Button 
               onClick={handleBreed} 
               disabled={!canBreed}
               className="w-full"
             >
-              {!hasSpace ? '🏠 No Space' : cooldown > 0 ? '⏳ Cooling Down' : '💕 Breed Cats'}
+              {!hasSpace ? '🏠 No Space' : 
+               cooldown > 0 ? '⏳ Cooling Down' : 
+               compatibility && !compatibility.canBreed ? '💔 Cannot Breed' :
+               '💕 Breed Cats'}
             </Button>
           </>
         )}

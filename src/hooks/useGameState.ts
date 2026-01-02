@@ -3,6 +3,7 @@ import {
   Cat, GameState, CAT_NAMES, BREEDS, PERSONALITIES, 
   CAT_COSTS, HOUSE_UPGRADES, CatBreed, MarketListing, Achievement, ACHIEVEMENT_DEFS 
 } from '@/types/game';
+import { useRelationships } from './useRelationships';
 
 const SAVE_KEY = 'cat-farm-save';
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -82,6 +83,8 @@ export function useGameState() {
   const [message, setMessage] = useState<string>('Welcome to Cat Farm! Start your feline empire! 🐱');
   const [messageType, setMessageType] = useState<'info' | 'success' | 'warning' | 'error'>('info');
   const [kittensBreed, setKittensBreed] = useState(0);
+
+  const relationshipSystem = useRelationships();
 
   const showMessage = (msg: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
     setMessage(msg);
@@ -352,13 +355,14 @@ export function useGameState() {
       if (!cat) return prev;
       const sellPrice = Math.floor(cat.value * (1 + cat.showWins * 0.1));
       showMessage(`Goodbye ${cat.name}! Sold for $${sellPrice}. 👋`, 'info');
+      relationshipSystem.removeCatRelationships(catId);
       return {
         ...prev,
         money: prev.money + sellPrice,
         cats: prev.cats.filter(c => c.id !== catId),
       };
     });
-  }, []);
+  }, [relationshipSystem]);
 
   const upgradeHouse = useCallback(() => {
     setState(prev => {
@@ -410,6 +414,10 @@ export function useGameState() {
           let happiness = Math.max(0, cat.happiness - 3);
           let hunger = Math.max(0, cat.hunger - 10);
           
+          // Apply relationship happiness modifiers
+          const relationshipMod = relationshipSystem.getHappinessModifier(cat.id);
+          happiness = Math.max(0, Math.min(100, happiness + relationshipMod));
+          
           if (hunger < 30) {
             health -= 5;
             happiness -= 5;
@@ -424,10 +432,15 @@ export function useGameState() {
         .filter(cat => {
           if (cat.health <= 0) {
             deadCats.push(cat.name);
+            relationshipSystem.removeCatRelationships(cat.id);
             return false;
           }
           return true;
         });
+
+      // Process daily relationship changes
+      relationshipSystem.processDailyRelationships(updatedCats, prev.day + 1);
+      relationshipSystem.detectGroups(updatedCats);
 
       // Refresh market every 3 days
       const newMarket = prev.day % 3 === 0 ? generateMarketListings() : prev.marketListings;
@@ -448,7 +461,35 @@ export function useGameState() {
       };
       return checkAchievements(newState);
     });
-  }, [checkAchievements]);
+  }, [checkAchievements, relationshipSystem]);
+
+  // Socialize two cats
+  const socializeCats = useCallback((cat1Id: string, cat2Id: string) => {
+    setState(prev => {
+      if (prev.resources.treats < 2) {
+        showMessage("Need 2 treats to socialize! 🍬", 'warning');
+        return prev;
+      }
+
+      const cat1 = prev.cats.find(c => c.id === cat1Id);
+      const cat2 = prev.cats.find(c => c.id === cat2Id);
+      if (!cat1 || !cat2) return prev;
+
+      const result = relationshipSystem.socializeCats(cat1, cat2, prev.day);
+      showMessage(`🤝 ${result.message}`, 'success');
+
+      return {
+        ...prev,
+        resources: { ...prev.resources, treats: prev.resources.treats - 2 },
+        cats: prev.cats.map(c => {
+          if (c.id === cat1Id || c.id === cat2Id) {
+            return { ...c, happiness: Math.min(100, c.happiness + 5) };
+          }
+          return c;
+        }),
+      };
+    });
+  }, [relationshipSystem]);
 
   // Breeding
   const breedCats = useCallback((cat1Id: string, cat2Id: string) => {
@@ -466,6 +507,19 @@ export function useGameState() {
       const parent2 = prev.cats.find(c => c.id === cat2Id);
       if (!parent1 || !parent2) return prev;
 
+      // Check relationship compatibility
+      const compatibility = relationshipSystem.getBreedingCompatibility(cat1Id, cat2Id);
+      if (!compatibility.canBreed) {
+        showMessage(`💔 ${compatibility.message}`, 'error');
+        return prev;
+      }
+
+      // Rivals have 50% failure chance
+      if (compatibility.bonus < 0 && Math.random() < 0.5) {
+        showMessage(`${parent1.name} and ${parent2.name} refused to breed... 😾`, 'warning');
+        return { ...prev, breedingCooldown: 2 };
+      }
+
       // Kitten inherits breed from one parent
       const breeds = [parent1.breed, parent2.breed];
       const breed = breeds[Math.floor(Math.random() * 2)];
@@ -474,23 +528,31 @@ export function useGameState() {
       const availableNames = CAT_NAMES.filter(n => !usedNames.has(n));
       const name = availableNames[Math.floor(Math.random() * availableNames.length)] || `Kitten ${prev.cats.length + 1}`;
 
+      // Apply relationship bonuses to kitten stats
+      const healthBonus = Math.floor(compatibility.bonus / 2);
+      const happinessBonus = Math.floor(compatibility.bonus / 2);
+
       const kitten: Cat = {
         id: generateId(),
         type: 'pure',
         breed,
         name,
-        health: 100,
-        happiness: 100,
+        health: Math.min(100, 100 + healthBonus),
+        happiness: Math.min(100, 100 + happinessBonus),
         hunger: 70,
-        value: Math.floor((BREEDS[parent1.breed].baseValue + BREEDS[parent2.breed].baseValue) / 2 + Math.random() * 50),
+        value: Math.floor((BREEDS[parent1.breed].baseValue + BREEDS[parent2.breed].baseValue) / 2 + Math.random() * 50 + compatibility.bonus),
         age: 0,
         personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],
         showWins: 0,
         isForSale: false,
       };
 
+      // Breeding improves parent relationship
+      relationshipSystem.addEvent(parent1, parent2, 'positive', `${parent1.name} and ${parent2.name} had a kitten together`, 15, prev.day);
+
       setKittensBreed(k => k + 1);
-      showMessage(`🎉 ${parent1.name} and ${parent2.name} had a kitten: ${name}!`, 'success');
+      const bonusMsg = compatibility.bonus > 0 ? ` (${compatibility.message})` : '';
+      showMessage(`🎉 ${parent1.name} and ${parent2.name} had a kitten: ${name}!${bonusMsg}`, 'success');
 
       const newState = {
         ...prev,
@@ -499,18 +561,19 @@ export function useGameState() {
       };
       return checkAchievements(newState, 1);
     });
-  }, [checkAchievements]);
+  }, [checkAchievements, relationshipSystem]);
 
   // Save game
   const saveGame = useCallback(() => {
     const saveData = {
       state,
       kittensBreed,
+      relationships: relationshipSystem.getRelationshipSaveData(),
       savedAt: new Date().toISOString(),
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
     showMessage('Game saved! 💾', 'success');
-  }, [state, kittensBreed]);
+  }, [state, kittensBreed, relationshipSystem]);
 
   // Load game
   const loadGame = useCallback(() => {
@@ -523,11 +586,14 @@ export function useGameState() {
       const saveData = JSON.parse(saved);
       setState(saveData.state);
       setKittensBreed(saveData.kittensBreed || 0);
+      if (saveData.relationships) {
+        relationshipSystem.loadRelationships(saveData.relationships);
+      }
       showMessage(`Game loaded! Day ${saveData.state.day} 📂`, 'success');
     } catch {
       showMessage('Failed to load save!', 'error');
     }
-  }, []);
+  }, [relationshipSystem]);
 
   // Check if save exists
   const hasSaveGame = useCallback(() => {
@@ -555,6 +621,7 @@ export function useGameState() {
     message,
     messageType,
     kittensBreed,
+    relationshipSystem,
     actions: {
       addCat,
       buyFromMarket,
@@ -569,6 +636,7 @@ export function useGameState() {
       nextDay,
       resetGame,
       breedCats,
+      socializeCats,
       saveGame,
       loadGame,
       hasSaveGame,

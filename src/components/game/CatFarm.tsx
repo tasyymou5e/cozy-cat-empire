@@ -9,12 +9,14 @@ import { MarketPanel } from './MarketPanel';
 import { BreedingPanel } from './BreedingPanel';
 import { AchievementsPanel } from './AchievementsPanel';
 import { SaveLoadPanel } from './SaveLoadPanel';
+import { SocializePanel } from './SocializePanel';
+import { RelationshipPanel } from './RelationshipPanel';
 import { CatCard } from './CatCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function CatFarm() {
-  const { state, message, messageType, kittensBreed, actions } = useGameState();
+  const { state, message, messageType, kittensBreed, relationshipSystem, actions } = useGameState();
   const [sideTab, setSideTab] = useState('actions');
 
   return (
@@ -76,12 +78,13 @@ export function CatFarm() {
 
         <aside className="action-sidebar">
           <Tabs value={sideTab} onValueChange={setSideTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-6 mb-4">
+            <TabsList className="grid w-full grid-cols-7 mb-4">
               <TabsTrigger value="actions" className="text-xs">🐾</TabsTrigger>
               <TabsTrigger value="chores" className="text-xs">🧹</TabsTrigger>
               <TabsTrigger value="supplies" className="text-xs">📦</TabsTrigger>
               <TabsTrigger value="market" className="text-xs">🛒</TabsTrigger>
               <TabsTrigger value="breeding" className="text-xs">💕</TabsTrigger>
+              <TabsTrigger value="social" className="text-xs">🤝</TabsTrigger>
               <TabsTrigger value="more" className="text-xs">⚙️</TabsTrigger>
             </TabsList>
             
@@ -125,6 +128,22 @@ export function CatFarm() {
                 cooldown={state.breedingCooldown}
                 hasSpace={state.cats.length < state.space}
                 onBreed={actions.breedCats}
+                getBreedingCompatibility={relationshipSystem.getBreedingCompatibility}
+              />
+            </TabsContent>
+
+            <TabsContent value="social" className="mt-0 space-y-4">
+              <SocializePanel
+                cats={state.cats}
+                treats={state.resources.treats}
+                getRelationship={relationshipSystem.getRelationship}
+                onSocialize={actions.socializeCats}
+              />
+              <RelationshipPanel
+                cats={state.cats}
+                relationships={relationshipSystem.relationships}
+                groups={relationshipSystem.groups}
+                events={relationshipSystem.events}
               />
             </TabsContent>
             
