@@ -63,6 +63,7 @@ export interface GameState {
   marketListings: MarketListing[];
   achievements: Achievement[];
   breedingCooldown: number;
+  showCooldown: number; // Days until next show allowed
 }
 
 export const CAT_NAMES = [

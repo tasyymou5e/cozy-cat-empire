@@ -32,6 +32,7 @@ export function StatusBar({ state, onUpgrade, onCatShow, relationships = [] }: S
   }
   
   const eligibleForShow = state.cats.filter(c => c.health >= 70 && c.happiness >= 60).length;
+  const showAvailable = state.showCooldown === 0;
 
   // Calculate relationship stats
   const friendCount = relationships.filter(r => r.score >= 20).length;
@@ -112,10 +113,14 @@ export function StatusBar({ state, onUpgrade, onCatShow, relationships = [] }: S
       <div className="status-actions">
         <Button 
           onClick={onCatShow}
-          disabled={eligibleForShow === 0}
+          disabled={!showAvailable || eligibleForShow === 0}
           className="cat-show-button"
         >
-          🎪 Enter Cat Show ({eligibleForShow} eligible)
+          {showAvailable ? (
+            <>🎪 Enter Cat Show ({eligibleForShow} eligible)</>
+          ) : (
+            <>🎪 Next Show in {state.showCooldown} days</>
+          )}
         </Button>
       </div>
     </div>
