@@ -16,7 +16,9 @@ type SoundType =
   | 'cardFlip'
   | 'moodHappy'
   | 'moodSad'
-  | 'dailyEvent';
+  | 'dailyEvent'
+  | 'challengeProgress'
+  | 'challengeComplete';
 
 type MusicMood = 'morning' | 'afternoon' | 'evening' | 'night' | 'celebration' | 'tense';
 
@@ -161,6 +163,16 @@ const SOUND_CONFIGS: Record<SoundType, SoundConfig | SoundConfig[]> = {
     { frequency: 523, type: 'sine', duration: 0.1, volume: 0.2 },
     { frequency: 659, type: 'sine', duration: 0.1, volume: 0.22 },
     { frequency: 784, type: 'sine', duration: 0.15, volume: 0.25 },
+  ],
+  challengeProgress: [
+    { frequency: 880, type: 'sine', duration: 0.08, volume: 0.15 },
+    { frequency: 1100, type: 'sine', duration: 0.1, volume: 0.18 },
+  ],
+  challengeComplete: [
+    { frequency: 440, type: 'sine', duration: 0.12, volume: 0.2 },
+    { frequency: 554, type: 'sine', duration: 0.12, volume: 0.22 },
+    { frequency: 659, type: 'sine', duration: 0.12, volume: 0.24 },
+    { frequency: 880, type: 'sine', duration: 0.25, volume: 0.3 },
   ],
 };
 
