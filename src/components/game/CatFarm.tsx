@@ -19,9 +19,13 @@ import { MatchmakingPanel } from './MatchmakingPanel';
 import { GroupActivitiesPanel } from './GroupActivitiesPanel';
 import { TrainingPanel } from './TrainingPanel';
 import { RelationshipAnimations } from './RelationshipAnimations';
+import { MoodAnimations } from './MoodAnimations';
 import { CatCard } from './CatCard';
 import { TutorialSystem } from './TutorialSystem';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
+import { DailyEventToast } from './DailyEventToast';
+import { LeaderboardPanel } from './LeaderboardPanel';
+import { CostumeShopPanel } from './CostumeShopPanel';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
@@ -44,7 +48,7 @@ export function CatFarm() {
     updateMusicForDay, getCurrentMood, triggerCelebration, triggerTense 
   } = useSoundEffects();
   const { fireConfetti, fireCelebration, fireStars } = useConfetti();
-  const { state, message, messageType, kittensBreed, relationshipSystem, actions } = useGameState(playSound);
+  const { state, message, messageType, kittensBreed, currentDailyEvent, relationshipSystem, actions } = useGameState(playSound);
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
   const [musicOn, setMusicOn] = useState(false);
@@ -161,6 +165,8 @@ export function CatFarm() {
       <TutorialSystem onHighlightTab={setHighlightedTab} />
       <KeyboardShortcutsHelp open={showShortcutsHelp} onClose={() => setShowShortcutsHelp(false)} />
       <RelationshipAnimations events={relationshipSystem.events} lastEventId={relationshipSystem.lastEventId} />
+      <MoodAnimations cats={state.cats} />
+      <DailyEventToast event={currentDailyEvent} onDismiss={actions.clearDailyEvent} />
       
       <header className="game-header">
         <div className="flex items-center gap-3">
@@ -266,14 +272,16 @@ export function CatFarm() {
 
         <aside className="action-sidebar">
           <Tabs value={sideTab} onValueChange={setSideTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-8 mb-4">
+            <TabsList className="grid w-full grid-cols-10 mb-4">
               <TabsTrigger value="actions" className={`text-xs ${highlightedTab === 'actions' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🐾</TabsTrigger>
               <TabsTrigger value="chores" className={`text-xs ${highlightedTab === 'chores' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🧹</TabsTrigger>
               <TabsTrigger value="supplies" className={`text-xs ${highlightedTab === 'supplies' ? 'ring-2 ring-primary animate-pulse' : ''}`}>📦</TabsTrigger>
               <TabsTrigger value="market" className={`text-xs ${highlightedTab === 'market' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🛒</TabsTrigger>
+              <TabsTrigger value="costumes" className={`text-xs ${highlightedTab === 'costumes' ? 'ring-2 ring-primary animate-pulse' : ''}`}>👗</TabsTrigger>
               <TabsTrigger value="breeding" className={`text-xs ${highlightedTab === 'breeding' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💕</TabsTrigger>
               <TabsTrigger value="training" className={`text-xs ${highlightedTab === 'training' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💪</TabsTrigger>
               <TabsTrigger value="social" className={`text-xs ${highlightedTab === 'social' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🤝</TabsTrigger>
+              <TabsTrigger value="leaderboard" className={`text-xs ${highlightedTab === 'leaderboard' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🏆</TabsTrigger>
               <TabsTrigger value="more" className={`text-xs ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger>
             </TabsList>
             
@@ -287,6 +295,16 @@ export function CatFarm() {
             </TabsContent>
             <TabsContent value="market" className="mt-0">
               <MarketPanel listings={state.marketListings} money={state.money} hasSpace={state.cats.length < state.space} onBuy={actions.buyFromMarket} />
+            </TabsContent>
+            <TabsContent value="costumes" className="mt-0">
+              <CostumeShopPanel 
+                cats={state.cats} 
+                money={state.money} 
+                ownedCostumes={state.ownedCostumes} 
+                catCostumes={state.catCostumes}
+                onBuyCostume={actions.buyCostume}
+                onEquipCostume={actions.equipCostume}
+              />
             </TabsContent>
             <TabsContent value="breeding" className="mt-0">
               <BreedingPanel cats={state.cats} cooldown={state.breedingCooldown} hasSpace={state.cats.length < state.space}
@@ -305,6 +323,9 @@ export function CatFarm() {
                 treats={state.resources.treats} toys={state.resources.toys} onGroupActivity={actions.doGroupActivity} />
               <RelationshipPanel cats={state.cats} relationships={relationshipSystem.relationships}
                 groups={relationshipSystem.groups} events={relationshipSystem.events} />
+            </TabsContent>
+            <TabsContent value="leaderboard" className="mt-0">
+              <LeaderboardPanel cats={state.cats} relationships={relationshipSystem.relationships} />
             </TabsContent>
             <TabsContent value="more" className="mt-0 space-y-4">
               <AchievementsPanel achievements={state.achievements}
