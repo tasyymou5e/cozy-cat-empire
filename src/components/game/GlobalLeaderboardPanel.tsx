@@ -1,9 +1,12 @@
-import { useGlobalLeaderboard, LeaderboardCategory, LeaderboardEntry } from '@/hooks/useGlobalLeaderboard';
+import { useGlobalLeaderboard, LeaderboardCategory, LeaderboardEntry, LeaderboardViewMode } from '@/hooks/useGlobalLeaderboard';
+import { useFriends } from '@/hooks/useFriends';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Cat, Heart, Coins, Award, RefreshCw, Globe } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Trophy, Cat, Heart, Coins, Award, RefreshCw, Globe, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface GlobalLeaderboardPanelProps {
   userId: string | undefined;
@@ -18,6 +21,9 @@ const categoryConfig: Record<LeaderboardCategory, { label: string; icon: typeof 
 };
 
 export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) {
+  const { friends } = useFriends(userId);
+  const friendIds = friends.map(f => f.id);
+  
   const {
     leaderboard,
     userRank,
@@ -25,8 +31,10 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
     loading,
     category,
     setCategory,
+    viewMode,
+    setViewMode,
     fetchLeaderboard,
-  } = useGlobalLeaderboard(userId);
+  } = useGlobalLeaderboard(userId, friendIds);
 
   const config = categoryConfig[category];
 
@@ -37,17 +45,89 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
     return <Badge variant="outline">#{rank}</Badge>;
   };
 
+  const getEmptyMessage = () => {
+    if (viewMode === 'friends') {
+      if (friendIds.length === 0) {
+        return (
+          <>
+            <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            You haven't added any friends yet.
+            <br />
+            <span className="text-sm">Add friends to compare rankings!</span>
+          </>
+        );
+      }
+      return (
+        <>
+          <Trophy className="h-8 w-8 mx-auto mb-2 opacity-50" />
+          No friends on the leaderboard yet.
+          <br />
+          <span className="text-sm">Play more to appear here!</span>
+        </>
+      );
+    }
+    return (
+      <>
+        <Trophy className="h-8 w-8 mx-auto mb-2 opacity-50" />
+        No players on the leaderboard yet.
+        <br />
+        <span className="text-sm">Be the first to compete!</span>
+      </>
+    );
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5" />
-            Global Leaderboard
+            {viewMode === 'global' ? (
+              <Globe className="h-5 w-5" />
+            ) : (
+              <Users className="h-5 w-5" />
+            )}
+            {viewMode === 'global' ? 'Global Leaderboard' : 'Friends Leaderboard'}
           </CardTitle>
           <Button variant="ghost" size="icon" onClick={fetchLeaderboard} disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
+        </div>
+        
+        {/* View Mode Toggle */}
+        <div className="mt-2">
+          <TooltipProvider>
+            <ToggleGroup
+              type="single"
+              value={viewMode}
+              onValueChange={(v) => v && setViewMode(v as LeaderboardViewMode)}
+              className="justify-start"
+            >
+              <ToggleGroupItem value="global" aria-label="Global leaderboard" className="gap-1">
+                <Globe className="h-4 w-4" />
+                <span className="hidden sm:inline">Global</span>
+              </ToggleGroupItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <ToggleGroupItem 
+                      value="friends" 
+                      aria-label="Friends leaderboard" 
+                      className="gap-1"
+                      disabled={!userId}
+                    >
+                      <Users className="h-4 w-4" />
+                      <span className="hidden sm:inline">Friends</span>
+                    </ToggleGroupItem>
+                  </span>
+                </TooltipTrigger>
+                {!userId && (
+                  <TooltipContent>
+                    <p>Log in to view friends leaderboard</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </ToggleGroup>
+          </TooltipProvider>
         </div>
       </CardHeader>
       <CardContent>
@@ -70,10 +150,7 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
                 </div>
               ) : leaderboard.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <Trophy className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  No players on the leaderboard yet.
-                  <br />
-                  <span className="text-sm">Be the first to compete!</span>
+                  {getEmptyMessage()}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -106,8 +183,8 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
                 </div>
               )}
 
-              {/* User's rank if not in top 20 */}
-              {userStats && userRank && userRank > 20 && (
+              {/* User's rank if not in top 20 (global only) */}
+              {viewMode === 'global' && userStats && userRank && userRank > 20 && (
                 <div className="mt-4 pt-4 border-t">
                   <div className="text-sm text-muted-foreground mb-2">Your Ranking</div>
                   <div className="flex items-center gap-3 p-2 rounded-lg bg-primary/10 border border-primary/30">
