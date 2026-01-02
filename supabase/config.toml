@@ -1,1 +1,4 @@
 project_id = "bkkluziuyystiqkcpbnd"
+
+[functions.process-leaderboard-rewards]
+verify_jwt = false

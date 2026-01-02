@@ -345,6 +345,30 @@ export type Database = {
         }
         Relationships: []
       }
+      rewards_processing_log: {
+        Row: {
+          id: string
+          period_end: string
+          period_type: string
+          processed_at: string | null
+          rewards_created: number | null
+        }
+        Insert: {
+          id?: string
+          period_end: string
+          period_type: string
+          processed_at?: string | null
+          rewards_created?: number | null
+        }
+        Update: {
+          id?: string
+          period_end?: string
+          period_type?: string
+          processed_at?: string | null
+          rewards_created?: number | null
+        }
+        Relationships: []
+      }
       trade_offers: {
         Row: {
           created_at: string | null
