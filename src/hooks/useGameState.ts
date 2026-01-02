@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { 
   Cat, GameState, CAT_NAMES, BREEDS, PERSONALITIES, 
   CAT_COSTS, HOUSE_UPGRADES, CatBreed, MarketListing, Achievement, ACHIEVEMENT_DEFS 
@@ -1025,14 +1025,22 @@ export function useGameState(
     }));
   }, []);
 
+  const actions = useMemo(() => ({
+    addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
+    catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
+    doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
+    comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
+    addReceivedCat, addReward,
+  }), [
+    addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
+    catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
+    doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
+    comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
+    addReceivedCat, addReward,
+  ]);
+
   return {
     state, message, messageType, kittensBreed, relationshipSystem, currentDailyEvent,
-    actions: {
-      addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
-      catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
-      doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
-      comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
-      addReceivedCat, addReward,
-    },
+    actions,
   };
 }

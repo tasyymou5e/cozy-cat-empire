@@ -35,15 +35,19 @@ export default function CatCollection() {
   const [filterTier, setFilterTier] = useState<FilterTier>('all');
   const [selectedCat, setSelectedCat] = useState<Cat | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
 
-  // Load saved game on mount
+  // Load saved game on mount - with guard to prevent multiple loads
   useEffect(() => {
+    if (hasLoadedCloud) return;
+    
     const loadSavedGame = async () => {
       // Try cloud save first if logged in
       if (user) {
         const { data } = await cloudLoad();
         if (data) {
           actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
+          setHasLoadedCloud(true);
           setIsLoading(false);
           return;
         }
@@ -54,16 +58,17 @@ export default function CatCollection() {
       if (saved) {
         try {
           const saveData = JSON.parse(saved);
-          actions.loadFromData?.(saveData.state, saveData.kittensBreed || 0, saveData.relationships);
+          actions.loadFromData?.(saveData.state, saveData.kittensBreek || 0, saveData.relationships);
         } catch (e) {
           console.error('Failed to load local save:', e);
         }
       }
+      setHasLoadedCloud(true);
       setIsLoading(false);
     };
     
     loadSavedGame();
-  }, [user, cloudLoad, actions]);
+  }, [user, hasLoadedCloud, cloudLoad, actions]);
 
   const filteredAndSortedCats = useMemo(() => {
     let cats = [...state.cats];
