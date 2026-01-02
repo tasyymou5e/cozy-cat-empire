@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGameState } from '@/hooks/useGameState';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { StatusBar } from './StatusBar';
@@ -21,12 +21,52 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Volume2, VolumeX, Music, Music2 } from 'lucide-react';
 
+const MOOD_LABELS = {
+  morning: '🌅 Morning',
+  afternoon: '☀️ Afternoon', 
+  evening: '🌆 Evening',
+  night: '🌙 Night',
+  celebration: '🎉 Celebration',
+  tense: '⚡ Tense',
+};
+
 export function CatFarm() {
-  const { playSound, setEnabled, isEnabled, startMusic, stopMusic, isMusicPlaying } = useSoundEffects();
+  const { 
+    playSound, setEnabled, isEnabled, 
+    startMusic, stopMusic, isMusicPlaying, 
+    updateMusicForDay, getCurrentMood, triggerCelebration, triggerTense 
+  } = useSoundEffects();
   const { state, message, messageType, kittensBreed, relationshipSystem, actions } = useGameState(playSound);
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
   const [musicOn, setMusicOn] = useState(false);
+  const [currentMoodLabel, setCurrentMoodLabel] = useState('');
+
+  // Update music mood when day changes
+  useEffect(() => {
+    if (musicOn) {
+      updateMusicForDay(state.day);
+      setCurrentMoodLabel(MOOD_LABELS[getCurrentMood()]);
+    }
+  }, [state.day, musicOn, updateMusicForDay, getCurrentMood]);
+
+  // Trigger celebration on achievements or show wins
+  useEffect(() => {
+    if (musicOn && message?.includes('won')) {
+      triggerCelebration();
+      setCurrentMoodLabel(MOOD_LABELS.celebration);
+      setTimeout(() => setCurrentMoodLabel(MOOD_LABELS[getCurrentMood()]), 10000);
+    }
+  }, [message, musicOn, triggerCelebration, getCurrentMood]);
+
+  // Trigger tense mood on negative events
+  useEffect(() => {
+    if (musicOn && (message?.includes('fight') || message?.includes('sick') || message?.includes('ran away'))) {
+      triggerTense();
+      setCurrentMoodLabel(MOOD_LABELS.tense);
+      setTimeout(() => setCurrentMoodLabel(MOOD_LABELS[getCurrentMood()]), 6000);
+    }
+  }, [message, musicOn, triggerTense, getCurrentMood]);
 
   const toggleSound = () => {
     const newState = !soundOn;
@@ -39,9 +79,12 @@ export function CatFarm() {
     if (musicOn) {
       stopMusic();
       setMusicOn(false);
+      setCurrentMoodLabel('');
     } else {
       startMusic();
       setMusicOn(true);
+      updateMusicForDay(state.day);
+      setCurrentMoodLabel(MOOD_LABELS[getCurrentMood()]);
       playSound('click');
     }
   };
@@ -55,7 +98,10 @@ export function CatFarm() {
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">🐱 Cat Farm</h1>
           <span className="text-xs text-muted-foreground hidden sm:inline">Build your 100-acre cat empire!</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {musicOn && currentMoodLabel && (
+            <span className="text-xs text-muted-foreground hidden sm:inline">{currentMoodLabel}</span>
+          )}
           <Button variant="ghost" size="sm" onClick={toggleMusic} title={musicOn ? "Stop music" : "Play ambient music"}>
             {musicOn ? <Music2 className="h-4 w-4 text-primary" /> : <Music className="h-4 w-4" />}
           </Button>

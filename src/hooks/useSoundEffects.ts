@@ -14,6 +14,8 @@ type SoundType =
   | 'achievement'
   | 'nextDay';
 
+type MusicMood = 'morning' | 'afternoon' | 'evening' | 'night' | 'celebration' | 'tense';
+
 interface SoundConfig {
   frequency: number;
   type: OscillatorType;
@@ -22,6 +24,76 @@ interface SoundConfig {
   ramp?: 'up' | 'down' | 'none';
   harmonics?: number[];
 }
+
+// Chord progressions for different moods (frequencies in Hz)
+const MUSIC_MOODS: Record<MusicMood, { chords: number[][]; tempo: number; brightness: number }> = {
+  morning: {
+    // C major 7 - bright and fresh
+    chords: [
+      [130.81, 164.81, 196.00, 246.94], // Cmaj7
+      [146.83, 174.61, 220.00, 261.63], // Dm7
+      [164.81, 196.00, 246.94, 293.66], // Em7
+      [174.61, 220.00, 261.63, 329.63], // Fmaj7
+    ],
+    tempo: 0.08,
+    brightness: 1.2,
+  },
+  afternoon: {
+    // G major progression - warm and active
+    chords: [
+      [98.00, 123.47, 146.83, 185.00],  // G
+      [110.00, 138.59, 164.81, 207.65], // Am
+      [123.47, 155.56, 185.00, 233.08], // Bm
+      [130.81, 164.81, 196.00, 246.94], // C
+    ],
+    tempo: 0.1,
+    brightness: 1.0,
+  },
+  evening: {
+    // F major 7 progression - mellow sunset
+    chords: [
+      [87.31, 110.00, 130.81, 164.81],  // Fmaj7
+      [98.00, 123.47, 146.83, 185.00],  // G7
+      [110.00, 130.81, 164.81, 196.00], // Am7
+      [116.54, 146.83, 174.61, 220.00], // Bb
+    ],
+    tempo: 0.06,
+    brightness: 0.8,
+  },
+  night: {
+    // Am progression - peaceful and dreamy
+    chords: [
+      [110.00, 130.81, 164.81, 207.65], // Am7
+      [98.00, 123.47, 146.83, 185.00],  // G
+      [87.31, 110.00, 130.81, 164.81],  // Fmaj7
+      [82.41, 103.83, 123.47, 155.56],  // Em
+    ],
+    tempo: 0.04,
+    brightness: 0.6,
+  },
+  celebration: {
+    // Bright major progression - joyful!
+    chords: [
+      [130.81, 164.81, 196.00, 261.63], // C
+      [146.83, 185.00, 220.00, 293.66], // D
+      [164.81, 207.65, 246.94, 329.63], // E
+      [174.61, 220.00, 261.63, 349.23], // F
+    ],
+    tempo: 0.15,
+    brightness: 1.5,
+  },
+  tense: {
+    // Minor/diminished - something's happening
+    chords: [
+      [110.00, 130.81, 155.56, 185.00], // Am dim
+      [103.83, 123.47, 146.83, 174.61], // G#dim
+      [98.00, 116.54, 138.59, 164.81],  // Gm
+      [92.50, 110.00, 130.81, 155.56],  // F#dim
+    ],
+    tempo: 0.12,
+    brightness: 0.5,
+  },
+};
 
 const SOUND_CONFIGS: Record<SoundType, SoundConfig | SoundConfig[]> = {
   click: { frequency: 800, type: 'sine', duration: 0.05, volume: 0.2 },
@@ -70,11 +142,25 @@ const SOUND_CONFIGS: Record<SoundType, SoundConfig | SoundConfig[]> = {
   ],
 };
 
+// Get mood based on game day (simulates time of day cycle)
+function getMoodForDay(day: number): MusicMood {
+  const timeOfDay = day % 4;
+  switch (timeOfDay) {
+    case 0: return 'morning';
+    case 1: return 'afternoon';
+    case 2: return 'evening';
+    case 3: return 'night';
+    default: return 'afternoon';
+  }
+}
+
 export function useSoundEffects() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const enabledRef = useRef(true);
   const volumeRef = useRef(0.5);
-  const musicVolumeRef = useRef(0.15);
+  const musicVolumeRef = useRef(0.12);
+  const currentMoodRef = useRef<MusicMood>('afternoon');
+  const currentChordIndexRef = useRef(0);
   const musicNodesRef = useRef<{
     oscillators: OscillatorNode[];
     gains: GainNode[];
@@ -82,8 +168,8 @@ export function useSoundEffects() {
     lfo: OscillatorNode | null;
   } | null>(null);
   const musicPlayingRef = useRef(false);
+  const chordIntervalRef = useRef<number | null>(null);
 
-  // Initialize audio context on first user interaction
   const initAudio = useCallback(() => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -126,7 +212,6 @@ export function useSoundEffects() {
     oscillator.start(startTime);
     oscillator.stop(startTime + config.duration);
 
-    // Add harmonics if specified
     if (config.harmonics) {
       config.harmonics.forEach(harmFreq => {
         const harmOsc = ctx.createOscillator();
@@ -150,22 +235,57 @@ export function useSoundEffects() {
       let delay = 0;
       config.forEach(c => {
         playTone(c, delay);
-        delay += c.duration * 0.8; // Slight overlap for smoother sound
+        delay += c.duration * 0.8;
       });
     } else {
       playTone(config);
     }
   }, [playTone]);
 
-  // Ambient music - creates a soft, dreamy soundscape
-  const startMusic = useCallback(() => {
+  // Transition to a new chord smoothly
+  const transitionToChord = useCallback((frequencies: number[], brightness: number) => {
+    if (!musicNodesRef.current || !audioContextRef.current) return;
+    
+    const ctx = audioContextRef.current;
+    const { oscillators, gains } = musicNodesRef.current;
+    
+    frequencies.forEach((freq, i) => {
+      if (oscillators[i] && gains[i]) {
+        // Smooth frequency transition
+        oscillators[i].frequency.linearRampToValueAtTime(freq * brightness, ctx.currentTime + 2);
+        // Slight volume swell during transition
+        gains[i].gain.linearRampToValueAtTime(0.08, ctx.currentTime + 1);
+        gains[i].gain.linearRampToValueAtTime(0.12 + (i * 0.02), ctx.currentTime + 2);
+      }
+    });
+  }, []);
+
+  // Start chord progression cycling
+  const startChordProgression = useCallback(() => {
+    if (chordIntervalRef.current) return;
+    
+    const cycleChord = () => {
+      const mood = MUSIC_MOODS[currentMoodRef.current];
+      currentChordIndexRef.current = (currentChordIndexRef.current + 1) % mood.chords.length;
+      transitionToChord(mood.chords[currentChordIndexRef.current], mood.brightness);
+    };
+    
+    // Change chord every 8 seconds
+    chordIntervalRef.current = window.setInterval(cycleChord, 8000);
+  }, [transitionToChord]);
+
+  const startMusic = useCallback((mood: MusicMood = 'afternoon') => {
     if (musicPlayingRef.current || musicNodesRef.current) return;
+    
+    currentMoodRef.current = mood;
+    currentChordIndexRef.current = 0;
     
     const ctx = initAudio();
     if (ctx.state === 'suspended') {
       ctx.resume();
     }
 
+    const moodConfig = MUSIC_MOODS[mood];
     const masterGain = ctx.createGain();
     masterGain.gain.setValueAtTime(0, ctx.currentTime);
     masterGain.gain.linearRampToValueAtTime(musicVolumeRef.current, ctx.currentTime + 2);
@@ -174,20 +294,18 @@ export function useSoundEffects() {
     const oscillators: OscillatorNode[] = [];
     const gains: GainNode[] = [];
 
-    // Soft pad chords - C major 7 ambient
-    const frequencies = [130.81, 164.81, 196.00, 246.94]; // C3, E3, G3, B3
+    // Start with first chord of the mood
+    const firstChord = moodConfig.chords[0];
     
-    frequencies.forEach((freq, i) => {
+    firstChord.forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      
-      // Slight detuning for warmth
+      osc.frequency.setValueAtTime(freq * moodConfig.brightness, ctx.currentTime);
       osc.detune.setValueAtTime((i - 1.5) * 5, ctx.currentTime);
       
-      gain.gain.setValueAtTime(0.15 + (i * 0.02), ctx.currentTime);
+      gain.gain.setValueAtTime(0.12 + (i * 0.02), ctx.currentTime);
       
       osc.connect(gain);
       gain.connect(masterGain);
@@ -197,34 +315,39 @@ export function useSoundEffects() {
       gains.push(gain);
     });
 
-    // Add a very slow LFO for gentle volume modulation
+    // LFO for gentle movement
     const lfo = ctx.createOscillator();
     const lfoGain = ctx.createGain();
     lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(0.1, ctx.currentTime); // Very slow
-    lfoGain.gain.setValueAtTime(0.03, ctx.currentTime);
+    lfo.frequency.setValueAtTime(moodConfig.tempo, ctx.currentTime);
+    lfoGain.gain.setValueAtTime(0.02, ctx.currentTime);
     lfo.connect(lfoGain);
     lfoGain.connect(masterGain.gain);
     lfo.start();
 
     musicNodesRef.current = { oscillators, gains, masterGain, lfo };
     musicPlayingRef.current = true;
-  }, [initAudio]);
+    
+    startChordProgression();
+  }, [initAudio, startChordProgression]);
 
   const stopMusic = useCallback(() => {
     if (!musicNodesRef.current) return;
+    
+    if (chordIntervalRef.current) {
+      clearInterval(chordIntervalRef.current);
+      chordIntervalRef.current = null;
+    }
     
     const ctx = audioContextRef.current;
     if (!ctx) return;
 
     const { oscillators, masterGain, lfo } = musicNodesRef.current;
     
-    // Fade out
     if (masterGain) {
       masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1);
     }
 
-    // Stop after fade
     setTimeout(() => {
       oscillators.forEach(osc => {
         try { osc.stop(); } catch (e) {}
@@ -237,6 +360,61 @@ export function useSoundEffects() {
     }, 1100);
   }, []);
 
+  // Change music mood (smooth transition)
+  const setMusicMood = useCallback((mood: MusicMood) => {
+    if (!musicPlayingRef.current || !musicNodesRef.current || !audioContextRef.current) return;
+    
+    currentMoodRef.current = mood;
+    currentChordIndexRef.current = 0;
+    
+    const moodConfig = MUSIC_MOODS[mood];
+    const ctx = audioContextRef.current;
+    
+    // Update LFO tempo
+    if (musicNodesRef.current.lfo) {
+      musicNodesRef.current.lfo.frequency.linearRampToValueAtTime(moodConfig.tempo, ctx.currentTime + 1);
+    }
+    
+    // Transition to first chord of new mood
+    transitionToChord(moodConfig.chords[0], moodConfig.brightness);
+  }, [transitionToChord]);
+
+  // Update music based on game day
+  const updateMusicForDay = useCallback((day: number) => {
+    if (!musicPlayingRef.current) return;
+    const newMood = getMoodForDay(day);
+    if (newMood !== currentMoodRef.current) {
+      setMusicMood(newMood);
+    }
+  }, [setMusicMood]);
+
+  // Trigger celebration mood temporarily
+  const triggerCelebration = useCallback(() => {
+    if (!musicPlayingRef.current) return;
+    const previousMood = currentMoodRef.current;
+    setMusicMood('celebration');
+    
+    // Return to previous mood after 10 seconds
+    setTimeout(() => {
+      if (musicPlayingRef.current) {
+        setMusicMood(previousMood);
+      }
+    }, 10000);
+  }, [setMusicMood]);
+
+  // Trigger tense mood temporarily
+  const triggerTense = useCallback(() => {
+    if (!musicPlayingRef.current) return;
+    const previousMood = currentMoodRef.current;
+    setMusicMood('tense');
+    
+    setTimeout(() => {
+      if (musicPlayingRef.current) {
+        setMusicMood(previousMood);
+      }
+    }, 6000);
+  }, [setMusicMood]);
+
   const setMusicVolume = useCallback((volume: number) => {
     musicVolumeRef.current = Math.max(0, Math.min(0.3, volume));
     if (musicNodesRef.current?.masterGain && audioContextRef.current) {
@@ -248,6 +426,7 @@ export function useSoundEffects() {
   }, []);
 
   const isMusicPlaying = useCallback(() => musicPlayingRef.current, []);
+  const getCurrentMood = useCallback(() => currentMoodRef.current, []);
 
   const setEnabled = useCallback((enabled: boolean) => {
     enabledRef.current = enabled;
@@ -260,9 +439,11 @@ export function useSoundEffects() {
   const isEnabled = useCallback(() => enabledRef.current, []);
   const getVolume = useCallback(() => volumeRef.current, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
+      if (chordIntervalRef.current) {
+        clearInterval(chordIntervalRef.current);
+      }
       if (musicNodesRef.current) {
         musicNodesRef.current.oscillators.forEach(osc => {
           try { osc.stop(); } catch (e) {}
@@ -284,7 +465,12 @@ export function useSoundEffects() {
     stopMusic,
     setMusicVolume,
     isMusicPlaying,
+    setMusicMood,
+    getCurrentMood,
+    updateMusicForDay,
+    triggerCelebration,
+    triggerTense,
   };
 }
 
-export type { SoundType };
+export type { SoundType, MusicMood };
