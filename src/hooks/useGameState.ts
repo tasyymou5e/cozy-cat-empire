@@ -12,6 +12,7 @@ import {
 import { getRandomDailyEvent, DailyEvent } from '@/types/dailyEvents';
 import { getCostumeById } from '@/types/costumes';
 import { CatRelationship, RelationshipEvent } from '@/types/relationships';
+import { ChallengeType } from '@/types/challenges';
 
 const SAVE_KEY = 'cat-farm-save';
 const generateId = () => Math.random().toString(36).substr(2, 9); // Unique ID generator
@@ -99,7 +100,10 @@ const createInitialState = (): GameState => ({
 });
 
 
-export function useGameState(playSound?: (type: SoundType) => void) {
+export function useGameState(
+  playSound?: (type: SoundType) => void,
+  onChallengeProgress?: (type: ChallengeType, increment?: number) => void
+) {
   const [state, setState] = useState<GameState>(createInitialState);
   const [message, setMessage] = useState<string>('Welcome to Cat Farm! Start your feline empire! 🐱');
   const [messageType, setMessageType] = useState<'info' | 'success' | 'warning' | 'error'>('info');
@@ -195,6 +199,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
       
       showMessage(`Welcome ${name} the ${BREEDS[breed].name}! 🎉`, 'success');
       playSound?.('meow');
+      onChallengeProgress?.('collect_cats', 1);
       return { 
         ...prev, 
         money: prev.money - cost, 
@@ -202,7 +207,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
         catsAdopted: prev.catsAdopted + 1,
       };
     });
-  }, [playSound]);
+  }, [playSound, onChallengeProgress]);
 
   const buyFromMarket = useCallback((listingId: string) => {
     setState(prev => {
@@ -224,6 +229,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
       showMessage(`Bought ${newCat.name} from ${listing.seller}! 🛒`, 'success');
       playSound?.('coin');
       playSound?.('meow');
+      onChallengeProgress?.('collect_cats', 1);
       
       return {
         ...prev,
@@ -233,7 +239,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
         catsAdopted: prev.catsAdopted + 1,
       };
     });
-  }, [playSound]);
+  }, [playSound, onChallengeProgress]);
 
   const doChore = useCallback((choreId: string, baseReward: number) => {
     const bonus = Math.floor(Math.random() * 20);
@@ -250,7 +256,8 @@ export function useGameState(playSound?: (type: SoundType) => void) {
     });
     showMessage(`Chore done! Earned $${earnings}. 🧹`, 'success');
     playSound?.('coin');
-  }, [playSound]);
+    onChallengeProgress?.('earn_money', earnings);
+  }, [playSound, onChallengeProgress]);
 
   const buyResource = useCallback((resource: keyof GameState['resources'], cost: number) => {
     setState(prev => {
@@ -483,6 +490,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
       if (wins > 0) {
         playSound?.('achievement');
         playSound?.('coin');
+        onChallengeProgress?.('show_wins', wins);
       }
       
       return {
@@ -494,7 +502,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
         showCooldown: SHOW_COOLDOWN_DAYS,
       };
     });
-  }, [relationshipSystem, playSound]);
+  }, [relationshipSystem, playSound, onChallengeProgress]);
 
   const sellCat = useCallback((catId: string) => {
     setState(prev => {
@@ -625,6 +633,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
       showMessage(`🤝 ${result.message}`, 'success');
       playSound?.('friendship');
       playSound?.('purr');
+      onChallengeProgress?.('socialize', 1);
 
       return {
         ...prev,
@@ -637,7 +646,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
         }),
       };
     });
-  }, [relationshipSystem, playSound]);
+  }, [relationshipSystem, playSound, onChallengeProgress]);
 
   const breedCats = useCallback((cat1Id: string, cat2Id: string) => {
     setState(prev => {
@@ -703,11 +712,12 @@ export function useGameState(playSound?: (type: SoundType) => void) {
       showMessage(`🎉 ${parent1.name} and ${parent2.name} had a kitten: ${name}!${bonusMsg}`, 'success');
       playSound?.('meow');
       playSound?.('success');
+      onChallengeProgress?.('breed_kittens', 1);
 
       const newState = { ...prev, cats: [...prev.cats, kitten], breedingCooldown: 5 };
       return checkAchievements(newState, 1);
     });
-  }, [checkAchievements, relationshipSystem, playSound]);
+  }, [checkAchievements, relationshipSystem, playSound, onChallengeProgress]);
 
   const doGroupActivity = useCallback((groupId: string, activityType: 'play' | 'treat' | 'nap') => {
     const group = relationshipSystem.groups.find(g => g.id === groupId);
@@ -784,6 +794,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
         gradeBonus = trick.gradeBonus;
         showMessage(`🎉 ${cat.name} learned ${trick.name}! (+${gradeBonus} grade)`, 'success');
         playSound?.('levelUp');
+        onChallengeProgress?.('train_tricks', 1);
       } else {
         showMessage(`${cat.name} practiced ${trick.name}! (${newProgress}% progress)`, 'info');
         playSound?.('click');
@@ -805,7 +816,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
         }),
       };
     });
-  }, [playSound]);
+  }, [playSound, onChallengeProgress]);
 
   const restCat = useCallback((catId: string) => {
     setState(prev => {
