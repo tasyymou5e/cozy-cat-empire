@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { 
   Cat, GameState, CAT_NAMES, BREEDS, PERSONALITIES, 
-  CAT_COSTS, HOUSE_UPGRADES, CatBreed, MarketListing 
+  CAT_COSTS, HOUSE_UPGRADES, CatBreed, MarketListing, Achievement, ACHIEVEMENT_DEFS 
 } from '@/types/game';
 
+const SAVE_KEY = 'cat-farm-save';
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 const getRandomBreed = (type: Cat['type']): CatBreed => {
@@ -16,19 +17,14 @@ const getRandomBreed = (type: Cat['type']): CatBreed => {
   return pureBreeds[Math.floor(Math.random() * pureBreeds.length)];
 };
 
-const initialState: GameState = {
-  cats: [],
-  money: 150,
-  space: 5,
-  houseSize: 'apartment',
-  acres: 0,
-  day: 1,
-  resources: { food: 10, medicine: 2, toys: 3, treats: 5 },
-  reputation: 0,
-  totalShowWins: 0,
-  catsAdopted: 0,
-  marketListings: generateMarketListings(),
-};
+const createInitialAchievements = (): Achievement[] => 
+  ACHIEVEMENT_DEFS.map(a => ({
+    id: a.id,
+    name: a.name,
+    description: a.description,
+    target: a.target,
+    unlocked: false,
+  }));
 
 function generateMarketListings(): MarketListing[] {
   const sellers = ['Happy Paws Shelter', 'Elite Breeders', 'Cat Haven', 'Whisker World'];
@@ -63,15 +59,94 @@ function generateMarketListings(): MarketListing[] {
   return listings;
 }
 
+const createInitialState = (): GameState => ({
+  cats: [],
+  money: 150,
+  space: 5,
+  houseSize: 'apartment',
+  acres: 0,
+  day: 1,
+  resources: { food: 10, medicine: 2, toys: 3, treats: 5 },
+  reputation: 0,
+  totalShowWins: 0,
+  catsAdopted: 0,
+  totalMoneyEarned: 150,
+  marketListings: generateMarketListings(),
+  achievements: createInitialAchievements(),
+  breedingCooldown: 0,
+});
+
+
 export function useGameState() {
-  const [state, setState] = useState<GameState>(initialState);
+  const [state, setState] = useState<GameState>(createInitialState);
   const [message, setMessage] = useState<string>('Welcome to Cat Farm! Start your feline empire! 🐱');
   const [messageType, setMessageType] = useState<'info' | 'success' | 'warning' | 'error'>('info');
+  const [kittensBreed, setKittensBreed] = useState(0);
 
   const showMessage = (msg: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
     setMessage(msg);
     setMessageType(type);
   };
+
+  // Check achievements
+  const checkAchievements = useCallback((newState: GameState, extraKittens = 0): GameState => {
+    const stats = {
+      cats: newState.cats.length,
+      showWins: newState.totalShowWins,
+      money: newState.totalMoneyEarned,
+      house: newState.houseSize === 'house' || newState.houseSize === 'mansion' || newState.houseSize === 'farm',
+      farm: newState.houseSize === 'farm',
+      acres: newState.acres,
+    };
+
+    let newUnlocks: string[] = [];
+    const updatedAchievements = newState.achievements.map(a => {
+      if (a.unlocked) return a;
+      
+      let achieved = false;
+      switch (a.id) {
+        case 'first_cat':
+          achieved = stats.cats >= a.target;
+          break;
+        case 'cat_collector':
+        case 'cat_empire':
+          achieved = stats.cats >= a.target;
+          break;
+        case 'show_winner':
+        case 'champion':
+          achieved = stats.showWins >= a.target;
+          break;
+        case 'millionaire':
+          achieved = stats.money >= a.target;
+          break;
+        case 'breeder':
+        case 'master_breeder':
+          achieved = (kittensBreed + extraKittens) >= a.target;
+          break;
+        case 'homeowner':
+          achieved = stats.house;
+          break;
+        case 'farmer':
+          achieved = stats.farm;
+          break;
+        case 'land_baron':
+          achieved = stats.acres >= a.target;
+          break;
+      }
+
+      if (achieved) {
+        newUnlocks.push(a.name);
+        return { ...a, unlocked: true, unlockedAt: newState.day };
+      }
+      return a;
+    });
+
+    if (newUnlocks.length > 0) {
+      setTimeout(() => showMessage(`🏆 Achievement unlocked: ${newUnlocks.join(', ')}!`, 'success'), 100);
+    }
+
+    return { ...newState, achievements: updatedAchievements };
+  }, [kittensBreed]);
 
   const addCat = useCallback((type: Cat['type']) => {
     setState(prev => {
@@ -356,6 +431,7 @@ export function useGameState() {
 
       // Refresh market every 3 days
       const newMarket = prev.day % 3 === 0 ? generateMarketListings() : prev.marketListings;
+      const newCooldown = Math.max(0, prev.breedingCooldown - 1);
 
       if (deadCats.length > 0) {
         showMessage(`Day ${prev.day + 1}. Sadly, ${deadCats.join(', ')} passed away... 😢`, 'error');
@@ -363,12 +439,114 @@ export function useGameState() {
         showMessage(`Day ${prev.day + 1} begins! ☀️`, 'info');
       }
 
-      return { ...prev, day: prev.day + 1, cats: updatedCats, marketListings: newMarket };
+      const newState = { 
+        ...prev, 
+        day: prev.day + 1, 
+        cats: updatedCats, 
+        marketListings: newMarket,
+        breedingCooldown: newCooldown,
+      };
+      return checkAchievements(newState);
     });
+  }, [checkAchievements]);
+
+  // Breeding
+  const breedCats = useCallback((cat1Id: string, cat2Id: string) => {
+    setState(prev => {
+      if (prev.breedingCooldown > 0) {
+        showMessage(`Breeding on cooldown! ${prev.breedingCooldown} days left.`, 'warning');
+        return prev;
+      }
+      if (prev.cats.length >= prev.space) {
+        showMessage("No space for kittens! Upgrade home first. 🏠", 'warning');
+        return prev;
+      }
+
+      const parent1 = prev.cats.find(c => c.id === cat1Id);
+      const parent2 = prev.cats.find(c => c.id === cat2Id);
+      if (!parent1 || !parent2) return prev;
+
+      // Kitten inherits breed from one parent
+      const breeds = [parent1.breed, parent2.breed];
+      const breed = breeds[Math.floor(Math.random() * 2)];
+      
+      const usedNames = new Set(prev.cats.map(c => c.name));
+      const availableNames = CAT_NAMES.filter(n => !usedNames.has(n));
+      const name = availableNames[Math.floor(Math.random() * availableNames.length)] || `Kitten ${prev.cats.length + 1}`;
+
+      const kitten: Cat = {
+        id: generateId(),
+        type: 'pure',
+        breed,
+        name,
+        health: 100,
+        happiness: 100,
+        hunger: 70,
+        value: Math.floor((BREEDS[parent1.breed].baseValue + BREEDS[parent2.breed].baseValue) / 2 + Math.random() * 50),
+        age: 0,
+        personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],
+        showWins: 0,
+        isForSale: false,
+      };
+
+      setKittensBreed(k => k + 1);
+      showMessage(`🎉 ${parent1.name} and ${parent2.name} had a kitten: ${name}!`, 'success');
+
+      const newState = {
+        ...prev,
+        cats: [...prev.cats, kitten],
+        breedingCooldown: 5,
+      };
+      return checkAchievements(newState, 1);
+    });
+  }, [checkAchievements]);
+
+  // Save game
+  const saveGame = useCallback(() => {
+    const saveData = {
+      state,
+      kittensBreed,
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    showMessage('Game saved! 💾', 'success');
+  }, [state, kittensBreed]);
+
+  // Load game
+  const loadGame = useCallback(() => {
+    const saved = localStorage.getItem(SAVE_KEY);
+    if (!saved) {
+      showMessage('No saved game found!', 'warning');
+      return;
+    }
+    try {
+      const saveData = JSON.parse(saved);
+      setState(saveData.state);
+      setKittensBreed(saveData.kittensBreed || 0);
+      showMessage(`Game loaded! Day ${saveData.state.day} 📂`, 'success');
+    } catch {
+      showMessage('Failed to load save!', 'error');
+    }
+  }, []);
+
+  // Check if save exists
+  const hasSaveGame = useCallback(() => {
+    return localStorage.getItem(SAVE_KEY) !== null;
+  }, []);
+
+  const getSaveDay = useCallback(() => {
+    const saved = localStorage.getItem(SAVE_KEY);
+    if (!saved) return undefined;
+    try {
+      return JSON.parse(saved).state.day;
+    } catch {
+      return undefined;
+    }
   }, []);
 
   const resetGame = useCallback(() => {
-    setState({ ...initialState, marketListings: generateMarketListings() });
+    setState(createInitialState());
+    setKittensBreed(0);
     showMessage('New game started! 🐱', 'info');
   }, []);
 
@@ -376,6 +554,7 @@ export function useGameState() {
     state,
     message,
     messageType,
+    kittensBreed,
     actions: {
       addCat,
       buyFromMarket,
@@ -389,6 +568,11 @@ export function useGameState() {
       upgradeHouse,
       nextDay,
       resetGame,
+      breedCats,
+      saveGame,
+      loadGame,
+      hasSaveGame,
+      getSaveDay,
     },
   };
 }

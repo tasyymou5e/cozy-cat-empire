@@ -6,12 +6,15 @@ import { ActionPanel } from './ActionPanel';
 import { ResourcePanel } from './ResourcePanel';
 import { ChorePanel } from './ChorePanel';
 import { MarketPanel } from './MarketPanel';
+import { BreedingPanel } from './BreedingPanel';
+import { AchievementsPanel } from './AchievementsPanel';
+import { SaveLoadPanel } from './SaveLoadPanel';
 import { CatCard } from './CatCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function CatFarm() {
-  const { state, message, messageType, actions } = useGameState();
+  const { state, message, messageType, kittensBreed, actions } = useGameState();
   const [sideTab, setSideTab] = useState('actions');
 
   return (
@@ -25,9 +28,14 @@ export function CatFarm() {
             Build your 100-acre cat empire!
           </span>
         </div>
-        <Button variant="ghost" size="sm" onClick={actions.resetGame}>
-          New Game
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={actions.saveGame}>
+            💾
+          </Button>
+          <Button variant="ghost" size="sm" onClick={actions.resetGame}>
+            New Game
+          </Button>
+        </div>
       </header>
 
       <StatusBar 
@@ -68,11 +76,13 @@ export function CatFarm() {
 
         <aside className="action-sidebar">
           <Tabs value={sideTab} onValueChange={setSideTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-4">
+            <TabsList className="grid w-full grid-cols-6 mb-4">
               <TabsTrigger value="actions" className="text-xs">🐾</TabsTrigger>
               <TabsTrigger value="chores" className="text-xs">🧹</TabsTrigger>
               <TabsTrigger value="supplies" className="text-xs">📦</TabsTrigger>
               <TabsTrigger value="market" className="text-xs">🛒</TabsTrigger>
+              <TabsTrigger value="breeding" className="text-xs">💕</TabsTrigger>
+              <TabsTrigger value="more" className="text-xs">⚙️</TabsTrigger>
             </TabsList>
             
             <TabsContent value="actions" className="mt-0">
@@ -106,6 +116,36 @@ export function CatFarm() {
                 money={state.money}
                 hasSpace={state.cats.length < state.space}
                 onBuy={actions.buyFromMarket}
+              />
+            </TabsContent>
+            
+            <TabsContent value="breeding" className="mt-0">
+              <BreedingPanel
+                cats={state.cats}
+                cooldown={state.breedingCooldown}
+                hasSpace={state.cats.length < state.space}
+                onBreed={actions.breedCats}
+              />
+            </TabsContent>
+            
+            <TabsContent value="more" className="mt-0 space-y-4">
+              <AchievementsPanel 
+                achievements={state.achievements}
+                currentStats={{
+                  cats: state.cats.length,
+                  showWins: state.totalShowWins,
+                  money: state.totalMoneyEarned,
+                  breeding: kittensBreed,
+                  house: state.houseSize !== 'apartment',
+                  farm: state.houseSize === 'farm',
+                  acres: state.acres,
+                }}
+              />
+              <SaveLoadPanel
+                onSave={actions.saveGame}
+                onLoad={actions.loadGame}
+                hasSave={actions.hasSaveGame()}
+                lastSaveDay={actions.getSaveDay()}
               />
             </TabsContent>
           </Tabs>
