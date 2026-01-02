@@ -11,6 +11,7 @@ import {
 } from '@/types/showEvents';
 import { getRandomDailyEvent, DailyEvent } from '@/types/dailyEvents';
 import { getCostumeById } from '@/types/costumes';
+import { CatRelationship, RelationshipEvent } from '@/types/relationships';
 
 const SAVE_KEY = 'cat-farm-save';
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -862,6 +863,16 @@ export function useGameState(playSound?: (type: SoundType) => void) {
     playSound?.('meow');
   }, [playSound]);
 
+  const loadFromData = useCallback((gameState: GameState, kittens: number, relationshipData: { relationships: CatRelationship[]; events: RelationshipEvent[] } | null) => {
+    setState(gameState);
+    setKittensBreed(kittens);
+    if (relationshipData) {
+      relationshipSystem.loadRelationships(relationshipData);
+    }
+    showMessage(`Cloud save loaded! Day ${gameState.day} ☁️`, 'success');
+    playSound?.('success');
+  }, [relationshipSystem, playSound]);
+
   const comfortCat = useCallback((catId: string) => {
     setState(prev => {
       const cat = prev.cats.find(c => c.id === catId);
@@ -974,7 +985,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
       addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
       catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
       doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
-      comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent,
+      comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
     },
   };
 }
