@@ -30,6 +30,15 @@ export interface MarketListing {
   seller: string;
 }
 
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  target: number;
+  unlocked: boolean;
+  unlockedAt?: number;
+}
+
 export interface GameState {
   cats: Cat[];
   money: number;
@@ -41,7 +50,10 @@ export interface GameState {
   reputation: number;
   totalShowWins: number;
   catsAdopted: number;
+  totalMoneyEarned: number;
   marketListings: MarketListing[];
+  achievements: Achievement[];
+  breedingCooldown: number;
 }
 
 export const CAT_NAMES = [
@@ -93,11 +105,18 @@ export const CHORE_TYPES = [
   { id: 'socialize', name: 'Socialize', emoji: '🤝', baseReward: 30, time: 2 },
 ];
 
-export const ACHIEVEMENTS = [
-  { id: 'first_cat', name: 'First Friend', description: 'Adopt your first cat', target: 1 },
-  { id: 'cat_collector', name: 'Cat Collector', description: 'Own 10 cats', target: 10 },
-  { id: 'cat_empire', name: 'Cat Empire', description: 'Own 50 cats', target: 50 },
-  { id: 'show_winner', name: 'Show Winner', description: 'Win 5 cat shows', target: 5 },
-  { id: 'champion', name: 'Champion Breeder', description: 'Win 25 cat shows', target: 25 },
-  { id: 'millionaire', name: 'Cat Millionaire', description: 'Earn 10,000 cat money', target: 10000 },
-];
+export const ACHIEVEMENT_DEFS = [
+  { id: 'first_cat', name: 'First Friend', description: 'Adopt your first cat', target: 1, type: 'cats' },
+  { id: 'cat_collector', name: 'Cat Collector', description: 'Own 10 cats at once', target: 10, type: 'cats' },
+  { id: 'cat_empire', name: 'Cat Empire', description: 'Own 50 cats at once', target: 50, type: 'cats' },
+  { id: 'show_winner', name: 'Show Winner', description: 'Win 5 cat shows', target: 5, type: 'showWins' },
+  { id: 'champion', name: 'Champion Breeder', description: 'Win 25 cat shows', target: 25, type: 'showWins' },
+  { id: 'millionaire', name: 'Cat Millionaire', description: 'Earn $10,000 total', target: 10000, type: 'money' },
+  { id: 'breeder', name: 'First Litter', description: 'Breed your first kitten', target: 1, type: 'breeding' },
+  { id: 'master_breeder', name: 'Master Breeder', description: 'Breed 10 kittens', target: 10, type: 'breeding' },
+  { id: 'homeowner', name: 'Homeowner', description: 'Upgrade to a house', target: 1, type: 'house' },
+  { id: 'farmer', name: 'Farmer', description: 'Own a farm', target: 1, type: 'farm' },
+  { id: 'land_baron', name: 'Land Baron', description: 'Own 100 acres', target: 100, type: 'acres' },
+] as const;
+
+export type AchievementType = typeof ACHIEVEMENT_DEFS[number]['type'];
