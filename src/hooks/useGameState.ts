@@ -5,6 +5,7 @@ import {
 } from '@/types/game';
 import { useRelationships } from './useRelationships';
 import { generateRandomGrade, TrickId, TRICKS } from '@/types/grading';
+import { SoundType } from './useSoundEffects';
 
 const SAVE_KEY = 'cat-farm-save';
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -89,7 +90,7 @@ const createInitialState = (): GameState => ({
 });
 
 
-export function useGameState() {
+export function useGameState(playSound?: (type: SoundType) => void) {
   const [state, setState] = useState<GameState>(createInitialState);
   const [message, setMessage] = useState<string>('Welcome to Cat Farm! Start your feline empire! 🐱');
   const [messageType, setMessageType] = useState<'info' | 'success' | 'warning' | 'error'>('info');
@@ -119,33 +120,17 @@ export function useGameState() {
       
       let achieved = false;
       switch (a.id) {
-        case 'first_cat':
-          achieved = stats.cats >= a.target;
-          break;
+        case 'first_cat': achieved = stats.cats >= a.target; break;
         case 'cat_collector':
-        case 'cat_empire':
-          achieved = stats.cats >= a.target;
-          break;
+        case 'cat_empire': achieved = stats.cats >= a.target; break;
         case 'show_winner':
-        case 'champion':
-          achieved = stats.showWins >= a.target;
-          break;
-        case 'millionaire':
-          achieved = stats.money >= a.target;
-          break;
+        case 'champion': achieved = stats.showWins >= a.target; break;
+        case 'millionaire': achieved = stats.money >= a.target; break;
         case 'breeder':
-        case 'master_breeder':
-          achieved = (kittensBreed + extraKittens) >= a.target;
-          break;
-        case 'homeowner':
-          achieved = stats.house;
-          break;
-        case 'farmer':
-          achieved = stats.farm;
-          break;
-        case 'land_baron':
-          achieved = stats.acres >= a.target;
-          break;
+        case 'master_breeder': achieved = (kittensBreed + extraKittens) >= a.target; break;
+        case 'homeowner': achieved = stats.house; break;
+        case 'farmer': achieved = stats.farm; break;
+        case 'land_baron': achieved = stats.acres >= a.target; break;
       }
 
       if (achieved) {
@@ -156,21 +141,26 @@ export function useGameState() {
     });
 
     if (newUnlocks.length > 0) {
-      setTimeout(() => showMessage(`🏆 Achievement unlocked: ${newUnlocks.join(', ')}!`, 'success'), 100);
+      setTimeout(() => {
+        showMessage(`🏆 Achievement unlocked: ${newUnlocks.join(', ')}!`, 'success');
+        playSound?.('achievement');
+      }, 100);
     }
 
     return { ...newState, achievements: updatedAchievements };
-  }, [kittensBreed]);
+  }, [kittensBreed, playSound]);
 
   const addCat = useCallback((type: Cat['type']) => {
     setState(prev => {
       if (prev.cats.length >= prev.space) {
         showMessage("No space! Upgrade your home first. 🏠", 'warning');
+        playSound?.('error');
         return prev;
       }
       const cost = CAT_COSTS[type];
       if (prev.money < cost) {
         showMessage("Not enough cat money! 💸", 'error');
+        playSound?.('error');
         return prev;
       }
       
@@ -181,26 +171,20 @@ export function useGameState() {
       
       const newCat: Cat = {
         id: generateId(),
-        type,
-        breed,
-        name,
-        health: 100,
-        happiness: 100,
-        hunger: 50,
+        type, breed, name,
+        health: 100, happiness: 100, hunger: 50,
         value: BREEDS[breed].baseValue + Math.floor(Math.random() * 50),
         age: type === 'stray' ? Math.floor(Math.random() * 3) + 1 : 1,
         personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],
-        showWins: 0,
-        isForSale: false,
+        showWins: 0, isForSale: false,
         grade: generateRandomGrade(),
         tricksLearned: [],
         trickProgress: createDefaultTrickProgress(),
-        restLevel: 100,
-        feedingScore: 0,
-        lastTrainingDay: 0,
+        restLevel: 100, feedingScore: 0, lastTrainingDay: 0,
       };
       
       showMessage(`Welcome ${name} the ${BREEDS[breed].name}! 🎉`, 'success');
+      playSound?.('meow');
       return { 
         ...prev, 
         money: prev.money - cost, 
@@ -208,7 +192,7 @@ export function useGameState() {
         catsAdopted: prev.catsAdopted + 1,
       };
     });
-  }, []);
+  }, [playSound]);
 
   const buyFromMarket = useCallback((listingId: string) => {
     setState(prev => {
@@ -217,15 +201,19 @@ export function useGameState() {
       
       if (prev.cats.length >= prev.space) {
         showMessage("No space! Upgrade your home first. 🏠", 'warning');
+        playSound?.('error');
         return prev;
       }
       if (prev.money < listing.price) {
         showMessage("Not enough cat money! 💸", 'error');
+        playSound?.('error');
         return prev;
       }
       
       const newCat = { ...listing.cat, id: generateId(), isForSale: false };
       showMessage(`Bought ${newCat.name} from ${listing.seller}! 🛒`, 'success');
+      playSound?.('coin');
+      playSound?.('meow');
       
       return {
         ...prev,
@@ -235,7 +223,7 @@ export function useGameState() {
         catsAdopted: prev.catsAdopted + 1,
       };
     });
-  }, []);
+  }, [playSound]);
 
   const doChore = useCallback((choreId: string, baseReward: number) => {
     const bonus = Math.floor(Math.random() * 20);
@@ -246,18 +234,19 @@ export function useGameState() {
         ...prev,
         money: prev.money + earnings,
         cats: happinessBoost ? prev.cats.map(cat => ({
-          ...cat,
-          happiness: Math.min(100, cat.happiness + 5),
+          ...cat, happiness: Math.min(100, cat.happiness + 5),
         })) : prev.cats,
       };
     });
     showMessage(`Chore done! Earned $${earnings}. 🧹`, 'success');
-  }, []);
+    playSound?.('coin');
+  }, [playSound]);
 
   const buyResource = useCallback((resource: keyof GameState['resources'], cost: number) => {
     setState(prev => {
       if (prev.money < cost) {
         showMessage("Not enough money!", 'error');
+        playSound?.('error');
         return prev;
       }
       return {
@@ -267,13 +256,13 @@ export function useGameState() {
       };
     });
     showMessage(`Bought 5 ${resource}! 📦`, 'success');
-  }, []);
+    playSound?.('click');
+  }, [playSound]);
 
   const feedCats = useCallback(() => {
     setState(prev => {
       const needed = prev.cats.length;
       if (prev.resources.food < needed) {
-        // Food scarcity can cause fights between rivals
         if (prev.cats.length >= 2) {
           const rivals = relationshipSystem.relationships.filter(r => r.score <= -20);
           if (rivals.length > 0 && Math.random() < 0.3) {
@@ -282,20 +271,22 @@ export function useGameState() {
             const cat2 = prev.cats.find(c => c.id === rival.catId2);
             if (cat1 && cat2) {
               relationshipSystem.addEvent(cat1, cat2, 'negative', `${cat1.name} and ${cat2.name} fought over the last food`, -10, prev.day);
+              playSound?.('hiss');
             }
           }
         }
         showMessage(`Need ${needed} food! Buy more supplies. 🍖`, 'warning');
+        playSound?.('error');
         return prev;
       }
       
-      // Feeding together can boost relationships slightly
       if (prev.cats.length >= 2 && Math.random() < 0.2) {
         const shuffled = [...prev.cats].sort(() => Math.random() - 0.5);
         relationshipSystem.addEvent(shuffled[0], shuffled[1], 'positive', `${shuffled[0].name} and ${shuffled[1].name} ate together peacefully`, 2, prev.day);
       }
       
       showMessage("All cats fed! They're happy! 😸", 'success');
+      playSound?.('purr');
       return {
         ...prev,
         resources: { ...prev.resources, food: prev.resources.food - needed },
@@ -307,59 +298,59 @@ export function useGameState() {
         })),
       };
     });
-  }, [relationshipSystem]);
+  }, [relationshipSystem, playSound]);
 
   const useToys = useCallback(() => {
     setState(prev => {
       const needed = Math.ceil(prev.cats.length / 3);
       if (prev.resources.toys < needed) {
         showMessage(`Need ${needed} toys for playtime! 🎾`, 'warning');
+        playSound?.('error');
         return prev;
       }
       
-      // Playing together boosts relationships
       if (prev.cats.length >= 2) {
         const shuffled = [...prev.cats].sort(() => Math.random() - 0.5);
-        const cat1 = shuffled[0];
-        const cat2 = shuffled[1];
-        relationshipSystem.addEvent(cat1, cat2, 'positive', `${cat1.name} and ${cat2.name} played with toys together`, 5, prev.day);
+        relationshipSystem.addEvent(shuffled[0], shuffled[1], 'positive', `${shuffled[0].name} and ${shuffled[1].name} played with toys together`, 5, prev.day);
+        playSound?.('friendship');
       }
       
       showMessage("Playtime! Cats are having fun! 🎉", 'success');
+      playSound?.('success');
       return {
         ...prev,
         resources: { ...prev.resources, toys: prev.resources.toys - needed },
-        cats: prev.cats.map(cat => ({
-          ...cat,
-          happiness: Math.min(100, cat.happiness + 15),
-        })),
+        cats: prev.cats.map(cat => ({ ...cat, happiness: Math.min(100, cat.happiness + 15) })),
       };
     });
-  }, [relationshipSystem]);
+  }, [relationshipSystem, playSound]);
 
   const useMedicine = useCallback((catId: string) => {
     setState(prev => {
       if (prev.resources.medicine < 1) {
         showMessage("No medicine available! Buy from shop. 💊", 'warning');
+        playSound?.('error');
         return prev;
       }
       const cat = prev.cats.find(c => c.id === catId);
       if (!cat) return prev;
       
       showMessage(`${cat.name} is feeling better! 💚`, 'success');
+      playSound?.('success');
       return {
         ...prev,
         resources: { ...prev.resources, medicine: prev.resources.medicine - 1 },
         cats: prev.cats.map(c => c.id === catId ? { ...c, health: 100 } : c),
       };
     });
-  }, []);
+  }, [playSound]);
 
   const catShow = useCallback(() => {
     setState(prev => {
       const eligibleCats = prev.cats.filter(c => c.health >= 70 && c.happiness >= 60);
       if (eligibleCats.length === 0) {
         showMessage("No cats healthy/happy enough for the show! 🎪", 'warning');
+        playSound?.('error');
         return prev;
       }
       
@@ -372,7 +363,6 @@ export function useGameState() {
       const updatedCats = prev.cats.map(cat => {
         if (!participants.find(p => p.id === cat.id)) return cat;
         
-        // Check for friend bonus in show
         const friendsInShow = participants.filter(p => {
           if (p.id === cat.id) return false;
           const rel = relationshipSystem.getRelationship(cat.id, p.id);
@@ -393,7 +383,6 @@ export function useGameState() {
         return cat;
       });
       
-      // Show competition can create rivalries between competitors
       if (winners.length > 0 && losers.length > 0 && Math.random() < 0.2) {
         const winnerId = winners[Math.floor(Math.random() * winners.length)];
         const loserId = losers[Math.floor(Math.random() * losers.length)];
@@ -404,7 +393,6 @@ export function useGameState() {
         }
       }
       
-      // Winners who are friends celebrate together
       if (winners.length >= 2 && Math.random() < 0.3) {
         const cat1 = prev.cats.find(c => c.id === winners[0]);
         const cat2 = prev.cats.find(c => c.id === winners[1]);
@@ -415,6 +403,10 @@ export function useGameState() {
       
       totalReward = Math.floor(totalReward);
       showMessage(`Cat show results: ${wins} wins! Earned $${totalReward}! 🏆`, wins > 0 ? 'success' : 'info');
+      if (wins > 0) {
+        playSound?.('achievement');
+        playSound?.('coin');
+      }
       
       return {
         ...prev,
@@ -424,7 +416,7 @@ export function useGameState() {
         reputation: prev.reputation + wins * 2,
       };
     });
-  }, [relationshipSystem]);
+  }, [relationshipSystem, playSound]);
 
   const sellCat = useCallback((catId: string) => {
     setState(prev => {
@@ -432,6 +424,7 @@ export function useGameState() {
       if (!cat) return prev;
       const sellPrice = Math.floor(cat.value * (1 + cat.showWins * 0.1));
       showMessage(`Goodbye ${cat.name}! Sold for $${sellPrice}. 👋`, 'info');
+      playSound?.('coin');
       relationshipSystem.removeCatRelationships(catId);
       return {
         ...prev,
@@ -439,7 +432,7 @@ export function useGameState() {
         cats: prev.cats.filter(c => c.id !== catId),
       };
     });
-  }, [relationshipSystem]);
+  }, [relationshipSystem, playSound]);
 
   const upgradeHouse = useCallback(() => {
     setState(prev => {
@@ -451,15 +444,12 @@ export function useGameState() {
         const cost = 5000 * (prev.acres + 1);
         if (prev.money < cost) {
           showMessage(`Need $${cost} to expand farm! 💰`, 'warning');
+          playSound?.('error');
           return prev;
         }
         showMessage(`Farm expanded to ${prev.acres + 1} acres! 🚜`, 'success');
-        return {
-          ...prev,
-          money: prev.money - cost,
-          acres: prev.acres + 1,
-          space: prev.space + 20,
-        };
+        playSound?.('levelUp');
+        return { ...prev, money: prev.money - cost, acres: prev.acres + 1, space: prev.space + 20 };
       }
 
       const upgrade = HOUSE_UPGRADES[prev.houseSize];
@@ -467,11 +457,13 @@ export function useGameState() {
       
       if (prev.money < upgrade.cost) {
         showMessage(`Need $${upgrade.cost} to upgrade! 💰`, 'warning');
+        playSound?.('error');
         return prev;
       }
 
       const newHouse = upgrade.next;
       showMessage(`Upgraded to ${newHouse}! 🎊`, 'success');
+      playSound?.('levelUp');
       return {
         ...prev,
         money: prev.money - upgrade.cost,
@@ -480,7 +472,7 @@ export function useGameState() {
         acres: newHouse === 'farm' ? 1 : 0,
       };
     });
-  }, []);
+  }, [playSound]);
 
   const nextDay = useCallback(() => {
     setState(prev => {
@@ -491,20 +483,16 @@ export function useGameState() {
           let happiness = Math.max(0, cat.happiness - 3);
           let hunger = Math.max(0, cat.hunger - 10);
           
-          // Apply relationship happiness modifiers
           const relationshipMod = relationshipSystem.getHappinessModifier(cat.id);
           happiness = Math.max(0, Math.min(100, happiness + relationshipMod));
           
-          if (hunger < 30) {
-            health -= 5;
-            happiness -= 5;
-          }
+          if (hunger < 30) { health -= 5; happiness -= 5; }
           if (happiness < 40) health -= 3;
           
           health = Math.max(0, health);
           happiness = Math.max(0, happiness);
           
-          return { ...cat, health, happiness, hunger, age: cat.age + 0.01 };
+          return { ...cat, health, happiness, hunger, age: cat.age + 0.01, restLevel: Math.max(0, cat.restLevel - 5) };
         })
         .filter(cat => {
           if (cat.health <= 0) {
@@ -515,11 +503,9 @@ export function useGameState() {
           return true;
         });
 
-      // Process daily relationship changes
       relationshipSystem.processDailyRelationships(updatedCats, prev.day + 1);
       relationshipSystem.detectGroups(updatedCats);
 
-      // Refresh market every 3 days
       const newMarket = prev.day % 3 === 0 ? generateMarketListings() : prev.marketListings;
       const newCooldown = Math.max(0, prev.breedingCooldown - 1);
 
@@ -528,23 +514,18 @@ export function useGameState() {
       } else {
         showMessage(`Day ${prev.day + 1} begins! ☀️`, 'info');
       }
+      playSound?.('nextDay');
 
-      const newState = { 
-        ...prev, 
-        day: prev.day + 1, 
-        cats: updatedCats, 
-        marketListings: newMarket,
-        breedingCooldown: newCooldown,
-      };
+      const newState = { ...prev, day: prev.day + 1, cats: updatedCats, marketListings: newMarket, breedingCooldown: newCooldown };
       return checkAchievements(newState);
     });
-  }, [checkAchievements, relationshipSystem]);
+  }, [checkAchievements, relationshipSystem, playSound]);
 
-  // Socialize two cats
   const socializeCats = useCallback((cat1Id: string, cat2Id: string) => {
     setState(prev => {
       if (prev.resources.treats < 2) {
         showMessage("Need 2 treats to socialize! 🍬", 'warning');
+        playSound?.('error');
         return prev;
       }
 
@@ -554,6 +535,8 @@ export function useGameState() {
 
       const result = relationshipSystem.socializeCats(cat1, cat2, prev.day);
       showMessage(`🤝 ${result.message}`, 'success');
+      playSound?.('friendship');
+      playSound?.('purr');
 
       return {
         ...prev,
@@ -566,9 +549,8 @@ export function useGameState() {
         }),
       };
     });
-  }, [relationshipSystem]);
+  }, [relationshipSystem, playSound]);
 
-  // Breeding
   const breedCats = useCallback((cat1Id: string, cat2Id: string) => {
     setState(prev => {
       if (prev.breedingCooldown > 0) {
@@ -577,6 +559,7 @@ export function useGameState() {
       }
       if (prev.cats.length >= prev.space) {
         showMessage("No space for kittens! Upgrade home first. 🏠", 'warning');
+        playSound?.('error');
         return prev;
       }
 
@@ -584,20 +567,19 @@ export function useGameState() {
       const parent2 = prev.cats.find(c => c.id === cat2Id);
       if (!parent1 || !parent2) return prev;
 
-      // Check relationship compatibility
       const compatibility = relationshipSystem.getBreedingCompatibility(cat1Id, cat2Id);
       if (!compatibility.canBreed) {
         showMessage(`💔 ${compatibility.message}`, 'error');
+        playSound?.('hiss');
         return prev;
       }
 
-      // Rivals have 50% failure chance
       if (compatibility.bonus < 0 && Math.random() < 0.5) {
         showMessage(`${parent1.name} and ${parent2.name} refused to breed... 😾`, 'warning');
+        playSound?.('hiss');
         return { ...prev, breedingCooldown: 2 };
       }
 
-      // Kitten inherits breed from one parent
       const breeds = [parent1.breed, parent2.breed];
       const breed = breeds[Math.floor(Math.random() * 2)];
       
@@ -605,156 +587,72 @@ export function useGameState() {
       const availableNames = CAT_NAMES.filter(n => !usedNames.has(n));
       const name = availableNames[Math.floor(Math.random() * availableNames.length)] || `Kitten ${prev.cats.length + 1}`;
 
-      // Apply relationship bonuses to kitten stats
       const healthBonus = Math.floor(compatibility.bonus / 2);
       const happinessBonus = Math.floor(compatibility.bonus / 2);
-
-      // Kitten grade based on parent average with variance
       const parentAvgGrade = Math.floor((parent1.grade + parent2.grade) / 2);
-      const gradeVariance = Math.floor(Math.random() * 5) - 2; // -2 to +2
+      const gradeVariance = Math.floor(Math.random() * 5) - 2;
       const kittenGrade = Math.max(1, Math.min(20, parentAvgGrade + gradeVariance + Math.floor(compatibility.bonus / 10)));
 
       const kitten: Cat = {
-        id: generateId(),
-        type: 'pure',
-        breed,
-        name,
+        id: generateId(), type: 'pure', breed, name,
         health: Math.min(100, 100 + healthBonus),
         happiness: Math.min(100, 100 + happinessBonus),
         hunger: 70,
         value: Math.floor((BREEDS[parent1.breed].baseValue + BREEDS[parent2.breed].baseValue) / 2 + Math.random() * 50 + compatibility.bonus),
         age: 0,
         personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],
-        showWins: 0,
-        isForSale: false,
+        showWins: 0, isForSale: false,
         grade: kittenGrade,
         tricksLearned: [],
         trickProgress: createDefaultTrickProgress(),
-        restLevel: 100,
-        feedingScore: 0,
-        lastTrainingDay: 0,
+        restLevel: 100, feedingScore: 0, lastTrainingDay: 0,
       };
 
-      // Breeding improves parent relationship
       relationshipSystem.addEvent(parent1, parent2, 'positive', `${parent1.name} and ${parent2.name} had a kitten together`, 15, prev.day);
 
       setKittensBreed(k => k + 1);
       const bonusMsg = compatibility.bonus > 0 ? ` (${compatibility.message})` : '';
       showMessage(`🎉 ${parent1.name} and ${parent2.name} had a kitten: ${name}!${bonusMsg}`, 'success');
+      playSound?.('meow');
+      playSound?.('success');
 
-      const newState = {
-        ...prev,
-        cats: [...prev.cats, kitten],
-        breedingCooldown: 5,
-      };
+      const newState = { ...prev, cats: [...prev.cats, kitten], breedingCooldown: 5 };
       return checkAchievements(newState, 1);
     });
-  }, [checkAchievements, relationshipSystem]);
+  }, [checkAchievements, relationshipSystem, playSound]);
 
-  // Save game
-  const saveGame = useCallback(() => {
-    const saveData = {
-      state,
-      kittensBreed,
-      relationships: relationshipSystem.getRelationshipSaveData(),
-      savedAt: new Date().toISOString(),
-    };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-    showMessage('Game saved! 💾', 'success');
-  }, [state, kittensBreed, relationshipSystem]);
-
-  // Load game
-  const loadGame = useCallback(() => {
-    const saved = localStorage.getItem(SAVE_KEY);
-    if (!saved) {
-      showMessage('No saved game found!', 'warning');
-      return;
-    }
-    try {
-      const saveData = JSON.parse(saved);
-      setState(saveData.state);
-      setKittensBreed(saveData.kittensBreed || 0);
-      if (saveData.relationships) {
-        relationshipSystem.loadRelationships(saveData.relationships);
-      }
-      showMessage(`Game loaded! Day ${saveData.state.day} 📂`, 'success');
-    } catch {
-      showMessage('Failed to load save!', 'error');
-    }
-  }, [relationshipSystem]);
-
-  // Check if save exists
-  const hasSaveGame = useCallback(() => {
-    return localStorage.getItem(SAVE_KEY) !== null;
-  }, []);
-
-  const getSaveDay = useCallback(() => {
-    const saved = localStorage.getItem(SAVE_KEY);
-    if (!saved) return undefined;
-    try {
-      return JSON.parse(saved).state.day;
-    } catch {
-      return undefined;
-    }
-  }, []);
-
-  const resetGame = useCallback(() => {
-    setState(createInitialState());
-    setKittensBreed(0);
-    showMessage('New game started! 🐱', 'info');
-  }, []);
-
-  // Group activity
   const doGroupActivity = useCallback((groupId: string, activityType: 'play' | 'treat' | 'nap') => {
     const group = relationshipSystem.groups.find(g => g.id === groupId);
     if (!group) return;
 
-    const costs = {
-      play: { toys: 1, treats: 0 },
-      treat: { toys: 0, treats: 2 },
-      nap: { toys: 0, treats: 0 },
-    };
-
-    const bonuses = {
-      play: { happiness: 10, relationship: 5 },
-      treat: { happiness: 8, relationship: 8 },
-      nap: { happiness: 5, relationship: 3 },
-    };
+    const costs = { play: { toys: 1, treats: 0 }, treat: { toys: 0, treats: 2 }, nap: { toys: 0, treats: 0 } };
+    const bonuses = { play: { happiness: 10, relationship: 5 }, treat: { happiness: 8, relationship: 8 }, nap: { happiness: 5, relationship: 3 } };
 
     setState(prev => {
       const cost = costs[activityType];
       if (prev.resources.toys < cost.toys || prev.resources.treats < cost.treats) {
         showMessage("Not enough resources for group activity!", 'warning');
+        playSound?.('error');
         return prev;
       }
 
       const bonus = bonuses[activityType];
       const memberCats = prev.cats.filter(c => group.memberIds.includes(c.id));
 
-      // Boost relationships between all group members
       for (let i = 0; i < memberCats.length; i++) {
         for (let j = i + 1; j < memberCats.length; j++) {
-          relationshipSystem.addEvent(
-            memberCats[i], 
-            memberCats[j], 
-            'positive', 
-            `${memberCats[i].name} and ${memberCats[j].name} did a group ${activityType} activity`,
-            bonus.relationship,
-            prev.day
-          );
+          relationshipSystem.addEvent(memberCats[i], memberCats[j], 'positive', 
+            `${memberCats[i].name} and ${memberCats[j].name} did a group ${activityType} activity`, bonus.relationship, prev.day);
         }
       }
 
       const activityNames = { play: 'playtime', treat: 'treat party', nap: 'nap session' };
       showMessage(`${group.name} had a group ${activityNames[activityType]}! 🎉`, 'success');
+      playSound?.('friendship');
 
       return {
         ...prev,
-        resources: {
-          ...prev.resources,
-          toys: prev.resources.toys - cost.toys,
-          treats: prev.resources.treats - cost.treats,
-        },
+        resources: { ...prev.resources, toys: prev.resources.toys - cost.toys, treats: prev.resources.treats - cost.treats },
         cats: prev.cats.map(cat => {
           if (group.memberIds.includes(cat.id)) {
             return { ...cat, happiness: Math.min(100, cat.happiness + bonus.happiness) };
@@ -763,13 +661,13 @@ export function useGameState() {
         }),
       };
     });
-  }, [relationshipSystem]);
+  }, [relationshipSystem, playSound]);
 
-  // Train a cat on a trick
   const trainCat = useCallback((catId: string, trickId: TrickId) => {
     setState(prev => {
       if (prev.resources.treats < 1 || prev.resources.toys < 1) {
         showMessage("Need 1 treat and 1 toy to train! 🎾", 'warning');
+        playSound?.('error');
         return prev;
       }
 
@@ -784,7 +682,6 @@ export function useGameState() {
       const trick = TRICKS.find(t => t.id === trickId);
       if (!trick) return prev;
 
-      // Calculate progress gain (20-40 based on rest level)
       const restBonus = cat.restLevel >= 80 ? 10 : 0;
       const progressGain = 20 + Math.floor(Math.random() * 20) + restBonus;
       const newProgress = Math.min(100, (cat.trickProgress[trickId] || 0) + progressGain);
@@ -792,25 +689,21 @@ export function useGameState() {
 
       const newTrickProgress = { ...cat.trickProgress, [trickId]: newProgress };
       const newTricksLearned = learned && !cat.tricksLearned.includes(trickId)
-        ? [...cat.tricksLearned, trickId]
-        : cat.tricksLearned;
+        ? [...cat.tricksLearned, trickId] : cat.tricksLearned;
 
-      // Calculate grade bonus from tricks
       let gradeBonus = 0;
       if (learned && !cat.tricksLearned.includes(trickId)) {
         gradeBonus = trick.gradeBonus;
         showMessage(`🎉 ${cat.name} learned ${trick.name}! (+${gradeBonus} grade)`, 'success');
+        playSound?.('levelUp');
       } else {
         showMessage(`${cat.name} practiced ${trick.name}! (${newProgress}% progress)`, 'info');
+        playSound?.('click');
       }
 
       return {
         ...prev,
-        resources: {
-          ...prev.resources,
-          treats: prev.resources.treats - 1,
-          toys: prev.resources.toys - 1,
-        },
+        resources: { ...prev.resources, treats: prev.resources.treats - 1, toys: prev.resources.toys - 1 },
         cats: prev.cats.map(c => {
           if (c.id !== catId) return c;
           return {
@@ -824,9 +717,8 @@ export function useGameState() {
         }),
       };
     });
-  }, []);
+  }, [playSound]);
 
-  // Rest a cat
   const restCat = useCallback((catId: string) => {
     setState(prev => {
       const cat = prev.cats.find(c => c.id === catId);
@@ -837,50 +729,58 @@ export function useGameState() {
       const gradeBonus = newRest >= 80 && cat.restLevel < 80 ? 0.25 : 0;
 
       showMessage(`${cat.name} is resting... 😴`, 'info');
+      playSound?.('purr');
 
       return {
         ...prev,
         cats: prev.cats.map(c => {
           if (c.id !== catId) return c;
-          return {
-            ...c,
-            restLevel: newRest,
-            grade: Math.min(20, c.grade + gradeBonus),
-            happiness: Math.min(100, c.happiness + 5),
-          };
+          return { ...c, restLevel: newRest, grade: Math.min(20, c.grade + gradeBonus), happiness: Math.min(100, c.happiness + 5) };
         }),
       };
     });
+  }, [playSound]);
+
+  const saveGame = useCallback(() => {
+    const saveData = { state, kittensBreed, relationships: relationshipSystem.getRelationshipSaveData(), savedAt: new Date().toISOString() };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    showMessage('Game saved! 💾', 'success');
+    playSound?.('success');
+  }, [state, kittensBreed, relationshipSystem, playSound]);
+
+  const loadGame = useCallback(() => {
+    const saved = localStorage.getItem(SAVE_KEY);
+    if (!saved) { showMessage('No saved game found!', 'warning'); return; }
+    try {
+      const saveData = JSON.parse(saved);
+      setState(saveData.state);
+      setKittensBreed(saveData.kittensBreed || 0);
+      if (saveData.relationships) { relationshipSystem.loadRelationships(saveData.relationships); }
+      showMessage(`Game loaded! Day ${saveData.state.day} 📂`, 'success');
+      playSound?.('success');
+    } catch { showMessage('Failed to load save!', 'error'); }
+  }, [relationshipSystem, playSound]);
+
+  const hasSaveGame = useCallback(() => localStorage.getItem(SAVE_KEY) !== null, []);
+  const getSaveDay = useCallback(() => {
+    const saved = localStorage.getItem(SAVE_KEY);
+    if (!saved) return undefined;
+    try { return JSON.parse(saved).state.day; } catch { return undefined; }
   }, []);
 
+  const resetGame = useCallback(() => {
+    setState(createInitialState());
+    setKittensBreed(0);
+    showMessage('New game started! 🐱', 'info');
+    playSound?.('meow');
+  }, [playSound]);
+
   return {
-    state,
-    message,
-    messageType,
-    kittensBreed,
-    relationshipSystem,
+    state, message, messageType, kittensBreed, relationshipSystem,
     actions: {
-      addCat,
-      buyFromMarket,
-      doChore,
-      buyResource,
-      feedCats,
-      useToys,
-      useMedicine,
-      catShow,
-      sellCat,
-      upgradeHouse,
-      nextDay,
-      resetGame,
-      breedCats,
-      socializeCats,
-      doGroupActivity,
-      trainCat,
-      restCat,
-      saveGame,
-      loadGame,
-      hasSaveGame,
-      getSaveDay,
+      addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
+      catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
+      doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
     },
   };
 }
