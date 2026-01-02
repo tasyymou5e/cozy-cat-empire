@@ -104,7 +104,6 @@ export function useGameState(playSound?: (type: SoundType) => void) {
   const [messageType, setMessageType] = useState<'info' | 'success' | 'warning' | 'error'>('info');
   const [kittensBreed, setKittensBreed] = useState(0);
   const [currentDailyEvent, setCurrentDailyEvent] = useState<DailyEvent | null>(null);
-  const [kittensBreed, setKittensBreed] = useState(0);
 
   const relationshipSystem = useRelationships();
 
