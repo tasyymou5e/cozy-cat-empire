@@ -307,6 +307,9 @@ export function CatFarm() {
             </Button>
           )}
           
+          {/* Notification Center */}
+          <NotificationCenter userId={user?.id} onNavigate={setSideTab} />
+          
           {/* Cloud sync indicator */}
           {user && (
             <Button 
@@ -413,6 +416,8 @@ export function CatFarm() {
               <TabsTrigger value="global" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'global' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Globe className="h-4 w-4" /></TabsTrigger>
               <TabsTrigger value="friends" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'friends' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Users className="h-4 w-4" /></TabsTrigger>
               <TabsTrigger value="profile" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'profile' ? 'ring-2 ring-primary animate-pulse' : ''}`}><User className="h-4 w-4" /></TabsTrigger>
+              <TabsTrigger value="gifts" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'gifts' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Gift className="h-4 w-4" /></TabsTrigger>
+              <TabsTrigger value="trading" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'trading' ? 'ring-2 ring-primary animate-pulse' : ''}`}><ArrowLeftRight className="h-4 w-4" /></TabsTrigger>
               <TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger>
             </TabsList>
             
@@ -466,6 +471,27 @@ export function CatFarm() {
             </TabsContent>
             <TabsContent value="profile" className="mt-0">
               <PlayerProfilePanel userId={user?.id} />
+            </TabsContent>
+            <TabsContent value="gifts" className="mt-0">
+              <CatGiftingPanel 
+                userId={user?.id} 
+                cats={state.cats}
+                onGiftSent={(catId) => actions.sellCat(catId)}
+                onGiftReceived={(cat) => actions.addReceivedCat?.(cat)}
+              />
+            </TabsContent>
+            <TabsContent value="trading" className="mt-0">
+              <TradingPanel 
+                userId={user?.id}
+                cats={state.cats}
+                money={state.money}
+                resources={state.resources}
+                onTradeComplete={(removeCats, addCats, moneyChange, resourceChanges) => {
+                  removeCats.forEach(catId => actions.sellCat(catId));
+                  addCats.forEach(cat => actions.addReceivedCat?.(cat));
+                  // Money and resources handled by trade system
+                }}
+              />
             </TabsContent>
             <TabsContent value="more" className="mt-0 space-y-4">
               <AchievementsPanel achievements={state.achievements}
