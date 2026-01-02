@@ -17,13 +17,15 @@ export interface LeaderboardEntry {
 }
 
 export type LeaderboardCategory = 'wins' | 'cats' | 'breeding' | 'wealth' | 'achievements';
+export type LeaderboardViewMode = 'global' | 'friends';
 
-export function useGlobalLeaderboard(userId: string | undefined) {
+export function useGlobalLeaderboard(userId: string | undefined, friendIds?: string[]) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [userRank, setUserRank] = useState<number | null>(null);
   const [userStats, setUserStats] = useState<LeaderboardEntry | null>(null);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<LeaderboardCategory>('wins');
+  const [viewMode, setViewMode] = useState<LeaderboardViewMode>('global');
 
   const getCategoryColumn = (cat: LeaderboardCategory): string => {
     switch (cat) {
@@ -40,11 +42,20 @@ export function useGlobalLeaderboard(userId: string | undefined) {
     setLoading(true);
     try {
       const column = getCategoryColumn(category);
-      const { data, error } = await supabase
+      
+      let query = supabase
         .from('player_stats')
         .select('*')
         .order(column, { ascending: false })
         .limit(20);
+
+      // Filter to friends only when in friends mode
+      if (viewMode === 'friends' && userId) {
+        const friendIdsWithUser = [...(friendIds || []), userId];
+        query = query.in('user_id', friendIdsWithUser);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -61,8 +72,8 @@ export function useGlobalLeaderboard(userId: string | undefined) {
         if (userEntry) {
           setUserRank(userEntry.rank || null);
           setUserStats(userEntry);
-        } else {
-          // User not in top 20, fetch their stats separately
+        } else if (viewMode === 'global') {
+          // User not in top 20, fetch their stats separately (only for global)
           const { data: userData } = await supabase
             .from('player_stats')
             .select('*')
@@ -78,6 +89,9 @@ export function useGlobalLeaderboard(userId: string | undefined) {
               .gt(column, userData[column as keyof typeof userData] || 0);
             setUserRank((count || 0) + 1);
           }
+        } else {
+          setUserRank(null);
+          setUserStats(null);
         }
       }
     } catch (err) {
@@ -85,7 +99,7 @@ export function useGlobalLeaderboard(userId: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [category, userId]);
+  }, [category, userId, viewMode, friendIds]);
 
   useEffect(() => {
     fetchLeaderboard();
@@ -130,6 +144,8 @@ export function useGlobalLeaderboard(userId: string | undefined) {
     loading,
     category,
     setCategory,
+    viewMode,
+    setViewMode,
     fetchLeaderboard,
     syncPlayerStats,
   };
