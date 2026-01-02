@@ -63,13 +63,13 @@ export function CatFarm() {
     updateMusicForDay, getCurrentMood, triggerCelebration, triggerTense 
   } = useSoundEffects();
   const { fireConfetti, fireCelebration, fireStars } = useConfetti();
-  const { state, message, messageType, kittensBreed, currentDailyEvent, relationshipSystem, actions } = useGameState(playSound);
-  const isMobile = useIsMobile();
   const { user, signOut, loading: authLoading } = useAuth();
+  const { challenges, loading: challengesLoading, updateProgress: updateChallengeProgress, claimReward, getTimeRemaining } = useWeeklyChallenges(user?.id);
+  const { state, message, messageType, kittensBreed, currentDailyEvent, relationshipSystem, actions } = useGameState(playSound, updateChallengeProgress);
+  const isMobile = useIsMobile();
   const { cloudSave, cloudLoad, hasCloudSave } = useCloudSave(user?.id);
   const { syncPlayerStats } = useGlobalLeaderboard(user?.id);
   const { profile } = usePlayerProfile(user?.id);
-  const { challenges, loading: challengesLoading, updateProgress: updateChallengeProgress, claimReward, getTimeRemaining } = useWeeklyChallenges(user?.id);
   const { theme, setTheme } = useTheme();
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
