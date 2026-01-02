@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/useGameState';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useConfetti } from '@/hooks/useConfetti';
@@ -22,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2 } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid } from 'lucide-react';
 
 const MOOD_LABELS = {
   morning: '🌅 Morning',
@@ -185,6 +186,11 @@ export function CatFarm() {
           <Button variant="ghost" size="sm" onClick={toggleSound} title={soundOn ? "Mute sounds" : "Unmute sounds"}>
             {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
+          <Link to="/collection">
+            <Button variant="ghost" size="sm" title="Cat Collection">
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+          </Link>
           <Button variant="ghost" size="sm" onClick={actions.saveGame}>💾</Button>
           <Button variant="ghost" size="sm" onClick={actions.resetGame}>New Game</Button>
         </div>
