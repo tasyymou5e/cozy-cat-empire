@@ -1,13 +1,17 @@
 import { Cat, BREEDS } from '@/types/game';
+import { CatRelationship, getRelationshipEmoji, getRelationshipLevel } from '@/types/relationships';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface CatCardProps {
   cat: Cat;
   onSell: (id: string) => void;
   onHeal: (id: string) => void;
   compact?: boolean;
+  relationships?: CatRelationship[];
+  allCats?: Cat[];
 }
 
 const catEmojis: Record<string, string> = {
@@ -30,11 +34,28 @@ const personalityEmojis: Record<string, string> = {
   'shy': '🙈',
 };
 
-export function CatCard({ cat, onSell, onHeal, compact = false }: CatCardProps) {
+export function CatCard({ cat, onSell, onHeal, compact = false, relationships = [], allCats = [] }: CatCardProps) {
   const breedInfo = BREEDS[cat.breed];
   const isHealthy = cat.health >= 70;
   const isHappy = cat.happiness >= 60;
   const isHungry = cat.hunger < 40;
+
+  // Get this cat's relationships
+  const catRelationships = relationships.filter(
+    r => r.catId1 === cat.id || r.catId2 === cat.id
+  );
+  
+  const friends = catRelationships.filter(r => r.score >= 20);
+  const enemies = catRelationships.filter(r => r.score <= -20);
+  const bestFriends = catRelationships.filter(r => r.score >= 60);
+
+  const getCatName = (catId: string) => {
+    const otherCat = allCats.find(c => c.id === catId);
+    return otherCat?.name || 'Unknown';
+  };
+
+  const getOtherId = (rel: CatRelationship) => 
+    rel.catId1 === cat.id ? rel.catId2 : rel.catId1;
 
   if (compact) {
     return (
@@ -48,6 +69,8 @@ export function CatCard({ cat, onSell, onHeal, compact = false }: CatCardProps) 
           {!isHealthy && <span className="text-red-500">💔</span>}
           {isHungry && <span>🍖</span>}
           {cat.showWins > 0 && <span>🏆{cat.showWins}</span>}
+          {friends.length > 0 && <span className="text-green-500">💚{friends.length}</span>}
+          {enemies.length > 0 && <span className="text-red-500">😾{enemies.length}</span>}
         </div>
       </div>
     );
@@ -57,16 +80,62 @@ export function CatCard({ cat, onSell, onHeal, compact = false }: CatCardProps) 
     <div className={`cat-card ${!isHealthy ? 'border-destructive/50' : ''}`}>
       <div className="flex items-start justify-between w-full mb-2">
         <div className="text-3xl">{catEmojis[cat.breed]}</div>
-        <Badge variant={cat.type === 'pure' ? 'default' : 'secondary'} className="text-xs">
-          {cat.type}
-        </Badge>
+        <div className="flex gap-1">
+          <Badge variant={cat.type === 'pure' ? 'default' : 'secondary'} className="text-xs">
+            {cat.type}
+          </Badge>
+        </div>
       </div>
       
       <h3 className="font-bold text-foreground">{cat.name}</h3>
       <p className="text-xs text-muted-foreground mb-1">{breedInfo.name}</p>
-      <p className="text-xs text-muted-foreground mb-3">
+      <p className="text-xs text-muted-foreground mb-2">
         {personalityEmojis[cat.personality]} {cat.personality}
       </p>
+
+      {/* Relationship Badges */}
+      {(friends.length > 0 || enemies.length > 0) && (
+        <TooltipProvider>
+          <div className="flex gap-1 flex-wrap mb-2 w-full">
+            {bestFriends.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="outline" className="text-xs bg-pink-50 text-pink-600 border-pink-200 cursor-help">
+                    💕 {bestFriends.length}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Best friends with: {bestFriends.map(r => getCatName(getOtherId(r))).join(', ')}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {friends.length > bestFriends.length && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-200 cursor-help">
+                    💚 {friends.length - bestFriends.length}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Friends with: {friends.filter(r => r.score < 60).map(r => getCatName(getOtherId(r))).join(', ')}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {enemies.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="outline" className="text-xs bg-red-50 text-red-600 border-red-200 cursor-help">
+                    😾 {enemies.length}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Rivals with: {enemies.map(r => getCatName(getOtherId(r))).join(', ')}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        </TooltipProvider>
+      )}
       
       <div className="w-full space-y-1.5 mb-3">
         <div className="stat-row">

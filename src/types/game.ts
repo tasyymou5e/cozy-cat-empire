@@ -117,6 +117,13 @@ export const ACHIEVEMENT_DEFS = [
   { id: 'homeowner', name: 'Homeowner', description: 'Upgrade to a house', target: 1, type: 'house' },
   { id: 'farmer', name: 'Farmer', description: 'Own a farm', target: 1, type: 'farm' },
   { id: 'land_baron', name: 'Land Baron', description: 'Own 100 acres', target: 100, type: 'acres' },
+  // Relationship achievements
+  { id: 'first_friendship', name: 'New Friendship', description: 'Two cats become friends', target: 1, type: 'friendship' },
+  { id: 'social_butterfly', name: 'Social Butterfly', description: 'Have 5+ cat friendships', target: 5, type: 'friendship' },
+  { id: 'peacemaker', name: 'Peacemaker', description: 'Improve a rivalry to friendship', target: 1, type: 'peacemaker' },
+  { id: 'perfect_match', name: 'Perfect Match', description: 'Breed best friend cats', target: 1, type: 'bestFriendBreed' },
+  { id: 'drama_queen', name: 'Drama Queen', description: 'Have 3+ rivalries', target: 3, type: 'rivalry' },
+  { id: 'clique_leader', name: 'Clique Leader', description: 'Form a cat group with 4+ members', target: 4, type: 'groupSize' },
 ] as const;
 
 export type AchievementType = typeof ACHIEVEMENT_DEFS[number]['type'];
