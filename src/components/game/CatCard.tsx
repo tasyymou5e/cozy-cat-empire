@@ -2,15 +2,16 @@ import { Cat, BREEDS } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
 import { getGradeBorderClass } from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
+import { ComfortButton } from './ComfortButton';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface CatCardProps {
   cat: Cat;
   onSell: (id: string) => void;
   onHeal: (id: string) => void;
+  onComfort?: (id: string) => void;
   compact?: boolean;
   relationships?: CatRelationship[];
   allCats?: Cat[];
@@ -26,7 +27,7 @@ const personalityEmojis: Record<string, string> = {
   'independent': '😎', 'curious': '🔍', 'shy': '🙈',
 };
 
-export function CatCard({ cat, onSell, onHeal, compact = false, relationships = [], allCats = [] }: CatCardProps) {
+export function CatCard({ cat, onSell, onHeal, onComfort, compact = false, relationships = [], allCats = [] }: CatCardProps) {
   const breedInfo = BREEDS[cat.breed];
   const isHealthy = cat.health >= 70;
   const gradeBorder = getGradeBorderClass(cat.grade);
@@ -34,6 +35,10 @@ export function CatCard({ cat, onSell, onHeal, compact = false, relationships = 
   const catRelationships = relationships.filter(r => r.catId1 === cat.id || r.catId2 === cat.id);
   const friends = catRelationships.filter(r => r.score >= 20);
   const enemies = catRelationships.filter(r => r.score <= -20);
+
+  // Check if cat needs comforting (upset, angry, sad)
+  const needsComfort = cat.happiness < 50 || enemies.length > friends.length || cat.health < 50;
+  const moodEmoji = cat.happiness < 30 ? '😿' : cat.happiness < 50 ? '😾' : null;
 
   if (compact) {
     return (
@@ -51,7 +56,10 @@ export function CatCard({ cat, onSell, onHeal, compact = false, relationships = 
   return (
     <div className={`cat-card ${gradeBorder} ${!isHealthy ? 'border-destructive/50' : ''}`}>
       <div className="flex items-start justify-between w-full mb-2">
-        <div className="text-3xl animate-bounce-gentle">{catEmojis[cat.breed]}</div>
+        <div className="flex items-center gap-1">
+          <div className="text-3xl animate-bounce-gentle">{catEmojis[cat.breed]}</div>
+          {moodEmoji && <span className="text-lg">{moodEmoji}</span>}
+        </div>
         <GradeBadge grade={cat.grade} />
       </div>
       
@@ -89,7 +97,7 @@ export function CatCard({ cat, onSell, onHeal, compact = false, relationships = 
         </div>
         <div className="stat-row">
           <span className="text-xs">😊</span>
-          <Progress value={cat.happiness} className="h-1.5 flex-1" />
+          <Progress value={cat.happiness} className={`h-1.5 flex-1 ${cat.happiness < 50 ? 'bg-amber-500/30' : ''}`} />
         </div>
         <div className="stat-row">
           <span className="text-xs">🍖</span>
@@ -101,6 +109,13 @@ export function CatCard({ cat, onSell, onHeal, compact = false, relationships = 
         {cat.showWins > 0 && <span>🏆 {cat.showWins}</span>}
         <span className="ml-auto font-medium text-primary">${cat.value}</span>
       </div>
+      
+      {/* Comfort button for upset cats */}
+      {needsComfort && onComfort && (
+        <div className="w-full mb-2">
+          <ComfortButton catId={cat.id} catName={cat.name} onComfort={onComfort} />
+        </div>
+      )}
       
       <div className="flex gap-1 w-full">
         {!isHealthy && (
