@@ -11,6 +11,8 @@ import { AchievementsPanel } from './AchievementsPanel';
 import { SaveLoadPanel } from './SaveLoadPanel';
 import { SocializePanel } from './SocializePanel';
 import { RelationshipPanel } from './RelationshipPanel';
+import { MatchmakingPanel } from './MatchmakingPanel';
+import { GroupActivitiesPanel } from './GroupActivitiesPanel';
 import { CatCard } from './CatCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -44,6 +46,7 @@ export function CatFarm() {
         state={state} 
         onUpgrade={actions.upgradeHouse}
         onCatShow={actions.catShow}
+        relationships={relationshipSystem.relationships}
       />
       <MessageBar message={message} type={messageType} />
 
@@ -70,6 +73,8 @@ export function CatFarm() {
                   cat={cat} 
                   onSell={actions.sellCat}
                   onHeal={actions.useMedicine}
+                  relationships={relationshipSystem.relationships}
+                  allCats={state.cats}
                 />
               ))}
             </div>
@@ -138,6 +143,19 @@ export function CatFarm() {
                 treats={state.resources.treats}
                 getRelationship={relationshipSystem.getRelationship}
                 onSocialize={actions.socializeCats}
+              />
+              <MatchmakingPanel
+                cats={state.cats}
+                relationships={relationshipSystem.relationships}
+                onSocialize={actions.socializeCats}
+                treats={state.resources.treats}
+              />
+              <GroupActivitiesPanel
+                cats={state.cats}
+                groups={relationshipSystem.groups}
+                treats={state.resources.treats}
+                toys={state.resources.toys}
+                onGroupActivity={actions.doGroupActivity}
               />
               <RelationshipPanel
                 cats={state.cats}

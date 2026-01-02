@@ -256,9 +256,28 @@ export function useGameState() {
     setState(prev => {
       const needed = prev.cats.length;
       if (prev.resources.food < needed) {
+        // Food scarcity can cause fights between rivals
+        if (prev.cats.length >= 2) {
+          const rivals = relationshipSystem.relationships.filter(r => r.score <= -20);
+          if (rivals.length > 0 && Math.random() < 0.3) {
+            const rival = rivals[Math.floor(Math.random() * rivals.length)];
+            const cat1 = prev.cats.find(c => c.id === rival.catId1);
+            const cat2 = prev.cats.find(c => c.id === rival.catId2);
+            if (cat1 && cat2) {
+              relationshipSystem.addEvent(cat1, cat2, 'negative', `${cat1.name} and ${cat2.name} fought over the last food`, -10, prev.day);
+            }
+          }
+        }
         showMessage(`Need ${needed} food! Buy more supplies. 🍖`, 'warning');
         return prev;
       }
+      
+      // Feeding together can boost relationships slightly
+      if (prev.cats.length >= 2 && Math.random() < 0.2) {
+        const shuffled = [...prev.cats].sort(() => Math.random() - 0.5);
+        relationshipSystem.addEvent(shuffled[0], shuffled[1], 'positive', `${shuffled[0].name} and ${shuffled[1].name} ate together peacefully`, 2, prev.day);
+      }
+      
       showMessage("All cats fed! They're happy! 😸", 'success');
       return {
         ...prev,
@@ -271,7 +290,7 @@ export function useGameState() {
         })),
       };
     });
-  }, []);
+  }, [relationshipSystem]);
 
   const useToys = useCallback(() => {
     setState(prev => {
@@ -280,6 +299,15 @@ export function useGameState() {
         showMessage(`Need ${needed} toys for playtime! 🎾`, 'warning');
         return prev;
       }
+      
+      // Playing together boosts relationships
+      if (prev.cats.length >= 2) {
+        const shuffled = [...prev.cats].sort(() => Math.random() - 0.5);
+        const cat1 = shuffled[0];
+        const cat2 = shuffled[1];
+        relationshipSystem.addEvent(cat1, cat2, 'positive', `${cat1.name} and ${cat2.name} played with toys together`, 5, prev.day);
+      }
+      
       showMessage("Playtime! Cats are having fun! 🎉", 'success');
       return {
         ...prev,
@@ -290,7 +318,7 @@ export function useGameState() {
         })),
       };
     });
-  }, []);
+  }, [relationshipSystem]);
 
   const useMedicine = useCallback((catId: string) => {
     setState(prev => {
@@ -321,20 +349,52 @@ export function useGameState() {
       const participants = eligibleCats.slice(0, 5);
       let totalReward = 0;
       let wins = 0;
+      const winners: string[] = [];
+      const losers: string[] = [];
       
       const updatedCats = prev.cats.map(cat => {
         if (!participants.find(p => p.id === cat.id)) return cat;
         
-        const score = cat.health + cat.happiness + (BREEDS[cat.breed].rarity * 10) + (cat.showWins * 5);
+        // Check for friend bonus in show
+        const friendsInShow = participants.filter(p => {
+          if (p.id === cat.id) return false;
+          const rel = relationshipSystem.getRelationship(cat.id, p.id);
+          return rel && rel.score >= 20;
+        });
+        const friendBonus = friendsInShow.length * 5;
+        
+        const score = cat.health + cat.happiness + (BREEDS[cat.breed].rarity * 10) + (cat.showWins * 5) + friendBonus;
         const won = Math.random() * 200 < score;
         
         if (won) {
           wins++;
+          winners.push(cat.id);
           totalReward += 50 + BREEDS[cat.breed].baseValue / 2;
           return { ...cat, showWins: cat.showWins + 1, value: cat.value + 20 };
         }
+        losers.push(cat.id);
         return cat;
       });
+      
+      // Show competition can create rivalries between competitors
+      if (winners.length > 0 && losers.length > 0 && Math.random() < 0.2) {
+        const winnerId = winners[Math.floor(Math.random() * winners.length)];
+        const loserId = losers[Math.floor(Math.random() * losers.length)];
+        const winner = prev.cats.find(c => c.id === winnerId);
+        const loser = prev.cats.find(c => c.id === loserId);
+        if (winner && loser) {
+          relationshipSystem.addEvent(loser, winner, 'negative', `${loser.name} is jealous of ${winner.name}'s show win`, -5, prev.day);
+        }
+      }
+      
+      // Winners who are friends celebrate together
+      if (winners.length >= 2 && Math.random() < 0.3) {
+        const cat1 = prev.cats.find(c => c.id === winners[0]);
+        const cat2 = prev.cats.find(c => c.id === winners[1]);
+        if (cat1 && cat2) {
+          relationshipSystem.addEvent(cat1, cat2, 'positive', `${cat1.name} and ${cat2.name} celebrated their show wins together`, 5, prev.day);
+        }
+      }
       
       totalReward = Math.floor(totalReward);
       showMessage(`Cat show results: ${wins} wins! Earned $${totalReward}! 🏆`, wins > 0 ? 'success' : 'info');
@@ -347,7 +407,7 @@ export function useGameState() {
         reputation: prev.reputation + wins * 2,
       };
     });
-  }, []);
+  }, [relationshipSystem]);
 
   const sellCat = useCallback((catId: string) => {
     setState(prev => {
@@ -616,6 +676,67 @@ export function useGameState() {
     showMessage('New game started! 🐱', 'info');
   }, []);
 
+  // Group activity
+  const doGroupActivity = useCallback((groupId: string, activityType: 'play' | 'treat' | 'nap') => {
+    const group = relationshipSystem.groups.find(g => g.id === groupId);
+    if (!group) return;
+
+    const costs = {
+      play: { toys: 1, treats: 0 },
+      treat: { toys: 0, treats: 2 },
+      nap: { toys: 0, treats: 0 },
+    };
+
+    const bonuses = {
+      play: { happiness: 10, relationship: 5 },
+      treat: { happiness: 8, relationship: 8 },
+      nap: { happiness: 5, relationship: 3 },
+    };
+
+    setState(prev => {
+      const cost = costs[activityType];
+      if (prev.resources.toys < cost.toys || prev.resources.treats < cost.treats) {
+        showMessage("Not enough resources for group activity!", 'warning');
+        return prev;
+      }
+
+      const bonus = bonuses[activityType];
+      const memberCats = prev.cats.filter(c => group.memberIds.includes(c.id));
+
+      // Boost relationships between all group members
+      for (let i = 0; i < memberCats.length; i++) {
+        for (let j = i + 1; j < memberCats.length; j++) {
+          relationshipSystem.addEvent(
+            memberCats[i], 
+            memberCats[j], 
+            'positive', 
+            `${memberCats[i].name} and ${memberCats[j].name} did a group ${activityType} activity`,
+            bonus.relationship,
+            prev.day
+          );
+        }
+      }
+
+      const activityNames = { play: 'playtime', treat: 'treat party', nap: 'nap session' };
+      showMessage(`${group.name} had a group ${activityNames[activityType]}! 🎉`, 'success');
+
+      return {
+        ...prev,
+        resources: {
+          ...prev.resources,
+          toys: prev.resources.toys - cost.toys,
+          treats: prev.resources.treats - cost.treats,
+        },
+        cats: prev.cats.map(cat => {
+          if (group.memberIds.includes(cat.id)) {
+            return { ...cat, happiness: Math.min(100, cat.happiness + bonus.happiness) };
+          }
+          return cat;
+        }),
+      };
+    });
+  }, [relationshipSystem]);
+
   return {
     state,
     message,
@@ -637,6 +758,7 @@ export function useGameState() {
       resetGame,
       breedCats,
       socializeCats,
+      doGroupActivity,
       saveGame,
       loadGame,
       hasSaveGame,

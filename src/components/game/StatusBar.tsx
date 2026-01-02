@@ -1,11 +1,14 @@
 import { GameState, HOUSE_UPGRADES } from '@/types/game';
+import { CatRelationship } from '@/types/relationships';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 
 interface StatusBarProps {
   state: GameState;
   onUpgrade: () => void;
   onCatShow: () => void;
+  relationships?: CatRelationship[];
 }
 
 const houseEmojis = {
@@ -15,7 +18,7 @@ const houseEmojis = {
   farm: '🌾',
 };
 
-export function StatusBar({ state, onUpgrade, onCatShow }: StatusBarProps) {
+export function StatusBar({ state, onUpgrade, onCatShow, relationships = [] }: StatusBarProps) {
   let nextCost: number;
   let canUpgrade: boolean;
   
@@ -29,6 +32,10 @@ export function StatusBar({ state, onUpgrade, onCatShow }: StatusBarProps) {
   }
   
   const eligibleForShow = state.cats.filter(c => c.health >= 70 && c.happiness >= 60).length;
+
+  // Calculate relationship stats
+  const friendCount = relationships.filter(r => r.score >= 20).length;
+  const rivalCount = relationships.filter(r => r.score <= -20).length;
 
   return (
     <div className="status-bar">
@@ -87,10 +94,17 @@ export function StatusBar({ state, onUpgrade, onCatShow }: StatusBarProps) {
         </div>
         
         <div className="status-item">
-          <span className="text-2xl">⭐</span>
+          <span className="text-2xl">💗</span>
           <div>
-            <p className="text-xs text-muted-foreground">Reputation</p>
-            <p className="font-bold">{state.reputation}</p>
+            <p className="text-xs text-muted-foreground">Social</p>
+            <div className="flex gap-1">
+              <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-200 px-1">
+                💚{friendCount}
+              </Badge>
+              <Badge variant="outline" className="text-xs bg-red-50 text-red-600 border-red-200 px-1">
+                😾{rivalCount}
+              </Badge>
+            </div>
           </div>
         </div>
       </div>
