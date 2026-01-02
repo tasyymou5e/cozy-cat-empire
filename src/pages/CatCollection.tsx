@@ -12,7 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Cat, CatBreed, BREEDS } from '@/types/game';
 import { getGradeTier } from '@/types/grading';
-import { ArrowLeft, Search, SortAsc, Filter, Cat as CatIcon, Trophy, DollarSign, Star, Loader2, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, Search, SortAsc, Filter, Cat as CatIcon, Trophy, DollarSign, Star, Loader2, Volume2, VolumeX, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 type SortOption = 'name' | 'grade' | 'value' | 'age' | 'health' | 'showWins';
 type FilterBreed = CatBreed | 'all';
@@ -20,6 +21,7 @@ type FilterTier = 'all' | 'common' | 'uncommon' | 'rare' | 'veryRare' | 'ultraRa
 
 export default function CatCollection() {
   const { playSound, isEnabled, setEnabled } = useSound();
+  const { theme, setTheme } = useTheme();
   const { state, relationshipSystem, actions } = useGameState(playSound);
   const isMobile = useIsMobile();
   const { user } = useAuth();
@@ -127,6 +129,15 @@ export default function CatCollection() {
               title={isEnabled() ? 'Mute sounds' : 'Unmute sounds'}
             >
               {isEnabled() ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="min-h-10 min-w-10"
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
           </div>
           
