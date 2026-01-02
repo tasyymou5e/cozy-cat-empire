@@ -2,10 +2,14 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlayerStats } from '@/hooks/usePlayerStats';
 import { useLeaderboardRewards } from '@/hooks/useLeaderboardRewards';
+import { useLeaderboardHistory } from '@/hooks/useLeaderboardHistory';
 import { StatsOverviewCards } from '@/components/stats/StatsOverviewCards';
 import { LeaderboardRankings } from '@/components/stats/LeaderboardRankings';
 import { RewardsHistory } from '@/components/stats/RewardsHistory';
 import { AchievementShowcase } from '@/components/stats/AchievementShowcase';
+import { WealthProgressionChart } from '@/components/stats/WealthProgressionChart';
+import { CategoryPerformanceChart } from '@/components/stats/CategoryPerformanceChart';
+import { RankProgressionChart } from '@/components/stats/RankProgressionChart';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, BarChart3, RefreshCw, LogIn } from 'lucide-react';
@@ -14,6 +18,7 @@ export default function Stats() {
   const { user } = useAuth();
   const { stats, categoryRanks, rewardStats, loading, fetchStats } = usePlayerStats(user?.id);
   const { rewards } = useLeaderboardRewards(user?.id);
+  const { wealthHistory, rankProgression, loading: historyLoading } = useLeaderboardHistory(user?.id);
 
   if (!user) {
     return (
@@ -87,6 +92,18 @@ export default function Stats() {
             <section>
               <h2 className="text-lg font-semibold mb-4">Overview</h2>
               <StatsOverviewCards stats={stats} />
+            </section>
+
+            {/* Performance Charts */}
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Performance</h2>
+              <div className="space-y-6">
+                <WealthProgressionChart data={wealthHistory} loading={historyLoading} />
+                <div className="grid md:grid-cols-2 gap-6">
+                  <CategoryPerformanceChart categoryRanks={categoryRanks} loading={loading} />
+                  <RankProgressionChart data={rankProgression} loading={historyLoading} />
+                </div>
+              </div>
             </section>
 
             {/* Rankings and Rewards */}

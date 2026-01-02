@@ -27,7 +27,7 @@ function TrendIndicator({ trend }: { trend: RankTrend }) {
     return (
       <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
         <TrendingUp className="h-3 w-3 mr-1" />
-        Rising +{trend.amount}
+        Rising +{trend.change}
       </Badge>
     );
   }
@@ -35,7 +35,7 @@ function TrendIndicator({ trend }: { trend: RankTrend }) {
     return (
       <Badge className="bg-red-500/20 text-red-600 border-red-500/30">
         <TrendingDown className="h-3 w-3 mr-1" />
-        Falling -{trend.amount}
+        Falling -{trend.change}
       </Badge>
     );
   }
