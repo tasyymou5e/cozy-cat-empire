@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useGameState } from '@/hooks/useGameState';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useConfetti } from '@/hooks/useConfetti';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -38,6 +39,7 @@ export function CatFarm() {
     startMusic, stopMusic, isMusicPlaying, setMusicVolume,
     updateMusicForDay, getCurrentMood, triggerCelebration, triggerTense 
   } = useSoundEffects();
+  const { fireConfetti, fireCelebration, fireStars } = useConfetti();
   const { state, message, messageType, kittensBreed, relationshipSystem, actions } = useGameState(playSound);
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
@@ -45,6 +47,7 @@ export function CatFarm() {
   const [currentMoodLabel, setCurrentMoodLabel] = useState('');
   const [sfxVolume, setSfxVolume] = useState(50);
   const [musicVolume, setMusicVolumeState] = useState(40);
+  const [lastAchievementCount, setLastAchievementCount] = useState(0);
 
   // Update music mood when day changes
   useEffect(() => {
@@ -54,18 +57,35 @@ export function CatFarm() {
     }
   }, [state.day, musicOn, updateMusicForDay, getCurrentMood]);
 
-  // Trigger celebration on achievements or show wins
+  // Fire confetti on achievements
   useEffect(() => {
-    if (musicOn && message?.includes('won')) {
-      triggerCelebration();
-      setCurrentMoodLabel(MOOD_LABELS.celebration);
-      setTimeout(() => setCurrentMoodLabel(MOOD_LABELS[getCurrentMood()]), 10000);
+    const unlockedCount = state.achievements.filter(a => a.unlocked).length;
+    if (unlockedCount > lastAchievementCount && lastAchievementCount > 0) {
+      fireStars();
+      if (musicOn) {
+        triggerCelebration();
+        setCurrentMoodLabel(MOOD_LABELS.celebration);
+        setTimeout(() => setCurrentMoodLabel(MOOD_LABELS[getCurrentMood()]), 10000);
+      }
     }
-  }, [message, musicOn, triggerCelebration, getCurrentMood]);
+    setLastAchievementCount(unlockedCount);
+  }, [state.achievements, lastAchievementCount, fireStars, musicOn, triggerCelebration, getCurrentMood]);
+
+  // Fire confetti on show wins
+  useEffect(() => {
+    if (message?.includes('wins!') && message?.includes('Cat show')) {
+      fireCelebration();
+      if (musicOn) {
+        triggerCelebration();
+        setCurrentMoodLabel(MOOD_LABELS.celebration);
+        setTimeout(() => setCurrentMoodLabel(MOOD_LABELS[getCurrentMood()]), 10000);
+      }
+    }
+  }, [message, fireCelebration, musicOn, triggerCelebration, getCurrentMood]);
 
   // Trigger tense mood on negative events
   useEffect(() => {
-    if (musicOn && (message?.includes('fight') || message?.includes('sick') || message?.includes('ran away'))) {
+    if (musicOn && (message?.includes('fight') || message?.includes('sick') || message?.includes('ran away') || message?.includes('passed away'))) {
       triggerTense();
       setCurrentMoodLabel(MOOD_LABELS.tense);
       setTimeout(() => setCurrentMoodLabel(MOOD_LABELS[getCurrentMood()]), 6000);
@@ -102,7 +122,7 @@ export function CatFarm() {
   const handleMusicVolumeChange = (value: number[]) => {
     const vol = value[0];
     setMusicVolumeState(vol);
-    setMusicVolume((vol / 100) * 0.3); // Scale to max 0.3
+    setMusicVolume((vol / 100) * 0.3);
   };
 
   return (
@@ -189,8 +209,15 @@ export function CatFarm() {
           ) : (
             <div className="cat-grid">
               {state.cats.map(cat => (
-                <CatCard key={cat.id} cat={cat} onSell={actions.sellCat} onHeal={actions.useMedicine}
-                  relationships={relationshipSystem.relationships} allCats={state.cats} />
+                <CatCard 
+                  key={cat.id} 
+                  cat={cat} 
+                  onSell={actions.sellCat} 
+                  onHeal={actions.useMedicine}
+                  onComfort={actions.comfortCat}
+                  relationships={relationshipSystem.relationships} 
+                  allCats={state.cats} 
+                />
               ))}
             </div>
           )}

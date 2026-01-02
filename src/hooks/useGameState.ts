@@ -775,12 +775,32 @@ export function useGameState(playSound?: (type: SoundType) => void) {
     playSound?.('meow');
   }, [playSound]);
 
+  const comfortCat = useCallback((catId: string) => {
+    setState(prev => {
+      const cat = prev.cats.find(c => c.id === catId);
+      if (!cat) return prev;
+      
+      showMessage(`${cat.name} feels loved and comforted! 💕`, 'success');
+      playSound?.('purr');
+      
+      return {
+        ...prev,
+        cats: prev.cats.map(c => 
+          c.id === catId 
+            ? { ...c, happiness: Math.min(100, c.happiness + 30), health: Math.min(100, c.health + 5) }
+            : c
+        ),
+      };
+    });
+  }, [playSound]);
+
   return {
     state, message, messageType, kittensBreed, relationshipSystem,
     actions: {
       addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
       catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
       doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
+      comfortCat,
     },
   };
 }
