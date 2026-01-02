@@ -341,6 +341,7 @@ interface Cat {
 - `display_name` (TEXT)
 - `avatar_emoji` (TEXT, default '😺')
 - `username` (TEXT)
+- `created_at`, `updated_at` (TIMESTAMPTZ)
 
 **game_saves**
 - `id` (UUID, PK)
@@ -372,10 +373,52 @@ interface Cat {
 **trade_offers**
 - `id` (UUID, PK)
 - `sender_id`, `recipient_id` (UUID)
-- `offered_cats` (JSONB), `offered_money` (INTEGER)
-- `requested_money` (INTEGER)
+- `offered_cats`, `requested_cats` (JSONB)
+- `offered_money`, `requested_money` (INTEGER)
+- `offered_resources`, `requested_resources` (JSONB)
 - `status` (TEXT: pending/accepted/declined/cancelled)
 - `expires_at` (TIMESTAMPTZ)
+
+**error_logs**
+- `id` (UUID, PK)
+- `user_id` (UUID, nullable)
+- `error_type` (TEXT) - e.g., 'uncaught', 'promise', 'component', 'network', 'interaction'
+- `error_message` (TEXT)
+- `error_stack` (TEXT, nullable)
+- `component_name` (TEXT, nullable)
+- `route` (TEXT, nullable)
+- `user_agent` (TEXT, nullable)
+- `metadata` (JSONB) - additional context
+- `created_at` (TIMESTAMPTZ)
+
+---
+
+## Error Logging System
+
+### Error Logger (`src/hooks/useErrorLogger.ts`)
+
+**Error Types Captured:**
+- `uncaught` - Uncaught JavaScript exceptions via `window.onerror`
+- `promise` - Unhandled promise rejections via `unhandledrejection` event
+- `component` - React component errors (via ErrorBoundary)
+- `network` - Failed network requests
+- `interaction` - User interaction errors
+
+**Features:**
+- Automatic capture of uncaught errors and promise rejections
+- User interaction tracking for debugging
+- Browser and route context included
+- Database logging to `error_logs` table (authenticated users only)
+- Console logging fallback
+
+### Error Boundary (`src/components/ErrorBoundary.tsx`)
+- Graceful UI error handling for React components
+- Automatically logs component errors with stack traces
+- Shows user-friendly error message with retry option
+
+### Error Logger Provider (`src/components/ErrorLoggerProvider.tsx`)
+- Wraps app to initialize global error handlers
+- Sets up window event listeners for error capture
 
 ---
 
@@ -384,41 +427,124 @@ interface Cat {
 ```
 src/
 ├── components/
-│   ├── game/           # All game UI components (20+ files)
-│   └── ui/             # shadcn/ui components
+│   ├── game/                   # Game UI components (35 files)
+│   │   ├── CatFarm.tsx         # Main game orchestrator
+│   │   ├── CatCard.tsx         # Individual cat display
+│   │   ├── ActionPanel.tsx     # Add cats, next day
+│   │   ├── ChorePanel.tsx      # Earn money through tasks
+│   │   ├── ResourcePanel.tsx   # Buy/use resources
+│   │   ├── MarketPanel.tsx     # Buy cats from NPCs
+│   │   ├── CostumeShopPanel.tsx
+│   │   ├── BreedingPanel.tsx   # Cat breeding
+│   │   ├── TrainingPanel.tsx   # Teach tricks
+│   │   ├── SocializePanel.tsx  # Cat relationships
+│   │   ├── MatchmakingPanel.tsx
+│   │   ├── GroupActivitiesPanel.tsx
+│   │   ├── RelationshipPanel.tsx
+│   │   ├── LeaderboardPanel.tsx
+│   │   ├── GlobalLeaderboardPanel.tsx
+│   │   ├── FriendsPanel.tsx
+│   │   ├── PlayerProfilePanel.tsx
+│   │   ├── CatGiftingPanel.tsx
+│   │   ├── TradingPanel.tsx
+│   │   ├── AchievementsPanel.tsx
+│   │   ├── SaveLoadPanel.tsx
+│   │   ├── CatShowPanel.tsx
+│   │   ├── CatDetailModal.tsx
+│   │   ├── StatusBar.tsx
+│   │   ├── MessageBar.tsx
+│   │   ├── GradeBadge.tsx
+│   │   ├── ComfortButton.tsx
+│   │   ├── TradingCard.tsx
+│   │   ├── FlippableTradingCard.tsx
+│   │   ├── RelationshipAnimations.tsx
+│   │   ├── MoodAnimations.tsx
+│   │   ├── TutorialSystem.tsx
+│   │   ├── KeyboardShortcutsHelp.tsx
+│   │   ├── DailyEventToast.tsx
+│   │   └── NotificationCenter.tsx
+│   ├── ui/                     # shadcn/ui components
+│   ├── ErrorBoundary.tsx       # React error boundary
+│   ├── ErrorLoggerProvider.tsx # Global error handler
+│   └── NavLink.tsx
 ├── hooks/
-│   ├── useGameState.ts      # Core game logic
-│   ├── useRelationships.ts  # Cat relationships
-│   ├── useSoundEffects.ts   # Audio system
-│   ├── useConfetti.ts       # Celebrations
-│   ├── useCloudSave.ts      # Cloud persistence
+│   ├── useGameState.ts         # Core game logic
+│   ├── useRelationships.ts     # Cat relationships
+│   ├── useSoundEffects.ts      # Audio system
+│   ├── useConfetti.ts          # Celebrations
+│   ├── useCloudSave.ts         # Cloud persistence
 │   ├── useGlobalLeaderboard.ts
-│   ├── useFriends.ts        # Friends system
-│   ├── usePlayerProfile.ts  # Profile management
-│   ├── useCatGifts.ts       # Cat gifting
-│   ├── useTrading.ts        # Player trading
-│   ├── useNotifications.ts  # Real-time notifications
-│   └── useKeyboardShortcuts.ts
+│   ├── useFriends.ts           # Friends system
+│   ├── usePlayerProfile.ts     # Profile management
+│   ├── useCatGifts.ts          # Cat gifting
+│   ├── useTrading.ts           # Player trading
+│   ├── useNotifications.ts     # Real-time notifications
+│   ├── useKeyboardShortcuts.ts
+│   ├── useErrorLogger.ts       # Error logging system
+│   ├── use-mobile.tsx
+│   └── use-toast.ts
 ├── types/
-│   ├── game.ts              # Cat, GameState, constants
-│   ├── grading.ts           # Grade system
-│   ├── relationships.ts     # Relationship types
-│   ├── costumes.ts          # Costume definitions
-│   ├── showEvents.ts        # Show tiers and events
-│   └── dailyEvents.ts       # Daily random events
+│   ├── game.ts                 # Cat, GameState, constants
+│   ├── grading.ts              # Grade system
+│   ├── relationships.ts        # Relationship types
+│   ├── costumes.ts             # Costume definitions
+│   ├── showEvents.ts           # Show tiers and events
+│   └── dailyEvents.ts          # Daily random events
 ├── contexts/
-│   ├── AuthContext.tsx      # Authentication
-│   └── SoundContext.tsx     # Sound provider
+│   ├── AuthContext.tsx         # Authentication
+│   └── SoundContext.tsx        # Sound provider
 ├── integrations/
 │   └── supabase/
-│       ├── client.ts        # Supabase client
-│       └── types.ts         # Generated types
+│       ├── client.ts           # Supabase client
+│       └── types.ts            # Generated types
+├── lib/
+│   └── utils.ts                # Utility functions
 └── pages/
-    ├── Index.tsx            # Main game page
-    ├── Auth.tsx             # Login/signup
-    ├── CatCollection.tsx    # Trading card view
+    ├── Index.tsx               # Main game page
+    ├── Auth.tsx                # Login/signup
+    ├── CatCollection.tsx       # Trading card view
     └── NotFound.tsx
+
+supabase/
+├── config.toml                 # Supabase configuration
+└── migrations/                 # Database migrations
 ```
+
+---
+
+## Security
+
+### Row-Level Security (RLS)
+
+All tables have RLS enabled with appropriate policies:
+
+**profiles**
+- Authenticated users can view all public profiles (for social features)
+- Users can only update their own profile
+
+**game_saves**
+- Users can only view/insert/update their own saves
+
+**player_stats**
+- Anyone can view leaderboard (public read)
+- Users can only insert/update their own stats
+
+**player_friends**
+- Users can view/manage their own friendships
+- Both parties can update friendship status
+
+**cat_gifts**
+- Users can send gifts (INSERT with sender check)
+- Recipients can update gift status
+- Both parties can view their gifts
+
+**trade_offers**
+- Users can create trades (INSERT with sender check)
+- Both parties can update/view their trades
+
+**error_logs**
+- Only authenticated users can insert errors
+- Users can only view their own error logs
 
 ---
 
