@@ -190,17 +190,38 @@ export default {
   					transform: 'rotate(360deg)'
   				}
   			},
-  			'confetti': {
-  				'0%': {
-  					transform: 'translateY(0) rotate(0deg)',
-  					opacity: '1'
-  				},
-  				'100%': {
-  					transform: 'translateY(100px) rotate(720deg)',
-  					opacity: '0'
-  				}
-  			}
-  		},
+			'confetti': {
+				'0%': {
+					transform: 'translateY(0) rotate(0deg)',
+					opacity: '1'
+				},
+				'100%': {
+					transform: 'translateY(100px) rotate(720deg)',
+					opacity: '0'
+				}
+			},
+			'progress-pop': {
+				'0%': {
+					transform: 'scale(1)'
+				},
+				'50%': {
+					transform: 'scale(1.15)'
+				},
+				'100%': {
+					transform: 'scale(1)'
+				}
+			},
+			'progress-float': {
+				'0%': {
+					transform: 'translateY(0) scale(1)',
+					opacity: '1'
+				},
+				'100%': {
+					transform: 'translateY(-40px) scale(0.8)',
+					opacity: '0'
+				}
+			}
+		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out',
@@ -214,8 +235,10 @@ export default {
   			'shake': 'shake 0.3s ease-in-out',
   			'grade-glow': 'grade-glow 2s ease-in-out infinite',
   			'star-spin': 'star-spin 4s linear infinite',
-  			'confetti': 'confetti 1s ease-out forwards'
-  		},
+			'confetti': 'confetti 1s ease-out forwards',
+			'progress-pop': 'progress-pop 0.3s ease-out',
+			'progress-float': 'progress-float 0.8s ease-out forwards'
+		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',
   			xs: 'var(--shadow-xs)',

@@ -1,10 +1,12 @@
-import { Clock, Gift, Trophy } from 'lucide-react';
+import { useEffect } from 'react';
+import { Clock, Gift, Trophy, Target } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { ChallengeWithProgress, ChallengeDifficulty } from '@/types/challenges';
+import { ChallengeProgressAnimation, useProgressAnimations } from './ChallengeProgressAnimation';
+import type { ChallengeWithProgress, ChallengeDifficulty, ChallengeType } from '@/types/challenges';
 
 interface WeeklyChallengesPanelProps {
   challenges: ChallengeWithProgress[];
@@ -12,6 +14,9 @@ interface WeeklyChallengesPanelProps {
   timeRemaining: string | null;
   onClaimReward: (challengeId: string) => Promise<{ coins: number; badge: string | null } | false>;
   onRewardClaimed?: (coins: number, badge: string | null) => void;
+  lastProgressUpdate?: { type: ChallengeType; value: number } | null;
+  onProgressAnimationComplete?: () => void;
+  totalChallengesCompleted?: number;
 }
 
 const difficultyColors: Record<ChallengeDifficulty, string> = {
@@ -21,13 +26,32 @@ const difficultyColors: Record<ChallengeDifficulty, string> = {
   expert: 'bg-red-500/20 text-red-400 border-red-500/30'
 };
 
+const CHALLENGE_ACHIEVEMENTS = [
+  { target: 5, emoji: '🎯', name: 'Starter' },
+  { target: 10, emoji: '🏅', name: 'Master' },
+  { target: 25, emoji: '👑', name: 'Legend' },
+];
+
 export function WeeklyChallengesPanel({
   challenges,
   loading,
   timeRemaining,
   onClaimReward,
-  onRewardClaimed
+  onRewardClaimed,
+  lastProgressUpdate,
+  onProgressAnimationComplete,
+  totalChallengesCompleted = 0
 }: WeeklyChallengesPanelProps) {
+  const { animations, triggerAnimation, clearAnimation } = useProgressAnimations();
+
+  // Trigger animation when progress updates
+  useEffect(() => {
+    if (lastProgressUpdate) {
+      triggerAnimation(lastProgressUpdate.value);
+      onProgressAnimationComplete?.();
+    }
+  }, [lastProgressUpdate, triggerAnimation, onProgressAnimationComplete]);
+
   const handleClaim = async (challengeId: string) => {
     const result = await onClaimReward(challengeId);
     if (result && onRewardClaimed) {
@@ -67,8 +91,18 @@ export function WeeklyChallengesPanel({
     );
   }
 
+  // Calculate next achievement milestone
+  const nextAchievement = CHALLENGE_ACHIEVEMENTS.find(a => totalChallengesCompleted < a.target);
+  const achievementProgress = nextAchievement 
+    ? (totalChallengesCompleted / nextAchievement.target) * 100 
+    : 100;
+
   return (
-    <Card className="bg-card/50 border-border/50">
+    <Card className="bg-card/50 border-border/50 relative overflow-hidden">
+      <ChallengeProgressAnimation 
+        animations={animations} 
+        onAnimationComplete={clearAnimation} 
+      />
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
@@ -82,9 +116,40 @@ export function WeeklyChallengesPanel({
             </Badge>
           )}
         </div>
+        
+        {/* Challenge Achievement Progress */}
+        <div className="mt-3 p-3 rounded-lg bg-muted/30 border border-border/30">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Challenge Achievements</span>
+            </div>
+            <div className="flex gap-1">
+              {CHALLENGE_ACHIEVEMENTS.map((achievement) => (
+                <span 
+                  key={achievement.target}
+                  className={`text-lg transition-all ${
+                    totalChallengesCompleted >= achievement.target 
+                      ? 'opacity-100 animate-progress-pop' 
+                      : 'opacity-30 grayscale'
+                  }`}
+                  title={`${achievement.name}: Complete ${achievement.target} challenges`}
+                >
+                  {achievement.emoji}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Progress value={achievementProgress} className="h-2 flex-1" />
+            <span className="text-xs text-muted-foreground min-w-[60px] text-right">
+              {totalChallengesCompleted} / {nextAchievement?.target || 25}
+            </span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[400px] pr-4">
+        <ScrollArea className="h-[350px] pr-4">
           <div className="space-y-4">
             {challenges.map((challenge) => {
               const progress = challenge.progress?.current_progress || 0;
@@ -97,9 +162,11 @@ export function WeeklyChallengesPanel({
                   key={challenge.id}
                   className={`p-4 rounded-lg border transition-all ${
                     isCompleted && !isClaimed
-                      ? 'bg-primary/10 border-primary/50 animate-pulse'
+                      ? 'bg-primary/10 border-primary/50 animate-glow-pulse'
                       : isClaimed
                       ? 'bg-muted/30 border-muted opacity-60'
+                      : percentage > 80
+                      ? 'bg-muted/50 border-primary/30'
                       : 'bg-muted/50 border-border/50'
                   }`}
                 >

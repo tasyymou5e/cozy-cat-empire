@@ -1,11 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useChallengeAchievements } from '@/hooks/useChallengeAchievements';
 import type { ChallengeWithProgress, ChallengeType, WeeklyChallenge, PlayerChallengeProgress } from '@/types/challenges';
 
 export function useWeeklyChallenges(userId: string | undefined) {
   const [challenges, setChallenges] = useState<ChallengeWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastProgressUpdate, setLastProgressUpdate] = useState<{ type: ChallengeType; value: number } | null>(null);
+  
+  const { totalChallengesCompleted, incrementCompleted } = useChallengeAchievements(userId);
 
   const fetchChallenges = useCallback(async () => {
     if (!userId) {
@@ -97,6 +101,8 @@ export function useWeeklyChallenges(userId: string | undefined) {
       c => c.challenge_type === challengeType && !c.progress?.completed
     );
 
+    let progressMade = false;
+
     for (const challenge of matchingChallenges) {
       const currentProgress = challenge.progress?.current_progress || 0;
       const newProgress = currentProgress + increment;
@@ -117,6 +123,7 @@ export function useWeeklyChallenges(userId: string | undefined) {
           console.error('Error updating progress:', error);
           continue;
         }
+        progressMade = true;
       } else {
         // Create new progress record
         const { error } = await supabase
@@ -133,6 +140,7 @@ export function useWeeklyChallenges(userId: string | undefined) {
           console.error('Error creating progress:', error);
           continue;
         }
+        progressMade = true;
       }
 
       if (isCompleted) {
@@ -141,6 +149,11 @@ export function useWeeklyChallenges(userId: string | undefined) {
           description: `You completed "${challenge.name}"! Claim your reward!`,
         });
       }
+    }
+
+    // Trigger animation if progress was made
+    if (progressMade) {
+      setLastProgressUpdate({ type: challengeType, value: increment });
     }
 
     // Refresh challenges
@@ -170,6 +183,9 @@ export function useWeeklyChallenges(userId: string | undefined) {
       return false;
     }
 
+    // Increment challenge completion count for achievements
+    await incrementCompleted();
+
     toast({
       title: `${challenge.emoji} Reward Claimed!`,
       description: `You earned ${challenge.reward_coins} coins${challenge.reward_badge ? ` and the "${challenge.reward_badge}" badge` : ''}!`,
@@ -177,7 +193,7 @@ export function useWeeklyChallenges(userId: string | undefined) {
 
     fetchChallenges();
     return { coins: challenge.reward_coins, badge: challenge.reward_badge };
-  }, [userId, challenges, fetchChallenges]);
+  }, [userId, challenges, fetchChallenges, incrementCompleted]);
 
   const getTimeRemaining = useCallback(() => {
     if (challenges.length === 0) return null;
@@ -203,6 +219,9 @@ export function useWeeklyChallenges(userId: string | undefined) {
     updateProgress,
     claimReward,
     getTimeRemaining,
-    refetch: fetchChallenges
+    refetch: fetchChallenges,
+    lastProgressUpdate,
+    clearProgressUpdate: () => setLastProgressUpdate(null),
+    totalChallengesCompleted
   };
 }

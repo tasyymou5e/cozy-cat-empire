@@ -12,6 +12,7 @@ interface AchievementsPanelProps {
     house: boolean;
     farm: boolean;
     acres: number;
+    challengesCompleted: number;
   };
 }
 
@@ -45,6 +46,11 @@ export function AchievementsPanel({ achievements, currentStats }: AchievementsPa
         break;
       case 'land_baron':
         current = currentStats.acres;
+        break;
+      case 'challenge_starter':
+      case 'challenge_master':
+      case 'challenge_legend':
+        current = currentStats.challengesCompleted;
         break;
     }
     return Math.min(100, (current / achievement.target) * 100);

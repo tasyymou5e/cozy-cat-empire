@@ -26,6 +26,9 @@ const achievementEmojis: Record<string, string> = {
   perfect_match: '💑',
   drama_queen: '👸',
   clique_leader: '👥',
+  challenge_starter: '🎯',
+  challenge_master: '🏅',
+  challenge_legend: '👑',
 };
 
 export function AchievementShowcase({ unlockedCount }: AchievementShowcaseProps) {
