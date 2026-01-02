@@ -5,6 +5,8 @@ import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useConfetti } from '@/hooks/useConfetti';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCloudSave } from '@/hooks/useCloudSave';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -31,7 +33,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff } from 'lucide-react';
 
 const MOOD_LABELS = {
   morning: '🌅 Morning',
@@ -51,6 +53,9 @@ export function CatFarm() {
   const { fireConfetti, fireCelebration, fireStars } = useConfetti();
   const { state, message, messageType, kittensBreed, currentDailyEvent, relationshipSystem, actions } = useGameState(playSound);
   const isMobile = useIsMobile();
+  const { user, signOut, loading: authLoading } = useAuth();
+  const { cloudSave, cloudLoad, hasCloudSave } = useCloudSave(user?.id);
+  
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
   const [musicOn, setMusicOn] = useState(false);
@@ -60,6 +65,59 @@ export function CatFarm() {
   const [lastAchievementCount, setLastAchievementCount] = useState(0);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [highlightedTab, setHighlightedTab] = useState<string | null>(null);
+  const [cloudSyncing, setCloudSyncing] = useState(false);
+  const [lastCloudSave, setLastCloudSave] = useState<string | null>(null);
+  const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
+
+  // Load cloud save on login
+  useEffect(() => {
+    if (user && !hasLoadedCloud) {
+      cloudLoad().then(({ data }) => {
+        if (data) {
+          actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
+          setLastCloudSave(data.last_played_at);
+        }
+        setHasLoadedCloud(true);
+      });
+    }
+  }, [user, hasLoadedCloud, cloudLoad, actions]);
+
+  // Auto-save to cloud every 5 minutes when logged in
+  useEffect(() => {
+    if (!user) return;
+    
+    const interval = setInterval(async () => {
+      setCloudSyncing(true);
+      const result = await cloudSave(state, kittensBreed, relationshipSystem.getRelationshipSaveData());
+      if (result.success) {
+        setLastCloudSave(new Date().toISOString());
+      }
+      setCloudSyncing(false);
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [user, state, kittensBreed, relationshipSystem, cloudSave]);
+
+  const handleCloudSave = async () => {
+    if (!user) return;
+    setCloudSyncing(true);
+    const result = await cloudSave(state, kittensBreed, relationshipSystem.getRelationshipSaveData());
+    if (result.success) {
+      setLastCloudSave(new Date().toISOString());
+      playSound?.('success');
+    }
+    setCloudSyncing(false);
+  };
+
+  const handleCloudLoad = async () => {
+    if (!user) return;
+    const { data } = await cloudLoad();
+    if (data) {
+      actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
+      setLastCloudSave(data.last_played_at);
+      playSound?.('success');
+    }
+  };
 
   // Keyboard shortcuts
   const handleFeed = useCallback(() => {
@@ -236,7 +294,61 @@ export function CatFarm() {
               <Keyboard className="h-4 w-4" />
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={actions.saveGame} title="Save (S)" className="min-h-10 min-w-10">💾</Button>
+          
+          {/* Cloud sync indicator */}
+          {user && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleCloudSave} 
+              disabled={cloudSyncing}
+              title={cloudSyncing ? 'Syncing...' : 'Sync to cloud'}
+              className="min-h-10 min-w-10"
+            >
+              {cloudSyncing ? (
+                <Cloud className="h-4 w-4 animate-pulse text-primary" />
+              ) : (
+                <Cloud className="h-4 w-4 text-green-500" />
+              )}
+            </Button>
+          )}
+          
+          {!user && (
+            <Button variant="ghost" size="sm" onClick={actions.saveGame} title="Save (S)" className="min-h-10 min-w-10">💾</Button>
+          )}
+          
+          {/* Auth buttons */}
+          {user ? (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="min-h-10 gap-2">
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline text-xs">{user.email?.split('@')[0]}</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48" align="end">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium truncate">{user.email}</p>
+                  {lastCloudSave && (
+                    <p className="text-xs text-muted-foreground">
+                      Last sync: {new Date(lastCloudSave).toLocaleTimeString()}
+                    </p>
+                  )}
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => signOut()}>
+                    <LogOut className="h-4 w-4 mr-2" /> Log Out
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          ) : (
+            <Link to="/auth">
+              <Button variant="outline" size="sm" className="min-h-10 gap-2">
+                <LogIn className="h-4 w-4" />
+                <span className="hidden sm:inline">Log In</span>
+              </Button>
+            </Link>
+          )}
+          
           <Button variant="ghost" size="sm" onClick={actions.resetGame} className="min-h-10 min-w-10">New Game</Button>
         </div>
       </header>
@@ -335,7 +447,15 @@ export function CatFarm() {
               <AchievementsPanel achievements={state.achievements}
                 currentStats={{ cats: state.cats.length, showWins: state.totalShowWins, money: state.totalMoneyEarned,
                   breeding: kittensBreed, house: state.houseSize !== 'apartment', farm: state.houseSize === 'farm', acres: state.acres }} />
-              <SaveLoadPanel onSave={actions.saveGame} onLoad={actions.loadGame} hasSave={actions.hasSaveGame()} lastSaveDay={actions.getSaveDay()} />
+              <SaveLoadPanel 
+                onSave={user ? handleCloudSave : actions.saveGame} 
+                onLoad={user ? handleCloudLoad : actions.loadGame} 
+                hasSave={actions.hasSaveGame()} 
+                lastSaveDay={actions.getSaveDay()}
+                isLoggedIn={!!user}
+                cloudSyncing={cloudSyncing}
+                lastCloudSave={lastCloudSave}
+              />
             </TabsContent>
           </Tabs>
         </aside>
