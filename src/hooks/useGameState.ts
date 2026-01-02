@@ -87,6 +87,7 @@ const createInitialState = (): GameState => ({
   marketListings: generateMarketListings(),
   achievements: createInitialAchievements(),
   breedingCooldown: 0,
+  showCooldown: 0,
 });
 
 
@@ -345,8 +346,16 @@ export function useGameState(playSound?: (type: SoundType) => void) {
     });
   }, [playSound]);
 
+  const SHOW_COOLDOWN_DAYS = 20;
+
   const catShow = useCallback(() => {
     setState(prev => {
+      if (prev.showCooldown > 0) {
+        showMessage(`Next show in ${prev.showCooldown} days! Cat shows are every ${SHOW_COOLDOWN_DAYS} days. 🎪`, 'warning');
+        playSound?.('error');
+        return prev;
+      }
+
       const eligibleCats = prev.cats.filter(c => c.health >= 70 && c.happiness >= 60);
       if (eligibleCats.length === 0) {
         showMessage("No cats healthy/happy enough for the show! 🎪", 'warning');
@@ -402,7 +411,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
       }
       
       totalReward = Math.floor(totalReward);
-      showMessage(`Cat show results: ${wins} wins! Earned $${totalReward}! 🏆`, wins > 0 ? 'success' : 'info');
+      showMessage(`Cat show results: ${wins} wins! Earned $${totalReward}! Next show in ${SHOW_COOLDOWN_DAYS} days. 🏆`, wins > 0 ? 'success' : 'info');
       if (wins > 0) {
         playSound?.('achievement');
         playSound?.('coin');
@@ -414,6 +423,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
         cats: updatedCats,
         totalShowWins: prev.totalShowWins + wins,
         reputation: prev.reputation + wins * 2,
+        showCooldown: SHOW_COOLDOWN_DAYS,
       };
     });
   }, [relationshipSystem, playSound]);
@@ -507,16 +517,26 @@ export function useGameState(playSound?: (type: SoundType) => void) {
       relationshipSystem.detectGroups(updatedCats);
 
       const newMarket = prev.day % 3 === 0 ? generateMarketListings() : prev.marketListings;
-      const newCooldown = Math.max(0, prev.breedingCooldown - 1);
+      const newBreedingCooldown = Math.max(0, prev.breedingCooldown - 1);
+      const newShowCooldown = Math.max(0, prev.showCooldown - 1);
 
       if (deadCats.length > 0) {
         showMessage(`Day ${prev.day + 1}. Sadly, ${deadCats.join(', ')} passed away... 😢`, 'error');
+      } else if (newShowCooldown === 0 && prev.showCooldown > 0) {
+        showMessage(`Day ${prev.day + 1}! 🎪 Cat show is available today!`, 'success');
       } else {
         showMessage(`Day ${prev.day + 1} begins! ☀️`, 'info');
       }
       playSound?.('nextDay');
 
-      const newState = { ...prev, day: prev.day + 1, cats: updatedCats, marketListings: newMarket, breedingCooldown: newCooldown };
+      const newState = { 
+        ...prev, 
+        day: prev.day + 1, 
+        cats: updatedCats, 
+        marketListings: newMarket, 
+        breedingCooldown: newBreedingCooldown,
+        showCooldown: newShowCooldown,
+      };
       return checkAchievements(newState);
     });
   }, [checkAchievements, relationshipSystem, playSound]);
