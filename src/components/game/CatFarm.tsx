@@ -64,7 +64,7 @@ export function CatFarm() {
   } = useSoundEffects();
   const { fireConfetti, fireCelebration, fireStars } = useConfetti();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { challenges, loading: challengesLoading, updateProgress: updateChallengeProgress, claimReward, getTimeRemaining } = useWeeklyChallenges(user?.id);
+  const { challenges, loading: challengesLoading, updateProgress: updateChallengeProgress, claimReward, getTimeRemaining, lastProgressUpdate, clearProgressUpdate, totalChallengesCompleted } = useWeeklyChallenges(user?.id);
   const { state, message, messageType, kittensBreed, currentDailyEvent, relationshipSystem, actions } = useGameState(playSound, updateChallengeProgress);
   const isMobile = useIsMobile();
   const { cloudSave, cloudLoad, hasCloudSave } = useCloudSave(user?.id);
@@ -526,16 +526,18 @@ export function CatFarm() {
                 timeRemaining={getTimeRemaining()}
                 onClaimReward={claimReward}
                 onRewardClaimed={(coins, badge) => {
-                  // Add coins through the game state (simplified - just show message)
                   playSound?.('coin');
                   fireConfetti();
                 }}
+                lastProgressUpdate={lastProgressUpdate}
+                onProgressAnimationComplete={clearProgressUpdate}
+                totalChallengesCompleted={totalChallengesCompleted}
               />
             </TabsContent>
             <TabsContent value="more" className="mt-0 space-y-4">
               <AchievementsPanel achievements={state.achievements}
                 currentStats={{ cats: state.cats.length, showWins: state.totalShowWins, money: state.totalMoneyEarned,
-                  breeding: kittensBreed, house: state.houseSize !== 'apartment', farm: state.houseSize === 'farm', acres: state.acres }} />
+                  breeding: kittensBreed, house: state.houseSize !== 'apartment', farm: state.houseSize === 'farm', acres: state.acres, challengesCompleted: totalChallengesCompleted }} />
               <SaveLoadPanel 
                 onSave={user ? handleCloudSave : actions.saveGame} 
                 onLoad={user ? handleCloudLoad : actions.loadGame} 

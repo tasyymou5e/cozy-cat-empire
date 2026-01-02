@@ -136,6 +136,10 @@ export const ACHIEVEMENT_DEFS = [
   { id: 'perfect_match', name: 'Perfect Match', description: 'Breed best friend cats', target: 1, type: 'bestFriendBreed' },
   { id: 'drama_queen', name: 'Drama Queen', description: 'Have 3+ rivalries', target: 3, type: 'rivalry' },
   { id: 'clique_leader', name: 'Clique Leader', description: 'Form a cat group with 4+ members', target: 4, type: 'groupSize' },
+  // Challenge achievements
+  { id: 'challenge_starter', name: 'Challenge Starter', description: 'Complete 5 weekly challenges', target: 5, type: 'challengesCompleted' },
+  { id: 'challenge_master', name: 'Challenge Master', description: 'Complete 10 weekly challenges', target: 10, type: 'challengesCompleted' },
+  { id: 'challenge_legend', name: 'Challenge Legend', description: 'Complete 25 weekly challenges', target: 25, type: 'challengesCompleted' },
 ] as const;
 
 export type AchievementType = typeof ACHIEVEMENT_DEFS[number]['type'];

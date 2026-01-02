@@ -243,6 +243,30 @@ export type Database = {
           },
         ]
       }
+      player_challenge_stats: {
+        Row: {
+          created_at: string | null
+          id: string
+          total_challenges_completed: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          total_challenges_completed?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          total_challenges_completed?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       player_friends: {
         Row: {
           created_at: string | null
