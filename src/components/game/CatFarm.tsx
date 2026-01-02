@@ -42,7 +42,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 const MOOD_LABELS = {
   morning: '🌅 Morning',
@@ -66,7 +67,7 @@ export function CatFarm() {
   const { cloudSave, cloudLoad, hasCloudSave } = useCloudSave(user?.id);
   const { syncPlayerStats } = useGlobalLeaderboard(user?.id);
   const { profile } = usePlayerProfile(user?.id);
-  
+  const { theme, setTheme } = useTheme();
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
   const [musicOn, setMusicOn] = useState(false);
@@ -287,6 +288,15 @@ export function CatFarm() {
                     step={5}
                     className="w-full"
                   />
+                </div>
+                <div className="border-t pt-3">
+                  <button
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className="flex items-center gap-2 w-full text-sm font-medium hover:text-primary transition-colors"
+                  >
+                    {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                    {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                  </button>
                 </div>
               </div>
             </PopoverContent>
