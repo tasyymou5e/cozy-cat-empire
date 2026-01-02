@@ -151,11 +151,6 @@ export default function Auth() {
             </button>
           </div>
 
-          <div className="mt-6 text-center">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
-              ← Back to Game
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>
