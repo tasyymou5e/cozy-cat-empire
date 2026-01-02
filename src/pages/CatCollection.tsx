@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/useGameState';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { FlippableTradingCard } from '@/components/game/FlippableTradingCard';
 import { CatDetailModal } from '@/components/game/CatDetailModal';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ type FilterTier = 'all' | 'common' | 'uncommon' | 'rare' | 'veryRare' | 'ultraRa
 export default function CatCollection() {
   const { playSound } = useSoundEffects();
   const { state, relationshipSystem, actions } = useGameState(playSound);
+  const isMobile = useIsMobile();
   
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('grade');
@@ -74,32 +76,33 @@ export default function CatCollection() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link to="/">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" /> Back to Farm
+              <Button variant="ghost" size="sm" className="min-h-10 min-w-10 p-2 sm:px-3">
+                <ArrowLeft className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Back to Farm</span>
               </Button>
             </Link>
-            <h1 className="text-xl font-bold">🎴 Cat Collection</h1>
+            <h1 className="text-lg sm:text-xl font-bold">🎴 Cat Collection</h1>
           </div>
           
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1.5 bg-accent/50 px-3 py-1.5 rounded-full">
-              <CatIcon className="h-4 w-4" />
-              <span className="font-medium">{state.cats.length}</span>
+          <div className="grid grid-cols-4 sm:flex sm:items-center gap-2 sm:gap-4 text-sm">
+            <div className="flex items-center justify-center gap-1 sm:gap-1.5 bg-accent/50 px-2 sm:px-3 py-1.5 rounded-full">
+              <CatIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="font-medium text-xs sm:text-sm">{state.cats.length}</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-accent/50 px-3 py-1.5 rounded-full">
-              <Star className="h-4 w-4 text-yellow-500" />
-              <span className="font-medium">Avg {avgGrade}</span>
+            <div className="flex items-center justify-center gap-1 sm:gap-1.5 bg-accent/50 px-2 sm:px-3 py-1.5 rounded-full">
+              <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500" />
+              <span className="font-medium text-xs sm:text-sm">{avgGrade}</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-accent/50 px-3 py-1.5 rounded-full">
-              <Trophy className="h-4 w-4 text-yellow-500" />
-              <span className="font-medium">{totalWins}</span>
+            <div className="flex items-center justify-center gap-1 sm:gap-1.5 bg-accent/50 px-2 sm:px-3 py-1.5 rounded-full">
+              <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500" />
+              <span className="font-medium text-xs sm:text-sm">{totalWins}</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-accent/50 px-3 py-1.5 rounded-full">
-              <DollarSign className="h-4 w-4 text-green-500" />
-              <span className="font-medium">${totalValue}</span>
+            <div className="flex items-center justify-center gap-1 sm:gap-1.5 bg-accent/50 px-2 sm:px-3 py-1.5 rounded-full">
+              <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
+              <span className="font-medium text-xs sm:text-sm">${totalValue}</span>
             </div>
           </div>
         </div>

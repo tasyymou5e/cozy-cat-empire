@@ -4,6 +4,7 @@ import { useGameState } from '@/hooks/useGameState';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useConfetti } from '@/hooks/useConfetti';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -49,6 +50,7 @@ export function CatFarm() {
   } = useSoundEffects();
   const { fireConfetti, fireCelebration, fireStars } = useConfetti();
   const { state, message, messageType, kittensBreed, currentDailyEvent, relationshipSystem, actions } = useGameState(playSound);
+  const isMobile = useIsMobile();
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
   const [musicOn, setMusicOn] = useState(false);
@@ -225,15 +227,17 @@ export function CatFarm() {
             {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
           <Link to="/collection">
-            <Button variant="ghost" size="sm" title="Cat Collection (C)">
+            <Button variant="ghost" size="sm" title="Cat Collection (C)" className="min-h-10 min-w-10">
               <LayoutGrid className="h-4 w-4" />
             </Button>
           </Link>
-          <Button variant="ghost" size="sm" onClick={() => setShowShortcutsHelp(true)} title="Keyboard Shortcuts (?)">
-            <Keyboard className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={actions.saveGame} title="Save (S)">💾</Button>
-          <Button variant="ghost" size="sm" onClick={actions.resetGame}>New Game</Button>
+          {!isMobile && (
+            <Button variant="ghost" size="sm" onClick={() => setShowShortcutsHelp(true)} title="Keyboard Shortcuts (?)" className="min-h-10 min-w-10">
+              <Keyboard className="h-4 w-4" />
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={actions.saveGame} title="Save (S)" className="min-h-10 min-w-10">💾</Button>
+          <Button variant="ghost" size="sm" onClick={actions.resetGame} className="min-h-10 min-w-10">New Game</Button>
         </div>
       </header>
 
@@ -272,17 +276,17 @@ export function CatFarm() {
 
         <aside className="action-sidebar">
           <Tabs value={sideTab} onValueChange={setSideTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-10 mb-4">
-              <TabsTrigger value="actions" className={`text-xs ${highlightedTab === 'actions' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🐾</TabsTrigger>
-              <TabsTrigger value="chores" className={`text-xs ${highlightedTab === 'chores' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🧹</TabsTrigger>
-              <TabsTrigger value="supplies" className={`text-xs ${highlightedTab === 'supplies' ? 'ring-2 ring-primary animate-pulse' : ''}`}>📦</TabsTrigger>
-              <TabsTrigger value="market" className={`text-xs ${highlightedTab === 'market' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🛒</TabsTrigger>
-              <TabsTrigger value="costumes" className={`text-xs ${highlightedTab === 'costumes' ? 'ring-2 ring-primary animate-pulse' : ''}`}>👗</TabsTrigger>
-              <TabsTrigger value="breeding" className={`text-xs ${highlightedTab === 'breeding' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💕</TabsTrigger>
-              <TabsTrigger value="training" className={`text-xs ${highlightedTab === 'training' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💪</TabsTrigger>
-              <TabsTrigger value="social" className={`text-xs ${highlightedTab === 'social' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🤝</TabsTrigger>
-              <TabsTrigger value="leaderboard" className={`text-xs ${highlightedTab === 'leaderboard' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🏆</TabsTrigger>
-              <TabsTrigger value="more" className={`text-xs ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger>
+            <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-1 mb-4 p-1">
+              <TabsTrigger value="actions" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'actions' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🐾</TabsTrigger>
+              <TabsTrigger value="chores" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'chores' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🧹</TabsTrigger>
+              <TabsTrigger value="supplies" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'supplies' ? 'ring-2 ring-primary animate-pulse' : ''}`}>📦</TabsTrigger>
+              <TabsTrigger value="market" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'market' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🛒</TabsTrigger>
+              <TabsTrigger value="costumes" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'costumes' ? 'ring-2 ring-primary animate-pulse' : ''}`}>👗</TabsTrigger>
+              <TabsTrigger value="breeding" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'breeding' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💕</TabsTrigger>
+              <TabsTrigger value="training" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'training' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💪</TabsTrigger>
+              <TabsTrigger value="social" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'social' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🤝</TabsTrigger>
+              <TabsTrigger value="leaderboard" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'leaderboard' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🏆</TabsTrigger>
+              <TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger>
             </TabsList>
             
             <TabsContent value="actions" className="mt-0">
