@@ -14,7 +14,7 @@ import { getCostumeById } from '@/types/costumes';
 import { CatRelationship, RelationshipEvent } from '@/types/relationships';
 
 const SAVE_KEY = 'cat-farm-save';
-const generateId = () => Math.random().toString(36).substr(2, 9);
+const generateId = () => Math.random().toString(36).substr(2, 9); // Unique ID generator
 
 const createDefaultTrickProgress = (): Record<TrickId, number> => ({
   sit: 0, paw: 0, rollOver: 0, jump: 0, fetch: 0
