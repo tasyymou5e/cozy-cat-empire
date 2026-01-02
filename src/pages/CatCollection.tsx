@@ -2,12 +2,12 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/useGameState';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
-import { TradingCard } from '@/components/game/TradingCard';
+import { FlippableTradingCard } from '@/components/game/FlippableTradingCard';
 import { CatDetailModal } from '@/components/game/CatDetailModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Cat, CatBreed, CatPersonality, BREEDS } from '@/types/game';
+import { Cat, CatBreed, BREEDS } from '@/types/game';
 import { getGradeTier } from '@/types/grading';
 import { ArrowLeft, Search, SortAsc, Filter, Cat as CatIcon, Trophy, DollarSign, Star } from 'lucide-react';
 
@@ -185,9 +185,9 @@ export default function CatCollection() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {filteredAndSortedCats.map(cat => (
-              <TradingCard
+              <FlippableTradingCard
                 key={cat.id}
                 cat={cat}
                 relationships={relationshipSystem.relationships}

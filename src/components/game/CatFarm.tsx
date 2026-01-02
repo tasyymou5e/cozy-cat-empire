@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/useGameState';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useConfetti } from '@/hooks/useConfetti';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -19,11 +20,13 @@ import { GroupActivitiesPanel } from './GroupActivitiesPanel';
 import { TrainingPanel } from './TrainingPanel';
 import { RelationshipAnimations } from './RelationshipAnimations';
 import { CatCard } from './CatCard';
+import { TutorialSystem } from './TutorialSystem';
+import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard } from 'lucide-react';
 
 const MOOD_LABELS = {
   morning: '🌅 Morning',
@@ -49,6 +52,33 @@ export function CatFarm() {
   const [sfxVolume, setSfxVolume] = useState(50);
   const [musicVolume, setMusicVolumeState] = useState(40);
   const [lastAchievementCount, setLastAchievementCount] = useState(0);
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [highlightedTab, setHighlightedTab] = useState<string | null>(null);
+
+  // Keyboard shortcuts
+  const handleFeed = useCallback(() => {
+    if (state.resources.food > 0 && state.cats.length > 0) {
+      actions.feedCats();
+    }
+  }, [state.resources.food, state.cats.length, actions]);
+
+  useKeyboardShortcuts({
+    onFeed: handleFeed,
+    onNextDay: actions.nextDay,
+    onSave: actions.saveGame,
+    onTabChange: setSideTab,
+  });
+
+  // Listen for ? key to show shortcuts
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === '?' && !(e.target instanceof HTMLInputElement)) {
+        setShowShortcutsHelp(true);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
 
   // Update music mood when day changes
   useEffect(() => {
@@ -128,6 +158,8 @@ export function CatFarm() {
 
   return (
     <div className="min-h-screen bg-background">
+      <TutorialSystem onHighlightTab={setHighlightedTab} />
+      <KeyboardShortcutsHelp open={showShortcutsHelp} onClose={() => setShowShortcutsHelp(false)} />
       <RelationshipAnimations events={relationshipSystem.events} lastEventId={relationshipSystem.lastEventId} />
       
       <header className="game-header">
@@ -187,11 +219,14 @@ export function CatFarm() {
             {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
           <Link to="/collection">
-            <Button variant="ghost" size="sm" title="Cat Collection">
+            <Button variant="ghost" size="sm" title="Cat Collection (C)">
               <LayoutGrid className="h-4 w-4" />
             </Button>
           </Link>
-          <Button variant="ghost" size="sm" onClick={actions.saveGame}>💾</Button>
+          <Button variant="ghost" size="sm" onClick={() => setShowShortcutsHelp(true)} title="Keyboard Shortcuts (?)">
+            <Keyboard className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={actions.saveGame} title="Save (S)">💾</Button>
           <Button variant="ghost" size="sm" onClick={actions.resetGame}>New Game</Button>
         </div>
       </header>
@@ -232,14 +267,14 @@ export function CatFarm() {
         <aside className="action-sidebar">
           <Tabs value={sideTab} onValueChange={setSideTab} className="w-full">
             <TabsList className="grid w-full grid-cols-8 mb-4">
-              <TabsTrigger value="actions" className="text-xs">🐾</TabsTrigger>
-              <TabsTrigger value="chores" className="text-xs">🧹</TabsTrigger>
-              <TabsTrigger value="supplies" className="text-xs">📦</TabsTrigger>
-              <TabsTrigger value="market" className="text-xs">🛒</TabsTrigger>
-              <TabsTrigger value="breeding" className="text-xs">💕</TabsTrigger>
-              <TabsTrigger value="training" className="text-xs">💪</TabsTrigger>
-              <TabsTrigger value="social" className="text-xs">🤝</TabsTrigger>
-              <TabsTrigger value="more" className="text-xs">⚙️</TabsTrigger>
+              <TabsTrigger value="actions" className={`text-xs ${highlightedTab === 'actions' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🐾</TabsTrigger>
+              <TabsTrigger value="chores" className={`text-xs ${highlightedTab === 'chores' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🧹</TabsTrigger>
+              <TabsTrigger value="supplies" className={`text-xs ${highlightedTab === 'supplies' ? 'ring-2 ring-primary animate-pulse' : ''}`}>📦</TabsTrigger>
+              <TabsTrigger value="market" className={`text-xs ${highlightedTab === 'market' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🛒</TabsTrigger>
+              <TabsTrigger value="breeding" className={`text-xs ${highlightedTab === 'breeding' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💕</TabsTrigger>
+              <TabsTrigger value="training" className={`text-xs ${highlightedTab === 'training' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💪</TabsTrigger>
+              <TabsTrigger value="social" className={`text-xs ${highlightedTab === 'social' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🤝</TabsTrigger>
+              <TabsTrigger value="more" className={`text-xs ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger>
             </TabsList>
             
             <TabsContent value="actions" className="mt-0">
