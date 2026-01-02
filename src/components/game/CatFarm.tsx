@@ -371,56 +371,59 @@ export function CatFarm() {
       <StatusBar state={state} onUpgrade={actions.upgradeHouse} onCatShow={actions.catShow} relationships={relationshipSystem.relationships} />
       <MessageBar message={message} type={messageType} />
 
-      <main className="game-main">
-        <section className="cat-grid-section">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-foreground">Your Cats</h2>
-            <span className="text-sm text-muted-foreground">{state.cats.length} / {state.space} capacity</span>
-          </div>
-          
-          {state.cats.length === 0 ? (
-            <div className="empty-state">
-              <span className="text-6xl mb-4">🐾</span>
-              <p className="text-muted-foreground mb-2">No cats yet!</p>
-              <p className="text-sm text-muted-foreground">Add a stray for free or buy from the market.</p>
-            </div>
-          ) : (
-            <div className="cat-grid">
-              {state.cats.map(cat => (
-                <CatCard 
-                  key={cat.id} 
-                  cat={cat} 
-                  onSell={actions.sellCat} 
-                  onHeal={actions.useMedicine}
-                  onComfort={actions.comfortCat}
-                  relationships={relationshipSystem.relationships} 
-                  allCats={state.cats} 
-                />
-              ))}
-            </div>
-          )}
-        </section>
+      <Tabs value={sideTab} onValueChange={setSideTab} className="flex-1 flex flex-col">
+        {/* Tab navigation - sticky at top */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2">
+          <TabsList className="flex w-full justify-center overflow-x-auto scrollbar-hide gap-1 p-1">
+            <TabsTrigger value="actions" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'actions' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🐾</TabsTrigger>
+            <TabsTrigger value="chores" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'chores' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🧹</TabsTrigger>
+            <TabsTrigger value="supplies" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'supplies' ? 'ring-2 ring-primary animate-pulse' : ''}`}>📦</TabsTrigger>
+            <TabsTrigger value="market" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'market' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🛒</TabsTrigger>
+            <TabsTrigger value="costumes" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'costumes' ? 'ring-2 ring-primary animate-pulse' : ''}`}>👗</TabsTrigger>
+            <TabsTrigger value="breeding" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'breeding' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💕</TabsTrigger>
+            <TabsTrigger value="training" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'training' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💪</TabsTrigger>
+            <TabsTrigger value="social" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'social' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🤝</TabsTrigger>
+            <TabsTrigger value="leaderboard" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'leaderboard' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🏆</TabsTrigger>
+            <TabsTrigger value="global" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'global' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Globe className="h-4 w-4" /></TabsTrigger>
+            <TabsTrigger value="friends" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'friends' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Users className="h-4 w-4" /></TabsTrigger>
+            <TabsTrigger value="profile" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'profile' ? 'ring-2 ring-primary animate-pulse' : ''}`}><User className="h-4 w-4" /></TabsTrigger>
+            <TabsTrigger value="gifts" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'gifts' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Gift className="h-4 w-4" /></TabsTrigger>
+            <TabsTrigger value="trading" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'trading' ? 'ring-2 ring-primary animate-pulse' : ''}`}><ArrowLeftRight className="h-4 w-4" /></TabsTrigger>
+            <TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger>
+          </TabsList>
+        </div>
 
-        <aside className="action-sidebar">
-          <Tabs value={sideTab} onValueChange={setSideTab} className="w-full">
-            <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-1 mb-4 p-1">
-              <TabsTrigger value="actions" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'actions' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🐾</TabsTrigger>
-              <TabsTrigger value="chores" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'chores' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🧹</TabsTrigger>
-              <TabsTrigger value="supplies" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'supplies' ? 'ring-2 ring-primary animate-pulse' : ''}`}>📦</TabsTrigger>
-              <TabsTrigger value="market" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'market' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🛒</TabsTrigger>
-              <TabsTrigger value="costumes" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'costumes' ? 'ring-2 ring-primary animate-pulse' : ''}`}>👗</TabsTrigger>
-              <TabsTrigger value="breeding" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'breeding' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💕</TabsTrigger>
-              <TabsTrigger value="training" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'training' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💪</TabsTrigger>
-              <TabsTrigger value="social" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'social' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🤝</TabsTrigger>
-              <TabsTrigger value="leaderboard" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'leaderboard' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🏆</TabsTrigger>
-              <TabsTrigger value="global" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'global' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Globe className="h-4 w-4" /></TabsTrigger>
-              <TabsTrigger value="friends" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'friends' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Users className="h-4 w-4" /></TabsTrigger>
-              <TabsTrigger value="profile" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'profile' ? 'ring-2 ring-primary animate-pulse' : ''}`}><User className="h-4 w-4" /></TabsTrigger>
-              <TabsTrigger value="gifts" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'gifts' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Gift className="h-4 w-4" /></TabsTrigger>
-              <TabsTrigger value="trading" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'trading' ? 'ring-2 ring-primary animate-pulse' : ''}`}><ArrowLeftRight className="h-4 w-4" /></TabsTrigger>
-              <TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger>
-            </TabsList>
+        <main className="game-main">
+          <section className="cat-grid-section">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-foreground">Your Cats</h2>
+              <span className="text-sm text-muted-foreground">{state.cats.length} / {state.space} capacity</span>
+            </div>
             
+            {state.cats.length === 0 ? (
+              <div className="empty-state">
+                <span className="text-6xl mb-4">🐾</span>
+                <p className="text-muted-foreground mb-2">No cats yet!</p>
+                <p className="text-sm text-muted-foreground">Add a stray for free or buy from the market.</p>
+              </div>
+            ) : (
+              <div className="cat-grid">
+                {state.cats.map(cat => (
+                  <CatCard 
+                    key={cat.id} 
+                    cat={cat} 
+                    onSell={actions.sellCat} 
+                    onHeal={actions.useMedicine}
+                    onComfort={actions.comfortCat}
+                    relationships={relationshipSystem.relationships} 
+                    allCats={state.cats} 
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
+          <aside className="action-sidebar">
             <TabsContent value="actions" className="mt-0">
               <ActionPanel onAddCat={actions.addCat} onNextDay={actions.nextDay} money={state.money} space={state.space} catCount={state.cats.length} />
             </TabsContent>
@@ -507,9 +510,9 @@ export function CatFarm() {
                 lastCloudSave={lastCloudSave}
               />
             </TabsContent>
-          </Tabs>
-        </aside>
-      </main>
+          </aside>
+        </main>
+      </Tabs>
     </div>
   );
 }
