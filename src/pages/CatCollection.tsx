@@ -12,14 +12,14 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Cat, CatBreed, BREEDS } from '@/types/game';
 import { getGradeTier } from '@/types/grading';
-import { ArrowLeft, Search, SortAsc, Filter, Cat as CatIcon, Trophy, DollarSign, Star, Loader2 } from 'lucide-react';
+import { ArrowLeft, Search, SortAsc, Filter, Cat as CatIcon, Trophy, DollarSign, Star, Loader2, Volume2, VolumeX } from 'lucide-react';
 
 type SortOption = 'name' | 'grade' | 'value' | 'age' | 'health' | 'showWins';
 type FilterBreed = CatBreed | 'all';
 type FilterTier = 'all' | 'common' | 'uncommon' | 'rare' | 'veryRare' | 'ultraRare';
 
 export default function CatCollection() {
-  const { playSound } = useSound();
+  const { playSound, isEnabled, setEnabled } = useSound();
   const { state, relationshipSystem, actions } = useGameState(playSound);
   const isMobile = useIsMobile();
   const { user } = useAuth();
@@ -119,6 +119,15 @@ export default function CatCollection() {
               </Button>
             </Link>
             <h1 className="text-lg sm:text-xl font-bold">🎴 Cat Collection</h1>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setEnabled(!isEnabled())}
+              className="min-h-10 min-w-10"
+              title={isEnabled() ? 'Mute sounds' : 'Unmute sounds'}
+            >
+              {isEnabled() ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
           </div>
           
           <div className="grid grid-cols-4 sm:flex sm:items-center gap-2 sm:gap-4 text-sm">
