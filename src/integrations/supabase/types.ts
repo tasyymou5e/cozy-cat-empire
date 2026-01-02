@@ -44,6 +44,45 @@ export type Database = {
         }
         Relationships: []
       }
+      error_logs: {
+        Row: {
+          component_name: string | null
+          created_at: string | null
+          error_message: string
+          error_stack: string | null
+          error_type: string
+          id: string
+          metadata: Json | null
+          route: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          component_name?: string | null
+          created_at?: string | null
+          error_message: string
+          error_stack?: string | null
+          error_type: string
+          id?: string
+          metadata?: Json | null
+          route?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          component_name?: string | null
+          created_at?: string | null
+          error_message?: string
+          error_stack?: string | null
+          error_type?: string
+          id?: string
+          metadata?: Json | null
+          route?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       game_saves: {
         Row: {
           created_at: string | null
