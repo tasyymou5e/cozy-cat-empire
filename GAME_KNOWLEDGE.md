@@ -1,7 +1,15 @@
 # Cat Farm Game - Knowledge Base
 
+> **📚 Full Documentation:** See `/docs/` folder for comprehensive documentation:
+> - [docs/COMPONENTS.md](docs/COMPONENTS.md) - Component architecture
+> - [docs/GAME_LOGIC.md](docs/GAME_LOGIC.md) - Game mechanics & flow
+> - [docs/DATABASE_DESIGN.md](docs/DATABASE_DESIGN.md) - Database schema
+> - [docs/SECURITY.md](docs/SECURITY.md) - Security & RLS policies
+> - [docs/TECH_STACK.md](docs/TECH_STACK.md) - Technology stack
+> - [docs/ERROR_LOGGING.md](docs/ERROR_LOGGING.md) - Error logging system
+
 ## Overview
-Cat Farm is a browser-based idle/management game where players build a cat empire. Start with a small apartment and grow to own a 100-acre farm with dozens of cats. Features cloud saves, global leaderboards, social features, cat gifting, and player trading.
+Cat Farm is a browser-based idle/management game where players build a cat empire. Start with a small apartment and grow to own a 100-acre farm with dozens of cats. Features cloud saves, global leaderboards, social features, cat gifting, player trading, VIP rewards, and weekly challenges.
 
 ---
 
