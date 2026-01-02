@@ -2,3 +2,9 @@ project_id = "bkkluziuyystiqkcpbnd"
 
 [functions.process-leaderboard-rewards]
 verify_jwt = false
+
+[functions.generate-weekly-challenges]
+verify_jwt = false
+
+[functions.send-push-notification]
+verify_jwt = false

@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
 import { useGlobalLeaderboard } from '@/hooks/useGlobalLeaderboard';
+import { useWeeklyChallenges } from '@/hooks/useWeeklyChallenges';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
@@ -37,12 +38,14 @@ import { CostumeShopPanel } from './CostumeShopPanel';
 import { CatGiftingPanel } from './CatGiftingPanel';
 import { TradingPanel } from './TradingPanel';
 import { NotificationCenter } from './NotificationCenter';
+import { WeeklyChallengesPanel } from './WeeklyChallengesPanel';
+import { NotificationSettings } from './NotificationSettings';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3 } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 const MOOD_LABELS = {
@@ -67,6 +70,7 @@ export function CatFarm() {
   const { cloudSave, cloudLoad, hasCloudSave } = useCloudSave(user?.id);
   const { syncPlayerStats } = useGlobalLeaderboard(user?.id);
   const { profile } = usePlayerProfile(user?.id);
+  const { challenges, loading: challengesLoading, updateProgress: updateChallengeProgress, claimReward, getTimeRemaining } = useWeeklyChallenges(user?.id);
   const { theme, setTheme } = useTheme();
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
@@ -410,6 +414,7 @@ export function CatFarm() {
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="profile" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'profile' ? 'ring-2 ring-primary animate-pulse' : ''}`}><User className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Profile</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="gifts" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'gifts' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Gift className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Gifts</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="trading" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'trading' ? 'ring-2 ring-primary animate-pulse' : ''}`}><ArrowLeftRight className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Trading</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="challenges" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'challenges' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Target className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Challenges</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger></TooltipTrigger><TooltipContent>Settings</TooltipContent></Tooltip>
             </TabsList>
           </TooltipProvider>
@@ -514,6 +519,20 @@ export function CatFarm() {
                   // Money and resources handled by trade system
                 }}
               />
+            </TabsContent>
+            <TabsContent value="challenges" className="mt-0 space-y-4">
+              <WeeklyChallengesPanel
+                challenges={challenges}
+                loading={challengesLoading}
+                timeRemaining={getTimeRemaining()}
+                onClaimReward={claimReward}
+                onRewardClaimed={(coins, badge) => {
+                  // Add coins through the game state (simplified - just show message)
+                  playSound?.('coin');
+                  fireConfetti();
+                }}
+              />
+              <NotificationSettings userId={user?.id} />
             </TabsContent>
             <TabsContent value="more" className="mt-0 space-y-4">
               <AchievementsPanel achievements={state.achievements}

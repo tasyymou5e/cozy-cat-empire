@@ -202,6 +202,47 @@ export type Database = {
         }
         Relationships: []
       }
+      player_challenge_progress: {
+        Row: {
+          challenge_id: string | null
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          current_progress: number | null
+          id: string
+          reward_claimed: boolean | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id?: string | null
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_progress?: number | null
+          id?: string
+          reward_claimed?: boolean | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string | null
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_progress?: number | null
+          id?: string
+          reward_claimed?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_challenge_progress_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_friends: {
         Row: {
           created_at: string | null
@@ -318,6 +359,36 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string | null
+          endpoint: string
+          id: string
+          notification_preferences: Json | null
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          notification_preferences?: Json | null
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          notification_preferences?: Json | null
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       rank_history: {
         Row: {
           category: string
@@ -414,6 +485,54 @@ export type Database = {
           requested_resources?: Json | null
           sender_id?: string
           status?: string | null
+        }
+        Relationships: []
+      }
+      weekly_challenges: {
+        Row: {
+          challenge_type: string
+          created_at: string | null
+          description: string
+          difficulty: string | null
+          emoji: string
+          ends_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          reward_badge: string | null
+          reward_coins: number
+          starts_at: string
+          target_value: number
+        }
+        Insert: {
+          challenge_type: string
+          created_at?: string | null
+          description: string
+          difficulty?: string | null
+          emoji: string
+          ends_at: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          reward_badge?: string | null
+          reward_coins: number
+          starts_at: string
+          target_value: number
+        }
+        Update: {
+          challenge_type?: string
+          created_at?: string | null
+          description?: string
+          difficulty?: string | null
+          emoji?: string
+          ends_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          reward_badge?: string | null
+          reward_coins?: number
+          starts_at?: string
+          target_value?: number
         }
         Relationships: []
       }
