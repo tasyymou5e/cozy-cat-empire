@@ -6,6 +6,9 @@ import {
 import { useRelationships } from './useRelationships';
 import { generateRandomGrade, TrickId, TRICKS } from '@/types/grading';
 import { SoundType } from './useSoundEffects';
+import { 
+  ShowTier, SHOW_TIERS, getCurrentSeasonalEvent, getSpecialEvent 
+} from '@/types/showEvents';
 
 const SAVE_KEY = 'cat-farm-save';
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -348,7 +351,7 @@ export function useGameState(playSound?: (type: SoundType) => void) {
 
   const SHOW_COOLDOWN_DAYS = 20;
 
-  const catShow = useCallback(() => {
+  const catShow = useCallback((tier: ShowTier = 'local') => {
     setState(prev => {
       if (prev.showCooldown > 0) {
         showMessage(`Next show in ${prev.showCooldown} days! Cat shows are every ${SHOW_COOLDOWN_DAYS} days. 🎪`, 'warning');
@@ -356,18 +359,58 @@ export function useGameState(playSound?: (type: SoundType) => void) {
         return prev;
       }
 
-      const eligibleCats = prev.cats.filter(c => c.health >= 70 && c.happiness >= 60);
-      if (eligibleCats.length === 0) {
-        showMessage("No cats healthy/happy enough for the show! 🎪", 'warning');
+      const tierInfo = SHOW_TIERS.find(t => t.id === tier)!;
+      
+      // Check if player has enough wins to enter this tier
+      if (prev.totalShowWins < tierInfo.minWins) {
+        showMessage(`Need ${tierInfo.minWins} wins to enter ${tierInfo.name}! 🏆`, 'warning');
         playSound?.('error');
         return prev;
       }
+
+      // Check entry fee
+      if (prev.money < tierInfo.entryFee) {
+        showMessage(`Need $${tierInfo.entryFee} entry fee for ${tierInfo.name}! 💰`, 'warning');
+        playSound?.('error');
+        return prev;
+      }
+
+      // Get eligible cats for this tier (healthy, happy, and meets grade requirement)
+      const eligibleCats = prev.cats.filter(
+        c => c.health >= 70 && c.happiness >= 60 && c.grade >= tierInfo.minGrade
+      );
+      
+      if (eligibleCats.length === 0) {
+        showMessage(`No cats meet ${tierInfo.name} requirements (Grade ${tierInfo.minGrade}+, healthy, happy)! 🎪`, 'warning');
+        playSound?.('error');
+        return prev;
+      }
+      
+      // Calculate event bonuses
+      const seasonalEvent = getCurrentSeasonalEvent(prev.day);
+      const specialEvent = getSpecialEvent(prev.day);
+      let eventMultiplier = 1;
+      let eventName = '';
+      
+      if (seasonalEvent) {
+        eventMultiplier *= seasonalEvent.bonusMultiplier;
+        eventName = seasonalEvent.name;
+      }
+      if (specialEvent) {
+        eventMultiplier *= specialEvent.bonusMultiplier;
+        eventName = specialEvent.name;
+      }
+      
+      const totalMultiplier = tierInfo.rewardMultiplier * eventMultiplier;
       
       const participants = eligibleCats.slice(0, 5);
       let totalReward = 0;
       let wins = 0;
       const winners: string[] = [];
       const losers: string[] = [];
+      
+      // Higher tier = harder competition
+      const difficultyModifier = 1 + (SHOW_TIERS.indexOf(tierInfo) * 0.15);
       
       const updatedCats = prev.cats.map(cat => {
         if (!participants.find(p => p.id === cat.id)) return cat;
@@ -379,14 +422,20 @@ export function useGameState(playSound?: (type: SoundType) => void) {
         });
         const friendBonus = friendsInShow.length * 5;
         
-        const score = cat.health + cat.happiness + (BREEDS[cat.breed].rarity * 10) + (cat.showWins * 5) + friendBonus;
-        const won = Math.random() * 200 < score;
+        // Grade now matters more for higher tiers
+        const gradeBonus = (cat.grade - tierInfo.minGrade) * 3;
+        
+        const score = cat.health + cat.happiness + (BREEDS[cat.breed].rarity * 10) + 
+                      (cat.showWins * 5) + friendBonus + gradeBonus;
+        const threshold = 200 * difficultyModifier;
+        const won = Math.random() * threshold < score;
         
         if (won) {
           wins++;
           winners.push(cat.id);
-          totalReward += 50 + BREEDS[cat.breed].baseValue / 2;
-          return { ...cat, showWins: cat.showWins + 1, value: cat.value + 20 };
+          const baseReward = (50 + BREEDS[cat.breed].baseValue / 2) * totalMultiplier;
+          totalReward += baseReward;
+          return { ...cat, showWins: cat.showWins + 1, value: cat.value + Math.floor(20 * tierInfo.rewardMultiplier) };
         }
         losers.push(cat.id);
         return cat;
@@ -411,7 +460,20 @@ export function useGameState(playSound?: (type: SoundType) => void) {
       }
       
       totalReward = Math.floor(totalReward);
-      showMessage(`Cat show results: ${wins} wins! Earned $${totalReward}! Next show in ${SHOW_COOLDOWN_DAYS} days. 🏆`, wins > 0 ? 'success' : 'info');
+      const netReward = totalReward - tierInfo.entryFee;
+      
+      let resultMsg = `${tierInfo.emoji} ${tierInfo.name}: ${wins} wins! `;
+      if (tierInfo.entryFee > 0) {
+        resultMsg += `Earned $${totalReward} - $${tierInfo.entryFee} fee = $${netReward}. `;
+      } else {
+        resultMsg += `Earned $${totalReward}. `;
+      }
+      if (eventName) {
+        resultMsg += `(${eventMultiplier}x ${eventName} bonus!) `;
+      }
+      resultMsg += `🏆`;
+      
+      showMessage(resultMsg, wins > 0 ? 'success' : 'info');
       if (wins > 0) {
         playSound?.('achievement');
         playSound?.('coin');
@@ -419,10 +481,10 @@ export function useGameState(playSound?: (type: SoundType) => void) {
       
       return {
         ...prev,
-        money: prev.money + totalReward,
+        money: prev.money + netReward,
         cats: updatedCats,
         totalShowWins: prev.totalShowWins + wins,
-        reputation: prev.reputation + wins * 2,
+        reputation: prev.reputation + wins * 2 * tierInfo.rewardMultiplier,
         showCooldown: SHOW_COOLDOWN_DAYS,
       };
     });

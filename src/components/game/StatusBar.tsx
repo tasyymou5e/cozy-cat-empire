@@ -1,5 +1,7 @@
 import { GameState, HOUSE_UPGRADES } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
+import { ShowTier, getSeason, SEASONS, getCurrentSeasonalEvent, getSpecialEvent } from '@/types/showEvents';
+import { CatShowPanel } from './CatShowPanel';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 interface StatusBarProps {
   state: GameState;
   onUpgrade: () => void;
-  onCatShow: () => void;
+  onCatShow: (tier: ShowTier) => void;
   relationships?: CatRelationship[];
 }
 
@@ -32,7 +34,12 @@ export function StatusBar({ state, onUpgrade, onCatShow, relationships = [] }: S
   }
   
   const eligibleForShow = state.cats.filter(c => c.health >= 70 && c.happiness >= 60).length;
-  const showAvailable = state.showCooldown === 0;
+  
+  // Season info
+  const season = getSeason(state.day);
+  const seasonInfo = SEASONS[season];
+  const seasonalEvent = getCurrentSeasonalEvent(state.day);
+  const specialEvent = getSpecialEvent(state.day);
 
   // Calculate relationship stats
   const friendCount = relationships.filter(r => r.score >= 20).length;
@@ -46,6 +53,19 @@ export function StatusBar({ state, onUpgrade, onCatShow, relationships = [] }: S
           <div>
             <p className="text-xs text-muted-foreground">Day</p>
             <p className="font-bold">{state.day}</p>
+          </div>
+        </div>
+
+        <div className="status-item">
+          <span className="text-2xl">{seasonInfo.emoji}</span>
+          <div>
+            <p className="text-xs text-muted-foreground">Season</p>
+            <p className="font-bold">{seasonInfo.name}</p>
+            {(seasonalEvent || specialEvent) && (
+              <Badge variant="secondary" className="text-[10px] px-1 mt-0.5 animate-pulse">
+                {seasonalEvent?.emoji || specialEvent?.emoji} Event!
+              </Badge>
+            )}
           </div>
         </div>
         
@@ -111,17 +131,7 @@ export function StatusBar({ state, onUpgrade, onCatShow, relationships = [] }: S
       </div>
       
       <div className="status-actions">
-        <Button 
-          onClick={onCatShow}
-          disabled={!showAvailable || eligibleForShow === 0}
-          className="cat-show-button"
-        >
-          {showAvailable ? (
-            <>🎪 Enter Cat Show ({eligibleForShow} eligible)</>
-          ) : (
-            <>🎪 Next Show in {state.showCooldown} days</>
-          )}
-        </Button>
+        <CatShowPanel state={state} onEnterShow={onCatShow} />
       </div>
     </div>
   );
