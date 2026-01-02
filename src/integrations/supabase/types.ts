@@ -52,21 +52,116 @@ export type Database = {
           },
         ]
       }
-      profiles: {
+      player_friends: {
         Row: {
           created_at: string | null
+          friend_id: string
+          id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          friend_id: string
+          id?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          friend_id?: string
+          id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_friend"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_stats: {
+        Row: {
+          achievements_unlocked: number | null
+          avatar_emoji: string | null
+          display_name: string | null
+          highest_cat_grade: number | null
+          id: string
+          last_updated: string | null
+          total_cats_owned: number | null
+          total_kittens_bred: number | null
+          total_money_earned: number | null
+          total_show_wins: number | null
+          user_id: string
+        }
+        Insert: {
+          achievements_unlocked?: number | null
+          avatar_emoji?: string | null
+          display_name?: string | null
+          highest_cat_grade?: number | null
+          id?: string
+          last_updated?: string | null
+          total_cats_owned?: number | null
+          total_kittens_bred?: number | null
+          total_money_earned?: number | null
+          total_show_wins?: number | null
+          user_id: string
+        }
+        Update: {
+          achievements_unlocked?: number | null
+          avatar_emoji?: string | null
+          display_name?: string | null
+          highest_cat_grade?: number | null
+          id?: string
+          last_updated?: string | null
+          total_cats_owned?: number | null
+          total_kittens_bred?: number | null
+          total_money_earned?: number | null
+          total_show_wins?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_emoji: string | null
+          created_at: string | null
+          display_name: string | null
           id: string
           updated_at: string | null
           username: string | null
         }
         Insert: {
+          avatar_emoji?: string | null
           created_at?: string | null
+          display_name?: string | null
           id: string
           updated_at?: string | null
           username?: string | null
         }
         Update: {
+          avatar_emoji?: string | null
           created_at?: string | null
+          display_name?: string | null
           id?: string
           updated_at?: string | null
           username?: string | null

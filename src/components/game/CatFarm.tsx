@@ -7,6 +7,8 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
+import { useGlobalLeaderboard } from '@/hooks/useGlobalLeaderboard';
+import { usePlayerProfile } from '@/hooks/usePlayerProfile';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -28,12 +30,15 @@ import { TutorialSystem } from './TutorialSystem';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { DailyEventToast } from './DailyEventToast';
 import { LeaderboardPanel } from './LeaderboardPanel';
+import { GlobalLeaderboardPanel } from './GlobalLeaderboardPanel';
+import { FriendsPanel } from './FriendsPanel';
+import { PlayerProfilePanel } from './PlayerProfilePanel';
 import { CostumeShopPanel } from './CostumeShopPanel';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users } from 'lucide-react';
 
 const MOOD_LABELS = {
   morning: '🌅 Morning',
@@ -55,6 +60,8 @@ export function CatFarm() {
   const isMobile = useIsMobile();
   const { user, signOut, loading: authLoading } = useAuth();
   const { cloudSave, cloudLoad, hasCloudSave } = useCloudSave(user?.id);
+  const { syncPlayerStats } = useGlobalLeaderboard(user?.id);
+  const { profile } = usePlayerProfile(user?.id);
   
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
@@ -104,6 +111,8 @@ export function CatFarm() {
     const result = await cloudSave(state, kittensBreed, relationshipSystem.getRelationshipSaveData());
     if (result.success) {
       setLastCloudSave(new Date().toISOString());
+      // Sync player stats to global leaderboard
+      await syncPlayerStats(state, kittensBreed, profile?.display_name || undefined, profile?.avatar_emoji || undefined);
       playSound?.('success');
     }
     setCloudSyncing(false);
@@ -398,6 +407,9 @@ export function CatFarm() {
               <TabsTrigger value="training" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'training' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💪</TabsTrigger>
               <TabsTrigger value="social" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'social' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🤝</TabsTrigger>
               <TabsTrigger value="leaderboard" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'leaderboard' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🏆</TabsTrigger>
+              <TabsTrigger value="global" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'global' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Globe className="h-4 w-4" /></TabsTrigger>
+              <TabsTrigger value="friends" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'friends' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Users className="h-4 w-4" /></TabsTrigger>
+              <TabsTrigger value="profile" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'profile' ? 'ring-2 ring-primary animate-pulse' : ''}`}><User className="h-4 w-4" /></TabsTrigger>
               <TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger>
             </TabsList>
             
@@ -442,6 +454,15 @@ export function CatFarm() {
             </TabsContent>
             <TabsContent value="leaderboard" className="mt-0">
               <LeaderboardPanel cats={state.cats} relationships={relationshipSystem.relationships} />
+            </TabsContent>
+            <TabsContent value="global" className="mt-0">
+              <GlobalLeaderboardPanel userId={user?.id} />
+            </TabsContent>
+            <TabsContent value="friends" className="mt-0">
+              <FriendsPanel userId={user?.id} />
+            </TabsContent>
+            <TabsContent value="profile" className="mt-0">
+              <PlayerProfilePanel userId={user?.id} />
             </TabsContent>
             <TabsContent value="more" className="mt-0 space-y-4">
               <AchievementsPanel achievements={state.achievements}
