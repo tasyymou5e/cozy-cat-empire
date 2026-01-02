@@ -11,6 +11,7 @@ import { ErrorLoggerProvider } from "./components/ErrorLoggerProvider";
 import Index from "./pages/Index";
 import CatCollection from "./pages/CatCollection";
 import Leaderboard from "./pages/Leaderboard";
+import Stats from "./pages/Stats";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
                     <Route path="/" element={<Index />} />
                     <Route path="/collection" element={<CatCollection />} />
                     <Route path="/leaderboard" element={<Leaderboard />} />
+                    <Route path="/stats" element={<Stats />} />
                     <Route path="/auth" element={<Auth />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />

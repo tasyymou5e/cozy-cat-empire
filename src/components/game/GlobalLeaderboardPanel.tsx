@@ -1,13 +1,15 @@
 import { useGlobalLeaderboard, LeaderboardCategory, LeaderboardEntry, LeaderboardViewMode, LeaderboardTimePeriod, RankChange } from '@/hooks/useGlobalLeaderboard';
 import { useFriends } from '@/hooks/useFriends';
+import { useLeaderboardRewards } from '@/hooks/useLeaderboardRewards';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Trophy, Cat, Heart, Coins, Award, RefreshCw, Globe, Users, ArrowUp, ArrowDown, Sparkles, Calendar } from 'lucide-react';
+import { Trophy, Cat, Heart, Coins, Award, RefreshCw, Globe, Users, ArrowUp, ArrowDown, Sparkles, Calendar, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LeaderboardHistoryChart } from './LeaderboardHistoryChart';
+import { LeaderboardRewardsPanel } from './LeaderboardRewardsPanel';
 
 interface GlobalLeaderboardPanelProps {
   userId: string | undefined;
@@ -60,6 +62,7 @@ function RankChangeIndicator({ rankChange }: { rankChange?: RankChange }) {
 export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) {
   const { friends } = useFriends(userId);
   const friendIds = friends.map(f => f.id);
+  const { unclaimedCount } = useLeaderboardRewards(userId);
   
   const {
     leaderboard,
@@ -148,6 +151,12 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
             )}
           </CardTitle>
           <div className="flex items-center gap-1">
+            {userId && unclaimedCount > 0 && (
+              <Badge variant="destructive" className="animate-pulse">
+                <Gift className="h-3 w-3 mr-1" />
+                {unclaimedCount}
+              </Badge>
+            )}
             {userId && (
               <LeaderboardHistoryChart 
                 userId={userId} 
@@ -297,6 +306,13 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
             </TabsContent>
           ))}
         </Tabs>
+
+        {/* Rewards Section */}
+        {userId && (
+          <div className="mt-4 pt-4 border-t">
+            <LeaderboardRewardsPanel userId={userId} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

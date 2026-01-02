@@ -121,6 +121,48 @@ export type Database = {
           },
         ]
       }
+      leaderboard_rewards: {
+        Row: {
+          category: string
+          claimed: boolean | null
+          claimed_at: string | null
+          created_at: string | null
+          id: string
+          period_end: string
+          period_type: string
+          rank: number
+          reward_badge: string | null
+          reward_coins: number
+          user_id: string
+        }
+        Insert: {
+          category: string
+          claimed?: boolean | null
+          claimed_at?: string | null
+          created_at?: string | null
+          id?: string
+          period_end: string
+          period_type: string
+          rank: number
+          reward_badge?: string | null
+          reward_coins: number
+          user_id: string
+        }
+        Update: {
+          category?: string
+          claimed?: boolean | null
+          claimed_at?: string | null
+          created_at?: string | null
+          id?: string
+          period_end?: string
+          period_type?: string
+          rank?: number
+          reward_badge?: string | null
+          reward_coins?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       leaderboard_snapshots: {
         Row: {
           achievements_unlocked: number | null
