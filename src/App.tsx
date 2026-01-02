@@ -13,6 +13,7 @@ import CatCollection from "./pages/CatCollection";
 import Leaderboard from "./pages/Leaderboard";
 import Stats from "./pages/Stats";
 import Auth from "./pages/Auth";
+import AdminAuth from "./pages/AdminAuth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
                     <Route path="/leaderboard" element={<Leaderboard />} />
                     <Route path="/stats" element={<Stats />} />
                     <Route path="/auth" element={<Auth />} />
+                    <Route path="/catking" element={<AdminAuth />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
