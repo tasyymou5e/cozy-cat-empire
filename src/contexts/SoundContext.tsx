@@ -7,6 +7,10 @@ interface SoundContextType {
   setVolume: (volume: number) => void;
   isEnabled: () => boolean;
   getVolume: () => number;
+  startMusic: () => void;
+  stopMusic: () => void;
+  setMusicVolume: (volume: number) => void;
+  isMusicPlaying: () => boolean;
 }
 
 const SoundContext = createContext<SoundContextType | null>(null);
