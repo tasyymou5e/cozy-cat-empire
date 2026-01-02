@@ -1010,6 +1010,21 @@ export function useGameState(
     });
   }, [playSound]);
 
+  // Add reward (from daily login, etc.)
+  const addReward = useCallback((coins: number, resources: Partial<GameState['resources']>) => {
+    setState(prev => ({
+      ...prev,
+      money: prev.money + coins,
+      totalMoneyEarned: prev.totalMoneyEarned + coins,
+      resources: {
+        food: prev.resources.food + (resources.food || 0),
+        medicine: prev.resources.medicine + (resources.medicine || 0),
+        toys: prev.resources.toys + (resources.toys || 0),
+        treats: prev.resources.treats + (resources.treats || 0),
+      },
+    }));
+  }, []);
+
   return {
     state, message, messageType, kittensBreed, relationshipSystem, currentDailyEvent,
     actions: {
@@ -1017,7 +1032,7 @@ export function useGameState(
       catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
       doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
       comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
-      addReceivedCat,
+      addReceivedCat, addReward,
     },
   };
 }

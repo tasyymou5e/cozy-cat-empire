@@ -144,6 +144,11 @@ export const ACHIEVEMENT_DEFS = [
   { id: 'streak_warrior', name: 'Streak Warrior', description: 'Maintain a 3-week challenge streak', target: 3, type: 'streak' },
   { id: 'streak_champion', name: 'Streak Champion', description: 'Maintain a 5-week challenge streak', target: 5, type: 'streak' },
   { id: 'streak_legend', name: 'Streak Legend', description: 'Maintain a 10-week challenge streak', target: 10, type: 'streak' },
+  // Daily login achievements
+  { id: 'login_3_days', name: 'Regular Visitor', description: 'Log in 3 days in a row', target: 3, type: 'loginStreak' },
+  { id: 'login_7_days', name: 'Weekly Regular', description: 'Log in 7 days in a row', target: 7, type: 'loginStreak' },
+  { id: 'login_14_days', name: 'Dedicated Player', description: 'Log in 14 days in a row', target: 14, type: 'loginStreak' },
+  { id: 'login_30_days', name: 'Cat Farm Legend', description: 'Log in 30 days in a row', target: 30, type: 'loginStreak' },
 ] as const;
 
 export type AchievementType = typeof ACHIEVEMENT_DEFS[number]['type'];

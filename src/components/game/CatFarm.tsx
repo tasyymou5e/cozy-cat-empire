@@ -11,6 +11,7 @@ import { useCloudSave } from '@/hooks/useCloudSave';
 import { useGlobalLeaderboard } from '@/hooks/useGlobalLeaderboard';
 import { useWeeklyChallenges } from '@/hooks/useWeeklyChallenges';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
+import { useDailyLoginRewards } from '@/hooks/useDailyLoginRewards';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -32,6 +33,7 @@ import { TutorialSystem } from './TutorialSystem';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { DailyEventToast } from './DailyEventToast';
 import { LeaderboardPanel } from './LeaderboardPanel';
+import { DailyRewardsPanel } from './DailyRewardsPanel';
 
 import { FriendsPanel } from './FriendsPanel';
 import { PlayerProfilePanel } from './PlayerProfilePanel';
@@ -45,8 +47,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target, CalendarDays } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { Resources } from '@/types/game';
 
 const MOOD_LABELS = {
   morning: '🌅 Morning',
@@ -77,6 +80,15 @@ export function CatFarm() {
   const { syncPlayerStats } = useGlobalLeaderboard(user?.id);
   const { profile } = usePlayerProfile(user?.id);
   const { theme, setTheme } = useTheme();
+  const {
+    currentStreak: loginStreak,
+    longestStreak: loginLongestStreak,
+    totalLogins,
+    canClaim: canClaimDailyReward,
+    showModal: showDailyRewardsModal,
+    setShowModal: setShowDailyRewardsModal,
+    claimDailyReward,
+  } = useDailyLoginRewards(user?.id, playSound, vibrateAchievement, fireConfetti);
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
   const [musicOn, setMusicOn] = useState(false);
@@ -89,6 +101,14 @@ export function CatFarm() {
   const [cloudSyncing, setCloudSyncing] = useState(false);
   const [lastCloudSave, setLastCloudSave] = useState<string | null>(null);
   const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
+
+  // Handle claiming daily reward
+  const handleClaimDailyReward = async () => {
+    const reward = await claimDailyReward();
+    if (reward) {
+      actions.addReward?.(reward.coins, reward.resources as Resources);
+    }
+  };
 
   // Load cloud save on login
   useEffect(() => {
@@ -251,6 +271,17 @@ export function CatFarm() {
       <MoodAnimations cats={state.cats} />
       <DailyEventToast event={currentDailyEvent} onDismiss={actions.clearDailyEvent} />
       
+      {/* Daily Login Rewards Modal */}
+      <DailyRewardsPanel
+        currentStreak={loginStreak}
+        longestStreak={loginLongestStreak}
+        totalLogins={totalLogins}
+        canClaim={canClaimDailyReward}
+        showModal={showDailyRewardsModal}
+        onCloseModal={() => setShowDailyRewardsModal(false)}
+        onClaim={handleClaimDailyReward}
+      />
+      
       <header className="game-header">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">🐱 Cat Farm</h1>
@@ -339,6 +370,22 @@ export function CatFarm() {
           
           {/* Notification Center */}
           <NotificationCenter userId={user?.id} onNavigate={setSideTab} />
+          
+          {/* Daily Rewards Button */}
+          {user && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowDailyRewardsModal(true)}
+              title="Daily Rewards"
+              className={`min-h-10 min-w-10 relative ${canClaimDailyReward ? 'animate-bounce-gentle' : ''}`}
+            >
+              <CalendarDays className="h-4 w-4" />
+              {canClaimDailyReward && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse" />
+              )}
+            </Button>
+          )}
           
           {/* Cloud sync indicator */}
           {user && (
