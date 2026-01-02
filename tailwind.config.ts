@@ -220,6 +220,14 @@ export default {
 					transform: 'translateY(-40px) scale(0.8)',
 					opacity: '0'
 				}
+			},
+			'streak-flame': {
+				'0%, 100%': {
+					transform: 'scale(1) rotate(-2deg)'
+				},
+				'50%': {
+					transform: 'scale(1.1) rotate(2deg)'
+				}
 			}
 		},
   		animation: {
@@ -237,7 +245,8 @@ export default {
   			'star-spin': 'star-spin 4s linear infinite',
 			'confetti': 'confetti 1s ease-out forwards',
 			'progress-pop': 'progress-pop 0.3s ease-out',
-			'progress-float': 'progress-float 0.8s ease-out forwards'
+			'progress-float': 'progress-float 0.8s ease-out forwards',
+			'streak-flame': 'streak-flame 0.5s ease-in-out infinite'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',

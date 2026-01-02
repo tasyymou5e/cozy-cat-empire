@@ -29,6 +29,13 @@ const achievementEmojis: Record<string, string> = {
   challenge_starter: '🎯',
   challenge_master: '🏅',
   challenge_legend: '👑',
+  streak_warrior: '🔥',
+  streak_champion: '🔥',
+  streak_legend: '🔥',
+  login_3_days: '📅',
+  login_7_days: '📆',
+  login_14_days: '🗓️',
+  login_30_days: '👑',
 };
 
 export function AchievementShowcase({ unlockedCount }: AchievementShowcaseProps) {
