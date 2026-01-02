@@ -3,13 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useChallengeAchievements } from '@/hooks/useChallengeAchievements';
 import type { ChallengeWithProgress, ChallengeType, WeeklyChallenge, PlayerChallengeProgress } from '@/types/challenges';
+import type { SoundType } from '@/hooks/useSoundEffects';
 
-export function useWeeklyChallenges(userId: string | undefined) {
+export function useWeeklyChallenges(userId: string | undefined, playSound?: (type: SoundType) => void) {
   const [challenges, setChallenges] = useState<ChallengeWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastProgressUpdate, setLastProgressUpdate] = useState<{ type: ChallengeType; value: number } | null>(null);
   
-  const { totalChallengesCompleted, incrementCompleted } = useChallengeAchievements(userId);
+  const { totalChallengesCompleted, incrementCompleted } = useChallengeAchievements(userId, playSound);
 
   const fetchChallenges = useCallback(async () => {
     if (!userId) {
@@ -144,6 +145,7 @@ export function useWeeklyChallenges(userId: string | undefined) {
       }
 
       if (isCompleted) {
+        playSound?.('challengeComplete');
         toast({
           title: `${challenge.emoji} Challenge Complete!`,
           description: `You completed "${challenge.name}"! Claim your reward!`,
@@ -151,8 +153,9 @@ export function useWeeklyChallenges(userId: string | undefined) {
       }
     }
 
-    // Trigger animation if progress was made
+    // Trigger animation and sound if progress was made
     if (progressMade) {
+      playSound?.('challengeProgress');
       setLastProgressUpdate({ type: challengeType, value: increment });
     }
 
@@ -186,6 +189,7 @@ export function useWeeklyChallenges(userId: string | undefined) {
     // Increment challenge completion count for achievements
     await incrementCompleted();
 
+    playSound?.('coin');
     toast({
       title: `${challenge.emoji} Reward Claimed!`,
       description: `You earned ${challenge.reward_coins} coins${challenge.reward_badge ? ` and the "${challenge.reward_badge}" badge` : ''}!`,
