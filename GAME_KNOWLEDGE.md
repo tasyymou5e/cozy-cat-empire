@@ -1,7 +1,7 @@
 # Cat Farm Game - Knowledge Base
 
 ## Overview
-Cat Farm is a browser-based idle/management game where players build a cat empire. Start with a small apartment and grow to own a 100-acre farm with dozens of cats.
+Cat Farm is a browser-based idle/management game where players build a cat empire. Start with a small apartment and grow to own a 100-acre farm with dozens of cats. Features cloud saves, global leaderboards, social features, cat gifting, and player trading.
 
 ---
 
@@ -101,14 +101,132 @@ interface Cat {
 - Achievements unlock → Star confetti
 - Cat show wins → Big celebration burst
 
+### 7. Costume System (`src/types/costumes.ts`, `src/components/game/CostumeShopPanel.tsx`)
+
+**Categories:**
+- Hats (8 costumes): Party Hat, Crown, Wizard Hat, etc.
+- Outfits (4 costumes): Tuxedo, Princess Dress, etc.
+- Accessories (4 costumes): Bow Tie, Glasses, etc.
+- Special (4 costumes): Astronaut Suit, Superhero Cape, etc.
+
+**Features:**
+- 16 total costumes with prices $50-$500
+- Costumes can be bought and equipped to cats
+- Some costumes are rare/seasonal
+
+### 8. Show Events (`src/types/showEvents.ts`)
+
+**Show Tiers:**
+- Local, Regional, National, International
+- Each with different entry fees and prize pools
+
+**Seasonal Events:**
+- Spring, Summer, Fall, Winter events
+- Special events with bonus rewards
+
+### 9. Daily Events (`src/types/dailyEvents.ts`)
+
+**Event Types:**
+- Random daily events affecting money, resources, reputation
+- Cat-specific effects (health, happiness, hunger changes)
+
+---
+
+## Social & Multiplayer Systems
+
+### 10. Authentication (`src/contexts/AuthContext.tsx`)
+
+**Features:**
+- Email/password authentication via Supabase
+- Session management
+- Auto-confirm email signups
+
+### 11. Cloud Saves (`src/hooks/useCloudSave.ts`)
+
+**Features:**
+- Auto-save every 5 minutes when logged in
+- Manual save/load buttons
+- Syncs game state, kittens bred, relationships
+
+**Database Table:** `game_saves`
+- `user_id`, `game_state` (JSONB), `kittens_bred`, `relationships`, `last_played_at`
+
+### 12. Global Leaderboard (`src/hooks/useGlobalLeaderboard.ts`, `src/components/game/GlobalLeaderboardPanel.tsx`)
+
+**Leaderboard Categories:**
+- Show Wins, Cats Owned, Kittens Bred, Money Earned, Achievements
+
+**Features:**
+- Real-time updates
+- Player stats synced on cloud save
+- Displays top players with avatars
+
+**Database Table:** `player_stats`
+- `user_id`, `display_name`, `avatar_emoji`, `total_show_wins`, `total_cats_owned`, etc.
+
+### 13. Friends System (`src/hooks/useFriends.ts`, `src/components/game/FriendsPanel.tsx`)
+
+**Features:**
+- Send/accept/decline friend requests
+- View friends list with stats
+- Search friends by username
+
+**Database Table:** `player_friends`
+- `user_id`, `friend_id`, `status` (pending/accepted/blocked)
+
+### 14. Player Profile (`src/hooks/usePlayerProfile.ts`, `src/components/game/PlayerProfilePanel.tsx`)
+
+**Features:**
+- Edit display name and avatar emoji
+- View personal stats
+
+**Database Table:** `profiles`
+- `id`, `display_name`, `avatar_emoji`, `username`
+
+### 15. Cat Gifting (`src/hooks/useCatGifts.ts`, `src/components/game/CatGiftingPanel.tsx`)
+
+**Features:**
+- Send cats as gifts to friends
+- Accept/decline received gifts
+- Optional gift message
+- Real-time notifications
+
+**Database Table:** `cat_gifts`
+- `sender_id`, `recipient_id`, `cat_data` (JSONB), `message`, `status`
+
+### 16. Player Trading (`src/hooks/useTrading.ts`, `src/components/game/TradingPanel.tsx`)
+
+**Features:**
+- Create trade offers with cats and money
+- Accept/decline/cancel trades
+- Real-time trade notifications
+- 7-day expiration on trade offers
+
+**Database Table:** `trade_offers`
+- `sender_id`, `recipient_id`, `offered_cats`, `offered_money`, `requested_money`, `status`
+
+### 17. Notifications (`src/hooks/useNotifications.ts`, `src/components/game/NotificationCenter.tsx`)
+
+**Notification Types:**
+- Friend requests
+- Cat gifts received
+- Trade offers
+
+**Features:**
+- Real-time push notifications via Supabase Realtime
+- Bell icon with unread count badge
+- Click to navigate to relevant tab
+
 ---
 
 ## Components
 
 ### Main Game (`src/components/game/CatFarm.tsx`)
 - Master component orchestrating all panels
-- 8-tab sidebar layout
+- 15-tab sidebar layout
 - Audio controls in header
+- Notification center
+- Cloud sync indicator
 
 ### Cat Display (`src/components/game/CatCard.tsx`)
 - Shows cat stats, relationships, tricks
@@ -121,21 +239,33 @@ interface Cat {
 - **ChorePanel**: Earn money through tasks
 - **ResourcePanel**: Buy/use resources
 - **MarketPanel**: Buy cats from NPC sellers
+- **CostumeShopPanel**: Buy and equip costumes
 - **BreedingPanel**: Pair cats for kittens
 - **TrainingPanel**: Teach tricks, manage rest
-- **SocializePanel**: Build relationships
+- **SocializePanel**: Build cat relationships
 - **MatchmakingPanel**: Suggested pairings
 - **GroupActivitiesPanel**: Group bonding
-- **RelationshipPanel**: View all relationships
+- **RelationshipPanel**: View all cat relationships
+- **LeaderboardPanel**: Local cat rankings
+- **GlobalLeaderboardPanel**: Global player rankings
+- **FriendsPanel**: Manage friends and requests
+- **PlayerProfilePanel**: Edit profile
+- **CatGiftingPanel**: Send/receive cat gifts
+- **TradingPanel**: Create and manage trades
 - **AchievementsPanel**: Track progress
 - **SaveLoadPanel**: Persist game state
 
 ### Support Components:
-- **StatusBar**: Money, day, house, cat show
-- **MessageBar**: Game notifications
+- **StatusBar**: Money, day, house, cat show (React.forwardRef)
+- **MessageBar**: Game notifications (React.forwardRef)
 - **GradeBadge**: Visual grade display
 - **ComfortButton**: 20-second comfort timer
 - **RelationshipAnimations**: Floating emojis
+- **MoodAnimations**: Cat mood indicators
+- **TutorialSystem**: New player tutorial
+- **KeyboardShortcutsHelp**: Keyboard shortcuts modal
+- **DailyEventToast**: Daily event notifications
+- **NotificationCenter**: Real-time notifications dropdown
 
 ---
 
@@ -175,6 +305,7 @@ interface Cat {
 - Eligible: health ≥70, happiness ≥60
 - Score = health + happiness + (rarity×10) + (wins×5) + friend bonus
 - Winners get money, increased value, show wins
+- Multiple tiers: local, regional, national, international
 
 ### Training
 - Costs 2 treats per session
@@ -187,24 +318,106 @@ interface Cat {
 - 20-second hold timer
 - Boosts happiness +30, health +5
 
+### Cat Gifting
+- Select a cat and friend to gift
+- Cat is removed from sender when accepted
+- Cat is added to recipient's farm
+- Declined gifts return nothing
+
+### Trading
+- Offer cats and/or money
+- Request money in return
+- Both parties must have required items
+- Trades expire after 7 days
+
+---
+
+## Database Schema
+
+### Tables (Supabase):
+
+**profiles**
+- `id` (UUID, PK, references auth.users)
+- `display_name` (TEXT)
+- `avatar_emoji` (TEXT, default '😺')
+- `username` (TEXT)
+
+**game_saves**
+- `id` (UUID, PK)
+- `user_id` (UUID, FK)
+- `game_state` (JSONB)
+- `kittens_bred` (INTEGER)
+- `relationships` (JSONB)
+- `last_played_at` (TIMESTAMPTZ)
+
+**player_stats**
+- `id` (UUID, PK)
+- `user_id` (UUID, FK, UNIQUE)
+- `display_name`, `avatar_emoji`
+- `total_show_wins`, `total_cats_owned`, `total_kittens_bred`
+- `highest_cat_grade`, `total_money_earned`, `achievements_unlocked`
+
+**player_friends**
+- `id` (UUID, PK)
+- `user_id`, `friend_id` (UUID, FK)
+- `status` (TEXT: pending/accepted/blocked)
+
+**cat_gifts**
+- `id` (UUID, PK)
+- `sender_id`, `recipient_id` (UUID)
+- `cat_data` (JSONB)
+- `message` (TEXT)
+- `status` (TEXT: pending/accepted/declined)
+
+**trade_offers**
+- `id` (UUID, PK)
+- `sender_id`, `recipient_id` (UUID)
+- `offered_cats` (JSONB), `offered_money` (INTEGER)
+- `requested_money` (INTEGER)
+- `status` (TEXT: pending/accepted/declined/cancelled)
+- `expires_at` (TIMESTAMPTZ)
+
 ---
 
 ## File Structure
 
 ```
 src/
-├── components/game/     # All game UI components
+├── components/
+│   ├── game/           # All game UI components (20+ files)
+│   └── ui/             # shadcn/ui components
 ├── hooks/
-│   ├── useGameState.ts  # Core game logic
-│   ├── useRelationships.ts
-│   ├── useSoundEffects.ts
-│   └── useConfetti.ts
+│   ├── useGameState.ts      # Core game logic
+│   ├── useRelationships.ts  # Cat relationships
+│   ├── useSoundEffects.ts   # Audio system
+│   ├── useConfetti.ts       # Celebrations
+│   ├── useCloudSave.ts      # Cloud persistence
+│   ├── useGlobalLeaderboard.ts
+│   ├── useFriends.ts        # Friends system
+│   ├── usePlayerProfile.ts  # Profile management
+│   ├── useCatGifts.ts       # Cat gifting
+│   ├── useTrading.ts        # Player trading
+│   ├── useNotifications.ts  # Real-time notifications
+│   └── useKeyboardShortcuts.ts
 ├── types/
-│   ├── game.ts          # Cat, GameState, constants
-│   ├── grading.ts       # Grade system
-│   └── relationships.ts # Relationship types
-└── contexts/
-    └── SoundContext.tsx # Sound provider
+│   ├── game.ts              # Cat, GameState, constants
+│   ├── grading.ts           # Grade system
+│   ├── relationships.ts     # Relationship types
+│   ├── costumes.ts          # Costume definitions
+│   ├── showEvents.ts        # Show tiers and events
+│   └── dailyEvents.ts       # Daily random events
+├── contexts/
+│   ├── AuthContext.tsx      # Authentication
+│   └── SoundContext.tsx     # Sound provider
+├── integrations/
+│   └── supabase/
+│       ├── client.ts        # Supabase client
+│       └── types.ts         # Generated types
+└── pages/
+    ├── Index.tsx            # Main game page
+    ├── Auth.tsx             # Login/signup
+    ├── CatCollection.tsx    # Trading card view
+    └── NotFound.tsx
 ```
 
 ---
@@ -213,6 +426,8 @@ src/
 - React 18 + TypeScript
 - Vite build tool
 - Tailwind CSS + shadcn/ui components
+- Supabase (Auth, Database, Realtime)
 - Web Audio API for sound
 - canvas-confetti for celebrations
-- localStorage for saves
+- localStorage for local saves
+- Cloud saves via Supabase
