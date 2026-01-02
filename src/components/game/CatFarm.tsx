@@ -39,6 +39,7 @@ import { TradingPanel } from './TradingPanel';
 import { NotificationCenter } from './NotificationCenter';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight } from 'lucide-react';
@@ -374,23 +375,25 @@ export function CatFarm() {
       <Tabs value={sideTab} onValueChange={setSideTab} className="flex-1 flex flex-col">
         {/* Tab navigation - sticky at top */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2">
-          <TabsList className="flex w-full justify-center overflow-x-auto scrollbar-hide gap-1 p-1">
-            <TabsTrigger value="actions" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'actions' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🐾</TabsTrigger>
-            <TabsTrigger value="chores" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'chores' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🧹</TabsTrigger>
-            <TabsTrigger value="supplies" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'supplies' ? 'ring-2 ring-primary animate-pulse' : ''}`}>📦</TabsTrigger>
-            <TabsTrigger value="market" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'market' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🛒</TabsTrigger>
-            <TabsTrigger value="costumes" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'costumes' ? 'ring-2 ring-primary animate-pulse' : ''}`}>👗</TabsTrigger>
-            <TabsTrigger value="breeding" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'breeding' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💕</TabsTrigger>
-            <TabsTrigger value="training" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'training' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💪</TabsTrigger>
-            <TabsTrigger value="social" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'social' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🤝</TabsTrigger>
-            <TabsTrigger value="leaderboard" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'leaderboard' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🏆</TabsTrigger>
-            <TabsTrigger value="global" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'global' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Globe className="h-4 w-4" /></TabsTrigger>
-            <TabsTrigger value="friends" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'friends' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Users className="h-4 w-4" /></TabsTrigger>
-            <TabsTrigger value="profile" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'profile' ? 'ring-2 ring-primary animate-pulse' : ''}`}><User className="h-4 w-4" /></TabsTrigger>
-            <TabsTrigger value="gifts" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'gifts' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Gift className="h-4 w-4" /></TabsTrigger>
-            <TabsTrigger value="trading" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'trading' ? 'ring-2 ring-primary animate-pulse' : ''}`}><ArrowLeftRight className="h-4 w-4" /></TabsTrigger>
-            <TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger>
-          </TabsList>
+          <TooltipProvider delayDuration={300}>
+            <TabsList className="flex w-full justify-center overflow-x-auto scrollbar-hide gap-1 p-1">
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="actions" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'actions' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🐾</TabsTrigger></TooltipTrigger><TooltipContent>Actions</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="chores" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'chores' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🧹</TabsTrigger></TooltipTrigger><TooltipContent>Chores</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="supplies" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'supplies' ? 'ring-2 ring-primary animate-pulse' : ''}`}>📦</TabsTrigger></TooltipTrigger><TooltipContent>Supplies</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="market" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'market' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🛒</TabsTrigger></TooltipTrigger><TooltipContent>Market</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="costumes" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'costumes' ? 'ring-2 ring-primary animate-pulse' : ''}`}>👗</TabsTrigger></TooltipTrigger><TooltipContent>Costumes</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="breeding" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'breeding' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💕</TabsTrigger></TooltipTrigger><TooltipContent>Breeding</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="training" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'training' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💪</TabsTrigger></TooltipTrigger><TooltipContent>Training</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="social" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'social' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🤝</TabsTrigger></TooltipTrigger><TooltipContent>Social</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="leaderboard" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'leaderboard' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🏆</TabsTrigger></TooltipTrigger><TooltipContent>Leaderboard</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="global" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'global' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Globe className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Global</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="friends" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'friends' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Users className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Friends</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="profile" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'profile' ? 'ring-2 ring-primary animate-pulse' : ''}`}><User className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Profile</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="gifts" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'gifts' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Gift className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Gifts</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="trading" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'trading' ? 'ring-2 ring-primary animate-pulse' : ''}`}><ArrowLeftRight className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Trading</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger></TooltipTrigger><TooltipContent>Settings</TooltipContent></Tooltip>
+            </TabsList>
+          </TooltipProvider>
         </div>
 
         <main className="game-main">
