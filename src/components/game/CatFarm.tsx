@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useGameState } from '@/hooks/useGameState';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -18,20 +19,34 @@ import { RelationshipAnimations } from './RelationshipAnimations';
 import { CatCard } from './CatCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Volume2, VolumeX } from 'lucide-react';
 
 export function CatFarm() {
-  const { state, message, messageType, kittensBreed, relationshipSystem, actions } = useGameState();
+  const { playSound, setEnabled, isEnabled } = useSoundEffects();
+  const { state, message, messageType, kittensBreed, relationshipSystem, actions } = useGameState(playSound);
   const [sideTab, setSideTab] = useState('actions');
+  const [soundOn, setSoundOn] = useState(true);
+
+  const toggleSound = () => {
+    const newState = !soundOn;
+    setSoundOn(newState);
+    setEnabled(newState);
+    if (newState) playSound('click');
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <RelationshipAnimations events={relationshipSystem.events} lastEventId={relationshipSystem.lastEventId} />
+      
       <header className="game-header">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">🐱 Cat Farm</h1>
           <span className="text-xs text-muted-foreground hidden sm:inline">Build your 100-acre cat empire!</span>
         </div>
         <div className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={toggleSound}>
+            {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </Button>
           <Button variant="ghost" size="sm" onClick={actions.saveGame}>💾</Button>
           <Button variant="ghost" size="sm" onClick={actions.resetGame}>New Game</Button>
         </div>
