@@ -79,6 +79,10 @@ export const VIP_TIERS: VIPTier[] = [
 ];
 
 export function getRewardForDay(streakDay: number): DailyReward {
+  // Handle edge case where streak is 0 or negative
+  if (streakDay <= 0) {
+    return DAILY_REWARDS[0]; // Return Day 1 reward as fallback
+  }
   // Rewards cycle every 7 days
   const dayIndex = ((streakDay - 1) % 7);
   return DAILY_REWARDS[dayIndex];

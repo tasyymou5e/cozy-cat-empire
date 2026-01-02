@@ -29,8 +29,9 @@ export function DailyRewardsPanel({
   vipTier,
   isVIP,
 }: DailyRewardsPanelProps) {
-  const currentDayInCycle = ((currentStreak - 1) % 7) + 1;
-  const todayReward = getRewardForDay(currentStreak);
+  const safeStreak = Math.max(currentStreak, 1);
+  const currentDayInCycle = ((safeStreak - 1) % 7) + 1;
+  const todayReward = getRewardForDay(safeStreak);
   const nextVipTier = getNextVIPTier(currentStreak);
   
   // Calculate VIP-enhanced rewards
