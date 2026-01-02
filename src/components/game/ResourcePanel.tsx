@@ -29,24 +29,24 @@ export function ResourcePanel({
     <div className="resource-panel">
       <h3 className="font-bold text-lg mb-3">📦 Supplies</h3>
       
-      <div className="grid grid-cols-2 gap-2 mb-4">
+      <div className="grid grid-cols-2 gap-3 mb-4">
         {resourceItems.map(item => (
-          <div key={item.key} className="resource-item">
+          <div key={item.key} className="resource-item flex flex-col gap-2 p-3 rounded-lg bg-accent/30 border border-border">
             <div className="flex items-center gap-2">
-              <span className="text-lg">{item.emoji}</span>
+              <span className="text-2xl">{item.emoji}</span>
               <div>
                 <p className="text-xs text-muted-foreground">{item.name}</p>
-                <p className="font-bold">{item.current}</p>
+                <p className="font-bold text-lg">{item.current}</p>
               </div>
             </div>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => onBuyResource(item.key, RESOURCE_COSTS[item.key])}
               disabled={money < RESOURCE_COSTS[item.key]}
-              className="text-xs h-7 px-2"
+              className="w-full text-sm h-9"
             >
-              +5 (${RESOURCE_COSTS[item.key]})
+              Buy +5 (${RESOURCE_COSTS[item.key]})
             </Button>
           </div>
         ))}
