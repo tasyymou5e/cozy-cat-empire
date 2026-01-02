@@ -7,83 +7,89 @@
 @layer base {
   :root {
     /* Cozy warm palette for Cat Farm */
-    --background: 39 50% 96%;
-    --foreground: 30 20% 20%;
+    --background: 42 40% 97%;
+    --foreground: 25 30% 15%;
 
-    --card: 39 40% 98%;
-    --card-foreground: 30 20% 20%;
+    --card: 42 35% 99%;
+    --card-foreground: 25 30% 15%;
 
-    --popover: 39 40% 98%;
-    --popover-foreground: 30 20% 20%;
+    --popover: 42 35% 99%;
+    --popover-foreground: 25 30% 15%;
 
-    --primary: 25 80% 55%;
-    --primary-foreground: 39 50% 98%;
+    --primary: 25 75% 50%;
+    --primary-foreground: 42 40% 98%;
 
-    --secondary: 35 60% 90%;
-    --secondary-foreground: 30 20% 25%;
+    --secondary: 35 50% 92%;
+    --secondary-foreground: 25 30% 20%;
 
-    --muted: 35 30% 92%;
-    --muted-foreground: 30 15% 50%;
+    --muted: 35 25% 90%;
+    --muted-foreground: 25 15% 45%;
 
-    --accent: 45 70% 85%;
-    --accent-foreground: 30 20% 25%;
+    --accent: 45 65% 88%;
+    --accent-foreground: 25 30% 20%;
 
-    --destructive: 0 70% 55%;
+    --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 35 30% 85%;
-    --input: 35 30% 88%;
-    --ring: 25 80% 55%;
+    --border: 35 25% 85%;
+    --input: 35 25% 88%;
+    --ring: 25 75% 50%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 39 40% 95%;
-    --sidebar-foreground: 30 20% 30%;
-    --sidebar-primary: 25 80% 55%;
-    --sidebar-primary-foreground: 39 50% 98%;
-    --sidebar-accent: 35 60% 90%;
-    --sidebar-accent-foreground: 30 20% 25%;
-    --sidebar-border: 35 30% 85%;
-    --sidebar-ring: 25 80% 55%;
+    --success: 145 60% 45%;
+    --warning: 40 90% 50%;
+
+    --sidebar-background: 42 35% 95%;
+    --sidebar-foreground: 25 30% 25%;
+    --sidebar-primary: 25 75% 50%;
+    --sidebar-primary-foreground: 42 40% 98%;
+    --sidebar-accent: 35 50% 90%;
+    --sidebar-accent-foreground: 25 30% 20%;
+    --sidebar-border: 35 25% 85%;
+    --sidebar-ring: 25 75% 50%;
   }
 
   .dark {
-    --background: 30 20% 12%;
-    --foreground: 39 30% 92%;
+    --background: 25 25% 10%;
+    --foreground: 42 30% 92%;
 
-    --card: 30 20% 15%;
-    --card-foreground: 39 30% 92%;
+    --card: 25 22% 14%;
+    --card-foreground: 42 30% 92%;
 
-    --popover: 30 20% 15%;
-    --popover-foreground: 39 30% 92%;
+    --popover: 25 22% 14%;
+    --popover-foreground: 42 30% 92%;
 
-    --primary: 25 80% 55%;
-    --primary-foreground: 39 50% 98%;
+    --primary: 25 70% 55%;
+    --primary-foreground: 25 25% 10%;
 
-    --secondary: 30 20% 22%;
-    --secondary-foreground: 39 30% 90%;
+    --secondary: 25 18% 20%;
+    --secondary-foreground: 42 30% 90%;
 
-    --muted: 30 15% 20%;
-    --muted-foreground: 39 20% 60%;
+    --muted: 25 15% 18%;
+    --muted-foreground: 42 20% 55%;
 
-    --accent: 35 40% 25%;
-    --accent-foreground: 39 30% 92%;
+    --accent: 35 35% 22%;
+    --accent-foreground: 42 30% 92%;
 
-    --destructive: 0 60% 45%;
+    --destructive: 0 55% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 15% 25%;
-    --input: 30 15% 25%;
-    --ring: 25 80% 55%;
+    --border: 25 15% 22%;
+    --input: 25 15% 22%;
+    --ring: 25 70% 55%;
 
-    --sidebar-background: 30 20% 10%;
-    --sidebar-foreground: 39 30% 90%;
-    --sidebar-primary: 25 80% 55%;
-    --sidebar-primary-foreground: 39 50% 98%;
-    --sidebar-accent: 30 20% 20%;
-    --sidebar-accent-foreground: 39 30% 90%;
-    --sidebar-border: 30 15% 25%;
-    --sidebar-ring: 25 80% 55%;
+    --success: 145 50% 40%;
+    --warning: 40 80% 45%;
+
+    --sidebar-background: 25 25% 8%;
+    --sidebar-foreground: 42 30% 90%;
+    --sidebar-primary: 25 70% 55%;
+    --sidebar-primary-foreground: 25 25% 10%;
+    --sidebar-accent: 25 18% 18%;
+    --sidebar-accent-foreground: 42 30% 90%;
+    --sidebar-border: 25 15% 22%;
+    --sidebar-ring: 25 70% 55%;
   }
 }
 
@@ -100,58 +106,99 @@
 
 @layer components {
   .game-header {
-    @apply flex items-center justify-between px-4 py-4 md:px-8 border-b border-border bg-card;
+    @apply flex items-center justify-between px-4 py-3 md:px-6 border-b border-border bg-card shadow-sm;
   }
 
   .status-bar {
-    @apply flex flex-wrap items-center justify-center gap-4 md:gap-8 px-4 py-4 bg-secondary/50;
+    @apply px-4 py-4 md:px-6 bg-secondary/40 border-b border-border;
+  }
+
+  .status-grid {
+    @apply grid grid-cols-3 md:grid-cols-6 gap-3 mb-3;
   }
 
   .status-item {
-    @apply flex items-center gap-2 px-4 py-2 bg-card rounded-xl shadow-sm;
+    @apply flex items-center gap-2 px-3 py-2 bg-card rounded-xl shadow-sm border border-border;
+  }
+
+  .status-item.highlight {
+    @apply bg-primary/10 border-primary/30;
+  }
+
+  .status-actions {
+    @apply flex justify-center;
+  }
+
+  .cat-show-button {
+    @apply h-11 px-6 text-base font-bold bg-gradient-to-r from-primary to-primary/80 
+           text-primary-foreground shadow-lg transition-all duration-200 
+           hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0;
   }
 
   .message-bar {
-    @apply px-4 py-3 bg-accent text-accent-foreground border-b border-border;
+    @apply px-4 py-2.5 bg-accent text-accent-foreground border-b border-border text-sm;
+  }
+
+  .message-success {
+    @apply bg-[hsl(var(--success))]/15 text-[hsl(145,50%,30%)];
+  }
+
+  .message-warning {
+    @apply bg-[hsl(var(--warning))]/20 text-[hsl(35,80%,25%)];
+  }
+
+  .message-error {
+    @apply bg-destructive/15 text-destructive;
   }
 
   .game-main {
-    @apply flex flex-col lg:flex-row gap-6 p-4 md:p-8 max-w-7xl mx-auto;
+    @apply flex flex-col lg:flex-row gap-4 p-4 md:p-6 max-w-7xl mx-auto;
   }
 
   .cat-grid-section {
-    @apply flex-1;
+    @apply flex-1 min-w-0;
   }
 
   .cat-grid {
-    @apply grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4;
+    @apply grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3;
   }
 
   .cat-card {
-    @apply flex flex-col items-center p-4 rounded-2xl border border-border shadow-md 
-           transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+    @apply flex flex-col items-center p-3 rounded-xl border border-border bg-card shadow-sm
+           transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
+  }
+
+  .cat-card-compact {
+    @apply flex items-center gap-3 p-2 rounded-lg border border-border bg-card;
+  }
+
+  .stat-row {
+    @apply flex items-center gap-2 w-full;
   }
 
   .empty-state {
-    @apply flex flex-col items-center justify-center py-16 text-center;
+    @apply flex flex-col items-center justify-center py-12 text-center bg-card rounded-2xl border border-dashed border-border;
   }
 
   .action-sidebar {
     @apply w-full lg:w-80 flex-shrink-0;
   }
 
-  .action-panel {
-    @apply bg-card rounded-2xl border border-border shadow-lg p-6 space-y-6 sticky top-4;
+  .action-panel, .chore-panel, .resource-panel, .market-panel {
+    @apply bg-card rounded-xl border border-border shadow-sm p-4 space-y-4;
   }
 
-  .action-button {
-    @apply h-auto py-3 text-sm font-semibold transition-all duration-200 
-           hover:shadow-md hover:-translate-y-0.5;
+  .resource-item {
+    @apply flex items-center justify-between p-2 bg-secondary/50 rounded-lg;
+  }
+
+  .market-listing {
+    @apply p-3 bg-secondary/30 rounded-lg border border-border hover:bg-secondary/50 transition-colors;
   }
 
   .next-day-button {
-    @apply h-14 text-lg font-bold bg-primary text-primary-foreground 
-           hover:bg-primary/90 shadow-lg transition-all duration-200 
-           hover:shadow-xl hover:-translate-y-0.5;
+    @apply w-full h-12 text-base font-bold bg-primary text-primary-foreground 
+           hover:bg-primary/90 shadow-md transition-all duration-200 
+           hover:shadow-lg hover:-translate-y-0.5;
   }
 }

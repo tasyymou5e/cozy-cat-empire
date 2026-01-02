@@ -1,96 +1,65 @@
 import { Button } from '@/components/ui/button';
-import { Cat } from '@/types/game';
+import { Cat, CAT_COSTS } from '@/types/game';
 
 interface ActionPanelProps {
   onAddCat: (type: Cat['type']) => void;
-  onChores: () => void;
-  onFeed: () => void;
-  onCatShow: () => void;
-  onUpgrade: () => void;
   onNextDay: () => void;
   money: number;
+  space: number;
   catCount: number;
 }
 
 export function ActionPanel({
   onAddCat,
-  onChores,
-  onFeed,
-  onCatShow,
-  onUpgrade,
   onNextDay,
   money,
+  space,
   catCount,
 }: ActionPanelProps) {
+  const hasSpace = catCount < space;
+
   return (
     <div className="action-panel">
       <div className="space-y-3">
-        <h3 className="font-bold text-lg text-foreground">Add Cat</h3>
+        <h3 className="font-bold text-lg">🐾 Get New Cat</h3>
         <div className="grid grid-cols-3 gap-2">
           <Button 
             variant="secondary" 
-            size="sm" 
             onClick={() => onAddCat('stray')}
-            className="flex flex-col h-auto py-2"
+            disabled={!hasSpace}
+            className="flex flex-col h-auto py-3"
           >
-            <span className="text-lg">🐱</span>
-            <span className="text-xs">Stray</span>
+            <span className="text-2xl">🐱</span>
+            <span className="text-xs font-semibold">Stray</span>
             <span className="text-xs text-muted-foreground">Free</span>
           </Button>
           <Button 
             variant="secondary" 
-            size="sm" 
             onClick={() => onAddCat('adopted')}
-            disabled={money < 20}
-            className="flex flex-col h-auto py-2"
+            disabled={money < CAT_COSTS.adopted || !hasSpace}
+            className="flex flex-col h-auto py-3"
           >
-            <span className="text-lg">😺</span>
-            <span className="text-xs">Adopt</span>
-            <span className="text-xs text-muted-foreground">$20</span>
+            <span className="text-2xl">😺</span>
+            <span className="text-xs font-semibold">Adopt</span>
+            <span className="text-xs text-muted-foreground">${CAT_COSTS.adopted}</span>
           </Button>
           <Button 
             variant="secondary" 
-            size="sm" 
             onClick={() => onAddCat('pure')}
-            disabled={money < 100}
-            className="flex flex-col h-auto py-2"
+            disabled={money < CAT_COSTS.pure || !hasSpace}
+            className="flex flex-col h-auto py-3"
           >
-            <span className="text-lg">😻</span>
-            <span className="text-xs">Pure</span>
-            <span className="text-xs text-muted-foreground">$100</span>
+            <span className="text-2xl">😻</span>
+            <span className="text-xs font-semibold">Pure</span>
+            <span className="text-xs text-muted-foreground">${CAT_COSTS.pure}</span>
           </Button>
         </div>
+        {!hasSpace && (
+          <p className="text-xs text-destructive text-center">No space! Upgrade home.</p>
+        )}
       </div>
 
-      <div className="space-y-3">
-        <h3 className="font-bold text-lg text-foreground">Actions</h3>
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" onClick={onChores} className="action-button">
-            🧹 Chores
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={onFeed}
-            disabled={catCount === 0}
-            className="action-button"
-          >
-            🍖 Feed (${catCount * 5})
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={onCatShow}
-            disabled={catCount === 0}
-            className="action-button"
-          >
-            🏆 Cat Show
-          </Button>
-          <Button variant="outline" onClick={onUpgrade} className="action-button">
-            🏠 Upgrade
-          </Button>
-        </div>
-      </div>
-
-      <Button onClick={onNextDay} className="w-full next-day-button">
+      <Button onClick={onNextDay} className="next-day-button">
         ☀️ Next Day
       </Button>
     </div>
