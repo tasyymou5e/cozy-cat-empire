@@ -14,6 +14,7 @@ export function useRelationships() {
   const [relationships, setRelationships] = useState<CatRelationship[]>([]);
   const [events, setEvents] = useState<RelationshipEvent[]>([]);
   const [groups, setGroups] = useState<CatGroup[]>([]);
+  const [lastEventId, setLastEventId] = useState<string | null>(null);
 
   // Get relationship between two cats
   const getRelationship = useCallback((catId1: string, catId2: string): CatRelationship | null => {
@@ -73,8 +74,9 @@ export function useRelationships() {
     scoreChange: number,
     day: number
   ) => {
+    const eventId = generateId();
     const event: RelationshipEvent = {
-      id: generateId(),
+      id: eventId,
       catId1: cat1.id,
       catId2: cat2.id,
       catName1: cat1.name,
@@ -85,6 +87,7 @@ export function useRelationships() {
       day,
     };
     setEvents(prev => [event, ...prev].slice(0, 100)); // Keep last 100 events
+    setLastEventId(eventId); // Trigger animation
     updateRelationship(cat1.id, cat2.id, scoreChange, day);
   }, [updateRelationship]);
 
@@ -282,6 +285,7 @@ export function useRelationships() {
     relationships,
     events,
     groups,
+    lastEventId,
     getRelationship,
     updateRelationship,
     addEvent,
