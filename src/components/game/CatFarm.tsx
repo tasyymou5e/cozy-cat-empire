@@ -14,6 +14,7 @@ import { RelationshipPanel } from './RelationshipPanel';
 import { MatchmakingPanel } from './MatchmakingPanel';
 import { GroupActivitiesPanel } from './GroupActivitiesPanel';
 import { TrainingPanel } from './TrainingPanel';
+import { RelationshipAnimations } from './RelationshipAnimations';
 import { CatCard } from './CatCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,6 +25,7 @@ export function CatFarm() {
 
   return (
     <div className="min-h-screen bg-background">
+      <RelationshipAnimations events={relationshipSystem.events} lastEventId={relationshipSystem.lastEventId} />
       <header className="game-header">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">🐱 Cat Farm</h1>
