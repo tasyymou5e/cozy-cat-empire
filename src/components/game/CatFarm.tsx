@@ -39,7 +39,6 @@ import { CatGiftingPanel } from './CatGiftingPanel';
 import { TradingPanel } from './TradingPanel';
 import { NotificationCenter } from './NotificationCenter';
 import { WeeklyChallengesPanel } from './WeeklyChallengesPanel';
-import { NotificationSettings } from './NotificationSettings';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -520,7 +519,7 @@ export function CatFarm() {
                 }}
               />
             </TabsContent>
-            <TabsContent value="challenges" className="mt-0 space-y-4">
+            <TabsContent value="challenges" className="mt-0">
               <WeeklyChallengesPanel
                 challenges={challenges}
                 loading={challengesLoading}
@@ -532,7 +531,6 @@ export function CatFarm() {
                   fireConfetti();
                 }}
               />
-              <NotificationSettings userId={user?.id} />
             </TabsContent>
             <TabsContent value="more" className="mt-0 space-y-4">
               <AchievementsPanel achievements={state.achievements}
