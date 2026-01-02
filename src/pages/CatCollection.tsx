@@ -10,9 +10,10 @@ import { CatDetailModal } from '@/components/game/CatDetailModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Cat, CatBreed, BREEDS } from '@/types/game';
 import { getGradeTier } from '@/types/grading';
-import { ArrowLeft, Search, SortAsc, Filter, Cat as CatIcon, Trophy, DollarSign, Star, Loader2, Volume2, VolumeX, Sun, Moon } from 'lucide-react';
+import { ArrowLeft, Search, SortAsc, Filter, Cat as CatIcon, Trophy, DollarSign, Star, Loader2, Volume2, VolumeX, Sun, Moon, Settings } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 type SortOption = 'name' | 'grade' | 'value' | 'age' | 'health' | 'showWins';
@@ -121,24 +122,25 @@ export default function CatCollection() {
               </Button>
             </Link>
             <h1 className="text-lg sm:text-xl font-bold">🎴 Cat Collection</h1>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setEnabled(!isEnabled())}
-              className="min-h-10 min-w-10"
-              title={isEnabled() ? 'Mute sounds' : 'Unmute sounds'}
-            >
-              {isEnabled() ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="min-h-10 min-w-10"
-              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="min-h-10 min-w-10">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-popover">
+                <DropdownMenuLabel>Settings</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setEnabled(!isEnabled())} className="cursor-pointer">
+                  {isEnabled() ? <Volume2 className="h-4 w-4 mr-2" /> : <VolumeX className="h-4 w-4 mr-2" />}
+                  {isEnabled() ? 'Mute Sounds' : 'Unmute Sounds'}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="cursor-pointer">
+                  {theme === 'dark' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           
           <div className="grid grid-cols-4 sm:flex sm:items-center gap-2 sm:gap-4 text-sm">
