@@ -259,14 +259,14 @@ export function useGameState(playSound?: (type: SoundType) => void) {
         playSound?.('error');
         return prev;
       }
+      showMessage(`Bought 5 ${resource}! 📦`, 'success');
+      playSound?.('click');
       return {
         ...prev,
         money: prev.money - cost,
         resources: { ...prev.resources, [resource]: prev.resources[resource] + 5 },
       };
     });
-    showMessage(`Bought 5 ${resource}! 📦`, 'success');
-    playSound?.('click');
   }, [playSound]);
 
   const feedCats = useCallback(() => {
