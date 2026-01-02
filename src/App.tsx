@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { SoundProvider } from "./contexts/SoundContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ErrorLoggerProvider } from "./components/ErrorLoggerProvider";
 import Index from "./pages/Index";
@@ -17,21 +18,23 @@ const App = () => (
   <ErrorBoundary componentName="App">
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ErrorLoggerProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/collection" element={<CatCollection />} />
-                <Route path="/auth" element={<Auth />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </ErrorLoggerProvider>
+        <SoundProvider>
+          <ErrorLoggerProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/collection" element={<CatCollection />} />
+                  <Route path="/auth" element={<Auth />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </ErrorLoggerProvider>
+        </SoundProvider>
       </AuthProvider>
     </QueryClientProvider>
   </ErrorBoundary>
