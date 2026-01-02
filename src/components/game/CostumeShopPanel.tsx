@@ -37,12 +37,25 @@ export function CostumeShopPanel({
   const categoryEmojis = { hat: '🎩', outfit: '👔', accessory: '💍', special: '✨' };
 
   const CostumeCard = ({ costume, owned }: { costume: Costume; owned: boolean }) => (
-    <div className={`p-3 rounded-lg border ${owned ? 'border-green-400 bg-green-50/50 dark:bg-green-900/20' : 'border-border bg-card'}`}>
+    <div className={`p-3 rounded-lg border ${
+      owned 
+        ? 'border-green-400 bg-green-50/50 dark:bg-green-900/20' 
+        : costume.vipExclusive 
+          ? 'border-amber-400/50 bg-amber-50/30 dark:bg-amber-900/10' 
+          : 'border-border bg-card'
+    }`}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-2xl">{costume.emoji}</span>
-        <Badge className={COSTUME_RARITY_COLORS[costume.rarity]}>
-          {costume.rarity}
-        </Badge>
+        <div className="flex gap-1">
+          {costume.vipExclusive && (
+            <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black text-[10px] px-1">
+              VIP
+            </Badge>
+          )}
+          <Badge className={COSTUME_RARITY_COLORS[costume.rarity]}>
+            {costume.rarity}
+          </Badge>
+        </div>
       </div>
       <h4 className="font-semibold text-sm">{costume.name}</h4>
       <p className="text-xs text-muted-foreground mb-2">{costume.description}</p>
@@ -53,6 +66,10 @@ export function CostumeShopPanel({
       {owned ? (
         <Badge variant="outline" className="w-full justify-center text-green-600">
           ✓ Owned
+        </Badge>
+      ) : costume.vipExclusive ? (
+        <Badge variant="outline" className="w-full justify-center text-amber-600 text-xs">
+          🔒 {costume.minStreak}+ day streak
         </Badge>
       ) : (
         <Button
@@ -106,7 +123,7 @@ export function CostumeShopPanel({
               <TabsContent key={category} value={category} className="mt-2">
                 <ScrollArea className="h-[280px]">
                   <div className="grid grid-cols-2 gap-2 pr-2">
-                    {COSTUMES.filter(c => c.category === category).map(costume => (
+                    {COSTUMES.filter(c => c.category === category && !c.vipExclusive).map(costume => (
                       <CostumeCard 
                         key={costume.id} 
                         costume={costume} 
@@ -114,6 +131,25 @@ export function CostumeShopPanel({
                       />
                     ))}
                   </div>
+                  {/* VIP Exclusive Section */}
+                  {COSTUMES.filter(c => c.category === category && c.vipExclusive).length > 0 && (
+                    <>
+                      <div className="flex items-center gap-2 my-3">
+                        <div className="flex-1 h-px bg-amber-500/30" />
+                        <span className="text-xs font-medium text-amber-600 dark:text-amber-400">✨ VIP Exclusive</span>
+                        <div className="flex-1 h-px bg-amber-500/30" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 pr-2">
+                        {COSTUMES.filter(c => c.category === category && c.vipExclusive).map(costume => (
+                          <CostumeCard 
+                            key={costume.id} 
+                            costume={costume} 
+                            owned={ownedCostumes.includes(costume.id)} 
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </ScrollArea>
               </TabsContent>
             ))}

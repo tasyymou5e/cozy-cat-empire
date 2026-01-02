@@ -36,6 +36,9 @@ const achievementEmojis: Record<string, string> = {
   login_7_days: '📆',
   login_14_days: '🗓️',
   login_30_days: '👑',
+  vip_bronze: '🥉',
+  vip_silver: '🥈',
+  vip_gold: '🥇',
 };
 
 export function AchievementShowcase({ unlockedCount }: AchievementShowcaseProps) {

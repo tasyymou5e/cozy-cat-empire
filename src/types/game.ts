@@ -149,6 +149,10 @@ export const ACHIEVEMENT_DEFS = [
   { id: 'login_7_days', name: 'Weekly Regular', description: 'Log in 7 days in a row', target: 7, type: 'loginStreak' },
   { id: 'login_14_days', name: 'Dedicated Player', description: 'Log in 14 days in a row', target: 14, type: 'loginStreak' },
   { id: 'login_30_days', name: 'Cat Farm Legend', description: 'Log in 30 days in a row', target: 30, type: 'loginStreak' },
+  // VIP achievements
+  { id: 'vip_bronze', name: 'VIP Status', description: 'Reach VIP Bronze with a 30-day streak', target: 30, type: 'loginStreak' },
+  { id: 'vip_silver', name: 'VIP Elite', description: 'Reach VIP Silver with a 60-day streak', target: 60, type: 'loginStreak' },
+  { id: 'vip_gold', name: 'VIP Legend', description: 'Reach VIP Gold with a 90-day streak', target: 90, type: 'loginStreak' },
 ] as const;
 
 export type AchievementType = typeof ACHIEVEMENT_DEFS[number]['type'];

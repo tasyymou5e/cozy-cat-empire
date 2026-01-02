@@ -1,10 +1,10 @@
-import { DAILY_REWARDS, getRewardForDay, STREAK_MILESTONES } from '@/types/dailyRewards';
+import { DAILY_REWARDS, getRewardForDay, STREAK_MILESTONES, VIPTier, VIP_TIERS, getVIPTier, getNextVIPTier } from '@/types/dailyRewards';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Gift, Flame, Check, Lock, Coins } from 'lucide-react';
+import { Gift, Flame, Check, Coins, Crown, Star } from 'lucide-react';
 
 interface DailyRewardsPanelProps {
   currentStreak: number;
@@ -14,6 +14,8 @@ interface DailyRewardsPanelProps {
   showModal: boolean;
   onCloseModal: () => void;
   onClaim: () => void;
+  vipTier?: VIPTier | null;
+  isVIP?: boolean;
 }
 
 export function DailyRewardsPanel({
@@ -24,14 +26,35 @@ export function DailyRewardsPanel({
   showModal,
   onCloseModal,
   onClaim,
+  vipTier,
+  isVIP,
 }: DailyRewardsPanelProps) {
   const currentDayInCycle = ((currentStreak - 1) % 7) + 1;
   const todayReward = getRewardForDay(currentStreak);
+  const nextVipTier = getNextVIPTier(currentStreak);
   
-  // Find next milestone
+  // Calculate VIP-enhanced rewards
+  const enhancedCoins = vipTier ? Math.floor(todayReward.coins * vipTier.coinMultiplier) : todayReward.coins;
+  
+  // Find next milestone (streak or VIP)
   const milestoneKeys = Object.keys(STREAK_MILESTONES).map(Number).sort((a, b) => a - b);
   const nextMilestone = milestoneKeys.find(m => m > currentStreak) || milestoneKeys[milestoneKeys.length - 1];
   const progressToMilestone = Math.min((currentStreak / nextMilestone) * 100, 100);
+
+  // VIP progress calculation
+  const getVIPProgress = () => {
+    if (!vipTier && currentStreak < 30) {
+      return { progress: (currentStreak / 30) * 100, label: `${30 - currentStreak} days to VIP Bronze`, target: 30 };
+    }
+    if (nextVipTier) {
+      const prevMinStreak = vipTier?.minStreak || 0;
+      const progress = ((currentStreak - prevMinStreak) / (nextVipTier.minStreak - prevMinStreak)) * 100;
+      return { progress, label: `${nextVipTier.minStreak - currentStreak} days to ${nextVipTier.name}`, target: nextVipTier.minStreak };
+    }
+    return { progress: 100, label: 'Maximum VIP Tier!', target: 90 };
+  };
+
+  const vipProgress = getVIPProgress();
 
   return (
     <Dialog open={showModal} onOpenChange={onCloseModal}>
@@ -40,15 +63,50 @@ export function DailyRewardsPanel({
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Gift className="h-6 w-6 text-primary" />
             Daily Login Reward
+            {isVIP && vipTier && (
+              <Badge className="ml-auto bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold animate-vip-glow">
+                {vipTier.emoji} {vipTier.name}
+              </Badge>
+            )}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* VIP Status Display */}
+          {isVIP && vipTier && (
+            <div className="p-4 bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 rounded-lg border border-amber-500/30">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-3xl animate-bounce-gentle">{vipTier.emoji}</span>
+                <div className="text-center">
+                  <h3 className="font-bold text-lg text-amber-600 dark:text-amber-400">
+                    {vipTier.name}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {vipTier.coinMultiplier}x coins • {vipTier.resourceMultiplier}x resources
+                  </p>
+                </div>
+              </div>
+              
+              {/* VIP Perks */}
+              <div className="flex flex-wrap justify-center gap-1 mt-2">
+                {vipTier.perks.slice(0, 3).map((perk, i) => (
+                  <Badge key={i} variant="outline" className="text-[10px] border-amber-500/50 bg-amber-500/10">
+                    ✨ {perk}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Streak Display */}
-          <div className="flex items-center justify-center gap-4 p-4 bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10 rounded-lg">
+          <div className={`flex items-center justify-center gap-4 p-4 rounded-lg ${
+            isVIP 
+              ? 'bg-gradient-to-r from-amber-500/10 via-yellow-500/10 to-amber-500/10' 
+              : 'bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10'
+          }`}>
             <div className="text-center">
               <div className="flex items-center justify-center gap-1">
-                <Flame className="h-6 w-6 text-orange-500 animate-bounce-gentle" />
+                <Flame className={`h-6 w-6 ${isVIP ? 'text-amber-500' : 'text-orange-500'} animate-streak-flame`} />
                 <span className="text-3xl font-bold text-foreground">{currentStreak}</span>
               </div>
               <span className="text-sm text-muted-foreground">Day Streak</span>
@@ -97,7 +155,7 @@ export function DailyRewardsPanel({
           </div>
 
           {/* Today's Reward Details */}
-          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+          <Card className={`border-primary/20 ${isVIP ? 'bg-gradient-to-br from-amber-500/5 to-yellow-500/10' : 'bg-gradient-to-br from-primary/5 to-primary/10'}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -105,7 +163,7 @@ export function DailyRewardsPanel({
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="secondary" className="gap-1">
                       <Coins className="h-3 w-3" />
-                      {todayReward.coins} coins
+                      {enhancedCoins} coins
                     </Badge>
                     {todayReward.resources && (
                       <Badge variant="outline" className="text-xs">
@@ -113,11 +171,17 @@ export function DailyRewardsPanel({
                       </Badge>
                     )}
                   </div>
+                  {isVIP && vipTier && (
+                    <div className="text-xs text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
+                      <Star className="h-3 w-3" />
+                      VIP: {todayReward.coins} × {vipTier.coinMultiplier} = {enhancedCoins}
+                    </div>
+                  )}
                   {todayReward.resources && (
                     <div className="text-xs text-muted-foreground mt-1">
                       {Object.entries(todayReward.resources).map(([key, val]) => (
                         <span key={key} className="mr-2">
-                          {key}: +{val}
+                          {key}: +{isVIP && vipTier ? Math.floor(val * vipTier.resourceMultiplier) : val}
                         </span>
                       ))}
                     </div>
@@ -144,10 +208,38 @@ export function DailyRewardsPanel({
             </CardContent>
           </Card>
 
+          {/* VIP Progress Section */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground flex items-center gap-1">
+                <Crown className="h-4 w-4" />
+                {isVIP ? 'Next VIP tier' : 'VIP Progress'}
+              </span>
+              <span className="font-medium">
+                {nextVipTier ? (
+                  <>{nextVipTier.emoji} {vipProgress.label}</>
+                ) : isVIP ? (
+                  <span className="text-amber-500">🌟 Max Tier!</span>
+                ) : (
+                  <>🥉 {vipProgress.label}</>
+                )}
+              </span>
+            </div>
+            <Progress 
+              value={vipProgress.progress} 
+              className={`h-2 ${isVIP ? '[&>div]:bg-gradient-to-r [&>div]:from-amber-400 [&>div]:to-yellow-500' : ''}`} 
+            />
+            {!isVIP && currentStreak < 30 && (
+              <div className="text-xs text-muted-foreground text-center">
+                🥉 VIP Bronze: 1.5x coins • 1.25x resources
+              </div>
+            )}
+          </div>
+
           {/* Milestone Progress */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Next milestone</span>
+              <span className="text-muted-foreground">Next streak milestone</span>
               <span className="font-medium">
                 {STREAK_MILESTONES[nextMilestone]?.emoji} {nextMilestone} days
               </span>

@@ -43,6 +43,7 @@ import { TradingPanel } from './TradingPanel';
 import { NotificationCenter } from './NotificationCenter';
 import { WeeklyChallengesPanel } from './WeeklyChallengesPanel';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
@@ -88,6 +89,8 @@ export function CatFarm() {
     showModal: showDailyRewardsModal,
     setShowModal: setShowDailyRewardsModal,
     claimDailyReward,
+    vipTier,
+    isVIP,
   } = useDailyLoginRewards(user?.id, playSound, vibrateAchievement, fireConfetti);
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
@@ -107,6 +110,14 @@ export function CatFarm() {
     const reward = await claimDailyReward();
     if (reward) {
       actions.addReward?.(reward.coins, reward.resources as Resources);
+      // Unlock VIP costumes if any
+      if (reward.unlockedCostumes) {
+        for (const costumeId of reward.unlockedCostumes) {
+          if (!state.ownedCostumes.includes(costumeId)) {
+            actions.buyCostume?.(costumeId);
+          }
+        }
+      }
     }
   };
 
@@ -280,6 +291,8 @@ export function CatFarm() {
         showModal={showDailyRewardsModal}
         onCloseModal={() => setShowDailyRewardsModal(false)}
         onClaim={handleClaimDailyReward}
+        vipTier={vipTier}
+        isVIP={isVIP}
       />
       
       <header className="game-header">
@@ -370,6 +383,16 @@ export function CatFarm() {
           
           {/* Notification Center */}
           <NotificationCenter userId={user?.id} onNavigate={setSideTab} />
+          
+          {/* VIP Badge */}
+          {user && isVIP && vipTier && (
+            <Badge 
+              className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold text-xs animate-vip-glow cursor-pointer"
+              onClick={() => setShowDailyRewardsModal(true)}
+            >
+              {vipTier.emoji} {vipTier.name}
+            </Badge>
+          )}
           
           {/* Daily Rewards Button */}
           {user && (
