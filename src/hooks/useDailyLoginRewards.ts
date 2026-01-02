@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { LoginData, DailyReward, getRewardForDay, STREAK_MILESTONES } from '@/types/dailyRewards';
+import { LoginData, DailyReward, getRewardForDay, STREAK_MILESTONES, getVIPTier, VIPTier, VIP_TIERS } from '@/types/dailyRewards';
 import { Resources } from '@/types/game';
 import { useToast } from '@/hooks/use-toast';
 
@@ -107,11 +107,23 @@ export function useDailyLoginRewards(
           setCanClaim(true);
           setShowModal(true);
           
-          // Show streak continuation toast
-          toast({
-            title: `🔥 ${newStreak} Day Streak!`,
-            description: 'Welcome back! Your login streak continues!',
-          });
+          // Check for new VIP tier
+          const oldVipTier = getVIPTier(existing.current_streak);
+          const newVipTier = getVIPTier(newStreak);
+          
+          if (newVipTier && (!oldVipTier || newVipTier.minStreak > oldVipTier.minStreak)) {
+            playSound?.('achievement');
+            fireConfetti?.();
+            toast({
+              title: `${newVipTier.emoji} ${newVipTier.name} Unlocked!`,
+              description: `You've reached VIP status! Enjoy ${Math.round((newVipTier.coinMultiplier - 1) * 100)}% bonus coins!`,
+            });
+          } else {
+            toast({
+              title: `🔥 ${newStreak} Day Streak!`,
+              description: 'Welcome back! Your login streak continues!',
+            });
+          }
         } else {
           // Streak broken - reset to 1
           const { data: updated, error: updateError } = await supabase
@@ -144,13 +156,28 @@ export function useDailyLoginRewards(
     } finally {
       setLoading(false);
     }
-  }, [userId, toast]);
+  }, [userId, toast, playSound, fireConfetti]);
 
   useEffect(() => {
     checkLoginStatus();
   }, [checkLoginStatus]);
 
-  const claimDailyReward = useCallback(async (): Promise<{ coins: number; resources: Partial<Resources> } | null> => {
+  // Get VIP costumes that should be unlocked based on streak
+  const getUnlockedVIPCostumes = useCallback((streak: number): string[] => {
+    const unlocked: string[] = [];
+    for (const tier of VIP_TIERS) {
+      if (streak >= tier.minStreak) {
+        unlocked.push(...tier.exclusiveRewards);
+      }
+    }
+    return unlocked;
+  }, []);
+
+  const claimDailyReward = useCallback(async (): Promise<{ 
+    coins: number; 
+    resources: Partial<Resources>;
+    unlockedCostumes?: string[];
+  } | null> => {
     if (!userId || !loginData || !todayReward || !canClaim) return null;
 
     try {
@@ -168,7 +195,27 @@ export function useDailyLoginRewards(
       fireConfetti?.();
       vibrateAchievement?.();
 
+      // Apply VIP multipliers
+      const vipTier = getVIPTier(loginData.current_streak);
       let totalCoins = todayReward.coins;
+      let enhancedResources: Partial<Resources> = { ...todayReward.resources };
+      
+      if (vipTier) {
+        totalCoins = Math.floor(totalCoins * vipTier.coinMultiplier);
+        
+        // Multiply each resource
+        for (const [key, value] of Object.entries(enhancedResources)) {
+          if (typeof value === 'number') {
+            enhancedResources[key as keyof Resources] = Math.floor(value * vipTier.resourceMultiplier);
+          }
+        }
+        
+        // Show VIP bonus toast
+        toast({
+          title: `${vipTier.emoji} ${vipTier.name} Bonus!`,
+          description: `Your VIP status gives you ${Math.round((vipTier.coinMultiplier - 1) * 100)}% extra rewards!`,
+        });
+      }
       
       // Check for streak milestones
       const milestone = STREAK_MILESTONES[loginData.current_streak];
@@ -190,9 +237,13 @@ export function useDailyLoginRewards(
         description: `+${totalCoins} coins${todayReward.resources ? ' + bonus resources!' : ''}`,
       });
 
+      // Get VIP costumes to unlock
+      const unlockedCostumes = getUnlockedVIPCostumes(loginData.current_streak);
+
       return {
         coins: totalCoins,
-        resources: todayReward.resources || {},
+        resources: enhancedResources,
+        unlockedCostumes: unlockedCostumes.length > 0 ? unlockedCostumes : undefined,
       };
     } catch (err) {
       console.error('Error claiming reward:', err);
@@ -203,7 +254,10 @@ export function useDailyLoginRewards(
       });
       return null;
     }
-  }, [userId, loginData, todayReward, canClaim, playSound, fireConfetti, vibrateAchievement, toast]);
+  }, [userId, loginData, todayReward, canClaim, playSound, fireConfetti, vibrateAchievement, toast, getUnlockedVIPCostumes]);
+
+  const vipTier = getVIPTier(loginData?.current_streak || 0);
+  const isVIP = !!vipTier;
 
   return {
     loginData,
@@ -216,5 +270,7 @@ export function useDailyLoginRewards(
     currentStreak: loginData?.current_streak || 0,
     longestStreak: loginData?.longest_streak || 0,
     totalLogins: loginData?.total_logins || 0,
+    vipTier,
+    isVIP,
   };
 }

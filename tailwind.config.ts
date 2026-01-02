@@ -228,6 +228,22 @@ export default {
 				'50%': {
 					transform: 'scale(1.1) rotate(2deg)'
 				}
+			},
+			'shimmer': {
+				'0%': {
+					backgroundPosition: '-200% 0'
+				},
+				'100%': {
+					backgroundPosition: '200% 0'
+				}
+			},
+			'vip-glow': {
+				'0%, 100%': {
+					boxShadow: '0 0 10px 2px hsl(45 100% 50% / 0.3)'
+				},
+				'50%': {
+					boxShadow: '0 0 20px 5px hsl(45 100% 50% / 0.5)'
+				}
 			}
 		},
   		animation: {
@@ -246,7 +262,9 @@ export default {
 			'confetti': 'confetti 1s ease-out forwards',
 			'progress-pop': 'progress-pop 0.3s ease-out',
 			'progress-float': 'progress-float 0.8s ease-out forwards',
-			'streak-flame': 'streak-flame 0.5s ease-in-out infinite'
+			'streak-flame': 'streak-flame 0.5s ease-in-out infinite',
+			'shimmer': 'shimmer 3s linear infinite',
+			'vip-glow': 'vip-glow 2s ease-in-out infinite'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',

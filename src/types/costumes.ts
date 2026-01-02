@@ -8,6 +8,8 @@ export interface Costume {
   showBonus: number; // Percentage bonus in cat shows
   happinessBonus: number;
   category: 'hat' | 'outfit' | 'accessory' | 'special';
+  vipExclusive?: boolean;
+  minStreak?: number;
 }
 
 export const COSTUMES: Costume[] = [
@@ -193,6 +195,47 @@ export const COSTUMES: Costume[] = [
     showBonus: 23,
     happinessBonus: 9,
     category: 'special',
+  },
+  
+  // VIP Exclusive Costumes
+  {
+    id: 'vip_bronze_collar',
+    name: 'VIP Bronze Collar',
+    emoji: '🏅',
+    description: 'A distinguished bronze collar for VIP members.',
+    price: 0,
+    rarity: 'legendary',
+    showBonus: 15,
+    happinessBonus: 5,
+    category: 'accessory',
+    vipExclusive: true,
+    minStreak: 30,
+  },
+  {
+    id: 'vip_silver_cape',
+    name: 'VIP Silver Cape',
+    emoji: '🌟',
+    description: 'An elegant silver cape for elite VIP members.',
+    price: 0,
+    rarity: 'legendary',
+    showBonus: 25,
+    happinessBonus: 8,
+    category: 'outfit',
+    vipExclusive: true,
+    minStreak: 60,
+  },
+  {
+    id: 'vip_gold_crown',
+    name: 'VIP Gold Crown',
+    emoji: '👑',
+    description: 'The ultimate crown for legendary VIP players!',
+    price: 0,
+    rarity: 'legendary',
+    showBonus: 35,
+    happinessBonus: 12,
+    category: 'hat',
+    vipExclusive: true,
+    minStreak: 90,
   },
 ];
 
