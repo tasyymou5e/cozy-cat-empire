@@ -30,7 +30,7 @@ import { TutorialSystem } from './TutorialSystem';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { DailyEventToast } from './DailyEventToast';
 import { LeaderboardPanel } from './LeaderboardPanel';
-import { GlobalLeaderboardPanel } from './GlobalLeaderboardPanel';
+
 import { FriendsPanel } from './FriendsPanel';
 import { PlayerProfilePanel } from './PlayerProfilePanel';
 import { CostumeShopPanel } from './CostumeShopPanel';
@@ -312,6 +312,11 @@ export function CatFarm() {
               <LayoutGrid className="h-4 w-4" />
             </Button>
           </Link>
+          <Link to="/leaderboard">
+            <Button variant="ghost" size="sm" title="Global Leaderboard" className="min-h-10 min-w-10">
+              <Globe className="h-4 w-4" />
+            </Button>
+          </Link>
           {!isMobile && (
             <Button variant="ghost" size="sm" onClick={() => setShowShortcutsHelp(true)} title="Keyboard Shortcuts (?)" className="min-h-10 min-w-10">
               <Keyboard className="h-4 w-4" />
@@ -396,7 +401,6 @@ export function CatFarm() {
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="training" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'training' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💪</TabsTrigger></TooltipTrigger><TooltipContent>Training</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="social" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'social' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🤝</TabsTrigger></TooltipTrigger><TooltipContent>Social</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="leaderboard" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'leaderboard' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🏆</TabsTrigger></TooltipTrigger><TooltipContent>Leaderboard</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="global" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'global' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Globe className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Global</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="friends" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'friends' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Users className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Friends</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="profile" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'profile' ? 'ring-2 ring-primary animate-pulse' : ''}`}><User className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Profile</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="gifts" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'gifts' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Gift className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Gifts</TooltipContent></Tooltip>
@@ -478,9 +482,6 @@ export function CatFarm() {
             </TabsContent>
             <TabsContent value="leaderboard" className="mt-0">
               <LeaderboardPanel cats={state.cats} relationships={relationshipSystem.relationships} />
-            </TabsContent>
-            <TabsContent value="global" className="mt-0">
-              <GlobalLeaderboardPanel userId={user?.id} />
             </TabsContent>
             <TabsContent value="friends" className="mt-0">
               <FriendsPanel userId={user?.id} />
