@@ -42,7 +42,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 const MOOD_LABELS = {
@@ -315,6 +315,11 @@ export function CatFarm() {
           <Link to="/leaderboard">
             <Button variant="ghost" size="sm" title="Global Leaderboard" className="min-h-10 min-w-10">
               <Globe className="h-4 w-4" />
+            </Button>
+          </Link>
+          <Link to="/stats">
+            <Button variant="ghost" size="sm" title="Your Stats" className="min-h-10 min-w-10">
+              <BarChart3 className="h-4 w-4" />
             </Button>
           </Link>
           {!isMobile && (
