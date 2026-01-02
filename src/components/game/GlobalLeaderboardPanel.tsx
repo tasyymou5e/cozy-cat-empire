@@ -1,12 +1,13 @@
-import { useGlobalLeaderboard, LeaderboardCategory, LeaderboardEntry, LeaderboardViewMode } from '@/hooks/useGlobalLeaderboard';
+import { useGlobalLeaderboard, LeaderboardCategory, LeaderboardEntry, LeaderboardViewMode, LeaderboardTimePeriod, RankChange } from '@/hooks/useGlobalLeaderboard';
 import { useFriends } from '@/hooks/useFriends';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Trophy, Cat, Heart, Coins, Award, RefreshCw, Globe, Users } from 'lucide-react';
+import { Trophy, Cat, Heart, Coins, Award, RefreshCw, Globe, Users, ArrowUp, ArrowDown, Sparkles, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { LeaderboardHistoryChart } from './LeaderboardHistoryChart';
 
 interface GlobalLeaderboardPanelProps {
   userId: string | undefined;
@@ -19,6 +20,42 @@ const categoryConfig: Record<LeaderboardCategory, { label: string; icon: typeof 
   wealth: { label: 'Wealth', icon: Coins, scoreKey: 'total_money_earned' },
   achievements: { label: 'Achievements', icon: Award, scoreKey: 'achievements_unlocked' },
 };
+
+const timePeriodLabels: Record<LeaderboardTimePeriod, string> = {
+  all: 'All Time',
+  daily: 'Today',
+  weekly: 'This Week',
+  monthly: 'This Month',
+};
+
+function RankChangeIndicator({ rankChange }: { rankChange?: RankChange }) {
+  if (!rankChange || rankChange.direction === 'same') return null;
+
+  if (rankChange.direction === 'new') {
+    return (
+      <span className="inline-flex items-center gap-0.5 text-xs font-medium text-yellow-500 animate-fade-in">
+        <Sparkles className="h-3 w-3" />
+        NEW
+      </span>
+    );
+  }
+
+  if (rankChange.direction === 'up') {
+    return (
+      <span className="inline-flex items-center gap-0.5 text-xs font-medium text-green-500 animate-fade-in">
+        <ArrowUp className="h-3 w-3" />
+        +{rankChange.amount}
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-0.5 text-xs font-medium text-red-500 animate-fade-in">
+      <ArrowDown className="h-3 w-3" />
+      -{rankChange.amount}
+    </span>
+  );
+}
 
 export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) {
   const { friends } = useFriends(userId);
@@ -33,6 +70,8 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
     setCategory,
     viewMode,
     setViewMode,
+    timePeriod,
+    setTimePeriod,
     fetchLeaderboard,
     isLive,
   } = useGlobalLeaderboard(userId, friendIds);
@@ -67,6 +106,16 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
         </>
       );
     }
+    if (timePeriod !== 'all') {
+      return (
+        <>
+          <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+          No activity {timePeriod === 'daily' ? 'today' : timePeriod === 'weekly' ? 'this week' : 'this month'}.
+          <br />
+          <span className="text-sm">Play to appear on the leaderboard!</span>
+        </>
+      );
+    }
     return (
       <>
         <Trophy className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -98,13 +147,22 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
               </span>
             )}
           </CardTitle>
-          <Button variant="ghost" size="icon" onClick={fetchLeaderboard} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
+          <div className="flex items-center gap-1">
+            {userId && (
+              <LeaderboardHistoryChart 
+                userId={userId} 
+                category={category} 
+                currentRank={userRank || undefined} 
+              />
+            )}
+            <Button variant="ghost" size="icon" onClick={fetchLeaderboard} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
         </div>
         
-        {/* View Mode Toggle */}
-        <div className="mt-2">
+        {/* View Mode and Time Period Toggles */}
+        <div className="mt-2 flex flex-wrap gap-2">
           <TooltipProvider>
             <ToggleGroup
               type="single"
@@ -138,6 +196,20 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
               </Tooltip>
             </ToggleGroup>
           </TooltipProvider>
+
+          {/* Time Period Toggle */}
+          <ToggleGroup
+            type="single"
+            value={timePeriod}
+            onValueChange={(v) => v && setTimePeriod(v as LeaderboardTimePeriod)}
+            className="justify-start"
+          >
+            {Object.entries(timePeriodLabels).map(([key, label]) => (
+              <ToggleGroupItem key={key} value={key} className="text-xs px-2">
+                {label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
         </div>
       </CardHeader>
       <CardContent>
@@ -164,25 +236,27 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {leaderboard.map((entry) => (
+                  {leaderboard.map((entry, index) => (
                     <div
                       key={entry.id}
-                      className={`flex items-center gap-3 p-2 rounded-lg ${
+                      className={`flex items-center gap-3 p-2 rounded-lg transition-all duration-300 ${
                         entry.user_id === userId
                           ? 'bg-primary/10 border border-primary/30'
                           : 'bg-muted/50'
-                      }`}
+                      } ${entry.rankChange?.direction === 'up' ? 'animate-fade-in' : ''}`}
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div className="w-12 text-center">
                         {getRankBadge(entry.rank || 0)}
                       </div>
                       <div className="text-2xl">{entry.avatar_emoji}</div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">
+                        <div className="font-medium truncate flex items-center gap-2">
                           {entry.display_name || 'Anonymous Player'}
                           {entry.user_id === userId && (
-                            <span className="text-xs text-primary ml-2">(You)</span>
+                            <span className="text-xs text-primary">(You)</span>
                           )}
+                          <RankChangeIndicator rankChange={entry.rankChange} />
                         </div>
                       </div>
                       <div className="text-right font-bold text-lg">

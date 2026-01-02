@@ -121,6 +121,45 @@ export type Database = {
           },
         ]
       }
+      leaderboard_snapshots: {
+        Row: {
+          achievements_unlocked: number | null
+          created_at: string | null
+          id: string
+          period_start: string
+          period_type: string
+          total_cats_owned: number | null
+          total_kittens_bred: number | null
+          total_money_earned: number | null
+          total_show_wins: number | null
+          user_id: string
+        }
+        Insert: {
+          achievements_unlocked?: number | null
+          created_at?: string | null
+          id?: string
+          period_start: string
+          period_type: string
+          total_cats_owned?: number | null
+          total_kittens_bred?: number | null
+          total_money_earned?: number | null
+          total_show_wins?: number | null
+          user_id: string
+        }
+        Update: {
+          achievements_unlocked?: number | null
+          created_at?: string | null
+          id?: string
+          period_start?: string
+          period_type?: string
+          total_cats_owned?: number | null
+          total_kittens_bred?: number | null
+          total_money_earned?: number | null
+          total_show_wins?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       player_friends: {
         Row: {
           created_at: string | null
@@ -234,6 +273,33 @@ export type Database = {
           id?: string
           updated_at?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      rank_history: {
+        Row: {
+          category: string
+          id: string
+          rank: number
+          recorded_at: string | null
+          score: number
+          user_id: string
+        }
+        Insert: {
+          category: string
+          id?: string
+          rank: number
+          recorded_at?: string | null
+          score: number
+          user_id: string
+        }
+        Update: {
+          category?: string
+          id?: string
+          rank?: number
+          recorded_at?: string | null
+          score?: number
+          user_id?: string
         }
         Relationships: []
       }
