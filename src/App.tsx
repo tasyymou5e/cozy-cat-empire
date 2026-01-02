@@ -8,12 +8,19 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { SoundProvider } from "./contexts/SoundContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ErrorLoggerProvider } from "./components/ErrorLoggerProvider";
+import { AdminRoute } from "./components/admin/AdminRoute";
 import Index from "./pages/Index";
 import CatCollection from "./pages/CatCollection";
 import Leaderboard from "./pages/Leaderboard";
 import Stats from "./pages/Stats";
 import Auth from "./pages/Auth";
 import AdminAuth from "./pages/AdminAuth";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminStatistics from "./pages/admin/AdminStatistics";
+import AdminErrorLogs from "./pages/admin/AdminErrorLogs";
+import AdminModeration from "./pages/admin/AdminModeration";
+import AdminSettings from "./pages/admin/AdminSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +43,12 @@ const App = () => (
                     <Route path="/stats" element={<Stats />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/catking" element={<AdminAuth />} />
+                    <Route path="/catking/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                    <Route path="/catking/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+                    <Route path="/catking/stats" element={<AdminRoute><AdminStatistics /></AdminRoute>} />
+                    <Route path="/catking/errors" element={<AdminRoute><AdminErrorLogs /></AdminRoute>} />
+                    <Route path="/catking/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
+                    <Route path="/catking/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
