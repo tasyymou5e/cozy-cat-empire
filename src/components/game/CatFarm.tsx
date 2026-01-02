@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/useGameState';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useConfetti } from '@/hooks/useConfetti';
+import { useHaptics } from '@/hooks/useHaptics';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
@@ -62,9 +63,14 @@ export function CatFarm() {
     startMusic, stopMusic, isMusicPlaying, setMusicVolume,
     updateMusicForDay, getCurrentMood, triggerCelebration, triggerTense 
   } = useSoundEffects();
-  const { fireConfetti, fireCelebration, fireStars } = useConfetti();
+  const { fireConfetti, fireCelebration, fireStars, fireChallengeBurst } = useConfetti();
+  const { vibrateProgress, vibrateComplete, vibrateAchievement } = useHaptics();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { challenges, loading: challengesLoading, updateProgress: updateChallengeProgress, claimReward, getTimeRemaining, lastProgressUpdate, clearProgressUpdate, totalChallengesCompleted } = useWeeklyChallenges(user?.id, playSound);
+  const { 
+    challenges, loading: challengesLoading, updateProgress: updateChallengeProgress, 
+    claimReward, getTimeRemaining, lastProgressUpdate, clearProgressUpdate, 
+    totalChallengesCompleted, currentStreak, longestStreak 
+  } = useWeeklyChallenges(user?.id, playSound, fireChallengeBurst, { vibrateProgress, vibrateComplete, vibrateAchievement });
   const { state, message, messageType, kittensBreed, currentDailyEvent, relationshipSystem, actions } = useGameState(playSound, updateChallengeProgress);
   const isMobile = useIsMobile();
   const { cloudSave, cloudLoad, hasCloudSave } = useCloudSave(user?.id);
@@ -532,6 +538,8 @@ export function CatFarm() {
                 lastProgressUpdate={lastProgressUpdate}
                 onProgressAnimationComplete={clearProgressUpdate}
                 totalChallengesCompleted={totalChallengesCompleted}
+                currentStreak={currentStreak}
+                longestStreak={longestStreak}
               />
             </TabsContent>
             <TabsContent value="more" className="mt-0 space-y-4">

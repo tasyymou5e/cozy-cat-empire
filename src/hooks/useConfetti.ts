@@ -83,9 +83,33 @@ export function useConfetti() {
     }, 300);
   }, []);
 
+  const fireChallengeBurst = useCallback(() => {
+    // Burst from center with trophy-colored particles
+    confetti({
+      particleCount: 80,
+      spread: 100,
+      origin: { x: 0.5, y: 0.6 },
+      colors: ['#fbbf24', '#f59e0b', '#eab308', '#84cc16', '#22c55e'],
+      shapes: ['circle', 'square'],
+      scalar: 1.2,
+    });
+
+    // Delayed second burst for extra impact
+    setTimeout(() => {
+      confetti({
+        particleCount: 40,
+        spread: 60,
+        startVelocity: 25,
+        origin: { x: 0.5, y: 0.5 },
+        colors: ['#ffd700', '#fff', '#f97316'],
+      });
+    }, 150);
+  }, []);
+
   return {
     fireConfetti,
     fireCelebration,
     fireStars,
+    fireChallengeBurst,
   };
 }
