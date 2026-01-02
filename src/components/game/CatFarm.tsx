@@ -19,19 +19,31 @@ import { RelationshipAnimations } from './RelationshipAnimations';
 import { CatCard } from './CatCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2 } from 'lucide-react';
 
 export function CatFarm() {
-  const { playSound, setEnabled, isEnabled } = useSoundEffects();
+  const { playSound, setEnabled, isEnabled, startMusic, stopMusic, isMusicPlaying } = useSoundEffects();
   const { state, message, messageType, kittensBreed, relationshipSystem, actions } = useGameState(playSound);
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
+  const [musicOn, setMusicOn] = useState(false);
 
   const toggleSound = () => {
     const newState = !soundOn;
     setSoundOn(newState);
     setEnabled(newState);
     if (newState) playSound('click');
+  };
+
+  const toggleMusic = () => {
+    if (musicOn) {
+      stopMusic();
+      setMusicOn(false);
+    } else {
+      startMusic();
+      setMusicOn(true);
+      playSound('click');
+    }
   };
 
   return (
@@ -44,7 +56,10 @@ export function CatFarm() {
           <span className="text-xs text-muted-foreground hidden sm:inline">Build your 100-acre cat empire!</span>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={toggleSound}>
+          <Button variant="ghost" size="sm" onClick={toggleMusic} title={musicOn ? "Stop music" : "Play ambient music"}>
+            {musicOn ? <Music2 className="h-4 w-4 text-primary" /> : <Music className="h-4 w-4" />}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={toggleSound} title={soundOn ? "Mute sounds" : "Unmute sounds"}>
             {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
           <Button variant="ghost" size="sm" onClick={actions.saveGame}>💾</Button>

@@ -74,6 +74,14 @@ export function useSoundEffects() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const enabledRef = useRef(true);
   const volumeRef = useRef(0.5);
+  const musicVolumeRef = useRef(0.15);
+  const musicNodesRef = useRef<{
+    oscillators: OscillatorNode[];
+    gains: GainNode[];
+    masterGain: GainNode | null;
+    lfo: OscillatorNode | null;
+  } | null>(null);
+  const musicPlayingRef = useRef(false);
 
   // Initialize audio context on first user interaction
   const initAudio = useCallback(() => {
@@ -149,6 +157,98 @@ export function useSoundEffects() {
     }
   }, [playTone]);
 
+  // Ambient music - creates a soft, dreamy soundscape
+  const startMusic = useCallback(() => {
+    if (musicPlayingRef.current || musicNodesRef.current) return;
+    
+    const ctx = initAudio();
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0, ctx.currentTime);
+    masterGain.gain.linearRampToValueAtTime(musicVolumeRef.current, ctx.currentTime + 2);
+    masterGain.connect(ctx.destination);
+
+    const oscillators: OscillatorNode[] = [];
+    const gains: GainNode[] = [];
+
+    // Soft pad chords - C major 7 ambient
+    const frequencies = [130.81, 164.81, 196.00, 246.94]; // C3, E3, G3, B3
+    
+    frequencies.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      
+      // Slight detuning for warmth
+      osc.detune.setValueAtTime((i - 1.5) * 5, ctx.currentTime);
+      
+      gain.gain.setValueAtTime(0.15 + (i * 0.02), ctx.currentTime);
+      
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start();
+      
+      oscillators.push(osc);
+      gains.push(gain);
+    });
+
+    // Add a very slow LFO for gentle volume modulation
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(0.1, ctx.currentTime); // Very slow
+    lfoGain.gain.setValueAtTime(0.03, ctx.currentTime);
+    lfo.connect(lfoGain);
+    lfoGain.connect(masterGain.gain);
+    lfo.start();
+
+    musicNodesRef.current = { oscillators, gains, masterGain, lfo };
+    musicPlayingRef.current = true;
+  }, [initAudio]);
+
+  const stopMusic = useCallback(() => {
+    if (!musicNodesRef.current) return;
+    
+    const ctx = audioContextRef.current;
+    if (!ctx) return;
+
+    const { oscillators, masterGain, lfo } = musicNodesRef.current;
+    
+    // Fade out
+    if (masterGain) {
+      masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1);
+    }
+
+    // Stop after fade
+    setTimeout(() => {
+      oscillators.forEach(osc => {
+        try { osc.stop(); } catch (e) {}
+      });
+      if (lfo) {
+        try { lfo.stop(); } catch (e) {}
+      }
+      musicNodesRef.current = null;
+      musicPlayingRef.current = false;
+    }, 1100);
+  }, []);
+
+  const setMusicVolume = useCallback((volume: number) => {
+    musicVolumeRef.current = Math.max(0, Math.min(0.3, volume));
+    if (musicNodesRef.current?.masterGain && audioContextRef.current) {
+      musicNodesRef.current.masterGain.gain.linearRampToValueAtTime(
+        musicVolumeRef.current,
+        audioContextRef.current.currentTime + 0.1
+      );
+    }
+  }, []);
+
+  const isMusicPlaying = useCallback(() => musicPlayingRef.current, []);
+
   const setEnabled = useCallback((enabled: boolean) => {
     enabledRef.current = enabled;
   }, []);
@@ -160,12 +260,30 @@ export function useSoundEffects() {
   const isEnabled = useCallback(() => enabledRef.current, []);
   const getVolume = useCallback(() => volumeRef.current, []);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (musicNodesRef.current) {
+        musicNodesRef.current.oscillators.forEach(osc => {
+          try { osc.stop(); } catch (e) {}
+        });
+        if (musicNodesRef.current.lfo) {
+          try { musicNodesRef.current.lfo.stop(); } catch (e) {}
+        }
+      }
+    };
+  }, []);
+
   return {
     playSound,
     setEnabled,
     setVolume,
     isEnabled,
     getVolume,
+    startMusic,
+    stopMusic,
+    setMusicVolume,
+    isMusicPlaying,
   };
 }
 
