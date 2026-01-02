@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { GameState } from '@/types/game';
 
@@ -26,6 +26,8 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<LeaderboardCategory>('wins');
   const [viewMode, setViewMode] = useState<LeaderboardViewMode>('global');
+  const [isLive, setIsLive] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const getCategoryColumn = (cat: LeaderboardCategory): string => {
     switch (cat) {
@@ -101,8 +103,42 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     }
   }, [category, userId, viewMode, friendIds]);
 
+  // Initial fetch
   useEffect(() => {
     fetchLeaderboard();
+  }, [fetchLeaderboard]);
+
+  // Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('leaderboard-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'player_stats'
+        },
+        () => {
+          // Debounce to prevent excessive refreshes
+          if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+          }
+          debounceRef.current = setTimeout(() => {
+            fetchLeaderboard();
+          }, 500);
+        }
+      )
+      .subscribe((status) => {
+        setIsLive(status === 'SUBSCRIBED');
+      });
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      supabase.removeChannel(channel);
+    };
   }, [fetchLeaderboard]);
 
   const syncPlayerStats = useCallback(async (
@@ -148,5 +184,6 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     setViewMode,
     fetchLeaderboard,
     syncPlayerStats,
+    isLive,
   };
 }
