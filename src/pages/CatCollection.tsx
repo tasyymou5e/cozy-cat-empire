@@ -1,8 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/useGameState';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCloudSave } from '@/hooks/useCloudSave';
 import { FlippableTradingCard } from '@/components/game/FlippableTradingCard';
 import { CatDetailModal } from '@/components/game/CatDetailModal';
 import { Button } from '@/components/ui/button';
@@ -10,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Cat, CatBreed, BREEDS } from '@/types/game';
 import { getGradeTier } from '@/types/grading';
-import { ArrowLeft, Search, SortAsc, Filter, Cat as CatIcon, Trophy, DollarSign, Star } from 'lucide-react';
+import { ArrowLeft, Search, SortAsc, Filter, Cat as CatIcon, Trophy, DollarSign, Star, Loader2 } from 'lucide-react';
 
 type SortOption = 'name' | 'grade' | 'value' | 'age' | 'health' | 'showWins';
 type FilterBreed = CatBreed | 'all';
@@ -20,6 +22,8 @@ export default function CatCollection() {
   const { playSound } = useSoundEffects();
   const { state, relationshipSystem, actions } = useGameState(playSound);
   const isMobile = useIsMobile();
+  const { user } = useAuth();
+  const { cloudLoad } = useCloudSave(user?.id);
   
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('grade');
@@ -27,6 +31,36 @@ export default function CatCollection() {
   const [filterBreed, setFilterBreed] = useState<FilterBreed>('all');
   const [filterTier, setFilterTier] = useState<FilterTier>('all');
   const [selectedCat, setSelectedCat] = useState<Cat | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load saved game on mount
+  useEffect(() => {
+    const loadSavedGame = async () => {
+      // Try cloud save first if logged in
+      if (user) {
+        const { data } = await cloudLoad();
+        if (data) {
+          actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      // Fall back to localStorage
+      const saved = localStorage.getItem('cat-farm-save');
+      if (saved) {
+        try {
+          const saveData = JSON.parse(saved);
+          actions.loadFromData?.(saveData.state, saveData.kittensBreed || 0, saveData.relationships);
+        } catch (e) {
+          console.error('Failed to load local save:', e);
+        }
+      }
+      setIsLoading(false);
+    };
+    
+    loadSavedGame();
+  }, [user, cloudLoad, actions]);
 
   const filteredAndSortedCats = useMemo(() => {
     let cats = [...state.cats];
@@ -178,7 +212,12 @@ export default function CatCollection() {
 
       {/* Grid */}
       <main className="max-w-7xl mx-auto px-4 py-6">
-        {filteredAndSortedCats.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-16">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-muted-foreground">Loading your cats...</p>
+          </div>
+        ) : filteredAndSortedCats.length === 0 ? (
           <div className="text-center py-16">
             <span className="text-6xl mb-4 block">🐾</span>
             <p className="text-muted-foreground">
