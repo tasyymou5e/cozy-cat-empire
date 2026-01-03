@@ -125,6 +125,11 @@ export function CatActivityPopups({
     action();
   };
 
+  const dismissPopup = (e: React.MouseEvent, popupId: string) => {
+    e.stopPropagation();
+    setPopups((prev) => prev.filter((p) => p.id !== popupId));
+  };
+
   return (
     <>
       {popups.map((popup) => (
@@ -137,6 +142,14 @@ export function CatActivityPopups({
             left: popup.position.left,
           }}
         >
+          {/* Dismiss button */}
+          <button
+            onClick={(e) => dismissPopup(e, popup.id)}
+            className="absolute -top-2 -right-2 w-5 h-5 bg-muted hover:bg-destructive hover:text-destructive-foreground rounded-full flex items-center justify-center text-xs text-muted-foreground transition-colors shadow-sm"
+            title="Dismiss"
+          >
+            ✕
+          </button>
           <div className="flex items-center gap-2">
             <span className={`text-2xl ${popup.animation}`}>🐱</span>
             <div className="flex-1">
