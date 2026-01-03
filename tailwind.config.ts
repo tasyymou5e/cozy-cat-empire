@@ -333,6 +333,52 @@ export default {
 				'50%': {
 					boxShadow: '0 0 8px 3px var(--highlight-color)'
 				}
+			},
+			'emoji-pop': {
+				'0%': {
+					transform: 'scale(0) rotate(-15deg)',
+					opacity: '0'
+				},
+				'50%': {
+					transform: 'scale(1.3) rotate(5deg)',
+					opacity: '1'
+				},
+				'100%': {
+					transform: 'scale(1) rotate(0deg)',
+					opacity: '1'
+				}
+			},
+			'emoji-burst': {
+				'0%': {
+					transform: 'translate(0, 0) scale(0)',
+					opacity: '0'
+				},
+				'30%': {
+					transform: 'translate(calc(var(--burst-x) * 0.5), calc(var(--burst-y) * 0.5)) scale(1.2)',
+					opacity: '1'
+				},
+				'100%': {
+					transform: 'translate(var(--burst-x), var(--burst-y)) scale(0.3)',
+					opacity: '0'
+				}
+			},
+			'emoji-wiggle': {
+				'0%, 100%': { transform: 'rotate(-8deg) scale(1)' },
+				'25%': { transform: 'rotate(8deg) scale(1.1)' },
+				'50%': { transform: 'rotate(-8deg) scale(1)' },
+				'75%': { transform: 'rotate(8deg) scale(1.1)' }
+			},
+			'emoji-shake': {
+				'0%, 100%': { transform: 'translateX(0)' },
+				'20%': { transform: 'translateX(-3px)' },
+				'40%': { transform: 'translateX(3px)' },
+				'60%': { transform: 'translateX(-3px)' },
+				'80%': { transform: 'translateX(3px)' }
+			},
+			'card-glow': {
+				'0%': { boxShadow: '0 0 0 0 var(--glow-color)' },
+				'50%': { boxShadow: '0 0 15px 5px var(--glow-color)' },
+				'100%': { boxShadow: '0 0 0 0 var(--glow-color)' }
 			}
 		},
   		animation: {
@@ -361,7 +407,12 @@ export default {
 			'float-up-enhanced': 'float-up-enhanced 2s ease-out forwards',
 			'line-pulse': 'line-pulse 2s ease-in-out infinite',
 			'line-tension': 'line-tension 0.5s ease-in-out infinite',
-			'node-highlight': 'node-highlight 1s ease-in-out infinite'
+			'node-highlight': 'node-highlight 1s ease-in-out infinite',
+			'emoji-pop': 'emoji-pop 0.4s ease-out forwards',
+			'emoji-burst': 'emoji-burst 0.6s ease-out forwards',
+			'emoji-wiggle': 'emoji-wiggle 0.8s ease-in-out 2',
+			'emoji-shake': 'emoji-shake 0.4s ease-in-out 2',
+			'card-glow': 'card-glow 0.8s ease-out forwards'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',

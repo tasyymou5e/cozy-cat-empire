@@ -29,6 +29,7 @@ import { TrainingPanel } from './TrainingPanel';
 import { RelationshipAnimations } from './RelationshipAnimations';
 import { MoodAnimations } from './MoodAnimations';
 import { CatCard } from './CatCard';
+import { CatReactionProvider, useCatReactions } from '@/contexts/CatReactionContext';
 import { TutorialSystem } from './TutorialSystem';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { DailyEventToast } from './DailyEventToast';
@@ -275,6 +276,8 @@ export function CatFarm() {
     setMusicVolume((vol / 100) * 0.3);
   };
 
+  const { getCatReaction } = useCatReactions();
+
   return (
     <div className="min-h-screen bg-background">
       <TutorialSystem onHighlightTab={setHighlightedTab} />
@@ -520,7 +523,8 @@ export function CatFarm() {
                     onHeal={actions.useMedicine}
                     onComfort={actions.comfortCat}
                     relationships={relationshipSystem.relationships} 
-                    allCats={state.cats} 
+                    allCats={state.cats}
+                    reaction={getCatReaction(cat.id)}
                   />
                 ))}
               </div>

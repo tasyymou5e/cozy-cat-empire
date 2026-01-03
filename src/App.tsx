@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SoundProvider } from "./contexts/SoundContext";
+import { CatReactionProvider } from "./contexts/CatReactionContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ErrorLoggerProvider } from "./components/ErrorLoggerProvider";
 import { AdminRoute } from "./components/admin/AdminRoute";
@@ -34,33 +35,35 @@ const App = () => (
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <AuthProvider>
           <SoundProvider>
-            <ErrorLoggerProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/collection" element={<CatCollection />} />
-                    <Route path="/customize/:catId?" element={<CatCustomization />} />
-                    <Route path="/photobooth/:catId?" element={<CatPhotoBooth />} />
-                    <Route path="/gallery" element={<CatGallery />} />
-                    <Route path="/leaderboard" element={<Leaderboard />} />
-                    <Route path="/stats" element={<Stats />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/catking" element={<AdminAuth />} />
-                    <Route path="/catking/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-                    <Route path="/catking/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-                    <Route path="/catking/stats" element={<AdminRoute><AdminStatistics /></AdminRoute>} />
-                    <Route path="/catking/errors" element={<AdminRoute><AdminErrorLogs /></AdminRoute>} />
-                    <Route path="/catking/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
-                    <Route path="/catking/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </BrowserRouter>
-              </TooltipProvider>
-            </ErrorLoggerProvider>
+            <CatReactionProvider>
+              <ErrorLoggerProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/collection" element={<CatCollection />} />
+                      <Route path="/customize/:catId?" element={<CatCustomization />} />
+                      <Route path="/photobooth/:catId?" element={<CatPhotoBooth />} />
+                      <Route path="/gallery" element={<CatGallery />} />
+                      <Route path="/leaderboard" element={<Leaderboard />} />
+                      <Route path="/stats" element={<Stats />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/catking" element={<AdminAuth />} />
+                      <Route path="/catking/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                      <Route path="/catking/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+                      <Route path="/catking/stats" element={<AdminRoute><AdminStatistics /></AdminRoute>} />
+                      <Route path="/catking/errors" element={<AdminRoute><AdminErrorLogs /></AdminRoute>} />
+                      <Route path="/catking/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
+                      <Route path="/catking/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </BrowserRouter>
+                </TooltipProvider>
+              </ErrorLoggerProvider>
+            </CatReactionProvider>
           </SoundProvider>
         </AuthProvider>
       </ThemeProvider>

@@ -4,10 +4,11 @@ import { getGradeBorderClass } from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
 import { CatAvatar } from './CatAvatar';
 import { ComfortButton } from './ComfortButton';
+import { CatCardReaction } from './CatCardReaction';
+import { CatReaction } from '@/contexts/CatReactionContext';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-
 interface CatCardProps {
   cat: Cat;
   onSell: (id: string) => void;
@@ -17,6 +18,7 @@ interface CatCardProps {
   relationships?: CatRelationship[];
   allCats?: Cat[];
   equippedCostumeId?: string;
+  reaction?: CatReaction;
 }
 
 const personalityEmojis: Record<string, string> = {
@@ -24,11 +26,16 @@ const personalityEmojis: Record<string, string> = {
   'independent': '😎', 'curious': '🔍', 'shy': '🙈',
 };
 
-export function CatCard({ cat, onSell, onHeal, onComfort, compact = false, relationships = [], allCats = [], equippedCostumeId }: CatCardProps) {
+export function CatCard({ cat, onSell, onHeal, onComfort, compact = false, relationships = [], allCats = [], equippedCostumeId, reaction }: CatCardProps) {
   const breedInfo = BREEDS[cat.breed];
   const isHealthy = cat.health >= 70;
   const gradeBorder = getGradeBorderClass(cat.grade);
-
+  
+  const glowColor = reaction?.type === 'positive' 
+    ? 'rgba(236, 72, 153, 0.4)' 
+    : reaction?.type === 'negative' 
+    ? 'rgba(239, 68, 68, 0.4)' 
+    : undefined;
   const catRelationships = relationships.filter(r => r.catId1 === cat.id || r.catId2 === cat.id);
   const friends = catRelationships.filter(r => r.score >= 20);
   const enemies = catRelationships.filter(r => r.score <= -20);
@@ -51,7 +58,11 @@ export function CatCard({ cat, onSell, onHeal, onComfort, compact = false, relat
   }
 
   return (
-    <div className={`cat-card ${gradeBorder} ${!isHealthy ? 'border-destructive/50' : ''}`}>
+    <div 
+      className={`cat-card ${gradeBorder} ${!isHealthy ? 'border-destructive/50' : ''} ${reaction ? 'animate-card-glow' : ''} relative overflow-visible`}
+      style={glowColor ? { '--glow-color': glowColor } as React.CSSProperties : undefined}
+    >
+      {reaction && <CatCardReaction reaction={reaction} />}
       <div className="flex items-start justify-between w-full mb-2">
         <div className="flex items-center gap-1">
           <CatAvatar cat={cat} size="md" equippedCostumeId={equippedCostumeId} animated />
