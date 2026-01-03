@@ -3,6 +3,8 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
+console.log('[INIT] AuthContext.tsx: Module loaded');
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -15,29 +17,53 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  console.log('[AUTH] AuthProvider: Component mounting');
+  
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('[AUTH] AuthProvider: useEffect running - setting up auth listener');
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('[AUTH] AuthProvider: onAuthStateChange triggered', { event, hasSession: !!session });
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        console.log('[AUTH] AuthProvider: State updated from onAuthStateChange');
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    console.log('[AUTH] AuthProvider: Checking existing session...');
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('[AUTH] AuthProvider: getSession completed', { 
+        hasSession: !!session, 
+        hasError: !!error
+      });
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      console.log('[AUTH] AuthProvider: Initial state set, loading = false');
+    }).catch(err => {
+      console.error('[AUTH] AuthProvider: getSession FAILED', err);
+      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('[AUTH] AuthProvider: Cleanup - unsubscribing');
+      subscription.unsubscribe();
+    };
   }, []);
+
+  console.log('[AUTH] AuthProvider: Rendering with state', { 
+    hasUser: !!user, 
+    hasSession: !!session, 
+    loading 
+  });
 
   const signIn = async (email: string, password: string) => {
     const { error, data } = await supabase.auth.signInWithPassword({ email, password });
