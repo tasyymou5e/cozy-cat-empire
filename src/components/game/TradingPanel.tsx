@@ -12,6 +12,7 @@ import { ArrowLeftRight, Send, Inbox, Check, X, Package } from 'lucide-react';
 import { useTrading } from '@/hooks/useTrading';
 import { useFriends } from '@/hooks/useFriends';
 import { Cat, Resources, BREEDS } from '@/types/game';
+import { CatVisual } from './CatVisual';
 
 /**
  * Props for the TradingPanel component
@@ -191,6 +192,7 @@ export function TradingPanel({ userId, cats, money, resources, onTradeComplete }
                           checked={selectedCats.includes(cat.id)}
                           onCheckedChange={() => handleCatToggle(cat.id)}
                         />
+                        <CatVisual cat={cat} size="xs" />
                         <span className="text-xs truncate">{cat.name}</span>
                       </label>
                     ))}

@@ -10,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { CatVisual } from './CatVisual';
+import { GradeBadge } from './GradeBadge';
 
 /**
  * Props for the BreedingPanel component
@@ -99,7 +101,11 @@ export function BreedingPanel({ cats, cooldown, hasSpace, onBreed, getBreedingCo
                 <SelectContent>
                   {eligibleCats.filter(c => c.id !== parent2).map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name} ({BREEDS[cat.breed].name})
+                      <div className="flex items-center gap-2">
+                        <CatVisual cat={cat} size="xs" />
+                        <span>{cat.name}</span>
+                        <GradeBadge grade={cat.grade} size="sm" showStars={false} />
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -115,7 +121,11 @@ export function BreedingPanel({ cats, cooldown, hasSpace, onBreed, getBreedingCo
                 <SelectContent>
                   {eligibleCats.filter(c => c.id !== parent1).map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name} ({BREEDS[cat.breed].name})
+                      <div className="flex items-center gap-2">
+                        <CatVisual cat={cat} size="xs" />
+                        <span>{cat.name}</span>
+                        <GradeBadge grade={cat.grade} size="sm" showStars={false} />
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>

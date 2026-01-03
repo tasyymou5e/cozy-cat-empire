@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Users } from 'lucide-react';
+import { CatVisual } from './CatVisual';
 
 interface GroupActivitiesPanelProps {
   cats: Cat[];
@@ -69,7 +70,8 @@ export function GroupActivitiesPanel({ cats, groups, treats, toys, onGroupActivi
                     
                     <div className="flex flex-wrap gap-1 mb-3">
                       {memberCats.map(cat => (
-                        <Badge key={cat.id} variant="outline" className="text-xs">
+                        <Badge key={cat.id} variant="outline" className="text-xs flex items-center gap-1">
+                          <CatVisual cat={cat} size="xs" className="w-4 h-4" />
                           {cat.name}
                         </Badge>
                       ))}

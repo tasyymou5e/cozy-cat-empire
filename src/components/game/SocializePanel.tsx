@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { CatVisual } from './CatVisual';
 
 /**
  * Props for the SocializePanel component
@@ -87,7 +88,11 @@ export function SocializePanel({ cats, treats, getRelationship, onSocialize }: S
                 <SelectContent>
                   {cats.filter(c => c.id !== cat2Id).map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name} ({BREEDS[cat.breed].name})
+                      <div className="flex items-center gap-2">
+                        <CatVisual cat={cat} size="xs" />
+                        <span>{cat.name}</span>
+                        <span className="text-xs text-muted-foreground">{BREEDS[cat.breed].name}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -103,7 +108,11 @@ export function SocializePanel({ cats, treats, getRelationship, onSocialize }: S
                 <SelectContent>
                   {cats.filter(c => c.id !== cat1Id).map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name} ({BREEDS[cat.breed].name})
+                      <div className="flex items-center gap-2">
+                        <CatVisual cat={cat} size="xs" />
+                        <span>{cat.name}</span>
+                        <span className="text-xs text-muted-foreground">{BREEDS[cat.breed].name}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Heart, Smile, Moon, Sparkles, Trash2, CheckSquare, Square, Zap } from 'lucide-react';
+import { CatVisual } from './CatVisual';
 
 /**
  * Props for the BulkActionsPanel component
@@ -244,15 +245,7 @@ export function BulkActionsPanel({
                         checked={selectedCats.includes(cat.id)}
                         onCheckedChange={() => toggleSelect(cat.id)}
                       />
-                      <span className="text-lg">
-                        {cat.breed === 'stray' ? '🐱' : 
-                         cat.breed === 'tabby' ? '🐈' : 
-                         cat.breed === 'persian' ? '😺' : 
-                         cat.breed === 'siamese' ? '😸' : 
-                         cat.breed === 'maine-coon' ? '🦁' : 
-                         cat.breed === 'british-shorthair' ? '😻' : 
-                         cat.breed === 'ragdoll' ? '🐾' : '🐆'}
-                      </span>
+                      <CatVisual cat={cat} size="xs" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{cat.name}</p>
                         <p className="text-xs text-muted-foreground">

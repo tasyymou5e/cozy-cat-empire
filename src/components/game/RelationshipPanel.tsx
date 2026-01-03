@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RelationshipNetworkGraph } from './RelationshipNetworkGraph';
+import { CatVisual } from './CatVisual';
 interface RelationshipPanelProps {
   cats: Cat[];
   relationships: CatRelationship[];
@@ -102,11 +103,17 @@ export function RelationshipPanel({ cats, relationships, groups, events }: Relat
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
+                          {cats.find(c => c.id === rel.catId1) && (
+                            <CatVisual cat={cats.find(c => c.id === rel.catId1)!} size="xs" />
+                          )}
                           <span className="font-medium text-sm">{getCatName(rel.catId1)}</span>
                           <span className={getRelationshipColor(rel.level)}>
                             {getRelationshipEmoji(rel.level)}
                           </span>
                           <span className="font-medium text-sm">{getCatName(rel.catId2)}</span>
+                          {cats.find(c => c.id === rel.catId2) && (
+                            <CatVisual cat={cats.find(c => c.id === rel.catId2)!} size="xs" />
+                          )}
                         </div>
                         <Badge variant="outline" className={`text-xs ${getRelationshipColor(rel.level)}`}>
                           {rel.score > 0 ? '+' : ''}{rel.score}
