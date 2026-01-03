@@ -6,23 +6,16 @@ import { ProfileSetupDialog } from '@/components/game/ProfileSetupDialog';
 import { AnnouncementBanner } from '@/components/game/AnnouncementBanner';
 
 const Index = () => {
-  console.log('[PAGE] Index: Component rendering');
-  
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  console.log('[PAGE] Index: Auth state', { hasUser: !!user, loading });
-
   useEffect(() => {
-    console.log('[PAGE] Index: useEffect - checking auth redirect', { loading, hasUser: !!user });
     if (!loading && !user) {
-      console.log('[PAGE] Index: Redirecting to /auth');
       navigate('/auth');
     }
   }, [user, loading, navigate]);
 
   if (loading) {
-    console.log('[PAGE] Index: Showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -34,11 +27,8 @@ const Index = () => {
   }
 
   if (!user) {
-    console.log('[PAGE] Index: No user, returning null (will redirect)');
-    return null; // Will redirect
+    return null;
   }
-
-  console.log('[PAGE] Index: User authenticated, rendering CatFarm');
 
   return (
     <>

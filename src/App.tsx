@@ -29,14 +29,9 @@ import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
 import AdminAIMetrics from "./pages/admin/AdminAIMetrics";
 import NotFound from "./pages/NotFound";
 
-console.log('[INIT] App.tsx: Module loaded');
-
 const queryClient = new QueryClient();
-console.log('[INIT] App.tsx: QueryClient created');
 
 const App = () => {
-  console.log('[INIT] App.tsx: App component rendering');
-  
   return (
     <ErrorBoundary componentName="App">
       <QueryClientProvider client={queryClient}>
@@ -67,7 +62,6 @@ const App = () => {
                         <Route path="/catking/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
                         <Route path="/catking/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
                         <Route path="/catking/announcements" element={<AdminRoute><AdminAnnouncements /></AdminRoute>} />
-                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </BrowserRouter>
