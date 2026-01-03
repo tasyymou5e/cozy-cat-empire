@@ -42,6 +42,7 @@ import { TradeReceivedDialog } from './TradeReceivedDialog';
 import { useCatGifts } from '@/hooks/useCatGifts';
 import { useTrading } from '@/hooks/useTrading';
 import { usePlayerActivityLog } from '@/hooks/usePlayerActivityLog';
+import { usePortraitOutdatedToast } from '@/hooks/usePortraitOutdatedToast';
 
 import { FriendsPanel } from './FriendsPanel';
 import { PlayerProfilePanel } from './PlayerProfilePanel';
@@ -129,6 +130,7 @@ export function CatFarm() {
   } = useDailyLoginRewards(user?.id, playSound, vibrateAchievement, fireConfetti);
   const { newGiftAlert, clearNewGift, acceptGift: acceptCatGift, declineGift: declineCatGift } = useCatGifts(user?.id);
   const { newTradeAlert, clearNewTrade, acceptTrade: acceptTradeOffer, declineTrade: declineTradeOffer } = useTrading(user?.id);
+  const { showOutdatedToast } = usePortraitOutdatedToast();
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
   const [musicOn, setMusicOn] = useState(false);
@@ -743,6 +745,7 @@ export function CatFarm() {
                 catCostumes={state.catCostumes}
                 onBuyCostume={actions.buyCostume}
                 onEquipCostume={actions.equipCostume}
+                onPortraitOutdated={showOutdatedToast}
               />
             </TabsContent>
             <TabsContent value="breeding" className="mt-0">

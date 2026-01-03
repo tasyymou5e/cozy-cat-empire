@@ -4,6 +4,7 @@ import { useGameState } from '@/hooks/useGameState';
 import { useSound } from '@/contexts/SoundContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
+import { usePortraitOutdatedToast } from '@/hooks/usePortraitOutdatedToast';
 import { CatAvatar } from '@/components/game/CatAvatar';
 import { GradeBadge } from '@/components/game/GradeBadge';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import {
   generateDefaultAppearance, randomizeAppearance,
 } from '@/types/catAppearance';
 import { COSTUMES, getCostumeById } from '@/types/costumes';
+import { computeAppearanceHash } from '@/lib/portraitUtils';
 import { ArrowLeft, Save, RotateCcw, Shuffle, Palette, Eye, Scissors, Smile, Shirt, Loader2, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -42,6 +44,7 @@ export default function CatCustomization() {
   const { state, kittensBreed, relationshipSystem, actions } = useGameState(playSound);
   const { user } = useAuth();
   const { cloudLoad, cloudSave } = useCloudSave(user?.id);
+  const { showOutdatedToast } = usePortraitOutdatedToast();
   
   const [selectedCatId, setSelectedCatId] = useState<string | null>(catId || null);
   const [editedAppearance, setEditedAppearance] = useState<CatAppearance | null>(null);
@@ -113,6 +116,15 @@ export default function CatCustomization() {
     if (!selectedCat || !editedAppearance) return;
     setIsSaving(true);
     
+    // Check if portrait will become outdated before saving
+    const hadPortrait = selectedCat.portraitUrl && selectedCat.appearanceHash;
+    const oldHash = selectedCat.appearanceHash;
+    const newHash = computeAppearanceHash(
+      { ...selectedCat, appearance: editedAppearance },
+      equippedCostumeId
+    );
+    const willBeOutdated = hadPortrait && oldHash !== newHash;
+    
     // Update the cat's appearance in game state
     actions.updateCatAppearance?.(selectedCat.id, editedAppearance);
     
@@ -136,6 +148,11 @@ export default function CatCustomization() {
     setHasChanges(false);
     setIsSaving(false);
     playSound('success');
+    
+    // Show toast if portrait became outdated
+    if (willBeOutdated) {
+      showOutdatedToast(selectedCat);
+    }
   };
 
   const handleReset = () => {

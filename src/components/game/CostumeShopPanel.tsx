@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ShoppingBag, Shirt, Sparkles } from 'lucide-react';
+import { computeAppearanceHash } from '@/lib/portraitUtils';
 
 interface CostumeShopPanelProps {
   cats: Cat[];
@@ -15,6 +16,7 @@ interface CostumeShopPanelProps {
   catCostumes: Record<string, string>; // catId -> costumeId
   onBuyCostume: (costumeId: string) => void;
   onEquipCostume: (catId: string, costumeId: string | null) => void;
+  onPortraitOutdated?: (cat: Cat) => void;
 }
 
 const catEmojis: Record<string, string> = {
@@ -28,7 +30,8 @@ export function CostumeShopPanel({
   ownedCostumes, 
   catCostumes, 
   onBuyCostume, 
-  onEquipCostume 
+  onEquipCostume,
+  onPortraitOutdated,
 }: CostumeShopPanelProps) {
   const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
   const [equipDialogOpen, setEquipDialogOpen] = useState(false);
@@ -227,6 +230,13 @@ export function CostumeShopPanel({
                             variant="outline" 
                             className="mt-2 w-full"
                             onClick={() => {
+                              // Check if portrait will become outdated
+                              if (selectedCat.portraitUrl && selectedCat.appearanceHash) {
+                                const newHash = computeAppearanceHash(selectedCat, undefined);
+                                if (selectedCat.appearanceHash !== newHash) {
+                                  onPortraitOutdated?.(selectedCat);
+                                }
+                              }
                               onEquipCostume(selectedCat.id, null);
                               setEquipDialogOpen(false);
                             }}
@@ -248,6 +258,13 @@ export function CostumeShopPanel({
                                   key={costume.id}
                                   className="flex items-center gap-3 p-2 rounded-lg border border-border hover:bg-accent cursor-pointer"
                                   onClick={() => {
+                                    // Check if portrait will become outdated
+                                    if (selectedCat.portraitUrl && selectedCat.appearanceHash) {
+                                      const newHash = computeAppearanceHash(selectedCat, costume.id);
+                                      if (selectedCat.appearanceHash !== newHash) {
+                                        onPortraitOutdated?.(selectedCat);
+                                      }
+                                    }
                                     onEquipCostume(selectedCat.id, costume.id);
                                     setEquipDialogOpen(false);
                                   }}
