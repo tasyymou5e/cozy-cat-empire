@@ -11,7 +11,21 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Pencil, Check, X } from 'lucide-react';
+import { Pencil, Check, X, Shuffle } from 'lucide-react';
+
+const FUN_CAT_NAMES = [
+  'Whiskers', 'Mittens', 'Shadow', 'Luna', 'Oliver', 'Mochi', 'Ginger',
+  'Patches', 'Smokey', 'Tiger', 'Cleo', 'Felix', 'Bella', 'Max', 'Coco',
+  'Biscuit', 'Waffle', 'Muffin', 'Cookie', 'Nacho', 'Taco', 'Sushi', 'Tofu',
+  'Pancake', 'Noodle', 'Dumpling', 'Pretzel', 'Nugget', 'Wonton', 'Pickles',
+  'Sir Fluffington', 'Captain Whiskers', 'Lord Meowington', 'Princess Paws',
+  'Duke Snuggles', 'Baron Von Purr', 'Countess Cuddles', 'Sir Hiss-a-lot',
+  'Gandalf', 'Yoda', 'Dumbledore', 'Sherlock', 'Watson', 'Dobby', 'Gollum',
+  'Pepper', 'Storm', 'Midnight', 'Sunny', 'Willow', 'Clover', 'Hazel',
+  'Bubbles', 'Sprinkles', 'Cupcake', 'Jellybean', 'Snickers', 'Twix', 'KitKat',
+  'Sebastian', 'Penelope', 'Theodore', 'Anastasia', 'Reginald', 'Clementine',
+  'Chaos', 'Trouble', 'Rascal', 'Bandit', 'Mischief', 'Gremlin', 'Goblin',
+];
 interface CatCardProps {
   cat: Cat;
   onSell: (id: string) => void;
@@ -75,6 +89,11 @@ export function CatCard({ cat, onSell, onHeal, onComfort, onRename, compact = fa
       handleCancelRename();
     }
   };
+
+  const generateRandomName = () => {
+    const randomIndex = Math.floor(Math.random() * FUN_CAT_NAMES.length);
+    setEditName(FUN_CAT_NAMES[randomIndex]);
+  };
   
   const glowColor = reaction?.type === 'positive' 
     ? 'rgba(236, 72, 153, 0.4)' 
@@ -128,6 +147,15 @@ export function CatCard({ cat, onSell, onHeal, onComfort, onRename, compact = fa
               className="h-6 text-sm font-bold px-1 py-0 flex-1"
               onClick={(e) => e.stopPropagation()}
             />
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="h-5 w-5 text-purple-600 hover:bg-purple-100"
+              onClick={(e) => { e.stopPropagation(); generateRandomName(); }}
+              title="Generate random name"
+            >
+              <Shuffle className="h-3 w-3" />
+            </Button>
             <Button 
               size="icon" 
               variant="ghost" 
