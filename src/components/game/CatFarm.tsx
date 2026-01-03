@@ -41,6 +41,7 @@ import { GiftReceivedDialog } from './GiftReceivedDialog';
 import { TradeReceivedDialog } from './TradeReceivedDialog';
 import { useCatGifts } from '@/hooks/useCatGifts';
 import { useTrading } from '@/hooks/useTrading';
+import { usePlayerActivityLog } from '@/hooks/usePlayerActivityLog';
 
 import { FriendsPanel } from './FriendsPanel';
 import { PlayerProfilePanel } from './PlayerProfilePanel';
@@ -85,12 +86,13 @@ export function CatFarm() {
   const { fireConfetti, fireCelebration, fireStars, fireChallengeBurst } = useConfetti();
   const { vibrateProgress, vibrateComplete, vibrateAchievement } = useHaptics();
   const { user, signOut, loading: authLoading } = useAuth();
+  const { logActivity } = usePlayerActivityLog(user?.id);
   const { 
     challenges, loading: challengesLoading, updateProgress: updateChallengeProgress, 
     claimReward, getTimeRemaining, lastProgressUpdate, clearProgressUpdate, 
     totalChallengesCompleted, currentStreak, longestStreak 
   } = useWeeklyChallenges(user?.id, playSound, fireChallengeBurst, { vibrateProgress, vibrateComplete, vibrateAchievement });
-  const { state, message, messageType, kittensBreed, currentDailyEvent, relationshipSystem, actions } = useGameState(playSound, updateChallengeProgress);
+  const { state, message, messageType, kittensBreed, currentDailyEvent, relationshipSystem, actions } = useGameState(playSound, updateChallengeProgress, logActivity);
   const isMobile = useIsMobile();
   const { cloudSave, cloudLoad, hasCloudSave } = useCloudSave(user?.id);
   const { syncPlayerStats } = useGlobalLeaderboard(user?.id);

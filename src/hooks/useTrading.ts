@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Cat, Resources } from '@/types/game';
 import { toast } from '@/hooks/use-toast';
+import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
 interface TradeOffer {
   id: string;
@@ -180,6 +181,17 @@ export function useTrading(userId: string | undefined) {
 
       if (error) throw error;
 
+      // Log trade created activity (non-blocking)
+      logPlayerActivity(userId, {
+        activityType: 'trade_created',
+        activityDescription: `Created a trade offer with ${tradeData.offeredCats.length} cat(s)`,
+        metadata: {
+          offered_cats: tradeData.offeredCats.map(c => c.name),
+          offered_money: tradeData.offeredMoney,
+          recipient_id: tradeData.recipientId
+        }
+      });
+
       toast({
         title: "Trade Offer Sent! 📦",
         description: "Your trade offer has been sent!",
@@ -199,6 +211,8 @@ export function useTrading(userId: string | undefined) {
   };
 
   const acceptTrade = async (tradeId: string): Promise<TradeOffer | null> => {
+    if (!userId) return null;
+    
     try {
       const trade = incomingTrades.find(t => t.id === tradeId);
       if (!trade) return null;
@@ -209,6 +223,18 @@ export function useTrading(userId: string | undefined) {
         .eq('id', tradeId);
 
       if (error) throw error;
+
+      // Log trade completed activity (non-blocking)
+      logPlayerActivity(userId, {
+        activityType: 'trade_completed',
+        activityDescription: 'Completed a trade',
+        metadata: {
+          trade_id: tradeId,
+          received_cats: trade.offered_cats.map(c => c.name),
+          received_money: trade.offered_money,
+          sender_id: trade.sender_id
+        }
+      });
 
       toast({
         title: "Trade Accepted! 🤝",

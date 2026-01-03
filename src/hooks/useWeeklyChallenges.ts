@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useChallengeAchievements } from '@/hooks/useChallengeAchievements';
+import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 import type { ChallengeWithProgress, ChallengeType, WeeklyChallenge, PlayerChallengeProgress } from '@/types/challenges';
 import type { SoundType } from '@/hooks/useSoundEffects';
 
@@ -156,6 +157,20 @@ export function useWeeklyChallenges(
       }
 
       if (isCompleted) {
+        // Log challenge completed activity (non-blocking)
+        if (userId) {
+          logPlayerActivity(userId, {
+            activityType: 'challenge_completed',
+            activityDescription: `Completed "${challenge.name}" challenge`,
+            metadata: {
+              challenge_name: challenge.name,
+              challenge_type: challenge.challenge_type,
+              reward_coins: challenge.reward_coins,
+              reward_badge: challenge.reward_badge
+            }
+          });
+        }
+        
         playSound?.('challengeComplete');
         fireChallengeBurst?.();
         haptics?.vibrateComplete();
