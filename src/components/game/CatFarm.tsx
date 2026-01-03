@@ -345,7 +345,13 @@ export function CatFarm() {
       <KeyboardShortcutsHelp open={showShortcutsHelp} onClose={() => setShowShortcutsHelp(false)} />
       <RelationshipAnimations events={relationshipSystem.events} lastEventId={relationshipSystem.lastEventId} />
       <MoodAnimations cats={state.cats} />
-      <CatActivityPopups cats={state.cats} />
+      <CatActivityPopups 
+        cats={state.cats} 
+        onCatClick={(catId) => {
+          const cat = state.cats.find(c => c.id === catId);
+          if (cat) playSound('click');
+        }}
+      />
       <DailyEventToast event={currentDailyEvent} onDismiss={actions.clearDailyEvent} />
       
       {/* Gift Received Popup */}
