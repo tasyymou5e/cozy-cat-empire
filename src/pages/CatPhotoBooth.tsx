@@ -23,16 +23,26 @@ const CatPhotoBooth: React.FC = () => {
   // Load game state on mount
   useEffect(() => {
     const initializeGameState = async () => {
-      if (user) {
-        const result = await cloudLoad();
-        if (result.data) {
-          actions.loadFromData(result.data.game_state, result.data.kittens_bred, result.data.relationships);
+      try {
+        if (user) {
+          const result = await cloudLoad();
+          if (result.data) {
+            actions.loadFromData(result.data.game_state, result.data.kittens_bred, result.data.relationships);
+          } else {
+            // Fallback to local storage if cloud returns no data
+            actions.loadGame();
+          }
+        } else {
+          // loadGame handles localStorage internally
+          actions.loadGame();
         }
-      } else {
-        // loadGame handles localStorage internally
+      } catch (error) {
+        console.error('Failed to load game state:', error);
+        // Fallback to local storage on error
         actions.loadGame();
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     initializeGameState();

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { GalleryPhoto, GALLERY_STORAGE_KEY, MAX_GALLERY_PHOTOS } from '@/types/gallery';
 import { useCloudGallery } from './useCloudGallery';
 import { supabase } from '@/integrations/supabase/client';
@@ -127,6 +127,12 @@ export function usePhotoGallery(userId?: string | null) {
     }
   }, [userId, cloudGallery, loadLocalPhotos, persistPhotos]);
 
+  // Store syncWithCloud in a ref to avoid re-triggering the effect
+  const syncWithCloudRef = useRef(syncWithCloud);
+  useEffect(() => {
+    syncWithCloudRef.current = syncWithCloud;
+  }, [syncWithCloud]);
+
   // Initial load
   useEffect(() => {
     const localPhotos = loadLocalPhotos();
@@ -134,9 +140,9 @@ export function usePhotoGallery(userId?: string | null) {
     setIsLoading(false);
     
     if (userId) {
-      syncWithCloud();
+      syncWithCloudRef.current();
     }
-  }, [userId, loadLocalPhotos, syncWithCloud]);
+  }, [userId, loadLocalPhotos]);
 
   const savePhoto = useCallback(async (photo: Omit<GalleryPhoto, 'id' | 'createdAt' | 'syncStatus'>) => {
     if (photos.length >= MAX_GALLERY_PHOTOS) {
