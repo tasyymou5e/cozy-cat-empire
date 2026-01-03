@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Cat, BREEDS } from '@/types/game';
+import { Cat, BREEDS, CatBreed, CatPersonality } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
 import { getGradeBorderClass } from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
@@ -13,18 +13,30 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Pencil, Check, X, Shuffle } from 'lucide-react';
 
-const FUN_CAT_NAMES = [
-  'Whiskers', 'Mittens', 'Shadow', 'Luna', 'Oliver', 'Mochi', 'Ginger',
-  'Patches', 'Smokey', 'Tiger', 'Cleo', 'Felix', 'Bella', 'Max', 'Coco',
-  'Biscuit', 'Waffle', 'Muffin', 'Cookie', 'Nacho', 'Taco', 'Sushi', 'Tofu',
-  'Pancake', 'Noodle', 'Dumpling', 'Pretzel', 'Nugget', 'Wonton', 'Pickles',
-  'Sir Fluffington', 'Captain Whiskers', 'Lord Meowington', 'Princess Paws',
-  'Duke Snuggles', 'Baron Von Purr', 'Countess Cuddles', 'Sir Hiss-a-lot',
-  'Gandalf', 'Yoda', 'Dumbledore', 'Sherlock', 'Watson', 'Dobby', 'Gollum',
-  'Pepper', 'Storm', 'Midnight', 'Sunny', 'Willow', 'Clover', 'Hazel',
-  'Bubbles', 'Sprinkles', 'Cupcake', 'Jellybean', 'Snickers', 'Twix', 'KitKat',
-  'Sebastian', 'Penelope', 'Theodore', 'Anastasia', 'Reginald', 'Clementine',
-  'Chaos', 'Trouble', 'Rascal', 'Bandit', 'Mischief', 'Gremlin', 'Goblin',
+const BREED_NAMES: Record<CatBreed, string[]> = {
+  'siamese': ['Sakura', 'Miko', 'Yuki', 'Suki', 'Kiko', 'Hana', 'Wasabi', 'Tempura', 'Sake', 'Nori', 'Tofu', 'Mochi'],
+  'persian': ['Duchess', 'Prince', 'Valentino', 'Anastasia', 'Cleopatra', 'Empress', 'Countess', 'Marquis', 'Vivienne', 'Reginald'],
+  'maine-coon': ['Bear', 'Moose', 'Timber', 'Ranger', 'Hunter', 'Maple', 'Everest', 'Grizzly', 'Kodiak', 'Aspen', 'Summit'],
+  'british-shorthair': ['Winston', 'Churchill', 'Wellington', 'Sherlock', 'Watson', 'Paddington', 'Biscuit', 'Earl Grey', 'Crumpet'],
+  'ragdoll': ['Marshmallow', 'Velvet', 'Cashmere', 'Fluffernutter', 'Snuggles', 'Cloud', 'Pillow', 'Cottontail', 'Silky'],
+  'bengal': ['Rajah', 'Sheba', 'Zara', 'Jungle', 'Safari', 'Tigris', 'Savanna', 'Leo', 'Panther', 'Aztec', 'Sahara'],
+  'tabby': ['Stripes', 'Marble', 'Autumn', 'Caramel', 'Butterscotch', 'Toffee', 'Cinnamon', 'Tiger', 'Amber'],
+  'stray': ['Scrappy', 'Lucky', 'Rascal', 'Scout', 'Maverick', 'Bandit', 'Dusty', 'Patches', 'Scruffy', 'Streetwise'],
+};
+
+const PERSONALITY_NAMES: Record<CatPersonality, string[]> = {
+  'lazy': ['Snoozer', 'Dreamer', 'Sleepy', 'Cozy', 'Lounger', 'Napkin', 'Slumber', 'Dozer', 'Yawnie', 'Pillow'],
+  'playful': ['Zoom', 'Bounce', 'Sparky', 'Frisky', 'Zippy', 'Turbo', 'Rocket', 'Dash', 'Peppy', 'Zinger'],
+  'affectionate': ['Cuddles', 'Sweetie', 'Honey', 'Lovebug', 'Snugglepuff', 'Huggy', 'Smoochie', 'Darling', 'Angel'],
+  'independent': ['Maverick', 'Solo', 'Rebel', 'Sphinx', 'Mystery', 'Enigma', 'Lone Wolf', 'Rogue', 'Drifter'],
+  'curious': ['Scout', 'Explorer', 'Sherlock', 'Detective', 'Peepers', 'Nosy', 'Snoop', 'Inquisitor', 'Seeker'],
+  'shy': ['Whisper', 'Shadow', 'Misty', 'Ghost', 'Phantom', 'Bashful', 'Wallflower', 'Timid', 'Hush'],
+};
+
+const UNIVERSAL_NAMES = [
+  'Whiskers', 'Mittens', 'Luna', 'Oliver', 'Bella', 'Max', 'Coco',
+  'Biscuit', 'Muffin', 'Cookie', 'Sir Fluffington', 'Lord Meowington',
+  'Gandalf', 'Yoda', 'Dumbledore', 'Felix', 'Ginger', 'Pepper',
 ];
 interface CatCardProps {
   cat: Cat;
@@ -91,8 +103,11 @@ export function CatCard({ cat, onSell, onHeal, onComfort, onRename, compact = fa
   };
 
   const generateRandomName = () => {
-    const randomIndex = Math.floor(Math.random() * FUN_CAT_NAMES.length);
-    setEditName(FUN_CAT_NAMES[randomIndex]);
+    const breedNames = BREED_NAMES[cat.breed] || [];
+    const personalityNames = PERSONALITY_NAMES[cat.personality] || [];
+    const combinedNames = [...breedNames, ...personalityNames, ...UNIVERSAL_NAMES];
+    const randomIndex = Math.floor(Math.random() * combinedNames.length);
+    setEditName(combinedNames[randomIndex]);
   };
   
   const glowColor = reaction?.type === 'positive' 
