@@ -24,7 +24,11 @@ export type SoundType =
   | 'catEating'
   | 'catPlaying'
   | 'catSleeping'
-  | 'catGrooming';
+  | 'catGrooming'
+  | 'catExploring'
+  | 'catHunting'
+  | 'catStretching'
+  | 'catCuddling';
 
 type MusicMood = 'morning' | 'afternoon' | 'evening' | 'night' | 'celebration' | 'tense';
 
@@ -207,6 +211,22 @@ const SOUND_CONFIGS: Record<SoundType, SoundConfig | SoundConfig[]> = {
     { frequency: 500, type: 'sine', duration: 0.05, volume: 0.1 },
     { frequency: 600, type: 'sine', duration: 0.04, volume: 0.08 },
   ],
+  catExploring: [
+    { frequency: 400, type: 'sine', duration: 0.1, volume: 0.1 },
+    { frequency: 500, type: 'sine', duration: 0.08, volume: 0.12 },
+    { frequency: 450, type: 'sine', duration: 0.12, volume: 0.08 },
+  ],
+  catHunting: [
+    { frequency: 200, type: 'sine', duration: 0.15, volume: 0.08 },
+    { frequency: 250, type: 'sine', duration: 0.1, volume: 0.1 },
+    { frequency: 180, type: 'sine', duration: 0.2, volume: 0.06 },
+  ],
+  catStretching: [
+    { frequency: 350, type: 'sine', duration: 0.2, volume: 0.1 },
+    { frequency: 400, type: 'sine', duration: 0.25, volume: 0.08 },
+    { frequency: 450, type: 'sine', duration: 0.15, volume: 0.06 },
+  ],
+  catCuddling: { frequency: 30, type: 'sine', duration: 0.5, volume: 0.1, harmonics: [60, 80] },
 };
 
 // Get mood based on game day (simulates time of day cycle)
