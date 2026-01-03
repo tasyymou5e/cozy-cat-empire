@@ -44,10 +44,10 @@ export function ResourcePanel({
         {resourceItems.map(item => (
           <div 
             key={item.key} 
-            className={`resource-item flex flex-col gap-2 p-3 rounded-lg bg-accent/30 border border-border transition-all duration-300 ${
+            className={`resource-item transition-all duration-300 ${
               animatingResource === item.key 
-                ? 'scale-105 ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/20' 
-                : ''
+                ? 'scale-105 ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/20 shadow-lg' 
+                : 'hover:bg-accent/40'
             }`}
           >
             <div className="flex items-center gap-2">

@@ -75,7 +75,7 @@ export const StatusBar = React.forwardRef<HTMLDivElement, StatusBarProps>(
           <span className="text-2xl">💰</span>
           <div>
             <p className="text-xs text-muted-foreground">Money</p>
-            <p className="font-bold text-lg">${state.money}</p>
+            <p className="font-bold text-lg text-gradient-gold">${state.money}</p>
           </div>
         </div>
         
