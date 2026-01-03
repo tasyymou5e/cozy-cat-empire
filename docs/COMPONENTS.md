@@ -1,7 +1,7 @@
 # Cat Farm - Component Architecture
 
 ## Overview
-Cat Farm uses a modular component architecture with 35+ game components, UI primitives from shadcn/ui, and supporting components for error handling and navigation.
+Cat Farm uses a modular component architecture with 42 game components, 26 custom hooks, UI primitives from shadcn/ui, and supporting components for error handling and navigation.
 
 ---
 
@@ -383,6 +383,46 @@ Static trading card display.
 
 ### FlippableTradingCard.tsx
 Interactive flip animation card.
+
+---
+
+## Bulk Actions & Leaderboard Components
+
+### BulkActionsPanel.tsx
+Mass cat management operations panel.
+
+**Features:**
+- Status summary badges (sick/tired/unhappy/trainable counts)
+- Heal All, Rest All, Comfort All, Train All buttons
+- Multi-select mode for bulk selling
+- Resource cost display on buttons
+- Confirmation dialog for irreversible sales
+
+### LeaderboardHistoryChart.tsx
+Historical ranking visualization.
+
+**Features:**
+- Line chart showing rank progression over time
+- Category-based filtering
+- Current rank and best rank display
+- Trend indicator (up/down/steady)
+
+### LeaderboardRewardsPanel.tsx
+Leaderboard reward claiming interface.
+
+**Features:**
+- Daily/weekly/monthly reward tiers
+- Individual and "Claim All" buttons
+- Reward structure information
+- Coin and badge rewards display
+
+### NotificationSettings.tsx
+Push notification preferences management.
+
+**Features:**
+- Toggle settings for different notification types
+- Push notification subscription/unsubscription
+- Per-category preferences (friends, gifts, trades)
 
 ---
 

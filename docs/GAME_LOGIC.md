@@ -398,3 +398,65 @@ interface CloudSave {
 ### Streak Tracking
 - Complete all 5 challenges in a week to maintain streak
 - Streak bonuses at 3, 5, 10 weeks
+
+---
+
+## Bulk Actions System
+
+### Heal All Sick Cats
+```typescript
+function healAllSickCats() {
+  const sickCats = cats.filter(c => c.health < 70);
+  if (resources.medicine < sickCats.length) return;
+  sickCats.forEach(c => c.health = 100);
+  resources.medicine -= sickCats.length;
+}
+```
+
+### Rest All Tired Cats
+```typescript
+function restAllTiredCats() {
+  const tiredCats = cats.filter(c => c.restLevel < 50);
+  tiredCats.forEach(c => {
+    c.restLevel = Math.min(100, c.restLevel + 20);
+    c.happiness += 5;
+    if (c.restLevel >= 80) c.grade += 0.25; // Bonus for well-rested
+  });
+}
+```
+
+### Comfort All Unhappy Cats
+```typescript
+function comfortAllUnhappyCats() {
+  const unhappyCats = cats.filter(c => c.happiness < 50);
+  unhappyCats.forEach(c => {
+    c.happiness = Math.min(100, c.happiness + 30);
+    c.health = Math.min(100, c.health + 5);
+  });
+}
+```
+
+### Train All Available Cats
+```typescript
+function trainAllAvailableCats() {
+  const trainable = cats.filter(c => 
+    c.lastTrainingDay < currentDay && 
+    c.tricksLearned.length < 5
+  );
+  // Costs: 1 treat + 1 toy per cat
+  if (resources.treats < trainable.length) return;
+  if (resources.toys < trainable.length) return;
+  
+  trainable.forEach(c => {
+    // Train next available trick
+    // Apply rest bonus
+    // Update lastTrainingDay
+  });
+}
+```
+
+### Bulk Sell
+- Multi-select cats for batch selling
+- Confirmation dialog (irreversible)
+- Total value calculated: sum(value * (1 + showWins * 0.1))
+- All selected cats removed, relationships cleaned up
