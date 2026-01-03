@@ -136,7 +136,7 @@ export function CatActivityPopups({
         <div
           key={popup.id}
           onClick={() => onCatClick?.(popup.catId)}
-          className="fixed z-50 bg-card/95 border border-border rounded-xl shadow-lg p-3 animate-activity-popup cursor-pointer hover:scale-105 hover:bg-card transition-all duration-200"
+          className="fixed z-50 bg-card/95 border border-border rounded-xl shadow-lg p-3 animate-activity-popup cursor-pointer hover:scale-105 hover:bg-card transition-all duration-200 relative overflow-visible"
           style={{
             top: popup.position.top,
             left: popup.position.left,
