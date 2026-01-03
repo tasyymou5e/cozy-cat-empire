@@ -3,6 +3,7 @@ import { Cat } from '@/types/game';
 import { CatRelationship, getRelationshipLevel } from '@/types/relationships';
 import { getGradeTier, getGradeStars, TRICKS, MAX_GRADE } from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
+import { CatAvatar } from './CatAvatar';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Star, Heart, HeartCrack, Trophy, Zap, RotateCcw } from 'lucide-react';
@@ -13,12 +14,8 @@ interface FlippableTradingCardProps {
   relationships: CatRelationship[];
   allCats: Cat[];
   onClick: () => void;
+  equippedCostumeId?: string;
 }
-
-const catEmojis: Record<string, string> = {
-  'stray': '🐱', 'tabby': '🐈', 'persian': '😺', 'siamese': '😸',
-  'maine-coon': '🦁', 'british-shorthair': '🐾', 'ragdoll': '💫', 'bengal': '🐆',
-};
 
 const personalityEmojis: Record<string, string> = {
   'lazy': '😴', 'playful': '🎮', 'affectionate': '💗', 'independent': '😎', 'curious': '🔍', 'shy': '🙈',
@@ -30,7 +27,7 @@ const typeLabels: Record<string, { label: string; color: string }> = {
   'pure': { label: 'Purebred', color: 'bg-purple-500' },
 };
 
-export function FlippableTradingCard({ cat, relationships, allCats, onClick }: FlippableTradingCardProps) {
+export function FlippableTradingCard({ cat, relationships, allCats, onClick, equippedCostumeId }: FlippableTradingCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const tier = getGradeTier(cat.grade);
   const stars = getGradeStars(cat.grade);
@@ -84,9 +81,12 @@ export function FlippableTradingCard({ cat, relationships, allCats, onClick }: F
       </div>
 
       <div className="relative flex-shrink-0 h-24 flex items-center justify-center mb-2 rounded-md bg-gradient-to-b from-background/50 to-transparent">
-        <span className={`text-5xl ${tier === 'ultraRare' ? 'animate-bounce' : tier === 'veryRare' ? 'animate-pulse' : ''}`}>
-          {catEmojis[cat.breed]}
-        </span>
+        <CatAvatar 
+          cat={cat} 
+          size="lg" 
+          equippedCostumeId={equippedCostumeId}
+          animated={tier === 'ultraRare' || tier === 'veryRare'}
+        />
         {tier === 'ultraRare' && (
           <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/30 animate-shimmer rounded-md" />
         )}
