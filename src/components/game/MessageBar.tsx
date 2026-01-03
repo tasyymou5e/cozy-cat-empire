@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +10,16 @@ interface MessageBarProps {
 
 export const MessageBar = React.forwardRef<HTMLDivElement, MessageBarProps>(
   function MessageBar({ message, type, onDismiss }, ref) {
+    useEffect(() => {
+      if (type === 'success' && onDismiss && message.trim()) {
+        const timer = setTimeout(() => {
+          onDismiss();
+        }, 5000);
+        
+        return () => clearTimeout(timer);
+      }
+    }, [message, type, onDismiss]);
+
     if (!message.trim()) return null;
 
     return (
