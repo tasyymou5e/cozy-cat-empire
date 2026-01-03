@@ -28,6 +28,7 @@ import { GroupActivitiesPanel } from './GroupActivitiesPanel';
 import { TrainingPanel } from './TrainingPanel';
 import { RelationshipAnimations } from './RelationshipAnimations';
 import { MoodAnimations } from './MoodAnimations';
+import { CatActivityPopups } from './CatActivityPopups';
 import { CatCard } from './CatCard';
 import { CatReactionProvider, useCatReactions } from '@/contexts/CatReactionContext';
 import { TutorialSystem } from './TutorialSystem';
@@ -284,6 +285,7 @@ export function CatFarm() {
       <KeyboardShortcutsHelp open={showShortcutsHelp} onClose={() => setShowShortcutsHelp(false)} />
       <RelationshipAnimations events={relationshipSystem.events} lastEventId={relationshipSystem.lastEventId} />
       <MoodAnimations cats={state.cats} />
+      <CatActivityPopups cats={state.cats} />
       <DailyEventToast event={currentDailyEvent} onDismiss={actions.clearDailyEvent} />
       
       {/* Daily Login Rewards Modal */}

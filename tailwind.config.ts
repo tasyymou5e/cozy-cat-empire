@@ -407,6 +407,12 @@ export default {
 			'cat-breathe': {
 				'0%, 100%': { transform: 'scale(1)' },
 				'50%': { transform: 'scale(1.015)' }
+			},
+			'activity-popup': {
+				'0%': { opacity: '0', transform: 'translateY(-20px) scale(0.9)' },
+				'10%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+				'85%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+				'100%': { opacity: '0', transform: 'translateY(-10px) scale(0.95)' }
 			}
 		},
   		animation: {
@@ -447,7 +453,8 @@ export default {
 			'ear-twitch-right': 'ear-twitch-right 7s ease-in-out infinite',
 			'eye-shimmer': 'eye-shimmer 2s ease-in-out infinite',
 			'whisker-wiggle': 'whisker-wiggle 3s ease-in-out infinite',
-			'cat-breathe': 'cat-breathe 3s ease-in-out infinite'
+			'cat-breathe': 'cat-breathe 3s ease-in-out infinite',
+			'activity-popup': 'activity-popup 5s ease-in-out forwards'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',
