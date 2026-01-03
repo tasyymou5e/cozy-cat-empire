@@ -148,7 +148,10 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
   }, [cat.name, toast]);
 
   const handleSaveToGallery = useCallback(async () => {
-    if (!stageRef.current) return;
+    if (!stageRef.current) {
+      toast({ title: 'Error', description: 'Photo stage not ready.', variant: 'destructive' });
+      return;
+    }
     
     if (isFull) {
       toast({ 
@@ -180,20 +183,29 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
       });
       
       if (result.success) {
-        const cloudMessage = isCloudEnabled ? ' Synced to cloud.' : '';
+        const cloudMessage = result.photo?.syncStatus === 'synced' 
+          ? ' Synced to cloud.' 
+          : result.photo?.syncStatus === 'error'
+          ? ' (Cloud sync failed, saved locally)'
+          : '';
         toast({ 
           title: 'Saved to Gallery!', 
           description: `View your photos in the gallery.${cloudMessage}`,
         });
       } else {
-        toast({ title: 'Error', description: result.error, variant: 'destructive' });
+        toast({ title: 'Save Failed', description: result.error || 'Unknown error occurred.', variant: 'destructive' });
       }
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to save photo.', variant: 'destructive' });
+      console.error('Photo save error:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to capture photo. Please try again.', 
+        variant: 'destructive' 
+      });
     } finally {
       setIsExporting(false);
     }
-  }, [cat.id, cat.name, background.id, pose.id, frame.id, stickers.length, isFull, savePhoto, toast, isCloudEnabled]);
+  }, [cat.id, cat.name, background.id, pose.id, frame.id, stickers.length, isFull, savePhoto, toast]);
 
   const getFrameStyle = (): React.CSSProperties => {
     if (frame.id === 'rainbow') {

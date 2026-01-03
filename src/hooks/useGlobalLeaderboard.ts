@@ -271,8 +271,7 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     } else {
       fetchLeaderboard(1);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, viewMode, timePeriod, friendIds, scrollMode, ...(scrollMode === 'pagination' ? [currentPage] : [])]);
+  }, [category, viewMode, timePeriod, friendIds, scrollMode, currentPage, fetchLeaderboard]);
 
   // Realtime subscription - stable effect that doesn't depend on fetchLeaderboard
   useEffect(() => {
