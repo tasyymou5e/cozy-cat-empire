@@ -4,7 +4,7 @@ import { Cat, BREEDS } from '@/types/game';
 import { CatRelationship, getRelationshipLevel, getRelationshipEmoji, getRelationshipColor } from '@/types/relationships';
 import { TRICKS, MIN_SHOW_GRADE } from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
-import { CatAvatar } from './CatAvatar';
+import { CatVisual } from './CatVisual';
 import { CatPortrait } from './CatPortrait';
 import { ComfortButton } from './ComfortButton';
 import { Progress } from '@/components/ui/progress';
@@ -99,7 +99,7 @@ export function CatDetailModal({
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
-            <CatAvatar cat={cat} size="md" equippedCostumeId={equippedCostumeId} />
+            <CatVisual cat={cat} size="md" equippedCostumeId={equippedCostumeId} animated />
             {isRenaming ? (
               <div className="flex items-center gap-2">
                 <Input

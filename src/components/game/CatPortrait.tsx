@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Cat } from '@/types/game';
-import { CatAvatar } from './CatAvatar';
+import { CatVisual } from './CatVisual';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2, RefreshCw, AlertCircle, Star, Crown, Trophy } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -165,16 +165,14 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
             }}
           />
         ) : (
-          /* Show CatAvatar as fallback */
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-background to-muted">
-            <CatAvatar
-              cat={cat}
-              equippedCostumeId={equippedCostumeId}
-              size="xl"
-              animated
-              showCostume
-            />
-          </div>
+          /* Show CatVisual as fallback */
+          <CatVisual
+            cat={cat}
+            equippedCostumeId={equippedCostumeId}
+            size="xl"
+            animated
+            className="w-full h-full"
+          />
         )}
 
         {/* Generating Overlay */}
