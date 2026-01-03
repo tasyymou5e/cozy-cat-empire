@@ -14,8 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Cat, CatBreed, BREEDS } from '@/types/game';
 import { getGradeTier } from '@/types/grading';
-import { ArrowLeft, Search, SortAsc, Filter, Cat as CatIcon, Trophy, DollarSign, Star, Loader2, Volume2, VolumeX, Sun, Moon, Settings } from 'lucide-react';
+import { isPortraitOutdated } from '@/lib/portraitUtils';
+import { ArrowLeft, Search, SortAsc, Filter, Cat as CatIcon, Trophy, DollarSign, Star, Loader2, Volume2, VolumeX, Sun, Moon, Settings, RefreshCw, X } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 
 type SortOption = 'name' | 'grade' | 'value' | 'age' | 'health' | 'showWins';
 type FilterBreed = CatBreed | 'all';
@@ -34,6 +36,7 @@ export default function CatCollection() {
   const [sortDesc, setSortDesc] = useState(true);
   const [filterBreed, setFilterBreed] = useState<FilterBreed>('all');
   const [filterTier, setFilterTier] = useState<FilterTier>('all');
+  const [showOutdatedOnly, setShowOutdatedOnly] = useState(false);
   const [selectedCat, setSelectedCat] = useState<Cat | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
@@ -71,8 +74,22 @@ export default function CatCollection() {
     loadSavedGame();
   }, [user, hasLoadedCloud, cloudLoad, actions]);
 
+  // Calculate outdated portrait count
+  const outdatedCount = useMemo(() => {
+    return state.cats.filter(cat => 
+      cat.portraitUrl && isPortraitOutdated(cat, state.catCostumes[cat.id])
+    ).length;
+  }, [state.cats, state.catCostumes]);
+
   const filteredAndSortedCats = useMemo(() => {
     let cats = [...state.cats];
+
+    // Filter by outdated portraits
+    if (showOutdatedOnly) {
+      cats = cats.filter(c => 
+        c.portraitUrl && isPortraitOutdated(c, state.catCostumes[c.id])
+      );
+    }
 
     // Filter by search
     if (search) {
@@ -104,7 +121,7 @@ export default function CatCollection() {
     });
 
     return cats;
-  }, [state.cats, search, sortBy, sortDesc, filterBreed, filterTier]);
+  }, [state.cats, search, sortBy, sortDesc, filterBreed, filterTier, showOutdatedOnly, state.catCostumes]);
 
   // Stats summary
   const totalValue = state.cats.reduce((sum, c) => sum + c.value, 0);
@@ -204,6 +221,23 @@ export default function CatCollection() {
               <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
               <span className="font-medium text-xs sm:text-sm">${totalValue}</span>
             </div>
+            {outdatedCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowOutdatedOnly(!showOutdatedOnly)}
+                className={cn(
+                  "flex items-center gap-1.5 px-2 sm:px-3 py-1.5 h-auto rounded-full transition-colors",
+                  showOutdatedOnly 
+                    ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/40" 
+                    : "bg-accent/50 hover:bg-orange-100 dark:hover:bg-orange-900/20"
+                )}
+              >
+                <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-500" />
+                <span className="font-medium text-xs sm:text-sm">{outdatedCount}</span>
+                <span className="hidden sm:inline text-xs">outdated</span>
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -273,6 +307,19 @@ export default function CatCollection() {
               </SelectContent>
             </Select>
           </div>
+
+          {showOutdatedOnly && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowOutdatedOnly(false)}
+              className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 gap-2 hover:bg-orange-200 dark:hover:bg-orange-900/40"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Showing {outdatedCount} outdated
+              <X className="h-3 w-3" />
+            </Button>
+          )}
         </div>
       </div>
 
