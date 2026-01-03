@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 interface AnimatedBackgroundProps {
   children: React.ReactNode;
   className?: string;
-  variant?: 'default' | 'auth' | 'minimal';
+  variant?: 'default' | 'auth' | 'minimal' | 'game';
 }
 
 export function AnimatedBackground({ 
@@ -15,6 +15,7 @@ export function AnimatedBackground({
     <div className={cn(
       "relative min-h-screen overflow-hidden",
       variant === 'auth' && "animated-gradient-bg",
+      variant === 'game' && "bg-background",
       variant === 'default' && "bg-background",
       className
     )}>
@@ -27,8 +28,16 @@ export function AnimatedBackground({
         </>
       )}
       
+      {/* Subtle orbs for game variant */}
+      {variant === 'game' && (
+        <>
+          <div className="absolute top-10 right-20 w-48 h-48 bg-primary/5 rounded-full blur-3xl animate-float opacity-50" />
+          <div className="absolute bottom-40 left-10 w-64 h-64 bg-accent/5 rounded-full blur-3xl animate-float animate-delay-300 opacity-40" />
+        </>
+      )}
+      
       {/* Content */}
-      <div className="relative z-10">
+      <div className="relative z-10 min-h-screen">
         {children}
       </div>
     </div>

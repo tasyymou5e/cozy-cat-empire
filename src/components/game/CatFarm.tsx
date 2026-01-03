@@ -49,6 +49,8 @@ import { CatGiftingPanel } from './CatGiftingPanel';
 import { TradingPanel } from './TradingPanel';
 import { NotificationCenter } from './NotificationCenter';
 import { WeeklyChallengesPanel } from './WeeklyChallengesPanel';
+import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
+import { FloatingDecorations } from '@/components/ui/FloatingDecorations';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -340,7 +342,8 @@ export function CatFarm() {
   const { getCatReaction } = useCatReactions();
 
   return (
-    <div className="min-h-screen bg-background">
+    <AnimatedBackground variant="game" className="min-h-screen">
+      <FloatingDecorations variant="paws" density="low" className="opacity-20" />
       <TutorialSystem onHighlightTab={setHighlightedTab} />
       <KeyboardShortcutsHelp open={showShortcutsHelp} onClose={() => setShowShortcutsHelp(false)} />
       <RelationshipAnimations events={relationshipSystem.events} lastEventId={relationshipSystem.lastEventId} />
@@ -390,7 +393,7 @@ export function CatFarm() {
       
       <header className="game-header">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">🐱 Cat Farm</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">🐱 Cat Farm</h1>
           <span className="text-xs text-muted-foreground hidden sm:inline">Build your 100-acre cat empire!</span>
         </div>
         <div className="flex items-center gap-2">
@@ -738,6 +741,6 @@ export function CatFarm() {
           </aside>
         </main>
       </Tabs>
-    </div>
+    </AnimatedBackground>
   );
 }

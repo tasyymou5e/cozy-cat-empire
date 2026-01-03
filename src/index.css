@@ -154,11 +154,15 @@
 
 @layer components {
   .game-header {
-    @apply flex items-center justify-between px-4 py-3 md:px-6 border-b border-border bg-card shadow-sm;
+    @apply flex items-center justify-between px-4 py-3 md:px-6 
+           border-b border-white/20 dark:border-white/10
+           bg-card/80 backdrop-blur-md shadow-lg;
   }
 
   .status-bar {
-    @apply px-4 py-4 md:px-6 bg-secondary/40 border-b border-border;
+    @apply px-4 py-4 md:px-6 
+           bg-card/60 backdrop-blur-sm 
+           border-b border-border;
   }
 
   .status-grid {
@@ -166,7 +170,10 @@
   }
 
   .status-item {
-    @apply flex items-center gap-2 px-3 py-2 bg-card rounded-xl shadow-sm border border-border;
+    @apply flex items-center gap-2 px-3 py-2 
+           bg-card/80 backdrop-blur-sm 
+           rounded-xl shadow-md border border-white/20 dark:border-white/10
+           hover:scale-[1.02] transition-all duration-300;
   }
 
   .status-item.highlight {
@@ -184,7 +191,7 @@
   }
 
   .message-bar {
-    @apply px-4 py-2.5 bg-accent text-accent-foreground border-b border-border text-sm;
+    @apply px-4 py-2.5 bg-accent/80 backdrop-blur-sm text-accent-foreground border-b border-border text-sm;
   }
 
   .message-success {
@@ -211,13 +218,30 @@
     @apply grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3;
   }
 
+  /* Staggered entrance animation for cat cards */
+  .cat-grid > * {
+    animation: fade-in-up 0.4s ease-out backwards;
+  }
+  .cat-grid > *:nth-child(1) { animation-delay: 0ms; }
+  .cat-grid > *:nth-child(2) { animation-delay: 50ms; }
+  .cat-grid > *:nth-child(3) { animation-delay: 100ms; }
+  .cat-grid > *:nth-child(4) { animation-delay: 150ms; }
+  .cat-grid > *:nth-child(5) { animation-delay: 200ms; }
+  .cat-grid > *:nth-child(6) { animation-delay: 250ms; }
+  .cat-grid > *:nth-child(7) { animation-delay: 300ms; }
+  .cat-grid > *:nth-child(8) { animation-delay: 350ms; }
+
   .cat-card {
-    @apply flex flex-col items-center p-3 rounded-xl border border-border bg-card shadow-sm
-           transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
+    @apply flex flex-col items-center p-3 rounded-xl 
+           border border-white/20 dark:border-white/10
+           bg-card/80 backdrop-blur-sm shadow-lg
+           transition-all duration-300 
+           hover:shadow-xl hover:-translate-y-1 hover:bg-card/90;
   }
 
   .cat-card-compact {
-    @apply flex items-center gap-3 p-2 rounded-lg border border-border bg-card;
+    @apply flex items-center gap-3 p-2 rounded-lg 
+           border border-white/10 bg-card/70 backdrop-blur-sm;
   }
 
   .stat-row {
@@ -225,7 +249,9 @@
   }
 
   .empty-state {
-    @apply flex flex-col items-center justify-center py-12 text-center bg-card rounded-2xl border border-dashed border-border;
+    @apply flex flex-col items-center justify-center py-12 text-center 
+           bg-card/50 backdrop-blur-sm rounded-2xl 
+           border border-dashed border-white/30 dark:border-white/20;
   }
 
   .action-sidebar {
@@ -233,15 +259,22 @@
   }
 
   .action-panel, .chore-panel, .resource-panel, .market-panel {
-    @apply bg-card rounded-xl border border-border shadow-sm p-4 space-y-4;
+    @apply bg-card/80 backdrop-blur-md rounded-xl 
+           border border-white/20 dark:border-white/10 
+           shadow-lg p-4 space-y-4;
   }
 
   .resource-item {
-    @apply flex items-center justify-between p-2 bg-secondary/50 rounded-lg;
+    @apply flex flex-col gap-2 p-3 rounded-lg 
+           bg-accent/30 backdrop-blur-sm
+           border border-white/10 
+           transition-all duration-300;
   }
 
   .market-listing {
-    @apply p-3 bg-secondary/30 rounded-lg border border-border hover:bg-secondary/50 transition-colors;
+    @apply p-3 bg-card/60 backdrop-blur-sm rounded-lg 
+           border border-white/15 dark:border-white/10
+           hover:bg-card/80 hover:shadow-md transition-all duration-300;
   }
 
   .next-day-button {
