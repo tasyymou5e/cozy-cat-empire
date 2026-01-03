@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Gift, Check, X, Sparkles, Heart } from 'lucide-react';
 import { Cat, BREEDS } from '@/types/game';
-import { CatAvatar } from './CatAvatar';
+import { CatVisual } from './CatVisual';
 
 interface CatGift {
   id: string;
@@ -65,7 +65,7 @@ export function GiftReceivedDialog({ gift, onAccept, onDecline, onClose }: GiftR
         <div className="flex flex-col items-center gap-4 py-4 relative z-10">
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center border-4 border-primary/30 animate-pulse-glow">
-              <CatAvatar cat={gift.cat_data} size="lg" />
+              <CatVisual cat={gift.cat_data} size="lg" preferPortrait={true} />
             </div>
             <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-1">
               <Badge variant="outline" className="text-xs">
