@@ -37,6 +37,8 @@ import { DailyEventToast } from './DailyEventToast';
 import { LeaderboardPanel } from './LeaderboardPanel';
 import { DailyRewardsPanel } from './DailyRewardsPanel';
 import { BulkActionsPanel } from './BulkActionsPanel';
+import { GiftReceivedDialog } from './GiftReceivedDialog';
+import { useCatGifts } from '@/hooks/useCatGifts';
 
 import { FriendsPanel } from './FriendsPanel';
 import { PlayerProfilePanel } from './PlayerProfilePanel';
@@ -95,6 +97,7 @@ export function CatFarm() {
     vipTier,
     isVIP,
   } = useDailyLoginRewards(user?.id, playSound, vibrateAchievement, fireConfetti);
+  const { newGiftAlert, clearNewGift, acceptGift: acceptCatGift, declineGift: declineCatGift } = useCatGifts(user?.id);
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
   const [musicOn, setMusicOn] = useState(false);
@@ -107,6 +110,22 @@ export function CatFarm() {
   const [cloudSyncing, setCloudSyncing] = useState(false);
   const [lastCloudSave, setLastCloudSave] = useState<string | null>(null);
   const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
+
+  // Handle accepting gift from popup
+  const handleAcceptGiftFromPopup = async (giftId: string) => {
+    const cat = await acceptCatGift(giftId);
+    if (cat) {
+      actions.addReceivedCat?.(cat);
+      playSound?.('success');
+      fireConfetti();
+    }
+    clearNewGift();
+  };
+
+  const handleDeclineGiftFromPopup = async (giftId: string) => {
+    await declineCatGift(giftId);
+    clearNewGift();
+  };
 
   // Handle claiming daily reward
   const handleClaimDailyReward = async () => {
@@ -287,6 +306,14 @@ export function CatFarm() {
       <MoodAnimations cats={state.cats} />
       <CatActivityPopups cats={state.cats} />
       <DailyEventToast event={currentDailyEvent} onDismiss={actions.clearDailyEvent} />
+      
+      {/* Gift Received Popup */}
+      <GiftReceivedDialog
+        gift={newGiftAlert}
+        onAccept={handleAcceptGiftFromPopup}
+        onDecline={handleDeclineGiftFromPopup}
+        onClose={clearNewGift}
+      />
       
       {/* Daily Login Rewards Modal */}
       <DailyRewardsPanel

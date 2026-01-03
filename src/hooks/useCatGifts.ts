@@ -19,6 +19,7 @@ export function useCatGifts(userId: string | undefined) {
   const [receivedGifts, setReceivedGifts] = useState<CatGift[]>([]);
   const [sentGifts, setSentGifts] = useState<CatGift[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newGiftAlert, setNewGiftAlert] = useState<CatGift | null>(null);
 
   const fetchGifts = useCallback(async () => {
     if (!userId) {
@@ -97,18 +98,40 @@ export function useCatGifts(userId: string | undefined) {
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'cat_gifts',
           filter: `recipient_id=eq.${userId}`
         },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            toast({
-              title: "🎁 New Cat Gift!",
-              description: "Someone sent you a cat as a gift!",
-            });
-          }
+        async (payload) => {
+          // Fetch sender name for the new gift
+          const newGift = payload.new as any;
+          const { data: senderProfile } = await supabase
+            .from('profiles')
+            .select('display_name')
+            .eq('id', newGift.sender_id)
+            .single();
+
+          const giftWithSender: CatGift = {
+            ...newGift,
+            cat_data: newGift.cat_data as Cat,
+            status: newGift.status as 'pending' | 'accepted' | 'declined',
+            sender_name: senderProfile?.display_name || 'A friend'
+          };
+
+          setNewGiftAlert(giftWithSender);
+          fetchGifts();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'cat_gifts',
+          filter: `recipient_id=eq.${userId}`
+        },
+        () => {
           fetchGifts();
         }
       )
@@ -211,6 +234,8 @@ export function useCatGifts(userId: string | undefined) {
     sendGift,
     acceptGift,
     declineGift,
-    refetch: fetchGifts
+    refetch: fetchGifts,
+    newGiftAlert,
+    clearNewGift: () => setNewGiftAlert(null)
   };
 }

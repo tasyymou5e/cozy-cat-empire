@@ -145,7 +145,7 @@ export function TradingPanel({ userId, cats, money, resources, onTradeComplete }
                     </SelectTrigger>
                     <SelectContent>
                       {acceptedFriends.map(friend => (
-                        <SelectItem key={friend.id} value={friend.id}>
+                        <SelectItem key={friend.friend_id} value={friend.friend_id}>
                           {friend.display_name || 'Unknown'}
                         </SelectItem>
                       ))}
