@@ -5,8 +5,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
+import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardDescription, GlassCardContent } from '@/components/ui/GlassCard';
+import { LoadingCat } from '@/components/ui/LoadingCat';
+import { FloatingDecorations } from '@/components/ui/FloatingDecorations';
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: 'Invalid email address' }),
@@ -163,12 +166,9 @@ export default function Auth() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <span className="text-4xl animate-bounce inline-block">🐱</span>
-          <p className="mt-2 text-muted-foreground">Loading...</p>
-        </div>
-      </div>
+      <AnimatedBackground variant="auth" className="flex items-center justify-center">
+        <LoadingCat size="lg" text="Loading your cat empire..." />
+      </AnimatedBackground>
     );
   }
 
@@ -182,14 +182,16 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="text-5xl mb-2">🐱</div>
-          <CardTitle className="text-2xl">Cat Farm</CardTitle>
-          <CardDescription>{getTitle()}</CardDescription>
-        </CardHeader>
-        <CardContent>
+    <AnimatedBackground variant="auth" className="flex items-center justify-center p-4">
+      <FloatingDecorations variant="paws" density="low" />
+      
+      <GlassCard className="w-full max-w-md animate-fade-in-up">
+        <GlassCardHeader className="text-center">
+          <div className="text-5xl mb-2 animate-bounce">🐱</div>
+          <GlassCardTitle className="text-gradient-primary">Cat Farm</GlassCardTitle>
+          <GlassCardDescription>{getTitle()}</GlassCardDescription>
+        </GlassCardHeader>
+        <GlassCardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode !== 'update-password' && (
               <div className="space-y-2">
@@ -202,6 +204,7 @@ export default function Auth() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isSubmitting}
                   required
+                  className="bg-background/50 backdrop-blur-sm"
                 />
               </div>
             )}
@@ -218,6 +221,7 @@ export default function Auth() {
                   disabled={isSubmitting}
                   required
                   minLength={6}
+                  className="bg-background/50 backdrop-blur-sm"
                 />
               </div>
             )}
@@ -234,6 +238,7 @@ export default function Auth() {
                   disabled={isSubmitting}
                   required
                   minLength={6}
+                  className="bg-background/50 backdrop-blur-sm"
                 />
               </div>
             )}
@@ -245,12 +250,12 @@ export default function Auth() {
             )}
 
             {success && (
-              <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-md text-sm text-green-600">
+              <div className="p-3 bg-[hsl(var(--success))]/10 border border-[hsl(var(--success))]/30 rounded-md text-sm text-[hsl(var(--success))]">
                 {success}
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button type="submit" className="w-full hover-lift" disabled={isSubmitting}>
               {isSubmitting
                 ? 'Please wait...'
                 : mode === 'login'
@@ -269,14 +274,14 @@ export default function Auth() {
                 <button
                   type="button"
                   onClick={() => switchMode('forgot-password')}
-                  className="text-muted-foreground hover:text-primary hover:underline block w-full"
+                  className="text-muted-foreground hover:text-primary hover:underline block w-full transition-colors"
                 >
                   Forgot your password?
                 </button>
                 <button
                   type="button"
                   onClick={() => switchMode('signup')}
-                  className="text-primary hover:underline"
+                  className="text-primary hover:underline transition-colors"
                 >
                   Don't have an account? Sign up
                 </button>
@@ -286,7 +291,7 @@ export default function Auth() {
               <button
                 type="button"
                 onClick={() => switchMode('login')}
-                className="text-primary hover:underline"
+                className="text-primary hover:underline transition-colors"
               >
                 Already have an account? Log in
               </button>
@@ -295,14 +300,14 @@ export default function Auth() {
               <button
                 type="button"
                 onClick={() => switchMode('login')}
-                className="text-primary hover:underline"
+                className="text-primary hover:underline transition-colors"
               >
                 Back to login
               </button>
             )}
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </GlassCardContent>
+      </GlassCard>
+    </AnimatedBackground>
   );
 }
