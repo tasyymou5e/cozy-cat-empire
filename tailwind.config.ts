@@ -379,6 +379,34 @@ export default {
 				'0%': { boxShadow: '0 0 0 0 var(--glow-color)' },
 				'50%': { boxShadow: '0 0 15px 5px var(--glow-color)' },
 				'100%': { boxShadow: '0 0 0 0 var(--glow-color)' }
+			},
+			// Cat Avatar Animations
+			'cat-blink': {
+				'0%, 92%, 100%': { transform: 'scaleY(0)' },
+				'94%, 98%': { transform: 'scaleY(1)' }
+			},
+			'ear-twitch-left': {
+				'0%, 85%, 100%': { transform: 'rotate(-20deg)' },
+				'88%': { transform: 'rotate(-28deg)' },
+				'91%': { transform: 'rotate(-16deg)' }
+			},
+			'ear-twitch-right': {
+				'0%, 70%, 100%': { transform: 'rotate(20deg)' },
+				'73%': { transform: 'rotate(28deg)' },
+				'76%': { transform: 'rotate(16deg)' }
+			},
+			'eye-shimmer': {
+				'0%, 100%': { opacity: '0.9', transform: 'translate(0, 0)' },
+				'50%': { opacity: '1', transform: 'translate(1px, -0.5px)' }
+			},
+			'whisker-wiggle': {
+				'0%, 100%': { transform: 'rotate(0deg)' },
+				'25%': { transform: 'rotate(1deg)' },
+				'75%': { transform: 'rotate(-1deg)' }
+			},
+			'cat-breathe': {
+				'0%, 100%': { transform: 'scale(1)' },
+				'50%': { transform: 'scale(1.015)' }
 			}
 		},
   		animation: {
@@ -412,7 +440,14 @@ export default {
 			'emoji-burst': 'emoji-burst 0.6s ease-out forwards',
 			'emoji-wiggle': 'emoji-wiggle 0.8s ease-in-out 2',
 			'emoji-shake': 'emoji-shake 0.4s ease-in-out 2',
-			'card-glow': 'card-glow 0.8s ease-out forwards'
+			'card-glow': 'card-glow 0.8s ease-out forwards',
+			// Cat Avatar Animations
+			'cat-blink': 'cat-blink 5s ease-in-out infinite',
+			'ear-twitch-left': 'ear-twitch-left 6s ease-in-out infinite',
+			'ear-twitch-right': 'ear-twitch-right 7s ease-in-out infinite',
+			'eye-shimmer': 'eye-shimmer 2s ease-in-out infinite',
+			'whisker-wiggle': 'whisker-wiggle 3s ease-in-out infinite',
+			'cat-breathe': 'cat-breathe 3s ease-in-out infinite'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',
