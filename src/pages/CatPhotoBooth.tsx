@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Cat as CatIcon } from 'lucide-react';
+import { ArrowLeft, Cat as CatIcon, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGameState } from '@/hooks/useGameState';
@@ -100,24 +100,35 @@ const CatPhotoBooth: React.FC = () => {
             <h1 className="text-lg font-bold">📸 Photo Booth</h1>
           </div>
           
-          <Select 
-            value={selectedCatId || ''} 
-            onValueChange={(value) => {
-              setSelectedCatId(value);
-              playSound('click');
-            }}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a cat" />
-            </SelectTrigger>
-            <SelectContent>
-              {gameState.cats.map(cat => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  {cat.name} ({cat.breed})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/gallery')}
+            >
+              <ImageIcon className="w-4 h-4 mr-2" />
+              Gallery
+            </Button>
+            
+            <Select 
+              value={selectedCatId || ''} 
+              onValueChange={(value) => {
+                setSelectedCatId(value);
+                playSound('click');
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a cat" />
+              </SelectTrigger>
+              <SelectContent>
+                {gameState.cats.map(cat => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name} ({cat.breed})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </header>
       

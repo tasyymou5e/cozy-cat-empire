@@ -150,6 +150,11 @@ export default function CatCollection() {
                     📸 Photo Booth
                   </DropdownMenuItem>
                 </Link>
+                <Link to="/gallery">
+                  <DropdownMenuItem className="cursor-pointer">
+                    🖼️ Photo Gallery
+                  </DropdownMenuItem>
+                </Link>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
