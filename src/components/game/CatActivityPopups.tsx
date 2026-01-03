@@ -20,6 +20,10 @@ const ACTIVITIES = [
   { key: 'playing', emojis: ['🎾', '🧶', '🎮'], text: 'is playing' },
   { key: 'sleeping', emojis: ['💤', '😴', '🌙'], text: 'is napping' },
   { key: 'grooming', emojis: ['✨', '🛁', '🐾'], text: 'is grooming' },
+  { key: 'exploring', emojis: ['🔍', '🗺️', '👀'], text: 'is exploring' },
+  { key: 'hunting', emojis: ['🎯', '🐭', '🦋'], text: 'is hunting' },
+  { key: 'stretching', emojis: ['🧘', '💪', '🌟'], text: 'is stretching' },
+  { key: 'cuddling', emojis: ['💕', '🤗', '❤️'], text: 'is cuddling' },
 ];
 
 const POSITIONS = [
@@ -34,6 +38,10 @@ const ACTIVITY_SOUNDS: Record<string, SoundType> = {
   'playing': 'catPlaying',
   'sleeping': 'catSleeping',
   'grooming': 'catGrooming',
+  'exploring': 'catExploring',
+  'hunting': 'catHunting',
+  'stretching': 'catStretching',
+  'cuddling': 'catCuddling',
 };
 
 export function CatActivityPopups({ cats }: CatActivityPopupsProps) {
