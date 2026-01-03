@@ -49,12 +49,19 @@ export default function Auth() {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const queryParams = new URLSearchParams(window.location.search);
       
-      // Check for recovery type in hash or query
+      // Check for tokens - be forgiving and detect recovery even without type=recovery
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const code = queryParams.get('code');
+      const tokenHash = queryParams.get('token_hash') || hashParams.get('token_hash');
       const hashType = hashParams.get('type');
       const queryType = queryParams.get('type');
-      const isRecovery = hashType === 'recovery' || queryType === 'recovery';
       
-      if (!isRecovery) return;
+      // Detect recovery if type=recovery OR if we have recovery-like tokens
+      const hasRecoveryTokens = (accessToken && refreshToken) || code || tokenHash;
+      const isRecoveryType = hashType === 'recovery' || queryType === 'recovery';
+      
+      if (!hasRecoveryTokens && !isRecoveryType) return;
       
       setIsRecoveryFlow(true);
       setIsProcessingRecovery(true);
@@ -62,9 +69,6 @@ export default function Auth() {
       
       try {
         // Method 1: Hash tokens (implicit flow)
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-        
         if (accessToken && refreshToken) {
           const { error } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -73,17 +77,24 @@ export default function Auth() {
           
           if (error) throw error;
           
+          // Verify session was actually created
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) throw new Error('Failed to establish session');
+          
           setMode('update-password');
           window.history.replaceState(null, '', window.location.pathname);
           return;
         }
         
         // Method 2: PKCE code flow
-        const code = queryParams.get('code');
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           
           if (error) throw error;
+          
+          // Verify session was actually created
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) throw new Error('Failed to establish session');
           
           setMode('update-password');
           window.history.replaceState(null, '', window.location.pathname);
@@ -91,7 +102,6 @@ export default function Auth() {
         }
         
         // Method 3: Token hash flow (OTP)
-        const tokenHash = queryParams.get('token_hash') || hashParams.get('token_hash');
         if (tokenHash) {
           const { error } = await supabase.auth.verifyOtp({
             type: 'recovery',
@@ -99,6 +109,10 @@ export default function Auth() {
           });
           
           if (error) throw error;
+          
+          // Verify session was actually created
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) throw new Error('Failed to establish session');
           
           setMode('update-password');
           window.history.replaceState(null, '', window.location.pathname);
