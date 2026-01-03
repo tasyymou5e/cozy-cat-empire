@@ -306,6 +306,33 @@ export default {
 					transform: 'translateY(-60px) scale(0.4)',
 					opacity: '0'
 				}
+			},
+			'line-pulse': {
+				'0%, 100%': {
+					opacity: '1'
+				},
+				'50%': {
+					opacity: '0.6'
+				}
+			},
+			'line-tension': {
+				'0%, 100%': {
+					transform: 'translateY(0)'
+				},
+				'25%': {
+					transform: 'translateY(-0.5px)'
+				},
+				'75%': {
+					transform: 'translateY(0.5px)'
+				}
+			},
+			'node-highlight': {
+				'0%, 100%': {
+					boxShadow: '0 0 0 0 var(--highlight-color)'
+				},
+				'50%': {
+					boxShadow: '0 0 8px 3px var(--highlight-color)'
+				}
 			}
 		},
   		animation: {
@@ -331,7 +358,10 @@ export default {
 			'spark-burst': 'spark-burst 0.8s ease-out forwards',
 			'slide-in-top': 'slide-in-top 0.4s ease-out forwards',
 			'edge-glow': 'edge-glow 0.8s ease-out forwards',
-			'float-up-enhanced': 'float-up-enhanced 2s ease-out forwards'
+			'float-up-enhanced': 'float-up-enhanced 2s ease-out forwards',
+			'line-pulse': 'line-pulse 2s ease-in-out infinite',
+			'line-tension': 'line-tension 0.5s ease-in-out infinite',
+			'node-highlight': 'node-highlight 1s ease-in-out infinite'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',
