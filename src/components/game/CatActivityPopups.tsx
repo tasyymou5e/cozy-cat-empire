@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Cat } from '@/types/game';
 import { useSound } from '@/contexts/SoundContext';
 import { SoundType } from '@/hooks/useSoundEffects';
@@ -72,7 +72,8 @@ export function CatActivityPopups({
   hasMedicine = false,
 }: CatActivityPopupsProps) {
   const [popups, setPopups] = useState<ActivityPopup[]>([]);
-  const [positionIndex, setPositionIndex] = useState(0);
+  const positionIndexRef = useRef(0);
+  const timeoutsRef = useRef<Set<NodeJS.Timeout>>(new Set());
   const { playSound } = useSound();
 
   useEffect(() => {
@@ -90,10 +91,10 @@ export function CatActivityPopups({
         activity: randomActivity.text,
         emoji: randomEmoji,
         animation: randomActivity.animation,
-        position: POSITIONS[positionIndex % POSITIONS.length],
+        position: POSITIONS[positionIndexRef.current % POSITIONS.length],
       };
 
-      setPositionIndex((prev) => prev + 1);
+      positionIndexRef.current += 1;
       setPopups((prev) => [...prev, newPopup]);
 
       // Play activity sound
@@ -102,14 +103,22 @@ export function CatActivityPopups({
         playSound(soundType);
       }
 
-      // Remove popup after 5 seconds
-      setTimeout(() => {
+      // Remove popup AFTER animation completes (5s animation + 200ms buffer)
+      const timeoutId = setTimeout(() => {
         setPopups((prev) => prev.filter((p) => p.id !== newPopup.id));
-      }, 5000);
-    }, 8000 + Math.random() * 4000); // Every 8-12 seconds
+        timeoutsRef.current.delete(timeoutId);
+      }, 5200);
+      
+      timeoutsRef.current.add(timeoutId);
+    }, 8000 + Math.random() * 4000);
 
-    return () => clearInterval(interval);
-  }, [cats, positionIndex, playSound]);
+    return () => {
+      clearInterval(interval);
+      // Clear all pending timeouts on cleanup
+      timeoutsRef.current.forEach(id => clearTimeout(id));
+      timeoutsRef.current.clear();
+    };
+  }, [cats, playSound]);
 
   const handleQuickAction = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
