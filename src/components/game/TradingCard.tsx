@@ -43,10 +43,10 @@ export function TradingCard({ cat, relationships, allCats, onClick, equippedCost
 
   const cardBorders: Record<string, string> = {
     common: 'border-2 border-border',
-    uncommon: 'border-2 border-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.3)]',
-    rare: 'border-2 border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)] animate-glow-pulse',
-    veryRare: 'border-2 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.5)] animate-grade-glow',
-    ultraRare: 'border-2 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-[2px] animate-rainbow',
+    uncommon: 'border-2 border-blue-400 shadow-[0_0_12px_2px_rgba(59,130,246,0.35)] hover:shadow-[0_0_18px_4px_rgba(59,130,246,0.5)]',
+    rare: 'border-2 border-purple-400 animate-purple-glow',
+    veryRare: 'border-2 border-yellow-400 animate-golden-glow',
+    ultraRare: 'border-2 animate-rainbow-glow',
   };
 
   const cardBg: Record<string, string> = {

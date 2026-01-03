@@ -70,11 +70,27 @@ export function getGradeColor(grade: number): string {
 export function getGradeBorderClass(grade: number): string {
   const tier = getGradeTier(grade);
   switch (tier) {
-    case 'ultraRare': return 'border-2 animate-rainbow';
-    case 'veryRare': return 'border-2 border-yellow-400 animate-grade-glow [--grade-color:hsl(45,90%,50%)]';
-    case 'rare': return 'border-2 border-purple-400 animate-grade-glow [--grade-color:hsl(270,70%,60%)]';
-    case 'uncommon': return 'border-2 border-blue-400';
+    case 'ultraRare': return 'border-2 animate-rainbow-glow';
+    case 'veryRare': return 'border-2 border-yellow-400 animate-golden-glow';
+    case 'rare': return 'border-2 border-purple-400 animate-purple-glow';
+    case 'uncommon': return 'border-2 border-blue-400 shadow-[0_0_12px_2px_rgba(59,130,246,0.35)] hover:shadow-[0_0_18px_4px_rgba(59,130,246,0.5)]';
     default: return 'border border-border';
+  }
+}
+
+export function getGradeGlowClass(grade: number): string {
+  const tier = getGradeTier(grade);
+  switch (tier) {
+    case 'ultraRare': 
+      return 'shadow-[0_0_30px_8px_rgba(236,72,153,0.6)] hover:shadow-[0_0_40px_12px_rgba(236,72,153,0.8)]';
+    case 'veryRare': 
+      return 'shadow-[0_0_25px_6px_rgba(234,179,8,0.5)] hover:shadow-[0_0_35px_10px_rgba(234,179,8,0.7)]';
+    case 'rare': 
+      return 'shadow-[0_0_20px_4px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_8px_rgba(168,85,247,0.6)]';
+    case 'uncommon': 
+      return 'shadow-[0_0_15px_2px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_4px_rgba(59,130,246,0.5)]';
+    default: 
+      return '';
   }
 }
 
