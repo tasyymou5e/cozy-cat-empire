@@ -44,6 +44,7 @@ export default function Auth() {
   // Detect PASSWORD_RECOVERY event for password reset flow
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      console.log('Auth event:', event);
       if (event === 'PASSWORD_RECOVERY') {
         setMode('update-password');
         setSuccess('');
@@ -51,9 +52,28 @@ export default function Auth() {
       }
     });
 
-    // Also check URL hash for recovery token on initial load
+    // Check URL hash for recovery token and exchange for session
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    if (hashParams.get('type') === 'recovery') {
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    const type = hashParams.get('type');
+
+    if (type === 'recovery' && accessToken && refreshToken) {
+      // Exchange tokens for session
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      }).then(({ error }) => {
+        if (error) {
+          console.error('Error setting session:', error);
+          setError('Password reset link expired or invalid. Please request a new one.');
+        } else {
+          setMode('update-password');
+          // Clear hash from URL
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      });
+    } else if (type === 'recovery') {
       setMode('update-password');
     }
 
