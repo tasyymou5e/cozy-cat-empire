@@ -532,7 +532,7 @@ function TradingCardView({
       </div>
 
       <div className="relative flex-shrink-0 h-24 flex items-center justify-center mb-2 rounded-md bg-gradient-to-b from-background/50 to-transparent">
-        <CatAvatar cat={cat} size="lg" equippedCostumeId={equippedCostumeId} animated={tier === 'ultraRare' || tier === 'veryRare'} />
+        <CatVisual cat={cat} size="lg" equippedCostumeId={equippedCostumeId} preferPortrait={true} animated={tier === 'ultraRare' || tier === 'veryRare'} />
         {tier === 'ultraRare' && (
           <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/30 animate-shimmer rounded-md" />
         )}
