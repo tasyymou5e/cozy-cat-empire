@@ -12,7 +12,6 @@
     <meta property="og:description" content="Build your cat empire! Collect strays, adopted and pure breed cats." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Lovable" />
@@ -21,32 +20,6 @@
 
   <body>
     <div id="root"></div>
-    
-    <!-- Global error handler - catches errors before React loads -->
-    <script>
-      window.__EARLY_ERRORS = [];
-      window.onerror = function(message, source, lineno, colno, error) {
-        console.error('[EARLY ERROR]', { message, source, lineno, colno, error });
-        window.__EARLY_ERRORS.push({ message, source, lineno, colno, stack: error?.stack, time: Date.now() });
-        // Show error on screen if root is empty
-        var root = document.getElementById('root');
-        if (root && !root.hasChildNodes()) {
-          root.innerHTML = '<div style="padding:20px;font-family:monospace;background:#fee;border:2px solid #f00;margin:20px;border-radius:8px;">' +
-            '<h2 style="color:#c00;">⚠️ Early Initialization Error</h2>' +
-            '<p><strong>Message:</strong> ' + message + '</p>' +
-            '<p><strong>Source:</strong> ' + source + ':' + lineno + ':' + colno + '</p>' +
-            '<pre style="background:#fff;padding:10px;overflow:auto;max-height:200px;">' + (error?.stack || 'No stack trace') + '</pre>' +
-            '</div>';
-        }
-        return false;
-      };
-      window.onunhandledrejection = function(event) {
-        console.error('[EARLY PROMISE REJECTION]', event.reason);
-        window.__EARLY_ERRORS.push({ type: 'promise', reason: String(event.reason), stack: event.reason?.stack, time: Date.now() });
-      };
-      console.log('[EARLY] Global error handlers installed');
-    </script>
-    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
