@@ -9,6 +9,16 @@ import { cn } from '@/lib/utils';
 import { getGradeTier, getGradeStars } from '@/types/grading';
 import { getCostumeById } from '@/types/costumes';
 import { isPortraitOutdated, computeAppearanceHash, PORTRAIT_CREDIT_COST } from '@/lib/portraitUtils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 function TierIcon({ tier, className }: { tier: string; className?: string }) {
   switch (tier) {
@@ -37,6 +47,7 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
   const [state, setState] = useState<PortraitState>(cat.portraitUrl ? 'complete' : 'idle');
   const [error, setError] = useState<string | null>(null);
   const [localPortraitUrl, setLocalPortraitUrl] = useState<string | undefined>(cat.portraitUrl);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // Check if portrait is outdated using appearance hash
   const isOutdated = useMemo(() => {
@@ -224,7 +235,7 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
       {state === 'idle' && !portraitUrl && (
         <div className="flex flex-col items-center gap-1">
           <Button
-            onClick={generatePortrait}
+            onClick={() => setShowConfirmDialog(true)}
             variant="outline"
             size="sm"
             className="gap-2 bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20"
@@ -241,7 +252,7 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
 
       {state === 'error' && (
         <Button
-          onClick={generatePortrait}
+          onClick={() => setShowConfirmDialog(true)}
           variant="outline"
           size="sm"
           className="gap-2"
@@ -256,7 +267,7 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
           {isOutdated ? (
             <>
               <Button
-                onClick={generatePortrait}
+                onClick={() => setShowConfirmDialog(true)}
                 variant="secondary"
                 size="sm"
                 className="gap-2 bg-orange-100 hover:bg-orange-200 text-orange-700 dark:bg-orange-900/20 dark:hover:bg-orange-900/40 dark:text-orange-300"
@@ -270,7 +281,7 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
             </>
           ) : (
             <Button
-              onClick={generatePortrait}
+              onClick={() => setShowConfirmDialog(true)}
               variant="ghost"
               size="sm"
               className="gap-2 text-muted-foreground hover:text-foreground"
@@ -281,6 +292,47 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
           )}
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              Generate AI Portrait?
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Create a unique AI-generated portrait for <strong>{cat.name}</strong>.
+                </p>
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                  <Coins className="w-5 h-5 text-amber-500" />
+                  <span className="font-medium">Estimated cost:</span>
+                  <Badge variant="secondary" className="ml-auto">
+                    ~{PORTRAIT_CREDIT_COST} credit
+                  </Badge>
+                </div>
+                {isOutdated && (
+                  <p className="text-sm text-orange-600 dark:text-orange-400">
+                    The current portrait is outdated due to appearance changes.
+                  </p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              setShowConfirmDialog(false);
+              generatePortrait();
+            }}>
+              <Sparkles className="w-4 h-4 mr-2" />
+              Generate Portrait
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
