@@ -7,6 +7,29 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-function-secret',
 };
 
+// Rate limit: 5 calls per hour (scheduled task shouldn't be called frequently)
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX_REQUESTS = 5;
+
+// In-memory rate limit store (for the function secret, not per user)
+let rateLimitData = { count: 0, windowStart: 0 };
+
+function checkRateLimit(): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  
+  if ((now - rateLimitData.windowStart) > RATE_LIMIT_WINDOW_MS) {
+    rateLimitData = { count: 1, windowStart: now };
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 };
+  }
+  
+  if (rateLimitData.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0 };
+  }
+  
+  rateLimitData.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - rateLimitData.count };
+}
+
 const REWARD_STRUCTURE = {
   daily: { 1: { coins: 100, badge: '👑' }, 2: { coins: 50, badge: '🥈' }, 3: { coins: 25, badge: '🥉' } },
   weekly: { 1: { coins: 500, badge: '👑' }, 2: { coins: 250, badge: '🥈' }, 3: { coins: 100, badge: '🥉' } },
@@ -83,6 +106,26 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check rate limit
+    const rateLimit = checkRateLimit();
+    if (!rateLimit.allowed) {
+      console.log('Rate limit exceeded for process-leaderboard-rewards');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Please try again later.',
+          remaining: rateLimit.remaining
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'X-RateLimit-Remaining': rateLimit.remaining.toString()
+          } 
+        }
       );
     }
 
@@ -185,9 +228,16 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         totalRewardsCreated,
-        message: `Processed leaderboard rewards. Created ${totalRewardsCreated} new rewards.`
+        message: `Processed leaderboard rewards. Created ${totalRewardsCreated} new rewards.`,
+        rateLimitRemaining: rateLimit.remaining
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'X-RateLimit-Remaining': rateLimit.remaining.toString()
+        } 
+      }
     );
 
   } catch (error: unknown) {

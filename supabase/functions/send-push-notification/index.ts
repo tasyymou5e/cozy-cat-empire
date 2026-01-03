@@ -6,6 +6,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limit: 50 notifications per user per hour
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX_REQUESTS = 50;
+
+// In-memory rate limit store (resets on function cold start)
+const rateLimitStore = new Map<string, { count: number; windowStart: number }>();
+
+function checkInMemoryRateLimit(userId: string): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const userLimit = rateLimitStore.get(userId);
+  
+  if (!userLimit || (now - userLimit.windowStart) > RATE_LIMIT_WINDOW_MS) {
+    // New window
+    rateLimitStore.set(userId, { count: 1, windowStart: now });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 };
+  }
+  
+  if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0 };
+  }
+  
+  userLimit.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - userLimit.count };
+}
+
 interface PushPayload {
   userId?: string; // Optional - defaults to authenticated user
   title: string;
@@ -54,6 +79,26 @@ serve(async (req) => {
     }
 
     console.log('Authenticated user:', user.id);
+
+    // Check rate limit
+    const rateLimit = checkInMemoryRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      console.log(`Rate limit exceeded for user ${user.id}`);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Please try again later.',
+          remaining: rateLimit.remaining
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'X-RateLimit-Remaining': rateLimit.remaining.toString()
+          } 
+        }
+      );
+    }
 
     const { userId, title, body, icon, url, notificationType }: PushPayload = await req.json();
     
@@ -175,9 +220,17 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         sent: sentCount,
-        expired: expiredEndpoints.length 
+        expired: expiredEndpoints.length,
+        rateLimitRemaining: rateLimit.remaining
       }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        status: 200, 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'X-RateLimit-Remaining': rateLimit.remaining.toString()
+        } 
+      }
     );
   } catch (error) {
     console.error('Error in send-push-notification:', error);

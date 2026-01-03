@@ -6,6 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limit: 10 portraits per user per hour
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX_REQUESTS = 10;
+
 interface CatData {
   id: string;
   name: string;
@@ -129,6 +133,39 @@ async function logAIUsage(
   }
 }
 
+async function checkRateLimit(
+  supabase: any,
+  userId: string,
+  functionName: string,
+  windowMs: number,
+  maxRequests: number
+): Promise<{ allowed: boolean; remaining: number; resetAt: Date }> {
+  const windowStart = new Date(Date.now() - windowMs);
+  
+  const { count, error } = await supabase
+    .from('ai_usage_log')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('function_name', functionName)
+    .eq('status', 'success')
+    .gte('created_at', windowStart.toISOString());
+
+  if (error) {
+    console.error('Rate limit check error:', error);
+    // Allow request on error to avoid blocking users
+    return { allowed: true, remaining: maxRequests, resetAt: new Date(Date.now() + windowMs) };
+  }
+
+  const requestCount = count || 0;
+  const remaining = Math.max(0, maxRequests - requestCount);
+  const allowed = requestCount < maxRequests;
+  const resetAt = new Date(Date.now() + windowMs);
+
+  console.log(`Rate limit check for ${userId}: ${requestCount}/${maxRequests} requests in window`);
+
+  return { allowed, remaining, resetAt };
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -158,6 +195,38 @@ serve(async (req) => {
       const token = authHeader.replace('Bearer ', '');
       const { data: { user } } = await supabase.auth.getUser(token);
       userId = user?.id || null;
+    }
+
+    // Check rate limit for authenticated users
+    if (userId) {
+      const rateLimit = await checkRateLimit(
+        supabase,
+        userId,
+        FUNCTION_NAME,
+        RATE_LIMIT_WINDOW_MS,
+        RATE_LIMIT_MAX_REQUESTS
+      );
+
+      if (!rateLimit.allowed) {
+        console.log(`Rate limit exceeded for user ${userId}`);
+        await logAIUsage(supabase, userId, FUNCTION_NAME, MODEL, 'rate_limited', Date.now() - startTime, catMetadata, 'Rate limit exceeded');
+        return new Response(
+          JSON.stringify({ 
+            error: 'Rate limit exceeded. Please try again later.',
+            remaining: rateLimit.remaining,
+            resetAt: rateLimit.resetAt.toISOString()
+          }),
+          { 
+            status: 429, 
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'application/json',
+              'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+              'X-RateLimit-Reset': rateLimit.resetAt.toISOString()
+            } 
+          }
+        );
+      }
     }
 
     const { cat } = await req.json() as { cat: CatData };
