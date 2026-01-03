@@ -2,6 +2,9 @@ import { useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+/**
+ * Error log data structure for database storage
+ */
 interface ErrorLogData {
   error_type: string;
   error_message: string;
@@ -11,9 +14,36 @@ interface ErrorLogData {
   metadata?: Record<string, unknown>;
 }
 
-// Singleton to prevent duplicate logging
+/** Singleton to prevent duplicate logging across re-renders */
 let isInitialized = false;
 
+/**
+ * Hook for comprehensive error logging and tracking
+ *
+ * Captures and logs errors to the database including uncaught exceptions,
+ * unhandled promise rejections, component errors, and network failures.
+ * Automatically sets up global error handlers on mount.
+ *
+ * @returns Error logging functions for different error types
+ *
+ * @example
+ * ```tsx
+ * const { logError, logComponentError, logNetworkError } = useErrorLogger();
+ *
+ * // Log a generic error
+ * logError({
+ *   error_type: 'validation_error',
+ *   error_message: 'Invalid input',
+ *   metadata: { field: 'email' }
+ * });
+ *
+ * // Log a component error in error boundary
+ * logComponentError('MyComponent', error, errorInfo);
+ *
+ * // Log a network error
+ * logNetworkError('/api/cats', 500, 'Internal Server Error', 'GET');
+ * ```
+ */
 export function useErrorLogger() {
   const { user } = useAuth();
 
@@ -173,7 +203,23 @@ export function useErrorLogger() {
   };
 }
 
-// Standalone function for use outside React components
+/**
+ * Standalone function for logging errors outside React components
+ *
+ * Use this in edge functions, utility files, or anywhere React hooks
+ * are not available.
+ *
+ * @param data - Error data including optional user_id
+ *
+ * @example
+ * ```ts
+ * await logErrorToDatabase({
+ *   error_type: 'edge_function_error',
+ *   error_message: 'Processing failed',
+ *   user_id: userId
+ * });
+ * ```
+ */
 export async function logErrorToDatabase(data: ErrorLogData & { user_id?: string }) {
   try {
     const logEntry = {

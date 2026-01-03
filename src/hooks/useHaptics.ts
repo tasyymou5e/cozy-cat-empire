@@ -1,8 +1,10 @@
 import { useCallback } from 'react';
 import { useIsMobile } from './use-mobile';
 
+/** Available haptic feedback patterns */
 type HapticPattern = 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error';
 
+/** Vibration patterns in milliseconds for each haptic type */
 const HAPTIC_PATTERNS: Record<HapticPattern, number | number[]> = {
   light: 10,
   medium: 25,
@@ -12,6 +14,31 @@ const HAPTIC_PATTERNS: Record<HapticPattern, number | number[]> = {
   error: [50, 100, 50],            // Long vibration for error
 };
 
+/**
+ * Hook for haptic feedback on mobile devices
+ *
+ * Provides vibration patterns for different game events like progress,
+ * completion, and achievements. Only activates on mobile devices with
+ * vibration API support.
+ *
+ * @returns Haptic feedback functions and support status
+ *
+ * @example
+ * ```tsx
+ * const { vibrate, vibrateComplete, isSupported } = useHaptics();
+ *
+ * // Simple vibration
+ * vibrate('light');
+ *
+ * // Achievement celebration pattern
+ * vibrateAchievement();
+ *
+ * // Check if haptics are available
+ * if (isSupported) {
+ *   vibrateProgress();
+ * }
+ * ```
+ */
 export function useHaptics() {
   const isMobile = useIsMobile();
 
