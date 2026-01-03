@@ -99,12 +99,37 @@ Cat avatar display with costume support.
 - `showPose?: boolean`
 
 ### CatPortrait.tsx
-Cat portrait display component for generated portraits.
+AI portrait generation and display with confirmation dialogs.
 
 **Props:**
 - `cat: Cat`
-- `portraitUrl?: string`
-- `showFallback?: boolean`
+- `equippedCostumeId?: string`
+- `onPortraitGenerated?: (catId: string, portraitUrl: string) => void`
+
+**States:** `idle`, `generating`, `complete`, `error`
+
+**Features:**
+- Falls back to CatAvatar if no portrait
+- Confirmation dialog before generation (shows credit cost)
+- Outdated portrait detection via appearance hash
+- Generate/Regenerate/Update buttons
+- Tier-based border styling
+- Error display with retry option
+
+### BatchPortraitGenerator.tsx
+Batch generate portraits for multiple cats at once.
+
+**Props:**
+- `cats: Cat[]`
+- `catCostumes: Record<string, string>`
+- `onPortraitGenerated?: (catId: string, portraitUrl: string) => void`
+
+**Features:**
+- Identifies cats needing portraits (no portrait or outdated)
+- Confirmation dialog with total count and estimated cost
+- Progress tracking during generation
+- Results summary with success/failure counts
+- Abort functionality during batch processing
 
 ---
 

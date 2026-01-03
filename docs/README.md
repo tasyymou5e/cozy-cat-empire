@@ -68,11 +68,13 @@ Comprehensive documentation for the Cat Farm game application.
 - `src/types/changelog.ts` - Version tracking
 - `src/types/gallery.ts` - Gallery types
 
-#### Cat Customization
+#### Cat Customization & Portraits
 - `src/pages/CatCustomization.tsx` - Appearance editor page
 - `src/types/catAppearance.ts` - Appearance options
-- `src/components/game/CatPortrait.tsx` - Portrait display
+- `src/components/game/CatPortrait.tsx` - AI portrait generation with confirmation
+- `src/components/game/BatchPortraitGenerator.tsx` - Batch portrait generation
 - `src/components/game/CatAvatar.tsx` - Avatar with costume
+- `src/lib/portraitUtils.ts` - Appearance hash for outdated detection
 
 #### Mobile & Notifications
 - `src/hooks/useHaptics.ts` - Haptic feedback

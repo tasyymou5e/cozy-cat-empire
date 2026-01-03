@@ -233,15 +233,23 @@ User generates AI portrait
          │
          ▼
 ┌─────────────────────────────────────┐
+│  Confirmation dialog shown          │
+│  → Displays estimated credit cost   │
+└─────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────┐
 │  Edge function: generate-cat-       │
 │  portrait                           │
+│  → Generates image from prompt      │
 │  → Returns portraitUrl              │
 └─────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────┐
 │  cat.portraitUrl = url              │
-│  cat.portraitGeneratedAt = now      │
+│  cat.appearanceHash = hash          │
+│  → Hash computed from appearance    │
 │  → Saved to game state              │
 │  → Synced to cloud                  │
 └─────────────────────────────────────┘
@@ -252,6 +260,34 @@ User generates AI portrait
 │  → Shows AI portrait                │
 │  → Falls back to CatAvatar if fail  │
 └─────────────────────────────────────┘
+
+### Outdated Portrait Detection
+
+```
+User modifies cat appearance/costume
+         │
+         ▼
+┌─────────────────────────────────────┐
+│  Current hash computed from:        │
+│  - cat.appearance                   │
+│  - equippedCostumeId                │
+└─────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────┐
+│  Compare current hash to stored:    │
+│  cat.appearanceHash                 │
+└─────────────────────────────────────┘
+         │
+         ├── Match → Portrait is current
+         │
+         └── Mismatch → Portrait outdated
+                  │
+                  ▼
+         ┌─────────────────────────────┐
+         │  Show "Update Portrait"     │
+         │  button on CatPortrait      │
+         └─────────────────────────────┘
 ```
 
 ---
@@ -354,18 +390,21 @@ if (variant === 'newVariant') {
 ```
 src/
 ├── components/game/
-│   ├── CatVisual.tsx          # Core visual identity (NEW)
-│   ├── UnifiedCatCard.tsx     # Main card component (NEW)
+│   ├── CatVisual.tsx          # Core visual identity
+│   ├── UnifiedCatCard.tsx     # Main card component
 │   ├── CatCard.tsx            # Wrapper for backward compat
 │   ├── FlippableTradingCard.tsx # Wrapper for backward compat
 │   ├── CatAvatar.tsx          # SVG avatar rendering
-│   ├── CatPortrait.tsx        # Portrait generation UI
+│   ├── CatPortrait.tsx        # Portrait generation UI + confirmation
+│   ├── BatchPortraitGenerator.tsx # Batch portrait generation
 │   ├── GradeBadge.tsx         # Grade display badge
 │   └── CatCardReaction.tsx    # Reaction animations
 ├── config/
-│   └── graphics.ts            # Graphics configuration (NEW)
+│   └── graphics.ts            # Graphics configuration
+├── lib/
+│   └── portraitUtils.ts       # Appearance hash + outdated detection
 └── types/
-    ├── game.ts                # Cat interface
+    ├── game.ts                # Cat interface (includes appearanceHash)
     ├── catAppearance.ts       # Appearance options
     └── grading.ts             # Grade tiers
 ```
