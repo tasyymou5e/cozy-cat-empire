@@ -29,7 +29,16 @@ Quick action buttons for navigation to other admin sections.
 
 - Searchable/filterable user table
 - View user details: avatar, display name, username, join date, cats owned, show wins
+- **User Detail Modal**: Click eye icon to view comprehensive user data:
+  - Overview: Money, cats, wins, kittens bred, account info
+  - Cats: Full cat list with grades
+  - Trades: Recent trade history
+  - Gifts: Recent gift history
+  - Errors: Error logs for that user
 - Role management: assign admin, moderator, or user roles
+- **User Suspension**: Suspend/unsuspend users with reason tracking
+- **User Deletion**: Permanently delete users via edge function
+- **CSV Export**: Export user list to CSV
 - Pagination support
 - All role changes logged to `admin_activity_log`
 
@@ -60,7 +69,16 @@ Tabs for monitoring:
 - **Challenges**: View weekly_challenges with active status
 - **Friends**: View player_friends requests and statuses
 
-### 6. Settings (`/catking/settings`)
+### 6. Announcements (`/catking/announcements`)
+
+Create and manage announcements visible to all players:
+- Create/edit/delete announcements
+- Announcement types: Info, Warning, Success, Event
+- Set expiration dates
+- Toggle active status
+- Announcements appear as banners in the main game
+
+### 7. Settings (`/catking/settings`)
 
 Administrative settings:
 - **Activity Log**: All admin actions recorded
@@ -174,7 +192,11 @@ ALTER TYPE app_role ADD VALUE 'new_role';
 src/
 ├── components/admin/
 │   ├── AdminLayout.tsx      # Navigation wrapper
-│   └── AdminRoute.tsx       # Route protection
+│   ├── AdminRoute.tsx       # Route protection
+│   ├── UserDetailModal.tsx  # User detail view modal
+│   └── ExportButton.tsx     # CSV export utility
+├── components/game/
+│   └── AnnouncementBanner.tsx # Player-facing announcement display
 ├── hooks/
 │   ├── useAdminAuth.ts      # Admin role check
 │   ├── useAdminActivityLog.ts # Activity logging
@@ -185,6 +207,7 @@ src/
 │   ├── AdminStatistics.tsx  # Game statistics
 │   ├── AdminErrorLogs.tsx   # Error monitoring
 │   ├── AdminModeration.tsx  # Moderation tools
+│   ├── AdminAnnouncements.tsx # Announcements management
 │   └── AdminSettings.tsx    # Admin settings
 └── pages/
     └── AdminAuth.tsx        # Admin login page

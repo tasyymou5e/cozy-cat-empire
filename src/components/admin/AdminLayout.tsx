@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   Menu,
+  Megaphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +23,7 @@ const ADMIN_NAV_ITEMS = [
   { id: 'statistics', label: 'Statistics', icon: BarChart3, path: '/catking/stats' },
   { id: 'errors', label: 'Error Logs', icon: AlertTriangle, path: '/catking/errors' },
   { id: 'moderation', label: 'Moderation', icon: Shield, path: '/catking/moderation' },
+  { id: 'announcements', label: 'Announcements', icon: Megaphone, path: '/catking/announcements' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/catking/settings' },
 ];
 

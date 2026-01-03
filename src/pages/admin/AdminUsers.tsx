@@ -3,8 +3,11 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useAdminUsers } from '@/hooks/useAdminData';
 import { useAdminActivityLog } from '@/hooks/useAdminActivityLog';
 import { supabase } from '@/integrations/supabase/client';
+import { UserDetailModal } from '@/components/admin/UserDetailModal';
+import { ExportButton } from '@/components/admin/ExportButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -39,9 +42,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Search, ChevronLeft, ChevronRight, Shield, User as UserIcon, Trash2 } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Shield, User as UserIcon, Trash2, Eye, Ban, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -69,6 +73,11 @@ export default function AdminUsers() {
   const [userToDelete, setUserToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [newRole, setNewRole] = useState<string>('');
+  const [viewingUserId, setViewingUserId] = useState<string | null>(null);
+  const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
+  const [userToSuspend, setUserToSuspend] = useState<any>(null);
+  const [suspensionReason, setSuspensionReason] = useState('');
+  const [isSuspending, setIsSuspending] = useState(false);
   
   const { data, isLoading } = useAdminUsers({ search, page, pageSize: 10 });
   const { logActivity } = useAdminActivityLog();
@@ -195,6 +204,90 @@ export default function AdminUsers() {
     }
   };
 
+  const openSuspendDialog = (user: any) => {
+    setUserToSuspend(user);
+    setSuspensionReason('');
+    setSuspendDialogOpen(true);
+  };
+
+  const handleSuspendUser = async () => {
+    if (!userToSuspend) return;
+
+    setIsSuspending(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          suspended_at: new Date().toISOString(),
+          suspension_reason: suspensionReason || 'No reason provided',
+        })
+        .eq('id', userToSuspend.id);
+
+      if (error) throw error;
+
+      await logActivity({
+        actionType: 'user_suspend',
+        actionDescription: `Suspended user: ${getDisplayName(userToSuspend)}`,
+        targetUserId: userToSuspend.id,
+        targetTable: 'profiles',
+        metadata: { reason: suspensionReason },
+      });
+
+      toast({
+        title: 'User Suspended',
+        description: `${getDisplayName(userToSuspend)} has been suspended.`,
+      });
+
+      setSuspendDialogOpen(false);
+      setUserToSuspend(null);
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    } catch (error: any) {
+      console.error('Failed to suspend user:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to suspend user',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSuspending(false);
+    }
+  };
+
+  const handleUnsuspendUser = async (user: any) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          suspended_at: null,
+          suspension_reason: null,
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      await logActivity({
+        actionType: 'user_unsuspend',
+        actionDescription: `Unsuspended user: ${getDisplayName(user)}`,
+        targetUserId: user.id,
+        targetTable: 'profiles',
+      });
+
+      toast({
+        title: 'User Unsuspended',
+        description: `${getDisplayName(user)} has been unsuspended.`,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    } catch (error: any) {
+      console.error('Failed to unsuspend user:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to unsuspend user',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -208,7 +301,10 @@ export default function AdminUsers() {
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row gap-4 justify-between">
-              <CardTitle>Users ({data?.totalCount ?? 0})</CardTitle>
+              <div className="flex items-center gap-4">
+                <CardTitle>Users ({data?.totalCount ?? 0})</CardTitle>
+                {data?.users && <ExportButton data={data.users} filename="users" />}
+              </div>
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -230,6 +326,7 @@ export default function AdminUsers() {
                   <TableRow>
                     <TableHead>User</TableHead>
                     <TableHead>Username</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Joined</TableHead>
                     <TableHead>Cats</TableHead>
                     <TableHead>Wins</TableHead>
@@ -241,7 +338,7 @@ export default function AdminUsers() {
                   {isLoading ? (
                     Array.from({ length: 5 }).map((_, i) => (
                       <TableRow key={i}>
-                        {Array.from({ length: 7 }).map((_, j) => (
+                        {Array.from({ length: 8 }).map((_, j) => (
                           <TableCell key={j}>
                             <Skeleton className="h-6 w-20" />
                           </TableCell>
@@ -250,7 +347,7 @@ export default function AdminUsers() {
                     ))
                   ) : data?.users.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                         No users found
                       </TableCell>
                     </TableRow>
@@ -267,6 +364,13 @@ export default function AdminUsers() {
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {user.username || '-'}
+                        </TableCell>
+                        <TableCell>
+                          {user.suspended_at ? (
+                            <Badge variant="destructive">Suspended</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-green-600 border-green-600">Active</Badge>
+                          )}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {user.created_at
@@ -285,17 +389,47 @@ export default function AdminUsers() {
                           <div className="flex gap-1">
                             <Button
                               variant="ghost"
-                              size="sm"
-                              onClick={() => openRoleDialog(user)}
+                              size="icon"
+                              onClick={() => setViewingUserId(user.id)}
+                              title="View Details"
                             >
-                              <UserIcon className="h-4 w-4 mr-1" />
-                              Manage
+                              <Eye className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon"
+                              onClick={() => openRoleDialog(user)}
+                              title="Manage Role"
+                            >
+                              <UserIcon className="h-4 w-4" />
+                            </Button>
+                            {user.suspended_at ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleUnsuspendUser(user)}
+                                title="Unsuspend User"
+                                className="text-green-600 hover:text-green-700 hover:bg-green-100"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openSuspendDialog(user)}
+                                title="Suspend User"
+                                className="text-orange-600 hover:text-orange-700 hover:bg-orange-100"
+                              >
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="text-destructive hover:text-destructive hover:bg-destructive/10"
                               onClick={() => openDeleteDialog(user)}
+                              title="Delete User"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -393,6 +527,45 @@ export default function AdminUsers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Suspend Dialog */}
+      <Dialog open={suspendDialogOpen} onOpenChange={setSuspendDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suspend User</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Suspending <strong>{userToSuspend ? getDisplayName(userToSuspend) : ''}</strong>
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="suspension-reason">Reason for suspension</Label>
+              <Textarea
+                id="suspension-reason"
+                value={suspensionReason}
+                onChange={(e) => setSuspensionReason(e.target.value)}
+                placeholder="Enter reason for suspension..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSuspendDialogOpen(false)} disabled={isSuspending}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleSuspendUser}
+              disabled={isSuspending}
+            >
+              {isSuspending ? 'Suspending...' : 'Suspend User'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* User Detail Modal */}
+      <UserDetailModal userId={viewingUserId} onClose={() => setViewingUserId(null)} />
     </AdminLayout>
   );
 }

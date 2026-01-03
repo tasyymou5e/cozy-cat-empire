@@ -25,6 +25,7 @@ import AdminStatistics from "./pages/admin/AdminStatistics";
 import AdminErrorLogs from "./pages/admin/AdminErrorLogs";
 import AdminModeration from "./pages/admin/AdminModeration";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ const App = () => (
                       <Route path="/catking/errors" element={<AdminRoute><AdminErrorLogs /></AdminRoute>} />
                       <Route path="/catking/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
                       <Route path="/catking/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+                      <Route path="/catking/announcements" element={<AdminRoute><AdminAnnouncements /></AdminRoute>} />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>

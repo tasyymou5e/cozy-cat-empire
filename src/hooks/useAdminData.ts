@@ -60,7 +60,9 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
           username,
           email,
           created_at,
-          updated_at
+          updated_at,
+          suspended_at,
+          suspension_reason
         `)
         .order('created_at', { ascending: false })
         .range((page - 1) * pageSize, page * pageSize - 1);

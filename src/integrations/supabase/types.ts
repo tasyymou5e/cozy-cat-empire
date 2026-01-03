@@ -56,6 +56,39 @@ export type Database = {
         }
         Relationships: []
       }
+      announcements: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          message: string
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message: string
+          title: string
+          type?: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       auth_attempts_log: {
         Row: {
           attempt_type: string
@@ -534,6 +567,8 @@ export type Database = {
           display_name: string | null
           email: string | null
           id: string
+          suspended_at: string | null
+          suspension_reason: string | null
           updated_at: string | null
           username: string | null
         }
@@ -543,6 +578,8 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id: string
+          suspended_at?: string | null
+          suspension_reason?: string | null
           updated_at?: string | null
           username?: string | null
         }
@@ -552,6 +589,8 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+          suspended_at?: string | null
+          suspension_reason?: string | null
           updated_at?: string | null
           username?: string | null
         }
