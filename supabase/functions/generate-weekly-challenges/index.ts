@@ -6,6 +6,29 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-function-secret',
 };
 
+// Rate limit: 5 calls per hour (scheduled task shouldn't be called frequently)
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX_REQUESTS = 5;
+
+// In-memory rate limit store
+let rateLimitData = { count: 0, windowStart: 0 };
+
+function checkRateLimit(): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  
+  if ((now - rateLimitData.windowStart) > RATE_LIMIT_WINDOW_MS) {
+    rateLimitData = { count: 1, windowStart: now };
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 };
+  }
+  
+  if (rateLimitData.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0 };
+  }
+  
+  rateLimitData.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - rateLimitData.count };
+}
+
 // Challenge templates
 const CHALLENGE_TEMPLATES = [
   // Easy challenges
@@ -159,6 +182,26 @@ serve(async (req) => {
       );
     }
 
+    // Check rate limit
+    const rateLimit = checkRateLimit();
+    if (!rateLimit.allowed) {
+      console.log('Rate limit exceeded for generate-weekly-challenges');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Please try again later.',
+          remaining: rateLimit.remaining
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'X-RateLimit-Remaining': rateLimit.remaining.toString()
+          } 
+        }
+      );
+    }
+
     console.log('Generating weekly challenges...');
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -185,8 +228,15 @@ serve(async (req) => {
     if (existingChallenges && existingChallenges.length > 0) {
       console.log('Challenges already exist for this week');
       return new Response(
-        JSON.stringify({ message: 'Challenges already exist for this week' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ message: 'Challenges already exist for this week', rateLimitRemaining: rateLimit.remaining }),
+        { 
+          status: 200, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'X-RateLimit-Remaining': rateLimit.remaining.toString()
+          } 
+        }
       );
     }
 
@@ -237,9 +287,17 @@ serve(async (req) => {
         success: true, 
         challenges: insertedChallenges?.length || 0,
         week_start: startOfWeek.toISOString(),
-        week_end: endOfWeek.toISOString()
+        week_end: endOfWeek.toISOString(),
+        rateLimitRemaining: rateLimit.remaining
       }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        status: 200, 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'X-RateLimit-Remaining': rateLimit.remaining.toString()
+        } 
+      }
     );
   } catch (error) {
     console.error('Error generating challenges:', error);
