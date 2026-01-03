@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+/**
+ * Notification data structure for in-app alerts
+ */
 interface Notification {
   id: string;
   type: 'friend_request' | 'gift' | 'trade';
@@ -12,6 +15,26 @@ interface Notification {
   data?: Record<string, unknown>;
 }
 
+/**
+ * Hook for managing real-time in-app notifications
+ *
+ * Aggregates notifications from friend requests, cat gifts, and trade offers.
+ * Provides real-time updates via Supabase subscriptions.
+ *
+ * @param userId - The current user's ID
+ * @returns Notifications list and management functions
+ *
+ * @example
+ * ```tsx
+ * const { notifications, unreadCount, markAsRead } = useNotifications(userId);
+ *
+ * // Display notification count in header
+ * <Badge>{unreadCount}</Badge>
+ *
+ * // Mark notification as read when viewed
+ * markAsRead(notificationId);
+ * ```
+ */
 export function useNotifications(userId: string | undefined) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);

@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { SoundType } from '@/hooks/useSoundEffects';
 
+/**
+ * Challenge completion statistics
+ */
 interface ChallengeStats {
   totalCompleted: number;
   currentStreak: number;
@@ -10,9 +13,30 @@ interface ChallengeStats {
   loading: boolean;
 }
 
+/** Milestones for challenge completion achievements */
 const ACHIEVEMENT_MILESTONES = [5, 10, 25];
+/** Milestones for challenge streak achievements */
 const STREAK_MILESTONES = [3, 5, 10];
 
+/**
+ * Hook for tracking challenge completion achievements and streaks
+ *
+ * Tracks total challenges completed and weekly completion streaks.
+ * Triggers achievements and toasts when milestones are reached.
+ *
+ * @param userId - The current user's ID
+ * @param playSound - Function to play achievement sound
+ * @param vibrateAchievement - Function to trigger haptic feedback
+ * @returns Challenge stats and increment function
+ *
+ * @example
+ * ```tsx
+ * const { totalChallengesCompleted, currentStreak, incrementCompleted } = useChallengeAchievements(userId);
+ *
+ * // Increment when a challenge is completed
+ * await incrementCompleted();
+ * ```
+ */
 export function useChallengeAchievements(
   userId: string | undefined, 
   playSound?: (type: SoundType) => void,

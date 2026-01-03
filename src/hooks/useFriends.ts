@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+/**
+ * Friend data with profile and stats
+ */
 export interface Friend {
   id: string;
   friend_id: string;
@@ -15,6 +18,9 @@ export interface Friend {
   };
 }
 
+/**
+ * Incoming friend request data
+ */
 export interface FriendRequest {
   id: string;
   user_id: string;
@@ -23,6 +29,25 @@ export interface FriendRequest {
   created_at: string;
 }
 
+/**
+ * Hook for managing friend relationships
+ *
+ * Handles friend requests, acceptance, removal, and real-time friend list updates.
+ *
+ * @param userId - The current user's ID
+ * @returns Friends list, pending requests, and friend management functions
+ *
+ * @example
+ * ```tsx
+ * const { friends, pendingRequests, sendFriendRequest, acceptRequest } = useFriends(userId);
+ *
+ * // Send a friend request
+ * await sendFriendRequest('PlayerName');
+ *
+ * // Accept an incoming request
+ * await acceptRequest(requestId);
+ * ```
+ */
 export function useFriends(userId: string | undefined) {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);

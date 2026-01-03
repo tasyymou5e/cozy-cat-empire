@@ -4,6 +4,9 @@ import { Cat, Resources } from '@/types/game';
 import { toast } from '@/hooks/use-toast';
 import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
+/**
+ * Trade offer data structure
+ */
 interface TradeOffer {
   id: string;
   sender_id: string;
@@ -22,6 +25,9 @@ interface TradeOffer {
   recipient_name?: string;
 }
 
+/**
+ * Data required to create a new trade offer
+ */
 interface TradeData {
   recipientId: string;
   offeredCats: Cat[];
@@ -32,6 +38,31 @@ interface TradeData {
   message?: string;
 }
 
+/**
+ * Hook for managing player-to-player trading
+ *
+ * Handles creating, accepting, declining, and cancelling trade offers.
+ * Includes real-time updates for incoming trades.
+ *
+ * @param userId - The current user's ID
+ * @returns Trade lists and trade management functions
+ *
+ * @example
+ * ```tsx
+ * const { incomingTrades, createTrade, acceptTrade } = useTrading(userId);
+ *
+ * // Create a new trade offer
+ * await createTrade({
+ *   recipientId: friendId,
+ *   offeredCats: [cat],
+ *   offeredMoney: 100,
+ *   requestedMoney: 50
+ * });
+ *
+ * // Accept an incoming trade
+ * const tradedCats = await acceptTrade(tradeId);
+ * ```
+ */
 export function useTrading(userId: string | undefined) {
   const [incomingTrades, setIncomingTrades] = useState<TradeOffer[]>([]);
   const [outgoingTrades, setOutgoingTrades] = useState<TradeOffer[]>([]);

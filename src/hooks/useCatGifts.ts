@@ -4,6 +4,9 @@ import { Cat } from '@/types/game';
 import { toast } from '@/hooks/use-toast';
 import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
+/**
+ * Cat gift data structure
+ */
 interface CatGift {
   id: string;
   sender_id: string;
@@ -16,6 +19,26 @@ interface CatGift {
   recipient_name?: string;
 }
 
+/**
+ * Hook for managing cat gifting between players
+ *
+ * Handles sending, accepting, and declining cat gifts.
+ * Includes real-time updates for incoming gifts.
+ *
+ * @param userId - The current user's ID
+ * @returns Gift lists and gift management functions
+ *
+ * @example
+ * ```tsx
+ * const { receivedGifts, sendGift, acceptGift } = useCatGifts(userId);
+ *
+ * // Send a cat as a gift
+ * await sendGift(friendId, cat, 'Happy birthday!');
+ *
+ * // Accept a received gift
+ * const newCat = await acceptGift(giftId);
+ * ```
+ */
 export function useCatGifts(userId: string | undefined) {
   const [receivedGifts, setReceivedGifts] = useState<CatGift[]>([]);
   const [sentGifts, setSentGifts] = useState<CatGift[]>([]);
