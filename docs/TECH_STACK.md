@@ -55,6 +55,11 @@ Cat Farm is built with a modern React-based frontend and Supabase backend (via L
 | recharts | 2.15.4 | Data visualization |
 | canvas-confetti | 1.9.4 | Celebration effects |
 
+### Image Processing
+| Package | Version | Purpose |
+|---------|---------|---------|
+| html-to-image | 1.11.13 | Screenshot/export photos |
+
 ### UI Utilities
 | Package | Version | Purpose |
 |---------|---------|---------|
@@ -88,6 +93,13 @@ Cat Farm is built with a modern React-based frontend and Supabase backend (via L
 |------------|---------|
 | Supabase Realtime | Live notifications |
 | postgres_changes | Database change events |
+
+### Storage
+| Technology | Purpose |
+|------------|---------|
+| Supabase Storage | File/image storage |
+| photo-gallery bucket | Photo booth images |
+| cat-portraits bucket | AI-generated portraits |
 
 ### Edge Functions
 | Runtime | Purpose |
@@ -163,18 +175,28 @@ export default defineConfig({
 ```
 src/
 ├── components/
-│   ├── game/           # 42 game components
+│   ├── game/           # 45+ game components
+│   │   ├── CatFarm.tsx         # Main game orchestrator
+│   │   ├── CatCard.tsx         # Cat display + inline rename
+│   │   ├── PhotoBooth.tsx      # Photo booth interface
+│   │   ├── GalleryPhotoCard.tsx
+│   │   ├── PhotoLightbox.tsx
+│   │   ├── DraggableSticker.tsx
+│   │   └── ...
 │   ├── ui/             # 40+ shadcn/ui primitives
 │   ├── stats/          # 6 statistics components
 │   ├── admin/          # Admin dashboard components
 │   ├── ErrorBoundary.tsx
 │   └── ErrorLoggerProvider.tsx
-├── hooks/              # 26 custom hooks
+├── hooks/              # 29 custom hooks
 │   ├── useGameState.ts      # Core game logic + bulk actions
 │   ├── useRelationships.ts  # Cat relationships
 │   ├── useSoundEffects.ts   # Audio system
 │   ├── useCloudSave.ts      # Cloud persistence
 │   ├── useFriends.ts        # Social features
+│   ├── usePhotoGallery.ts   # Local + cloud gallery
+│   ├── useCloudGallery.ts   # Cloud gallery operations
+│   ├── useInfiniteScroll.ts # Infinite scroll utility
 │   ├── useHaptics.ts        # Mobile haptic feedback
 │   ├── useDailyLoginRewards.ts # Login streaks + VIP
 │   ├── useWeeklyChallenges.ts  # Challenge tracking
@@ -192,10 +214,14 @@ src/
 │   ├── showEvents.ts        # Show tiers
 │   ├── dailyEvents.ts       # Random events
 │   ├── dailyRewards.ts      # VIP rewards
-│   └── challenges.ts        # Weekly challenges
+│   ├── challenges.ts        # Weekly challenges
+│   ├── gallery.ts           # Photo gallery types
+│   ├── photoBooth.ts        # Photo booth assets
+│   └── catAppearance.ts     # Cat appearance options
 ├── contexts/
 │   ├── AuthContext.tsx      # Authentication
-│   └── SoundContext.tsx     # Sound provider
+│   ├── SoundContext.tsx     # Sound provider
+│   └── CatReactionContext.tsx # Cat reactions
 ├── integrations/
 │   └── supabase/
 │       ├── client.ts        # Supabase client
@@ -204,8 +230,12 @@ src/
 │   ├── Index.tsx            # Main game
 │   ├── Auth.tsx             # Login/signup
 │   ├── CatCollection.tsx    # Trading cards
+│   ├── CatPhotoBooth.tsx    # Photo booth page
+│   ├── CatGallery.tsx       # Photo gallery page
+│   ├── CatCustomization.tsx # Cat appearance editor
 │   ├── Leaderboard.tsx      # Global rankings
-│   └── Stats.tsx            # Personal stats
+│   ├── Stats.tsx            # Personal stats
+│   └── admin/               # Admin dashboard
 └── lib/
     └── utils.ts             # Utility functions
 
@@ -215,6 +245,7 @@ supabase/
 └── functions/
     ├── process-leaderboard-rewards/
     ├── generate-weekly-challenges/
+    ├── generate-cat-portrait/
     └── send-push-notification/
 ```
 
@@ -303,6 +334,8 @@ supabase/
 - CSS Custom Properties
 - ES2020 features
 - localStorage
+- Clipboard API
+- Share API
 
 ---
 

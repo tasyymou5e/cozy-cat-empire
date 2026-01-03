@@ -9,9 +9,9 @@ Comprehensive documentation for the Cat Farm game application.
 
 | File | Description |
 |------|-------------|
-| [COMPONENTS.md](./COMPONENTS.md) | Component architecture, 42 game components, 26 hooks, UI primitives |
-| [GAME_LOGIC.md](./GAME_LOGIC.md) | Game mechanics, cat system, breeding, shows, economy, bulk actions |
-| [DATABASE_DESIGN.md](./DATABASE_DESIGN.md) | Supabase tables, schemas, relationships, JSONB structures |
+| [COMPONENTS.md](./COMPONENTS.md) | Component architecture, 45+ game components, 29 hooks, UI primitives |
+| [GAME_LOGIC.md](./GAME_LOGIC.md) | Game mechanics, cat system, breeding, shows, economy, bulk actions, photo booth |
+| [DATABASE_DESIGN.md](./DATABASE_DESIGN.md) | Supabase tables, schemas, relationships, JSONB structures, storage buckets |
 | [SECURITY.md](./SECURITY.md) | RLS policies, authentication, authorization, security practices |
 | [TECH_STACK.md](./TECH_STACK.md) | React, Supabase, audio system, dependencies |
 | [ERROR_LOGGING.md](./ERROR_LOGGING.md) | Error types, logging system, monitoring |
@@ -27,6 +27,7 @@ Comprehensive documentation for the Cat Farm game application.
 - `src/hooks/useGameState.ts` - Main game logic
 - `src/types/game.ts` - Cat, GameState interfaces
 - `src/components/game/CatFarm.tsx` - Master component
+- `src/components/game/CatCard.tsx` - Cat display + inline rename
 
 #### Authentication
 - `src/contexts/AuthContext.tsx` - Auth provider
@@ -49,6 +50,24 @@ Comprehensive documentation for the Cat Farm game application.
 #### Bulk Actions
 - `src/components/game/BulkActionsPanel.tsx` - Mass cat management UI
 - `src/hooks/useGameState.ts` - Bulk action functions
+
+#### Photo Booth & Gallery
+- `src/pages/CatPhotoBooth.tsx` - Photo booth page
+- `src/pages/CatGallery.tsx` - Photo gallery page
+- `src/components/game/PhotoBooth.tsx` - Photo booth component
+- `src/components/game/GalleryPhotoCard.tsx` - Photo card display
+- `src/components/game/PhotoLightbox.tsx` - Full-screen viewer
+- `src/components/game/DraggableSticker.tsx` - Sticker placement
+- `src/hooks/usePhotoGallery.ts` - Gallery management
+- `src/hooks/useCloudGallery.ts` - Cloud sync
+- `src/types/photoBooth.ts` - Photo assets
+- `src/types/gallery.ts` - Gallery types
+
+#### Cat Customization
+- `src/pages/CatCustomization.tsx` - Appearance editor page
+- `src/types/catAppearance.ts` - Appearance options
+- `src/components/game/CatPortrait.tsx` - Portrait display
+- `src/components/game/CatAvatar.tsx` - Avatar with costume
 
 #### Mobile & Notifications
 - `src/hooks/useHaptics.ts` - Haptic feedback
@@ -79,7 +98,17 @@ Comprehensive documentation for the Cat Farm game application.
 | weekly_challenges | Challenge definitions |
 | player_challenge_progress | Challenge tracking |
 | leaderboard_rewards | Periodic rewards |
+| gallery_photos | Photo booth photos |
 | error_logs | Error tracking |
+
+---
+
+## Storage Buckets
+
+| Bucket | Purpose | Public |
+|--------|---------|--------|
+| photo-gallery | Photo booth images | Yes |
+| cat-portraits | AI-generated portraits | Yes |
 
 ---
 
@@ -104,7 +133,9 @@ Comprehensive documentation for the Cat Farm game application.
 │                   Backend (Lovable Cloud)                     │
 ├──────────────┬──────────────┬────────────┬─────────────────┤
 │ PostgreSQL   │ Supabase Auth│ Realtime   │ Edge Functions   │
-└──────────────┴──────────────┴────────────┴─────────────────┘
+├──────────────┴──────────────┴────────────┴─────────────────┤
+│                      Storage Buckets                         │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -123,7 +154,40 @@ New User → Auth → Create Profile → Start Game (150 coins)
       Cat Shows ──────────────────> Win Prizes <──────────────── Breed
            ↓                            ↓                            ↓
       Upgrade Home <───────────── Save Progress ──────────> Compete Globally
+                                        │
+                                        ▼
+                              ┌─────────────────┐
+                              │  Photo Booth    │
+                              │  Cat Gallery    │
+                              │  Customization  │
+                              └─────────────────┘
 ```
+
+---
+
+## Cat Naming System
+
+### Breed-Specific Names
+| Breed | Theme | Examples |
+|-------|-------|----------|
+| Siamese | Japanese/Thai | Sakura, Miko, Yuki, Mochi |
+| Persian | Royal/Fancy | Duchess, Prince, Anastasia |
+| Maine Coon | Nature/Rugged | Bear, Moose, Timber, Everest |
+| British Shorthair | British | Winston, Churchill, Sherlock |
+| Ragdoll | Soft/Cuddly | Marshmallow, Velvet, Snuggles |
+| Bengal | Wild/Exotic | Rajah, Sheba, Safari, Tigris |
+| Tabby | Classic | Stripes, Marble, Caramel |
+| Stray | Street Smart | Scrappy, Lucky, Rascal |
+
+### Personality-Based Names
+| Personality | Theme | Examples |
+|-------------|-------|----------|
+| Lazy | Sleepy | Snoozer, Dreamer, Cozy |
+| Playful | Active | Zoom, Bounce, Sparky |
+| Affectionate | Loving | Cuddles, Sweetie, Lovebug |
+| Independent | Aloof | Maverick, Solo, Enigma |
+| Curious | Inquisitive | Scout, Explorer, Sherlock |
+| Shy | Gentle | Whisper, Shadow, Bashful |
 
 ---
 
@@ -135,3 +199,4 @@ New User → Auth → Create Profile → Start Game (150 coins)
 - ✅ Server-side validation for leaderboards
 - ✅ JSONB for complex data
 - ✅ Error logging without sensitive data
+- ✅ Storage bucket policies for user data isolation

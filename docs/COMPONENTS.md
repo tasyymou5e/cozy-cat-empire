@@ -1,7 +1,7 @@
 # Cat Farm - Component Architecture
 
 ## Overview
-Cat Farm uses a modular component architecture with 42 game components, 26 custom hooks, UI primitives from shadcn/ui, and supporting components for error handling and navigation.
+Cat Farm uses a modular component architecture with 45+ game components, 29 custom hooks, UI primitives from shadcn/ui, and supporting components for error handling and navigation.
 
 ---
 
@@ -41,6 +41,28 @@ Displays individual cat information with interactive elements.
 - Costume display
 - Comfort button for upset cats
 - Heal and Sell action buttons
+- **Inline rename feature** with pencil icon
+- **Random name generator** with breed/personality-based suggestions
+
+**Rename Feature:**
+- Click pencil icon to enter edit mode
+- Shuffle button generates random names based on:
+  - Breed-specific names (Japanese for Siamese, Royal for Persian, etc.)
+  - Personality-based names (Snoozer for Lazy, Zoom for Playful)
+  - Universal fallback names
+- Confirm with checkmark, cancel with X
+
+**Props:**
+- `cat: Cat` - Cat data
+- `onSell?: (catId: string) => void`
+- `onHeal?: (catId: string) => void`
+- `onComfort?: (catId: string) => void`
+- `onRename?: (catId: string, newName: string) => void`
+- `compact?: boolean`
+- `relationships?: CatRelationship[]`
+- `allCats?: Cat[]`
+- `equippedCostumeId?: string`
+- `reaction?: { type: 'positive' | 'negative', emoji: string }`
 
 ### CatDetailModal.tsx
 Full-screen modal for detailed cat view.
@@ -65,6 +87,23 @@ Visual grade tier indicator.
 - Rare (9-12): Blue
 - Elite (13-16): Purple
 - Legendary (17-20): Gold
+
+### CatAvatar.tsx
+Cat avatar display with costume support.
+
+**Props:**
+- `cat: Cat`
+- `costumeId?: string`
+- `size?: 'sm' | 'md' | 'lg' | 'xl'`
+- `showPose?: boolean`
+
+### CatPortrait.tsx
+Cat portrait display component for generated portraits.
+
+**Props:**
+- `cat: Cat`
+- `portraitUrl?: string`
+- `showFallback?: boolean`
 
 ---
 
@@ -291,6 +330,66 @@ Weekly challenge tracking.
 
 ---
 
+## Photo Booth Components
+
+### PhotoBooth.tsx
+Interactive photo taking interface.
+
+**Location:** `src/components/game/PhotoBooth.tsx`
+
+**Features:**
+- Background selection (16 options: nature, fantasy, seasonal, solid)
+- Cat pose selection (7 poses)
+- Frame selection (7 frame styles)
+- Sticker placement (24 stickers across 5 categories)
+- Draggable sticker positioning with scale/rotation
+- Export options: download, copy, share, save to gallery
+
+**Props:**
+- `cat: Cat`
+- `equippedCostumeId?: string`
+
+### GalleryPhotoCard.tsx
+Photo display card with actions.
+
+**Features:**
+- Photo thumbnail with cat name
+- Favorite toggle
+- Delete button
+- Click to open lightbox
+
+**Props:**
+- `photo: GalleryPhoto`
+- `onToggleFavorite: (id: string) => void`
+- `onDelete: (id: string) => void`
+- `onClick: (photo: GalleryPhoto) => void`
+
+### PhotoLightbox.tsx
+Full-screen photo viewer.
+
+**Features:**
+- Full-resolution photo display
+- Navigation between photos
+- Photo metadata display
+- Share and download options
+
+### DraggableSticker.tsx
+Draggable stickers for photo customization.
+
+**Features:**
+- Drag to reposition
+- Click to select/deselect
+- Remove button on selection
+- Scale and rotation support
+
+**Props:**
+- `sticker: PlacedSticker`
+- `onUpdate: (id: string, updates: Partial<PlacedSticker>) => void`
+- `onRemove: (id: string) => void`
+- `containerRef: RefObject<HTMLElement>`
+
+---
+
 ## Utility Components
 
 ### StatusBar.tsx
@@ -486,30 +585,37 @@ App.tsx
 │       └── AuthProvider
 │           └── ThemeProvider
 │               └── SoundProvider
-│                   └── Router
-│                       ├── Index (→ CatFarm)
-│                       ├── Auth
-│                       ├── CatCollection
-│                       ├── Leaderboard
-│                       ├── Stats
-│                       └── NotFound
+│                   └── CatReactionProvider
+│                       └── Router
+│                           ├── Index (→ CatFarm)
+│                           ├── Auth
+│                           ├── CatCollection
+│                           ├── CatPhotoBooth
+│                           ├── CatGallery
+│                           ├── CatCustomization
+│                           ├── Leaderboard
+│                           ├── Stats
+│                           └── NotFound
 ```
 
 ---
 
 ## Best Practices
 
-### Component Guidelines
-1. Keep components focused and single-responsibility
-2. Use TypeScript interfaces for all props
-3. Prefer controlled components
-4. Use semantic design tokens (not hardcoded colors)
-5. Implement proper loading and error states
-6. Use React.memo for expensive renders
-7. Use React.forwardRef when exposing refs
+### Component Design
+- Keep components focused and single-purpose
+- Use TypeScript interfaces for props
+- Prefer composition over inheritance
+- Use React.memo for expensive renders
 
 ### State Management
-1. Local state for UI-only concerns
-2. useGameState for game logic
-3. Context for auth and sound
-4. Custom hooks for feature logic
+- Local state for UI-only concerns
+- useGameState for game logic
+- Context for cross-cutting concerns (auth, sound)
+- React Query for server state
+
+### Code Organization
+- One component per file
+- Co-locate tests and styles
+- Export from index files
+- Use barrel imports

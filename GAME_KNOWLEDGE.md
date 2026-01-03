@@ -9,7 +9,7 @@
 > - [docs/ERROR_LOGGING.md](docs/ERROR_LOGGING.md) - Error logging system
 
 ## Overview
-Cat Farm is a browser-based idle/management game where players build a cat empire. Start with a small apartment and grow to own a 100-acre farm with dozens of cats. Features cloud saves, global leaderboards, social features, cat gifting, player trading, VIP rewards, and weekly challenges.
+Cat Farm is a browser-based idle/management game where players build a cat empire. Start with a small apartment and grow to own a 100-acre farm with dozens of cats. Features cloud saves, global leaderboards, social features, cat gifting, player trading, VIP rewards, weekly challenges, photo booth, and cat customization.
 
 ---
 
@@ -38,6 +38,8 @@ interface Cat {
   restLevel: number; // 0-100
   feedingScore: number;
   lastTrainingDay: number;
+  appearance?: CatAppearance; // Custom appearance options
+  portraitUrl?: string; // AI-generated portrait
 }
 ```
 
@@ -47,7 +49,32 @@ interface Cat {
 **Personalities:**
 - Lazy, Playful, Affectionate, Independent, Curious, Shy
 
-### 2. Grading System (`src/types/grading.ts`)
+### 2. Cat Appearance System (`src/types/catAppearance.ts`)
+
+**Appearance Options:**
+```typescript
+interface CatAppearance {
+  furColor: FurColor;
+  pattern: FurPattern;
+  patternColor?: string;
+  eyeColor: EyeColor;
+  hairLength: HairLength;
+  facialFeatures: FacialFeature[];
+}
+```
+
+**Fur Colors:** orange, black, white, gray, brown, cream, ginger, calico
+**Patterns:** solid, tabby, spotted, tuxedo, bicolor, calico
+**Eye Colors:** green, blue, amber, gold, heterochromia, copper
+**Hair Lengths:** short, medium, fluffy
+**Facial Features:** normal, scar, eyepatch, whiskers_long, grumpy, cute_blush
+
+**Features:**
+- Breed-specific defaults applied on cat creation
+- Full customization via CatCustomization page
+- Random appearance generation available
+
+### 3. Grading System (`src/types/grading.ts`)
 
 **Grade Tiers (1-20):**
 - Tiers: common (1-4), fine (5-8), rare (9-12), elite (13-16), legendary (17-20)
@@ -59,7 +86,7 @@ interface Cat {
 - Each has difficulty (1-5), grade bonus, and show bonus
 - Progress 0-100 per trick, needs 100 to learn
 
-### 3. Relationship System (`src/types/relationships.ts`, `src/hooks/useRelationships.ts`)
+### 4. Relationship System (`src/types/relationships.ts`, `src/hooks/useRelationships.ts`)
 
 **Relationship Scores:**
 - -100 to +100 scale
@@ -72,7 +99,7 @@ interface Cat {
 - Groups form automatically among friends
 - Happiness modifiers based on relationships
 
-### 4. Game State (`src/hooks/useGameState.ts`)
+### 5. Game State (`src/hooks/useGameState.ts`)
 
 **Resources:**
 - Food, Medicine, Toys, Treats
@@ -87,7 +114,7 @@ interface Cat {
 - Cats can die if health reaches 0
 - Market refreshes every 3 days
 
-### 5. Sound System (`src/hooks/useSoundEffects.ts`)
+### 6. Sound System (`src/hooks/useSoundEffects.ts`)
 
 **Sound Types:**
 - click, success, error, meow, purr, hiss
@@ -103,13 +130,13 @@ interface Cat {
 - Chord progressions change with mood
 - Separate volume controls for SFX and music
 
-### 6. Confetti System (`src/hooks/useConfetti.ts`)
+### 7. Confetti System (`src/hooks/useConfetti.ts`)
 
 **Triggers:**
 - Achievements unlock → Star confetti
 - Cat show wins → Big celebration burst
 
-### 7. Costume System (`src/types/costumes.ts`, `src/components/game/CostumeShopPanel.tsx`)
+### 8. Costume System (`src/types/costumes.ts`, `src/components/game/CostumeShopPanel.tsx`)
 
 **Categories:**
 - Hats (8 costumes): Party Hat, Crown, Wizard Hat, etc.
@@ -122,7 +149,7 @@ interface Cat {
 - Costumes can be bought and equipped to cats
 - Some costumes are rare/seasonal
 
-### 8. Show Events (`src/types/showEvents.ts`)
+### 9. Show Events (`src/types/showEvents.ts`)
 
 **Show Tiers:**
 - Local, Regional, National, International
@@ -132,24 +159,47 @@ interface Cat {
 - Spring, Summer, Fall, Winter events
 - Special events with bonus rewards
 
-### 9. Daily Events (`src/types/dailyEvents.ts`)
+### 10. Daily Events (`src/types/dailyEvents.ts`)
 
 **Event Types:**
 - Random daily events affecting money, resources, reputation
 - Cat-specific effects (health, happiness, hunger changes)
 
+### 11. Photo Booth System (`src/pages/CatPhotoBooth.tsx`, `src/components/game/PhotoBooth.tsx`)
+
+**Features:**
+- Take photos of cats with customizable backgrounds
+- 16 background options (nature, fantasy, seasonal, solid)
+- 7 cat poses (sitting, playful, sleepy, proud, silly, waving, bouncing)
+- 7 frame styles (polaroid, heart, star, vintage, gold, rainbow, paws)
+- 24 stickers across categories (hearts, stars, text, animals, effects)
+- Draggable sticker positioning with scale and rotation
+- Export photos (download, copy, share)
+- Save to cloud gallery for logged-in users
+
+### 12. Photo Gallery System (`src/pages/CatGallery.tsx`, `src/hooks/usePhotoGallery.ts`)
+
+**Features:**
+- Local storage with cloud sync
+- Maximum 50 photos
+- Favorites system
+- Filter by cat name
+- Sort by date or name
+- Full-screen lightbox viewer
+- Cloud sync for logged-in users
+
 ---
 
 ## Social & Multiplayer Systems
 
-### 10. Authentication (`src/contexts/AuthContext.tsx`)
+### 13. Authentication (`src/contexts/AuthContext.tsx`)
 
 **Features:**
 - Email/password authentication via Supabase
 - Session management
 - Auto-confirm email signups
 
-### 11. Cloud Saves (`src/hooks/useCloudSave.ts`)
+### 14. Cloud Saves (`src/hooks/useCloudSave.ts`)
 
 **Features:**
 - Auto-save every 5 minutes when logged in
@@ -159,7 +209,7 @@ interface Cat {
 **Database Table:** `game_saves`
 - `user_id`, `game_state` (JSONB), `kittens_bred`, `relationships`, `last_played_at`
 
-### 12. Global Leaderboard (`src/hooks/useGlobalLeaderboard.ts`, `src/components/game/GlobalLeaderboardPanel.tsx`)
+### 15. Global Leaderboard (`src/hooks/useGlobalLeaderboard.ts`, `src/components/game/GlobalLeaderboardPanel.tsx`)
 
 **Leaderboard Categories:**
 - Show Wins, Cats Owned, Kittens Bred, Money Earned, Achievements
@@ -172,7 +222,7 @@ interface Cat {
 **Database Table:** `player_stats`
 - `user_id`, `display_name`, `avatar_emoji`, `total_show_wins`, `total_cats_owned`, etc.
 
-### 13. Friends System (`src/hooks/useFriends.ts`, `src/components/game/FriendsPanel.tsx`)
+### 16. Friends System (`src/hooks/useFriends.ts`, `src/components/game/FriendsPanel.tsx`)
 
 **Features:**
 - Send/accept/decline friend requests
@@ -182,7 +232,7 @@ interface Cat {
 **Database Table:** `player_friends`
 - `user_id`, `friend_id`, `status` (pending/accepted/blocked)
 
-### 14. Player Profile (`src/hooks/usePlayerProfile.ts`, `src/components/game/PlayerProfilePanel.tsx`)
+### 17. Player Profile (`src/hooks/usePlayerProfile.ts`, `src/components/game/PlayerProfilePanel.tsx`)
 
 **Features:**
 - Edit display name and avatar emoji
@@ -191,7 +241,7 @@ interface Cat {
 **Database Table:** `profiles`
 - `id`, `display_name`, `avatar_emoji`, `username`
 
-### 15. Cat Gifting (`src/hooks/useCatGifts.ts`, `src/components/game/CatGiftingPanel.tsx`)
+### 18. Cat Gifting (`src/hooks/useCatGifts.ts`, `src/components/game/CatGiftingPanel.tsx`)
 
 **Features:**
 - Send cats as gifts to friends
@@ -202,7 +252,7 @@ interface Cat {
 **Database Table:** `cat_gifts`
 - `sender_id`, `recipient_id`, `cat_data` (JSONB), `message`, `status`
 
-### 16. Player Trading (`src/hooks/useTrading.ts`, `src/components/game/TradingPanel.tsx`)
+### 19. Player Trading (`src/hooks/useTrading.ts`, `src/components/game/TradingPanel.tsx`)
 
 **Features:**
 - Create trade offers with cats and money
@@ -213,7 +263,7 @@ interface Cat {
 **Database Table:** `trade_offers`
 - `sender_id`, `recipient_id`, `offered_cats`, `offered_money`, `requested_money`, `status`
 
-### 17. Notifications (`src/hooks/useNotifications.ts`, `src/components/game/NotificationCenter.tsx`)
+### 20. Notifications (`src/hooks/useNotifications.ts`, `src/components/game/NotificationCenter.tsx`)
 
 **Notification Types:**
 - Friend requests
@@ -225,7 +275,7 @@ interface Cat {
 - Bell icon with unread count badge
 - Click to navigate to relevant tab
 
-### 10. Bulk Actions System (`src/components/game/BulkActionsPanel.tsx`)
+### 21. Bulk Actions System (`src/components/game/BulkActionsPanel.tsx`)
 
 **Bulk Action Functions:**
 - Heal All Sick: Heal cats with health < 70 (costs 1 medicine per cat)
@@ -257,6 +307,14 @@ interface Cat {
 - Grade badge with tier styling
 - Comfort button for upset cats (20-second timer)
 - Heal and Sell buttons
+- **Inline rename feature** with pencil icon
+- **Random name generator** with breed/personality-based suggestions
+
+**Name Generator (`CatCard.tsx`):**
+- Breed-specific names (Japanese for Siamese, Royal for Persian, etc.)
+- Personality-based names (Snoozer for Lazy, Zoom for Playful, etc.)
+- Universal fallback names
+- Shuffle button for random selection
 
 ### Panels:
 - **ActionPanel**: Add cats, next day
@@ -281,6 +339,14 @@ interface Cat {
 - **BulkActionsPanel**: Mass cat management operations
 - **LeaderboardRewardsPanel**: Claim leaderboard rewards
 - **LeaderboardHistoryChart**: Historical ranking visualization
+
+### Photo Booth Components:
+- **PhotoBooth.tsx**: Interactive photo taking interface
+- **GalleryPhotoCard.tsx**: Photo display card with actions
+- **PhotoLightbox.tsx**: Full-screen photo viewer
+- **DraggableSticker.tsx**: Draggable stickers for photos
+- **CatPortrait.tsx**: Cat portrait display component
+- **CatAvatar.tsx**: Cat avatar with costume support
 
 ### Support Components:
 - **StatusBar**: Money, day, house, cat show (React.forwardRef)
@@ -323,6 +389,36 @@ interface Cat {
 
 ## Key Mechanics
 
+### Cat Renaming
+- Inline editing via pencil icon on CatCard
+- Random name generator with shuffle button
+- Breed-specific names (e.g., Japanese names for Siamese)
+- Personality-based names (e.g., "Snoozer" for lazy cats)
+- Universal fallback names
+- Validation: Names must be unique
+
+**Breed-Specific Names:**
+| Breed | Theme | Examples |
+|-------|-------|----------|
+| Siamese | Japanese/Thai | Sakura, Miko, Yuki, Wasabi, Mochi |
+| Persian | Royal/Fancy | Duchess, Prince, Anastasia, Cleopatra |
+| Maine Coon | Nature/Rugged | Bear, Moose, Timber, Everest, Grizzly |
+| British Shorthair | British | Winston, Churchill, Sherlock, Paddington |
+| Ragdoll | Soft/Cuddly | Marshmallow, Velvet, Cashmere, Snuggles |
+| Bengal | Wild/Exotic | Rajah, Sheba, Safari, Tigris, Panther |
+| Tabby | Classic | Stripes, Marble, Autumn, Caramel |
+| Stray | Street Smart | Scrappy, Lucky, Rascal, Bandit |
+
+**Personality-Based Names:**
+| Personality | Theme | Examples |
+|-------------|-------|----------|
+| Lazy | Sleepy | Snoozer, Dreamer, Cozy, Pillow |
+| Playful | Active | Zoom, Bounce, Sparky, Turbo |
+| Affectionate | Loving | Cuddles, Sweetie, Lovebug |
+| Independent | Aloof | Maverick, Solo, Rebel, Enigma |
+| Curious | Inquisitive | Scout, Explorer, Sherlock |
+| Shy | Gentle | Whisper, Shadow, Bashful |
+
 ### Breeding
 - Requires 2 cats, no cooldown active
 - Relationship affects success rate
@@ -357,6 +453,12 @@ interface Cat {
 - Request money in return
 - Both parties must have required items
 - Trades expire after 7 days
+
+### Photo Booth
+- Select background, pose, frame, and stickers
+- Drag and position stickers on photo
+- Download, copy, or share photos
+- Save to cloud gallery (authenticated users)
 
 ---
 
@@ -407,6 +509,16 @@ interface Cat {
 - `status` (TEXT: pending/accepted/declined/cancelled)
 - `expires_at` (TIMESTAMPTZ)
 
+**gallery_photos**
+- `id` (UUID, PK)
+- `user_id` (UUID, FK)
+- `cat_id`, `cat_name` (TEXT)
+- `image_path` (TEXT)
+- `background_id`, `pose_id`, `frame_id` (TEXT)
+- `sticker_count` (INTEGER)
+- `is_favorite` (BOOLEAN)
+- `created_at`, `updated_at` (TIMESTAMPTZ)
+
 **error_logs**
 - `id` (UUID, PK)
 - `user_id` (UUID, nullable)
@@ -418,6 +530,10 @@ interface Cat {
 - `user_agent` (TEXT, nullable)
 - `metadata` (JSONB) - additional context
 - `created_at` (TIMESTAMPTZ)
+
+### Storage Buckets:
+- `photo-gallery` - Cat photos from photo booth (public)
+- `cat-portraits` - AI-generated cat portraits (public)
 
 ---
 
@@ -455,9 +571,15 @@ interface Cat {
 ```
 src/
 ├── components/
-│   ├── game/                   # Game UI components (42 files)
+│   ├── game/                   # Game UI components (45+ files)
 │   │   ├── CatFarm.tsx         # Main game orchestrator
-│   │   ├── CatCard.tsx         # Individual cat display
+│   │   ├── CatCard.tsx         # Individual cat display + rename
+│   │   ├── CatAvatar.tsx       # Cat avatar with costume
+│   │   ├── CatPortrait.tsx     # Cat portrait display
+│   │   ├── PhotoBooth.tsx      # Photo booth interface
+│   │   ├── GalleryPhotoCard.tsx # Photo card display
+│   │   ├── PhotoLightbox.tsx   # Full-screen photo viewer
+│   │   ├── DraggableSticker.tsx # Draggable stickers
 │   │   ├── BulkActionsPanel.tsx # Mass cat management
 │   │   ├── ActionPanel.tsx     # Add cats, next day
 │   │   ├── ChorePanel.tsx      # Earn money through tasks
@@ -503,7 +625,7 @@ src/
 │   ├── ErrorBoundary.tsx       # React error boundary
 │   ├── ErrorLoggerProvider.tsx # Global error handler
 │   └── NavLink.tsx
-├── hooks/                      # 26 custom hooks
+├── hooks/                      # 29 custom hooks
 │   ├── useGameState.ts         # Core game logic + bulk actions
 │   ├── useRelationships.ts     # Cat relationships
 │   ├── useSoundEffects.ts      # Audio system
@@ -525,6 +647,9 @@ src/
 │   ├── usePushNotifications.ts # Web push notifications
 │   ├── useChallengeAchievements.ts # Challenge-achievement linking
 │   ├── usePlayerStats.ts       # Player statistics
+│   ├── usePhotoGallery.ts      # Local + cloud photo gallery
+│   ├── useCloudGallery.ts      # Cloud gallery operations
+│   ├── useInfiniteScroll.ts    # Infinite scroll utility
 │   ├── useAdminAuth.ts         # Admin authentication
 │   ├── useAdminData.ts         # Admin data queries
 │   ├── useAdminActivityLog.ts  # Admin activity logging
@@ -538,10 +663,14 @@ src/
 │   ├── showEvents.ts           # Show tiers and events
 │   ├── dailyEvents.ts          # Daily random events
 │   ├── dailyRewards.ts         # VIP tier definitions
-│   └── challenges.ts           # Weekly challenge types
+│   ├── challenges.ts           # Weekly challenge types
+│   ├── gallery.ts              # Photo gallery types
+│   ├── photoBooth.ts           # Photo booth assets
+│   └── catAppearance.ts        # Cat appearance options
 ├── contexts/
 │   ├── AuthContext.tsx         # Authentication
-│   └── SoundContext.tsx        # Sound provider
+│   ├── SoundContext.tsx        # Sound provider
+│   └── CatReactionContext.tsx  # Cat reaction animations
 ├── integrations/
 │   └── supabase/
 │       ├── client.ts           # Supabase client
@@ -552,6 +681,9 @@ src/
     ├── Index.tsx               # Main game page
     ├── Auth.tsx                # Login/signup
     ├── CatCollection.tsx       # Trading card view
+    ├── CatPhotoBooth.tsx       # Photo booth page
+    ├── CatGallery.tsx          # Photo gallery page
+    ├── CatCustomization.tsx    # Cat appearance editor
     ├── Leaderboard.tsx         # Global leaderboard page
     ├── Stats.tsx               # Player statistics
     ├── AdminAuth.tsx           # Admin login
@@ -564,6 +696,7 @@ supabase/
 └── functions/
     ├── process-leaderboard-rewards/
     ├── generate-weekly-challenges/
+    ├── generate-cat-portrait/
     └── send-push-notification/
 ```
 
@@ -599,6 +732,9 @@ All tables have RLS enabled with appropriate policies:
 - Users can create trades (INSERT with sender check)
 - Both parties can update/view their trades
 
+**gallery_photos**
+- Users can only view/insert/update/delete their own photos
+
 **error_logs**
 - Only authenticated users can insert errors
 - Users can only view their own error logs
@@ -609,8 +745,9 @@ All tables have RLS enabled with appropriate policies:
 - React 18 + TypeScript
 - Vite build tool
 - Tailwind CSS + shadcn/ui components
-- Supabase (Auth, Database, Realtime)
+- Supabase (Auth, Database, Realtime, Storage)
 - Web Audio API for sound
 - canvas-confetti for celebrations
+- html-to-image for photo exports
 - localStorage for local saves
 - Cloud saves via Supabase

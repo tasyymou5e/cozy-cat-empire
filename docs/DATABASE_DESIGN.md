@@ -27,6 +27,13 @@ Cat Farm uses Supabase (PostgreSQL) for persistent storage. This document covers
 ├──────────────┬───────────────┬──────────────────────────┤
 │  cat_gifts   │ trade_offers  │ leaderboard_rewards      │
 └──────────────┴───────────────┴──────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────────────────────────┐
+│                    Photo Gallery                         │
+├─────────────────────────────────────────────────────────┤
+│                   gallery_photos                         │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -192,6 +199,8 @@ CREATE TABLE public.cat_gifts (
   showWins: number,
   grade: number,
   tricksLearned: string[],
+  appearance?: CatAppearance, // Custom appearance
+  portraitUrl?: string,       // AI portrait URL
   // ... full Cat interface
 }
 ```
@@ -220,6 +229,38 @@ CREATE TABLE public.trade_offers (
 ```
 
 **Purpose:** Complex trading system with cats, money, and resources.
+
+---
+
+## Photo Gallery Tables
+
+### gallery_photos
+Photo booth creations stored in cloud.
+
+```sql
+CREATE TABLE public.gallery_photos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  cat_id TEXT NOT NULL,
+  cat_name TEXT NOT NULL,
+  image_path TEXT NOT NULL,
+  background_id TEXT NOT NULL,
+  pose_id TEXT NOT NULL,
+  frame_id TEXT NOT NULL,
+  sticker_count INTEGER DEFAULT 0,
+  is_favorite BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**Purpose:** Store photo metadata for cloud gallery sync.
+
+**Key Fields:**
+- `image_path`: Path to image in storage bucket
+- `background_id`, `pose_id`, `frame_id`: Photo customization options
+- `sticker_count`: Number of stickers applied
+- `is_favorite`: User-marked favorite photos
 
 ---
 
@@ -433,6 +474,36 @@ CREATE TABLE public.error_logs (
 
 ---
 
+## Storage Buckets
+
+### photo-gallery
+Public bucket for photo booth images.
+
+```sql
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('photo-gallery', 'photo-gallery', true);
+```
+
+**Policies:**
+- Users can upload their own photos
+- Users can view/delete their own photos
+- Photos are publicly accessible via URL
+
+### cat-portraits
+Public bucket for AI-generated cat portraits.
+
+```sql
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('cat-portraits', 'cat-portraits', true);
+```
+
+**Policies:**
+- System can upload portraits
+- Users can view their own cat portraits
+- Portraits are publicly accessible via URL
+
+---
+
 ## Database Functions
 
 ### handle_new_user()
@@ -497,15 +568,26 @@ CREATE INDEX idx_trades_recipient ON trade_offers(recipient_id, status);
 -- Challenge queries
 CREATE INDEX idx_challenges_active ON weekly_challenges(is_active, ends_at);
 CREATE INDEX idx_challenge_progress_user ON player_challenge_progress(user_id);
+
+-- Gallery queries
+CREATE INDEX idx_gallery_user ON gallery_photos(user_id, created_at DESC);
+CREATE INDEX idx_gallery_favorite ON gallery_photos(user_id, is_favorite);
 ```
 
 ---
 
-## Data Retention
+## Row-Level Security (RLS)
 
-### Recommendations
-- `error_logs`: Retain 30 days
-- `relationship events`: Keep last 100 per save
-- `rank_history`: Retain 90 days
-- `leaderboard_snapshots`: Retain 1 year
-- `rewards_processing_log`: Retain 90 days
+All tables have RLS enabled. See [SECURITY.md](./SECURITY.md) for detailed policy definitions.
+
+**Quick Reference:**
+| Table | Public Read | Owner Write | Notes |
+|-------|-------------|-------------|-------|
+| profiles | ✅ | ✅ | Display info is public |
+| game_saves | ❌ | ✅ | Private game state |
+| player_stats | ✅ | ✅ | Leaderboard is public |
+| player_friends | ❌ | ✅ | Both parties can view |
+| cat_gifts | ❌ | ✅ | Sender/recipient access |
+| trade_offers | ❌ | ✅ | Sender/recipient access |
+| gallery_photos | ❌ | ✅ | Owner access only |
+| error_logs | ❌ | ✅ | Owner access only |
