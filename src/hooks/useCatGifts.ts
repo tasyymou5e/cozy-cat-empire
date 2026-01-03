@@ -56,7 +56,7 @@ export function useCatGifts(userId: string | undefined) {
 
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('id, display_name')
           .in('id', userIds);
 
@@ -108,10 +108,10 @@ export function useCatGifts(userId: string | undefined) {
           // Fetch sender name for the new gift
           const newGift = payload.new as any;
           const { data: senderProfile } = await supabase
-            .from('profiles')
+            .from('public_profiles')
             .select('display_name')
             .eq('id', newGift.sender_id)
-            .single();
+            .maybeSingle();
 
           const giftWithSender: CatGift = {
             ...newGift,

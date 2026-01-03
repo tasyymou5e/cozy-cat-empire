@@ -50,7 +50,7 @@ export function useFriends(userId: string | undefined) {
       if (friendIds.length > 0) {
         // Fetch friend profiles and stats
         const { data: profiles } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('id, display_name, avatar_emoji')
           .in('id', friendIds);
 
@@ -96,7 +96,7 @@ export function useFriends(userId: string | undefined) {
       if (pendingData && pendingData.length > 0) {
         const senderIds = pendingData.map(p => p.user_id);
         const { data: senderProfiles } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('id, display_name, avatar_emoji')
           .in('id', senderIds);
 
@@ -132,7 +132,7 @@ export function useFriends(userId: string | undefined) {
     try {
       // Find user by display_name
       const { data: profiles, error: searchError } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select('id, display_name')
         .ilike('display_name', friendUsername)
         .limit(1);

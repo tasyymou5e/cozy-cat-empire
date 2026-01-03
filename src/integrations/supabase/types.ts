@@ -365,6 +365,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "game_saves_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       leaderboard_rewards: {
@@ -580,10 +587,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fk_friend"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fk_user"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -634,6 +655,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -874,7 +902,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          avatar_emoji: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string | null
+        }
+        Insert: {
+          avatar_emoji?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+        }
+        Update: {
+          avatar_emoji?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_delete_user: { Args: { _user_id: string }; Returns: boolean }
