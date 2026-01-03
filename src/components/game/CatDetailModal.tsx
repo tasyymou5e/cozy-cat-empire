@@ -5,6 +5,7 @@ import { CatRelationship, getRelationshipLevel, getRelationshipEmoji, getRelatio
 import { TRICKS, MIN_SHOW_GRADE } from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
 import { CatAvatar } from './CatAvatar';
+import { CatPortrait } from './CatPortrait';
 import { ComfortButton } from './ComfortButton';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ interface CatDetailModalProps {
   onTrain: (catId: string, trickId: string) => void;
   treats: number;
   equippedCostumeId?: string;
+  onPortraitGenerated?: (catId: string, portraitUrl: string) => void;
 }
 
 const catEmojis: Record<string, string> = {
@@ -44,7 +46,7 @@ const personalityDescriptions: Record<string, string> = {
 
 export function CatDetailModal({ 
   cat, relationships, allCats, open, onClose, 
-  onComfort, onHeal, onSell, onRest, onTrain, treats, equippedCostumeId
+  onComfort, onHeal, onSell, onRest, onTrain, treats, equippedCostumeId, onPortraitGenerated
 }: CatDetailModalProps) {
   const [activeTab, setActiveTab] = useState('stats');
   
@@ -65,14 +67,23 @@ export function CatDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
-            <CatAvatar cat={cat} size="lg" equippedCostumeId={equippedCostumeId} />
+            <CatAvatar cat={cat} size="md" equippedCostumeId={equippedCostumeId} />
             <span>{cat.name}</span>
             <GradeBadge grade={cat.grade} size="lg" />
           </DialogTitle>
         </DialogHeader>
+
+        {/* AI Portrait Section */}
+        <div className="flex justify-center py-4 border-b border-border/50">
+          <CatPortrait 
+            cat={cat} 
+            equippedCostumeId={equippedCostumeId}
+            onPortraitGenerated={onPortraitGenerated}
+          />
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left: Cat Info */}

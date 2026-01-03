@@ -25,6 +25,8 @@ export interface Cat {
   feedingScore: number; // Cumulative feeding contribution
   lastTrainingDay: number;
   appearance?: CatAppearance; // Visual customization
+  portraitUrl?: string; // AI-generated portrait URL
+  portraitGeneratedAt?: number; // Timestamp of generation
 }
 
 export interface Resources {
