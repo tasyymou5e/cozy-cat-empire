@@ -29,7 +29,9 @@ export type SoundType =
   | 'catHunting'
   | 'catStretching'
   | 'catCuddling'
-  | 'catTraining';
+  | 'catTraining'
+  | 'giftReceived'
+  | 'tradeReceived';
 
 type MusicMood = 'morning' | 'afternoon' | 'evening' | 'night' | 'celebration' | 'tense';
 
@@ -232,6 +234,18 @@ const SOUND_CONFIGS: Record<SoundType, SoundConfig | SoundConfig[]> = {
     { frequency: 600, type: 'sine', duration: 0.1, volume: 0.12 },
     { frequency: 700, type: 'sine', duration: 0.08, volume: 0.14 },
     { frequency: 800, type: 'sine', duration: 0.12, volume: 0.1 },
+  ],
+  // Gift and trade notification sounds
+  giftReceived: [
+    { frequency: 523, type: 'sine', duration: 0.1, volume: 0.2 },
+    { frequency: 659, type: 'sine', duration: 0.1, volume: 0.22 },
+    { frequency: 784, type: 'sine', duration: 0.12, volume: 0.25 },
+    { frequency: 1047, type: 'sine', duration: 0.2, volume: 0.3 },
+  ],
+  tradeReceived: [
+    { frequency: 440, type: 'sine', duration: 0.1, volume: 0.18 },
+    { frequency: 554, type: 'sine', duration: 0.1, volume: 0.2 },
+    { frequency: 659, type: 'sine', duration: 0.15, volume: 0.22 },
   ],
 };
 

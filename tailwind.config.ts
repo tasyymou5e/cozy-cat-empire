@@ -413,6 +413,28 @@ export default {
 				'10%': { opacity: '1', transform: 'translateY(0) scale(1)' },
 				'85%': { opacity: '1', transform: 'translateY(0) scale(1)' },
 				'100%': { opacity: '0', transform: 'translateY(-10px) scale(0.95)' }
+			},
+			// Gift and Trade animations
+			'gift-sparkle': {
+				'0%, 100%': { opacity: '0', transform: 'scale(0.5) rotate(0deg)' },
+				'50%': { opacity: '1', transform: 'scale(1.2) rotate(180deg)' }
+			},
+			'gift-unwrap': {
+				'0%': { transform: 'scale(0.8) rotate(-5deg)' },
+				'50%': { transform: 'scale(1.1) rotate(5deg)' },
+				'100%': { transform: 'scale(1) rotate(0deg)' }
+			},
+			'pulse-glow': {
+				'0%, 100%': { boxShadow: '0 0 5px 2px hsl(var(--primary) / 0.3)' },
+				'50%': { boxShadow: '0 0 20px 8px hsl(var(--primary) / 0.5)' }
+			},
+			'float-heart': {
+				'0%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+				'100%': { opacity: '0', transform: 'translateY(-30px) scale(0.5)' }
+			},
+			'trade-pulse': {
+				'0%, 100%': { transform: 'scale(1)' },
+				'50%': { transform: 'scale(1.1)' }
 			}
 		},
   		animation: {
@@ -454,7 +476,13 @@ export default {
 			'eye-shimmer': 'eye-shimmer 2s ease-in-out infinite',
 			'whisker-wiggle': 'whisker-wiggle 3s ease-in-out infinite',
 			'cat-breathe': 'cat-breathe 3s ease-in-out infinite',
-			'activity-popup': 'activity-popup 5s ease-in-out forwards'
+			'activity-popup': 'activity-popup 5s ease-in-out forwards',
+			// Gift and Trade animations
+			'gift-sparkle': 'gift-sparkle 2s ease-in-out infinite',
+			'gift-unwrap': 'gift-unwrap 0.5s ease-out forwards',
+			'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+			'float-heart': 'float-heart 1.5s ease-out forwards',
+			'trade-pulse': 'trade-pulse 1s ease-in-out infinite'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',
