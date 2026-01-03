@@ -115,13 +115,14 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
 
 interface UseAdminErrorsParams {
   errorType?: string;
+  status?: string;
   page?: number;
   pageSize?: number;
 }
 
-export function useAdminErrors({ errorType, page = 1, pageSize = 20 }: UseAdminErrorsParams = {}) {
+export function useAdminErrors({ errorType, status, page = 1, pageSize = 20 }: UseAdminErrorsParams = {}) {
   return useQuery({
-    queryKey: ['admin-errors', errorType, page, pageSize],
+    queryKey: ['admin-errors', errorType, status, page, pageSize],
     queryFn: async () => {
       let query = supabase
         .from('error_logs')
@@ -133,12 +134,27 @@ export function useAdminErrors({ errorType, page = 1, pageSize = 20 }: UseAdminE
         query = query.eq('error_type', errorType);
       }
 
+      if (status) {
+        query = query.eq('status', status);
+      }
+
       const { data, error } = await query;
       if (error) throw error;
 
-      const { count } = await supabase
+      // Get count with same filters
+      let countQuery = supabase
         .from('error_logs')
         .select('id', { count: 'exact', head: true });
+
+      if (errorType) {
+        countQuery = countQuery.eq('error_type', errorType);
+      }
+
+      if (status) {
+        countQuery = countQuery.eq('status', status);
+      }
+
+      const { count } = await countQuery;
 
       return {
         errors: data || [],
