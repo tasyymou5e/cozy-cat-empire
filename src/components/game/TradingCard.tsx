@@ -2,6 +2,7 @@ import { Cat } from '@/types/game';
 import { CatRelationship, getRelationshipLevel, getRelationshipEmoji } from '@/types/relationships';
 import { getGradeTier, getGradeStars, TRICKS } from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
+import { CatAvatar } from './CatAvatar';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Star, Heart, HeartCrack, Trophy, Zap } from 'lucide-react';
@@ -11,16 +12,8 @@ interface TradingCardProps {
   relationships: CatRelationship[];
   allCats: Cat[];
   onClick: () => void;
+  equippedCostumeId?: string;
 }
-
-const catEmojis: Record<string, string> = {
-  'stray': '🐱', 'tabby': '🐈', 'persian': '😺', 'siamese': '😸',
-  'maine-coon': '🦁', 'british-shorthair': '🐾', 'ragdoll': '💫', 'bengal': '🐆',
-};
-
-const personalityEmojis: Record<string, string> = {
-  'lazy': '😴', 'playful': '🎮', 'affectionate': '💗', 'independent': '😎', 'curious': '🔍', 'shy': '🙈',
-};
 
 const typeLabels: Record<string, { label: string; color: string }> = {
   'stray': { label: 'Stray', color: 'bg-gray-500' },
@@ -28,7 +21,7 @@ const typeLabels: Record<string, { label: string; color: string }> = {
   'pure': { label: 'Purebred', color: 'bg-purple-500' },
 };
 
-export function TradingCard({ cat, relationships, allCats, onClick }: TradingCardProps) {
+export function TradingCard({ cat, relationships, allCats, onClick, equippedCostumeId }: TradingCardProps) {
   const tier = getGradeTier(cat.grade);
   const stars = getGradeStars(cat.grade);
   
@@ -68,22 +61,20 @@ export function TradingCard({ cat, relationships, allCats, onClick }: TradingCar
     <div className={`${cardBg[tier]} rounded-lg p-3 h-full flex flex-col`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-1.5">
-          <span className="text-lg">{personalityEmojis[cat.personality]}</span>
-          <span className="font-bold text-sm truncate max-w-[100px]">{cat.name}</span>
-        </div>
+        <span className="font-bold text-sm truncate max-w-[100px]">{cat.name}</span>
         <GradeBadge grade={cat.grade} size="sm" />
       </div>
-
       {/* Cat Display */}
       <div className="relative flex-shrink-0 h-24 flex items-center justify-center mb-2 rounded-md bg-gradient-to-b from-background/50 to-transparent">
-        <span className={`text-5xl ${tier === 'ultraRare' ? 'animate-bounce' : tier === 'veryRare' ? 'animate-pulse' : ''}`}>
-          {catEmojis[cat.breed]}
-        </span>
+        <CatAvatar 
+          cat={cat} 
+          size="lg" 
+          equippedCostumeId={equippedCostumeId}
+          animated={tier === 'ultraRare' || tier === 'veryRare'}
+        />
         {tier === 'ultraRare' && (
           <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/30 animate-shimmer rounded-md" />
         )}
-        {/* Stars overlay */}
         {stars > 0 && (
           <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
             {Array.from({ length: stars }).map((_, i) => (

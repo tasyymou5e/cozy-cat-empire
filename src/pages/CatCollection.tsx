@@ -262,6 +262,7 @@ export default function CatCollection() {
                 relationships={relationshipSystem.relationships}
                 allCats={state.cats}
                 onClick={() => setSelectedCat(cat)}
+                equippedCostumeId={state.catCostumes[cat.id]}
               />
             ))}
           </div>
@@ -281,6 +282,7 @@ export default function CatCollection() {
         onRest={actions.restCat}
         onTrain={handleTrain}
         treats={state.resources.treats}
+        equippedCostumeId={selectedCat ? state.catCostumes[selectedCat.id] : undefined}
       />
     </div>
   );

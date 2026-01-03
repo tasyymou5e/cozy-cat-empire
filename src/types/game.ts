@@ -1,4 +1,5 @@
 import { TrickId } from './grading';
+import { CatAppearance } from './catAppearance';
 
 export type CatBreed = 'stray' | 'tabby' | 'persian' | 'siamese' | 'maine-coon' | 'british-shorthair' | 'ragdoll' | 'bengal';
 export type CatPersonality = 'lazy' | 'playful' | 'affectionate' | 'independent' | 'curious' | 'shy';
@@ -23,6 +24,7 @@ export interface Cat {
   restLevel: number; // 0-100
   feedingScore: number; // Cumulative feeding contribution
   lastTrainingDay: number;
+  appearance?: CatAppearance; // Visual customization
 }
 
 export interface Resources {

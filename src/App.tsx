@@ -11,6 +11,7 @@ import { ErrorLoggerProvider } from "./components/ErrorLoggerProvider";
 import { AdminRoute } from "./components/admin/AdminRoute";
 import Index from "./pages/Index";
 import CatCollection from "./pages/CatCollection";
+import CatCustomization from "./pages/CatCustomization";
 import Leaderboard from "./pages/Leaderboard";
 import Stats from "./pages/Stats";
 import Auth from "./pages/Auth";
@@ -39,6 +40,7 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/collection" element={<CatCollection />} />
+                    <Route path="/customize/:catId?" element={<CatCustomization />} />
                     <Route path="/leaderboard" element={<Leaderboard />} />
                     <Route path="/stats" element={<Stats />} />
                     <Route path="/auth" element={<Auth />} />

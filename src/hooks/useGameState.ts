@@ -903,6 +903,24 @@ export function useGameState(
     });
   }, [playSound]);
 
+  const updateCatAppearance = useCallback((catId: string, appearance: import('@/types/catAppearance').CatAppearance) => {
+    setState(prev => {
+      const cat = prev.cats.find(c => c.id === catId);
+      if (!cat) return prev;
+      
+      return {
+        ...prev,
+        cats: prev.cats.map(c => 
+          c.id === catId 
+            ? { ...c, appearance }
+            : c
+        ),
+      };
+    });
+    showMessage('Cat appearance saved! ✨', 'success');
+    playSound?.('success');
+  }, [playSound]);
+
   const buyCostume = useCallback((costumeId: string) => {
     const costume = getCostumeById(costumeId);
     if (!costume) return;
@@ -1188,14 +1206,14 @@ export function useGameState(
     doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
     addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
-    trainAllAvailableCats, sellSelectedCats,
+    trainAllAvailableCats, sellSelectedCats, updateCatAppearance,
   }), [
     addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
     catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
     doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
     addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
-    trainAllAvailableCats, sellSelectedCats,
+    trainAllAvailableCats, sellSelectedCats, updateCatAppearance,
   ]);
 
   return {

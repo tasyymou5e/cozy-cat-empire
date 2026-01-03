@@ -1,15 +1,17 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Cat, BREEDS } from '@/types/game';
 import { CatRelationship, getRelationshipLevel, getRelationshipEmoji, getRelationshipColor } from '@/types/relationships';
 import { TRICKS, MIN_SHOW_GRADE } from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
+import { CatAvatar } from './CatAvatar';
 import { ComfortButton } from './ComfortButton';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, HeartCrack, Trophy, Zap, DollarSign, Sparkles, Moon, Dumbbell } from 'lucide-react';
+import { Heart, HeartCrack, Trophy, Zap, DollarSign, Sparkles, Moon, Dumbbell, Palette } from 'lucide-react';
 
 interface CatDetailModalProps {
   cat: Cat | null;
@@ -23,6 +25,7 @@ interface CatDetailModalProps {
   onRest: (catId: string) => void;
   onTrain: (catId: string, trickId: string) => void;
   treats: number;
+  equippedCostumeId?: string;
 }
 
 const catEmojis: Record<string, string> = {
@@ -41,7 +44,7 @@ const personalityDescriptions: Record<string, string> = {
 
 export function CatDetailModal({ 
   cat, relationships, allCats, open, onClose, 
-  onComfort, onHeal, onSell, onRest, onTrain, treats 
+  onComfort, onHeal, onSell, onRest, onTrain, treats, equippedCostumeId
 }: CatDetailModalProps) {
   const [activeTab, setActiveTab] = useState('stats');
   
@@ -65,7 +68,7 @@ export function CatDetailModal({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
-            <span className="text-3xl">{catEmojis[cat.breed]}</span>
+            <CatAvatar cat={cat} size="lg" equippedCostumeId={equippedCostumeId} />
             <span>{cat.name}</span>
             <GradeBadge grade={cat.grade} size="lg" />
           </DialogTitle>
@@ -263,9 +266,17 @@ export function CatDetailModal({
                   </div>
                 )}
 
+                <Link to={`/customize/${cat.id}`}>
+                  <Button variant="outline" className="w-full">
+                    <Palette className="h-4 w-4 mr-2" />
+                    Customize Appearance
+                  </Button>
+                </Link>
+
                 <Button onClick={() => onSell(cat.id)} variant="destructive" className="w-full">
                   💰 Sell for ${cat.value}
                 </Button>
+
               </TabsContent>
             </Tabs>
           </div>

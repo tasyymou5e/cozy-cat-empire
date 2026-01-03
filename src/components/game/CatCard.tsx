@@ -2,6 +2,7 @@ import { Cat, BREEDS } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
 import { getGradeBorderClass } from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
+import { CatAvatar } from './CatAvatar';
 import { ComfortButton } from './ComfortButton';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -15,19 +16,15 @@ interface CatCardProps {
   compact?: boolean;
   relationships?: CatRelationship[];
   allCats?: Cat[];
+  equippedCostumeId?: string;
 }
-
-const catEmojis: Record<string, string> = {
-  'stray': '🐱', 'tabby': '🐈', 'persian': '😺', 'siamese': '😸',
-  'maine-coon': '🦁', 'british-shorthair': '😻', 'ragdoll': '🐾', 'bengal': '🐆',
-};
 
 const personalityEmojis: Record<string, string> = {
   'lazy': '😴', 'playful': '🎾', 'affectionate': '💕',
   'independent': '😎', 'curious': '🔍', 'shy': '🙈',
 };
 
-export function CatCard({ cat, onSell, onHeal, onComfort, compact = false, relationships = [], allCats = [] }: CatCardProps) {
+export function CatCard({ cat, onSell, onHeal, onComfort, compact = false, relationships = [], allCats = [], equippedCostumeId }: CatCardProps) {
   const breedInfo = BREEDS[cat.breed];
   const isHealthy = cat.health >= 70;
   const gradeBorder = getGradeBorderClass(cat.grade);
@@ -43,7 +40,7 @@ export function CatCard({ cat, onSell, onHeal, onComfort, compact = false, relat
   if (compact) {
     return (
       <div className="cat-card-compact">
-        <span className="text-2xl">{catEmojis[cat.breed]}</span>
+        <CatAvatar cat={cat} size="sm" equippedCostumeId={equippedCostumeId} />
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm truncate">{cat.name}</p>
           <p className="text-xs text-muted-foreground">{breedInfo.name}</p>
@@ -57,7 +54,7 @@ export function CatCard({ cat, onSell, onHeal, onComfort, compact = false, relat
     <div className={`cat-card ${gradeBorder} ${!isHealthy ? 'border-destructive/50' : ''}`}>
       <div className="flex items-start justify-between w-full mb-2">
         <div className="flex items-center gap-1">
-          <div className="text-3xl animate-bounce-gentle">{catEmojis[cat.breed]}</div>
+          <CatAvatar cat={cat} size="md" equippedCostumeId={equippedCostumeId} animated />
           {moodEmoji && <span className="text-lg">{moodEmoji}</span>}
         </div>
         <GradeBadge grade={cat.grade} />
