@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { useAdminErrors } from '@/hooks/useAdminData';
+import { useAdminErrors, useAdminErrorTrends } from '@/hooks/useAdminData';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -57,8 +57,19 @@ import {
   XCircle,
   RotateCcw,
   Trash2,
+  TrendingUp,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
 
 export default function AdminErrorLogs() {
   const [errorType, setErrorType] = useState<string>('');
@@ -77,6 +88,8 @@ export default function AdminErrorLogs() {
     page,
     pageSize: 20,
   });
+
+  const { data: trendData, isLoading: trendsLoading } = useAdminErrorTrends();
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -271,6 +284,104 @@ export default function AdminErrorLogs() {
             Refresh
           </Button>
         </div>
+
+        {/* Error Trends Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Error Trends (Last 7 Days)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {trendsLoading ? (
+              <Skeleton className="h-64 w-full" />
+            ) : trendData && trendData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={trendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorReact" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.1}/>
+                    </linearGradient>
+                    <linearGradient id="colorUncaught" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#f97316" stopOpacity={0.1}/>
+                    </linearGradient>
+                    <linearGradient id="colorNetwork" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#eab308" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#eab308" stopOpacity={0.1}/>
+                    </linearGradient>
+                    <linearGradient id="colorInteraction" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    dataKey="displayDate" 
+                    tick={{ fontSize: 12 }}
+                    className="text-muted-foreground"
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 12 }}
+                    className="text-muted-foreground"
+                    allowDecimals={false}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
+                  <Legend />
+                  <Area 
+                    type="monotone" 
+                    dataKey="react_error_boundary" 
+                    name="React Errors"
+                    stroke="hsl(var(--destructive))" 
+                    fillOpacity={1} 
+                    fill="url(#colorReact)" 
+                    stackId="1"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="uncaught_error" 
+                    name="Uncaught Errors"
+                    stroke="#f97316" 
+                    fillOpacity={1} 
+                    fill="url(#colorUncaught)"
+                    stackId="1" 
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="network_error" 
+                    name="Network Errors"
+                    stroke="#eab308" 
+                    fillOpacity={1} 
+                    fill="url(#colorNetwork)"
+                    stackId="1" 
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="interaction_error" 
+                    name="Interaction Errors"
+                    stroke="#3b82f6" 
+                    fillOpacity={1} 
+                    fill="url(#colorInteraction)" 
+                    stackId="1"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-64 flex items-center justify-center text-muted-foreground">
+                No error data for the last 7 days
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Error Summary */}
         {groupedErrors.length > 0 && (
