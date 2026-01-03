@@ -26,6 +26,8 @@ export type LeaderboardCategory = 'wins' | 'cats' | 'breeding' | 'wealth' | 'ach
 export type LeaderboardViewMode = 'global' | 'friends';
 export type LeaderboardTimePeriod = 'all' | 'daily' | 'weekly' | 'monthly';
 
+const PAGE_SIZE = 20;
+
 export function useGlobalLeaderboard(userId: string | undefined, friendIds?: string[]) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [userRank, setUserRank] = useState<number | null>(null);
@@ -35,12 +37,16 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
   const [viewMode, setViewMode] = useState<LeaderboardViewMode>('global');
   const [timePeriod, setTimePeriod] = useState<LeaderboardTimePeriod>('all');
   const [isLive, setIsLive] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoad = useRef(true);
   
   // Use refs to track leaderboard state without causing re-renders
   const previousLeaderboardRef = useRef<LeaderboardEntry[]>([]);
   const leaderboardRef = useRef<LeaderboardEntry[]>([]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const getCategoryColumn = (cat: LeaderboardCategory): string => {
     switch (cat) {
@@ -97,17 +103,21 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     }
   };
 
-  const fetchLeaderboard = useCallback(async () => {
+  const fetchLeaderboard = useCallback(async (page: number = currentPage) => {
     setLoading(true);
     try {
       const column = getCategoryColumn(category);
       const periodStart = getPeriodStart(timePeriod);
       
+      // Calculate range for pagination
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      
       let query = supabase
         .from('player_stats')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order(column, { ascending: false })
-        .limit(20);
+        .range(from, to);
 
       // Filter to friends only when in friends mode
       if (viewMode === 'friends' && userId) {
@@ -120,13 +130,17 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
         query = query.gte('last_updated', periodStart.toISOString());
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
 
       if (error) throw error;
 
+      // Update total count for pagination
+      setTotalCount(count || 0);
+
+      // Calculate rank with page offset
       const ranked = (data || []).map((entry, index) => ({
         ...entry,
-        rank: index + 1,
+        rank: from + index + 1,
       }));
 
       // Calculate rank changes (only after initial load)
@@ -151,7 +165,7 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
           setUserRank(userEntry.rank || null);
           setUserStats(userEntry);
         } else if (viewMode === 'global') {
-          // User not in top 20, fetch their stats separately (only for global)
+          // User not on current page, fetch their stats separately (only for global)
           const { data: userData } = await supabase
             .from('player_stats')
             .select('*')
@@ -177,7 +191,26 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     } finally {
       setLoading(false);
     }
-  }, [category, userId, viewMode, friendIds, timePeriod]);
+  }, [category, userId, viewMode, friendIds, timePeriod, currentPage]);
+
+  // Pagination functions
+  const goToPage = useCallback((page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  }, [totalPages]);
+
+  const nextPage = useCallback(() => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  }, [currentPage, totalPages]);
+
+  const prevPage = useCallback(() => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  }, [currentPage]);
 
   // Use ref to hold latest fetchLeaderboard to avoid subscription churn
   const fetchLeaderboardRef = useRef(fetchLeaderboard);
@@ -185,12 +218,17 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     fetchLeaderboardRef.current = fetchLeaderboard;
   }, [fetchLeaderboard]);
 
-  // Initial fetch
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [category, viewMode, timePeriod, friendIds]);
+
+  // Initial fetch and refetch when page or filters change
   useEffect(() => {
     isInitialLoad.current = true;
-    fetchLeaderboard();
+    fetchLeaderboard(currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, viewMode, timePeriod, friendIds]);
+  }, [category, viewMode, timePeriod, friendIds, currentPage]);
 
   // Realtime subscription - stable effect that doesn't depend on fetchLeaderboard
   useEffect(() => {
@@ -268,8 +306,18 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     setViewMode,
     timePeriod,
     setTimePeriod,
-    fetchLeaderboard,
+    fetchLeaderboard: () => fetchLeaderboard(currentPage),
     syncPlayerStats,
     isLive,
+    // Pagination
+    currentPage,
+    totalPages,
+    totalCount,
+    goToPage,
+    nextPage,
+    prevPage,
+    hasNextPage: currentPage < totalPages,
+    hasPrevPage: currentPage > 1,
+    pageSize: PAGE_SIZE,
   };
 }

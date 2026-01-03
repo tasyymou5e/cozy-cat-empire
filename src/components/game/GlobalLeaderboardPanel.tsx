@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Trophy, Cat, Heart, Coins, Award, RefreshCw, Globe, Users, ArrowUp, ArrowDown, Sparkles, Calendar, Gift } from 'lucide-react';
+import { Trophy, Cat, Heart, Coins, Award, RefreshCw, Globe, Users, ArrowUp, ArrowDown, Sparkles, Calendar, Gift, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LeaderboardHistoryChart } from './LeaderboardHistoryChart';
@@ -79,7 +79,31 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
     setTimePeriod,
     fetchLeaderboard,
     isLive,
+    currentPage,
+    totalPages,
+    totalCount,
+    goToPage,
+    hasNextPage,
+    hasPrevPage,
+    pageSize,
   } = useGlobalLeaderboard(userId, friendIds);
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages: (number | 'ellipsis')[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push('ellipsis');
+      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+        pages.push(i);
+      }
+      if (currentPage < totalPages - 2) pages.push('ellipsis');
+      pages.push(totalPages);
+    }
+    return pages;
+  };
 
   const config = categoryConfig[category];
 
@@ -278,10 +302,66 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
                 </div>
               )}
 
-              {/* User's rank if not in top 20 (global only) */}
-              {viewMode === 'global' && userStats && userRank && userRank > 20 && (
+              {/* Pagination Controls */}
+              {totalPages > 1 && !loading && (
                 <div className="mt-4 pt-4 border-t">
-                  <div className="text-sm text-muted-foreground mb-2">Your Ranking</div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalCount)} of {totalCount} players
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => goToPage(currentPage - 1)}
+                        disabled={!hasPrevPage}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      {getPageNumbers().map((page, idx) => 
+                        page === 'ellipsis' ? (
+                          <span key={`ellipsis-${idx}`} className="px-2 text-muted-foreground">...</span>
+                        ) : (
+                          <Button
+                            key={page}
+                            variant={page === currentPage ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => goToPage(page)}
+                            className="min-w-[32px]"
+                          >
+                            {page}
+                          </Button>
+                        )
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => goToPage(currentPage + 1)}
+                        disabled={!hasNextPage}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* User's rank if not on current page (global only) */}
+              {viewMode === 'global' && userStats && userRank && !leaderboard.find(e => e.user_id === userId) && (
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Your Ranking</span>
+                    {userRank > pageSize && (
+                      <Button 
+                        variant="link" 
+                        size="sm" 
+                        className="text-xs h-auto p-0"
+                        onClick={() => goToPage(Math.ceil(userRank / pageSize))}
+                      >
+                        Jump to my rank
+                      </Button>
+                    )}
+                  </div>
                   <div className="flex items-center gap-3 p-2 rounded-lg bg-primary/10 border border-primary/30">
                     <div className="w-12 text-center">
                       <Badge variant="outline">#{userRank}</Badge>
