@@ -17,7 +17,15 @@ const emailSchema = z.object({
   email: z.string().trim().email({ message: 'Invalid email address' }),
 });
 
-type AuthMode = 'login' | 'signup' | 'forgot-password';
+const passwordUpdateSchema = z.object({
+  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+type AuthMode = 'login' | 'signup' | 'forgot-password' | 'update-password';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -25,21 +33,66 @@ export default function Auth() {
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect if already logged in
+  // Detect PASSWORD_RECOVERY event for password reset flow
   useEffect(() => {
-    if (user && !loading) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setMode('update-password');
+        setSuccess('');
+        setError('');
+      }
+    });
+
+    // Also check URL hash for recovery token on initial load
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    if (hashParams.get('type') === 'recovery') {
+      setMode('update-password');
+    }
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Redirect if already logged in (but not during password update)
+  useEffect(() => {
+    if (user && !loading && mode !== 'update-password') {
       navigate('/');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    // Handle password update mode
+    if (mode === 'update-password') {
+      const result = passwordUpdateSchema.safeParse({ password, confirmPassword });
+      if (!result.success) {
+        setError(result.error.errors[0].message);
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) {
+          setError(error.message);
+        } else {
+          setSuccess('Password updated successfully! You can now log in.');
+          setPassword('');
+          setConfirmPassword('');
+          setMode('login');
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
 
     if (mode === 'forgot-password') {
       const result = emailSchema.safeParse({ email });
@@ -105,6 +158,7 @@ export default function Auth() {
     setMode(newMode);
     setError('');
     setSuccess('');
+    setConfirmPassword('');
   };
 
   if (loading) {
@@ -123,6 +177,7 @@ export default function Auth() {
       case 'login': return 'Welcome back! Log in to continue your cat empire.';
       case 'signup': return 'Create an account to save your progress.';
       case 'forgot-password': return 'Enter your email to reset your password.';
+      case 'update-password': return 'Enter your new password.';
     }
   };
 
@@ -136,28 +191,46 @@ export default function Auth() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isSubmitting}
-                required
-              />
-            </div>
-
-            {mode !== 'forgot-password' && (
+            {mode !== 'update-password' && (
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isSubmitting}
+                  required
+                />
+              </div>
+            )}
+
+            {(mode === 'login' || mode === 'signup' || mode === 'update-password') && (
+              <div className="space-y-2">
+                <Label htmlFor="password">{mode === 'update-password' ? 'New Password' : 'Password'}</Label>
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isSubmitting}
+                  required
+                  minLength={6}
+                />
+              </div>
+            )}
+
+            {mode === 'update-password' && (
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={isSubmitting}
                   required
                   minLength={6}
@@ -184,6 +257,8 @@ export default function Auth() {
                 ? 'Log In'
                 : mode === 'signup'
                 ? 'Sign Up'
+                : mode === 'update-password'
+                ? 'Update Password'
                 : 'Send Reset Email'}
             </Button>
           </form>
@@ -216,7 +291,7 @@ export default function Auth() {
                 Already have an account? Log in
               </button>
             )}
-            {mode === 'forgot-password' && (
+            {(mode === 'forgot-password' || mode === 'update-password') && (
               <button
                 type="button"
                 onClick={() => switchMode('login')}
