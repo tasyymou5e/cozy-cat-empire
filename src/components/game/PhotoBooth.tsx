@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { toPng, toBlob } from 'html-to-image';
-import { Download, Copy, Share2, RotateCcw, Sparkles } from 'lucide-react';
+import { Download, Copy, Share2, RotateCcw, Sparkles, Save, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -19,6 +20,7 @@ import {
   PHOTO_FRAMES,
   PHOTO_STICKERS,
 } from '@/types/photoBooth';
+import { usePhotoGallery } from '@/hooks/usePhotoGallery';
 
 interface PhotoBoothProps {
   cat: Cat;
@@ -27,6 +29,7 @@ interface PhotoBoothProps {
 
 export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }) => {
   const { toast } = useToast();
+  const { savePhoto, photoCount, isFull } = usePhotoGallery();
   const stageRef = useRef<HTMLDivElement>(null);
   
   const [background, setBackground] = useState<PhotoBoothBackground>(PHOTO_BACKGROUNDS[0]);
@@ -142,6 +145,53 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
     }
   }, [cat.name, toast]);
 
+  const handleSaveToGallery = useCallback(async () => {
+    if (!stageRef.current) return;
+    
+    if (isFull) {
+      toast({ 
+        title: 'Gallery Full', 
+        description: 'Delete some photos to make room.', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+    
+    setIsExporting(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const dataUrl = await toPng(stageRef.current, { 
+        quality: 1,
+        pixelRatio: 2,
+      });
+      
+      const result = savePhoto({
+        catId: cat.id,
+        catName: cat.name,
+        imageDataUrl: dataUrl,
+        backgroundId: background.id,
+        poseId: pose.id,
+        frameId: frame.id,
+        stickerCount: stickers.length,
+        isFavorite: false,
+      });
+      
+      if (result.success) {
+        toast({ 
+          title: 'Saved to Gallery!', 
+          description: 'View your photos in the gallery.',
+        });
+      } else {
+        toast({ title: 'Error', description: result.error, variant: 'destructive' });
+      }
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to save photo.', variant: 'destructive' });
+    } finally {
+      setIsExporting(false);
+    }
+  }, [cat.id, cat.name, background.id, pose.id, frame.id, stickers.length, isFull, savePhoto, toast]);
+
   const getFrameStyle = (): React.CSSProperties => {
     if (frame.id === 'rainbow') {
       return {
@@ -200,7 +250,11 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
         
         {/* Export Actions */}
         <div className="flex gap-2 flex-wrap justify-center">
-          <Button onClick={handleDownload} disabled={isExporting}>
+          <Button onClick={handleSaveToGallery} disabled={isExporting || isFull}>
+            <Save className="w-4 h-4 mr-2" />
+            Save to Gallery
+          </Button>
+          <Button variant="outline" onClick={handleDownload} disabled={isExporting}>
             <Download className="w-4 h-4 mr-2" />
             Download
           </Button>
@@ -218,6 +272,12 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset
           </Button>
+        </div>
+        <div className="text-center">
+          <Link to="/gallery" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <ImageIcon className="w-4 h-4 inline mr-1" />
+            View Gallery ({photoCount} photos)
+          </Link>
         </div>
       </div>
       
