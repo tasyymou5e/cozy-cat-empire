@@ -72,7 +72,7 @@ export function useTrading(userId: string | undefined) {
 
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('id, display_name')
           .in('id', userIds);
 
@@ -133,10 +133,10 @@ export function useTrading(userId: string | undefined) {
             let senderName = 'Unknown';
             
             const { data: profile } = await supabase
-              .from('profiles')
+              .from('public_profiles')
               .select('display_name')
               .eq('id', newTrade.sender_id)
-              .single();
+              .maybeSingle();
             
             if (profile?.display_name) {
               senderName = profile.display_name;

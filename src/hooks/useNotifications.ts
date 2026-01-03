@@ -49,7 +49,7 @@ export function useNotifications(userId: string | undefined) {
       ];
 
       const { data: profiles } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select('id, display_name')
         .in('id', senderIds);
 

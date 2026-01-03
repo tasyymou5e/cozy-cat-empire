@@ -132,10 +132,10 @@ export function ActivityFeed() {
           
           // Fetch profile info
           const { data: profile } = await supabase
-            .from('profiles')
+            .from('public_profiles')
             .select('display_name, avatar_emoji')
             .eq('id', newActivity.user_id)
-            .single();
+            .maybeSingle();
 
           const activityWithProfile = {
             ...newActivity,
