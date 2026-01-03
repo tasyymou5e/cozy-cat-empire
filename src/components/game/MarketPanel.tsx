@@ -4,12 +4,37 @@ import { MarketListing, BREEDS } from '@/types/game';
 import { Badge } from '@/components/ui/badge';
 import { useConfetti } from '@/hooks/useConfetti';
 
+/**
+ * Props for the MarketPanel component
+ */
 interface MarketPanelProps {
+  /** Array of available market listings */
   listings: MarketListing[];
+  /** Current money available */
   money: number;
+  /** Whether there is space for a new cat */
   hasSpace: boolean;
+  /** Callback when buying a cat from the market */
   onBuy: (listingId: string) => void;
 }
+
+/**
+ * MarketPanel - Cat marketplace interface
+ * 
+ * Displays cats available for purchase from NPC sellers.
+ * Shows cat details, prices, and handles purchase animations.
+ * Market refreshes every 3 days.
+ * 
+ * @example
+ * ```tsx
+ * <MarketPanel
+ *   listings={marketListings}
+ *   money={150}
+ *   hasSpace={true}
+ *   onBuy={handleBuy}
+ * />
+ * ```
+ */
 
 const catEmojis: Record<string, string> = {
   'stray': '🐱',

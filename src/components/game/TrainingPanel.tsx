@@ -16,14 +16,42 @@ import {
 } from '@/components/ui/select';
 import { Dumbbell, Sparkles } from 'lucide-react';
 
+/**
+ * Props for the TrainingPanel component
+ */
 interface TrainingPanelProps {
+  /** Array of cats available for training */
   cats: Cat[];
+  /** Number of treats available */
   treats: number;
+  /** Number of toys available */
   toys: number;
+  /** Current game day (for training cooldown check) */
   day: number;
+  /** Callback when training a cat with a specific trick */
   onTrain: (catId: string, trickId: TrickId) => void;
+  /** Callback when resting a cat */
   onRest: (catId: string) => void;
 }
+
+/**
+ * TrainingPanel - Cat training interface
+ * 
+ * Allows players to train cats to learn tricks and improve their grade.
+ * Shows trick progress, rest levels, and show eligibility.
+ * 
+ * @example
+ * ```tsx
+ * <TrainingPanel
+ *   cats={cats}
+ *   treats={5}
+ *   toys={3}
+ *   day={10}
+ *   onTrain={handleTrain}
+ *   onRest={handleRest}
+ * />
+ * ```
+ */
 
 export function TrainingPanel({ cats, treats, toys, day, onTrain, onRest }: TrainingPanelProps) {
   const [selectedCatId, setSelectedCatId] = useState<string>('');

@@ -9,17 +9,52 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Heart, Smile, Moon, Sparkles, Trash2, CheckSquare, Square, Zap } from 'lucide-react';
 
+/**
+ * Props for the BulkActionsPanel component
+ */
 interface BulkActionsProps {
+  /** Array of all cats */
   cats: Cat[];
+  /** Current resource amounts */
   resources: { food: number; medicine: number; toys: number; treats: number };
+  /** Current game day */
   day: number;
+  /** Cat relationships for happiness calculations */
   relationships: CatRelationship[];
+  /** Callback to heal all sick cats */
   onHealAll: () => void;
+  /** Callback to rest all tired cats */
   onRestAll: () => void;
+  /** Callback to comfort all unhappy cats */
   onComfortAll: () => void;
+  /** Callback to train all available cats */
   onTrainAll: () => void;
+  /** Callback to sell selected cats */
   onSellSelected: (catIds: string[]) => void;
 }
+
+/**
+ * BulkActionsPanel - Mass cat management interface
+ * 
+ * Provides bulk operations for managing multiple cats at once.
+ * Includes heal all, rest all, comfort all, train all, and bulk sell.
+ * Shows status summary badges for cats needing attention.
+ * 
+ * @example
+ * ```tsx
+ * <BulkActionsPanel
+ *   cats={cats}
+ *   resources={resources}
+ *   day={currentDay}
+ *   relationships={relationships}
+ *   onHealAll={handleHealAll}
+ *   onRestAll={handleRestAll}
+ *   onComfortAll={handleComfortAll}
+ *   onTrainAll={handleTrainAll}
+ *   onSellSelected={handleSellSelected}
+ * />
+ * ```
+ */
 
 export function BulkActionsPanel({ 
   cats, 

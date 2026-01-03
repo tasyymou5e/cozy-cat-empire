@@ -1,9 +1,25 @@
 import { Button } from '@/components/ui/button';
 import { CHORE_TYPES } from '@/types/game';
 
+/**
+ * Props for the ChorePanel component
+ */
 interface ChorePanelProps {
+  /** Callback when completing a chore */
   onDoChore: (choreId: string, reward: number) => void;
 }
+
+/**
+ * ChorePanel - Chore completion interface for earning money
+ * 
+ * Displays available chores that players can complete to earn cat money.
+ * Each chore has a base reward with potential bonus earnings.
+ * 
+ * @example
+ * ```tsx
+ * <ChorePanel onDoChore={handleDoChore} />
+ * ```
+ */
 
 export function ChorePanel({ onDoChore }: ChorePanelProps) {
   return (
