@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { CatFarm } from '@/components/game/CatFarm';
+import { ProfileSetupDialog } from '@/components/game/ProfileSetupDialog';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -28,7 +29,12 @@ const Index = () => {
     return null; // Will redirect
   }
 
-  return <CatFarm />;
+  return (
+    <>
+      <CatFarm />
+      <ProfileSetupDialog userId={user?.id} />
+    </>
+  );
 };
 
 export default Index;

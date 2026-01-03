@@ -23,6 +23,16 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -31,7 +41,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Search, ChevronLeft, ChevronRight, Shield, User as UserIcon } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Shield, User as UserIcon, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -55,6 +65,9 @@ export default function AdminUsers() {
   const [page, setPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [newRole, setNewRole] = useState<string>('');
   
   const { data, isLoading } = useAdminUsers({ search, page, pageSize: 10 });
@@ -115,6 +128,60 @@ export default function AdminUsers() {
     setSelectedUser(user);
     setNewRole(user.role || 'user');
     setRoleDialogOpen(true);
+  };
+
+  const openDeleteDialog = (user: any) => {
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      const response = await supabase.functions.invoke('admin-delete-user', {
+        body: { userId: userToDelete.id },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to delete user');
+      }
+
+      await logActivity({
+        actionType: 'user_delete',
+        actionDescription: `Deleted user: ${getDisplayName(userToDelete)}`,
+        targetUserId: userToDelete.id,
+        targetTable: 'profiles',
+        metadata: { 
+          deleted_user_email: userToDelete.email,
+          deleted_user_display_name: userToDelete.display_name,
+        },
+      });
+
+      toast({
+        title: 'User Deleted',
+        description: `${getDisplayName(userToDelete)} has been permanently deleted.`,
+      });
+
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    } catch (error: any) {
+      console.error('Failed to delete user:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete user',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const getRoleBadgeVariant = (role: string) => {
@@ -215,14 +282,24 @@ export default function AdminUsers() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openRoleDialog(user)}
-                          >
-                            <UserIcon className="h-4 w-4 mr-1" />
-                            Manage
-                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openRoleDialog(user)}
+                            >
+                              <UserIcon className="h-4 w-4 mr-1" />
+                              Manage
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => openDeleteDialog(user)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -290,6 +367,32 @@ export default function AdminUsers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete{' '}
+              <strong>{userToDelete ? getDisplayName(userToDelete) : ''}</strong>?
+              <br /><br />
+              This action cannot be undone. All user data, including their profile, 
+              game saves, and statistics will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete User'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }
