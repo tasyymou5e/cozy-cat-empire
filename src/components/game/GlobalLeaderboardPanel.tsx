@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
-import { useGlobalLeaderboard, LeaderboardCategory, LeaderboardEntry, LeaderboardViewMode, LeaderboardTimePeriod, RankChange } from '@/hooks/useGlobalLeaderboard';
+import { useGlobalLeaderboard, LeaderboardCategory, LeaderboardEntry, LeaderboardViewMode, LeaderboardTimePeriod, RankChange, ScrollMode } from '@/hooks/useGlobalLeaderboard';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useFriends } from '@/hooks/useFriends';
 import { useLeaderboardRewards } from '@/hooks/useLeaderboardRewards';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Trophy, Cat, Heart, Coins, Award, RefreshCw, Globe, Users, ArrowUp, ArrowDown, Sparkles, Calendar, Gift, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Trophy, Cat, Heart, Coins, Award, RefreshCw, Globe, Users, ArrowUp, ArrowDown, Sparkles, Calendar, Gift, ChevronLeft, ChevronRight, Loader2, Rows3, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LeaderboardHistoryChart } from './LeaderboardHistoryChart';
@@ -86,7 +87,23 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
     hasNextPage,
     hasPrevPage,
     pageSize,
+    // Infinite scroll
+    scrollMode,
+    setScrollMode,
+    allEntries,
+    hasMore,
+    loadingMore,
+    loadMore,
   } = useGlobalLeaderboard(userId, friendIds);
+
+  const { lastElementRef } = useInfiniteScroll({
+    onLoadMore: loadMore,
+    hasMore,
+    loading: loadingMore,
+  });
+
+  // Determine which entries to display based on scroll mode
+  const displayEntries = scrollMode === 'infinite' ? allEntries : leaderboard;
 
   // Generate page numbers to display
   const getPageNumbers = () => {
@@ -196,7 +213,7 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
           </div>
         </div>
         
-        {/* View Mode and Time Period Toggles */}
+        {/* View Mode, Scroll Mode, and Time Period Toggles */}
         <div className="mt-2 flex flex-wrap gap-2">
           <TooltipProvider>
             <ToggleGroup
@@ -232,6 +249,37 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
             </ToggleGroup>
           </TooltipProvider>
 
+          {/* Scroll Mode Toggle */}
+          <TooltipProvider>
+            <ToggleGroup
+              type="single"
+              value={scrollMode}
+              onValueChange={(v) => v && setScrollMode(v as ScrollMode)}
+              className="justify-start"
+            >
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <ToggleGroupItem value="pagination" aria-label="Pagination mode" className="gap-1">
+                    <Rows3 className="h-4 w-4" />
+                  </ToggleGroupItem>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Pagination</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <ToggleGroupItem value="infinite" aria-label="Infinite scroll mode" className="gap-1">
+                    <List className="h-4 w-4" />
+                  </ToggleGroupItem>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Infinite Scroll</p>
+                </TooltipContent>
+              </Tooltip>
+            </ToggleGroup>
+          </TooltipProvider>
+
           {/* Time Period Toggle */}
           <ToggleGroup
             type="single"
@@ -260,50 +308,70 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
 
           {Object.keys(categoryConfig).map((cat) => (
             <TabsContent key={cat} value={cat} className="mt-0">
-              {loading ? (
+              {loading && !loadingMore ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
                   Loading leaderboard...
                 </div>
-              ) : leaderboard.length === 0 ? (
+              ) : displayEntries.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   {getEmptyMessage()}
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {leaderboard.map((entry, index) => (
-                    <div
-                      key={entry.id}
-                      className={`flex items-center gap-3 p-2 rounded-lg transition-all duration-300 ${
-                        entry.user_id === userId
-                          ? 'bg-primary/10 border border-primary/30'
-                          : 'bg-muted/50'
-                      } ${entry.rankChange?.direction === 'up' ? 'animate-fade-in' : ''}`}
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      <div className="w-12 text-center">
-                        {getRankBadge(entry.rank || 0)}
-                      </div>
-                      <div className="text-2xl">{entry.avatar_emoji}</div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate flex items-center gap-2">
-                          {entry.display_name || 'Anonymous Player'}
-                          {entry.user_id === userId && (
-                            <span className="text-xs text-primary">(You)</span>
-                          )}
-                          <RankChangeIndicator rankChange={entry.rankChange} />
+                  {displayEntries.map((entry, index) => {
+                    const isLastElement = scrollMode === 'infinite' && index === displayEntries.length - 1;
+                    return (
+                      <div
+                        key={entry.id}
+                        ref={isLastElement ? lastElementRef : undefined}
+                        className={`flex items-center gap-3 p-2 rounded-lg transition-all duration-300 ${
+                          entry.user_id === userId
+                            ? 'bg-primary/10 border border-primary/30'
+                            : 'bg-muted/50'
+                        } ${entry.rankChange?.direction === 'up' ? 'animate-fade-in' : ''}`}
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <div className="w-12 text-center">
+                          {getRankBadge(entry.rank || 0)}
+                        </div>
+                        <div className="text-2xl">{entry.avatar_emoji}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate flex items-center gap-2">
+                            {entry.display_name || 'Anonymous Player'}
+                            {entry.user_id === userId && (
+                              <span className="text-xs text-primary">(You)</span>
+                            )}
+                            <RankChangeIndicator rankChange={entry.rankChange} />
+                          </div>
+                        </div>
+                        <div className="text-right font-bold text-lg">
+                          {(entry[config.scoreKey] as number).toLocaleString()}
                         </div>
                       </div>
-                      <div className="text-right font-bold text-lg">
-                        {(entry[config.scoreKey] as number).toLocaleString()}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
-              {/* Pagination Controls */}
-              {totalPages > 1 && !loading && (
+              {/* Infinite Scroll Loading/End Indicators */}
+              {scrollMode === 'infinite' && (
+                <>
+                  {loadingMore && (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    </div>
+                  )}
+                  {!hasMore && displayEntries.length > 0 && !loading && (
+                    <div className="text-center py-4 text-muted-foreground text-sm">
+                      You've reached the end of the leaderboard!
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Pagination Controls (only in pagination mode) */}
+              {scrollMode === 'pagination' && totalPages > 1 && !loading && (
                 <div className="mt-4 pt-4 border-t">
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">
@@ -346,12 +414,12 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
                 </div>
               )}
 
-              {/* User's rank if not on current page (global only) */}
-              {viewMode === 'global' && userStats && userRank && !leaderboard.find(e => e.user_id === userId) && (
+              {/* User's rank if not visible (global only) */}
+              {viewMode === 'global' && userStats && userRank && !displayEntries.find(e => e.user_id === userId) && (
                 <div className="mt-4 pt-4 border-t">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-muted-foreground">Your Ranking</span>
-                    {userRank > pageSize && (
+                    {scrollMode === 'pagination' && userRank > pageSize && (
                       <Button 
                         variant="link" 
                         size="sm" 

@@ -25,6 +25,7 @@ export interface LeaderboardEntry {
 export type LeaderboardCategory = 'wins' | 'cats' | 'breeding' | 'wealth' | 'achievements';
 export type LeaderboardViewMode = 'global' | 'friends';
 export type LeaderboardTimePeriod = 'all' | 'daily' | 'weekly' | 'monthly';
+export type ScrollMode = 'pagination' | 'infinite';
 
 const PAGE_SIZE = 20;
 
@@ -39,6 +40,16 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
   const [isLive, setIsLive] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  
+  // Infinite scroll state
+  const [scrollMode, setScrollMode] = useState<ScrollMode>(() => {
+    const saved = localStorage.getItem('leaderboard-scroll-mode');
+    return (saved === 'infinite' || saved === 'pagination') ? saved : 'pagination';
+  });
+  const [allEntries, setAllEntries] = useState<LeaderboardEntry[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoad = useRef(true);
   
@@ -47,6 +58,11 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
   const leaderboardRef = useRef<LeaderboardEntry[]>([]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  // Persist scroll mode preference
+  useEffect(() => {
+    localStorage.setItem('leaderboard-scroll-mode', scrollMode);
+  }, [scrollMode]);
 
   const getCategoryColumn = (cat: LeaderboardCategory): string => {
     switch (cat) {
@@ -103,8 +119,12 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     }
   };
 
-  const fetchLeaderboard = useCallback(async (page: number = currentPage) => {
-    setLoading(true);
+  const fetchLeaderboard = useCallback(async (page: number = currentPage, isLoadMore: boolean = false) => {
+    if (isLoadMore) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
     try {
       const column = getCategoryColumn(category);
       const periodStart = getPeriodStart(timePeriod);
@@ -158,6 +178,16 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
       leaderboardRef.current = withRankChanges;
       setLeaderboard(withRankChanges);
 
+      // Handle infinite scroll mode
+      if (scrollMode === 'infinite') {
+        if (isLoadMore) {
+          setAllEntries(prev => [...prev, ...withRankChanges]);
+        } else {
+          setAllEntries(withRankChanges);
+        }
+        setHasMore(withRankChanges.length === PAGE_SIZE && (count || 0) > from + withRankChanges.length);
+      }
+
       // Find current user's rank
       if (userId) {
         const userEntry = withRankChanges.find(e => e.user_id === userId);
@@ -190,8 +220,16 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
       console.error('Failed to fetch leaderboard:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, [category, userId, viewMode, friendIds, timePeriod, currentPage]);
+  }, [category, userId, viewMode, friendIds, timePeriod, currentPage, scrollMode]);
+
+  // Load more function for infinite scroll
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasMore) return;
+    const nextPage = Math.ceil(allEntries.length / PAGE_SIZE) + 1;
+    fetchLeaderboard(nextPage, true);
+  }, [loadingMore, hasMore, allEntries.length, fetchLeaderboard]);
 
   // Pagination functions
   const goToPage = useCallback((page: number) => {
@@ -218,17 +256,23 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     fetchLeaderboardRef.current = fetchLeaderboard;
   }, [fetchLeaderboard]);
 
-  // Reset page when filters change
+  // Reset page and entries when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [category, viewMode, timePeriod, friendIds]);
+    setAllEntries([]);
+    setHasMore(true);
+  }, [category, viewMode, timePeriod, friendIds, scrollMode]);
 
-  // Initial fetch and refetch when page or filters change
+  // Initial fetch and refetch when page or filters change (pagination mode only reacts to page)
   useEffect(() => {
     isInitialLoad.current = true;
-    fetchLeaderboard(currentPage);
+    if (scrollMode === 'pagination') {
+      fetchLeaderboard(currentPage);
+    } else {
+      fetchLeaderboard(1);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, viewMode, timePeriod, friendIds, currentPage]);
+  }, [category, viewMode, timePeriod, friendIds, scrollMode, ...(scrollMode === 'pagination' ? [currentPage] : [])]);
 
   // Realtime subscription - stable effect that doesn't depend on fetchLeaderboard
   useEffect(() => {
@@ -319,5 +363,12 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     hasNextPage: currentPage < totalPages,
     hasPrevPage: currentPage > 1,
     pageSize: PAGE_SIZE,
+    // Infinite scroll
+    scrollMode,
+    setScrollMode,
+    allEntries: scrollMode === 'infinite' ? allEntries : leaderboard,
+    hasMore,
+    loadingMore,
+    loadMore,
   };
 }
