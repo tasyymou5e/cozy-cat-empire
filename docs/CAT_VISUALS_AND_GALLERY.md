@@ -77,14 +77,17 @@ This document covers all components related to cat visual display, portraits, ph
 - Search by cat name
 - Sort by grade, name, value, age, health, show wins
 - Filter by breed and tier
+- **Outdated portraits badge** - Shows count of cats with outdated portraits
+- **Outdated portraits filter** - Toggle to show only cats needing portrait updates
 - Stats summary (total cats, average grade, total wins, total value)
 - CatDetailModal for detailed cat view
 - Cloud save integration
 - Settings dropdown (sound, theme, navigation)
 
 **Key Props/State:**
-- `search`, `sortBy`, `sortDesc`, `filterBreed`, `filterTier`
+- `search`, `sortBy`, `sortDesc`, `filterBreed`, `filterTier`, `showOutdatedOnly`
 - Integrates `useGameState`, `useCloudSave`, `useRelationships`
+- Uses `isPortraitOutdated` from `portraitUtils.ts` for detection
 
 ---
 
@@ -296,7 +299,7 @@ interface CatCardProps {
 
 **Location:** `src/components/game/CatPortrait.tsx`
 
-**Purpose:** AI-generated portrait display with generation controls.
+**Purpose:** AI-generated portrait display with generation controls and confirmation dialogs.
 
 **Props:**
 ```typescript
@@ -311,12 +314,64 @@ interface CatPortraitProps {
 
 **Features:**
 - Falls back to CatAvatar if no portrait
-- Generate/Regenerate buttons
+- **Confirmation dialog before generation** (shows credit cost)
+- **Outdated portrait detection** via appearance hash comparison
+- Generate/Regenerate/Update buttons
 - Tier-based border styling
 - Grade and star overlay on portrait
 - Loading spinner during generation
 - Error display with retry option
 - Ultra rare sparkle effects
+
+---
+
+### BatchPortraitGenerator
+
+**Location:** `src/components/game/BatchPortraitGenerator.tsx`
+
+**Purpose:** Batch generate AI portraits for multiple cats at once.
+
+**Props:**
+```typescript
+interface BatchPortraitGeneratorProps {
+  cats: Cat[];
+  catCostumes: Record<string, string>;
+  onPortraitGenerated?: (catId: string, portraitUrl: string) => void;
+}
+```
+
+**Features:**
+- Identifies cats needing portraits (no portrait OR outdated)
+- Confirmation dialog showing total count and estimated credit cost
+- Real-time progress tracking during generation
+- Results summary with success/failure counts and error details
+- Abort functionality to stop batch processing
+- 500ms delay between requests to avoid rate limiting
+
+---
+
+### portraitUtils.ts
+
+**Location:** `src/lib/portraitUtils.ts`
+
+**Purpose:** Utility functions for portrait validity checking.
+
+**Functions:**
+```typescript
+// Compute hash from cat appearance and costume for caching
+computeAppearanceHash(cat: Cat, costumeId?: string): string
+
+// Check if portrait is outdated based on appearance changes
+isPortraitOutdated(cat: Cat, costumeId?: string): boolean
+
+// Credit cost constant
+PORTRAIT_CREDIT_COST = 1
+```
+
+**Usage:**
+- Hash is stored in `cat.appearanceHash` when portrait is generated
+- On display, current hash is compared to stored hash
+- If different, portrait is marked as "outdated" and user can regenerate
 
 ---
 

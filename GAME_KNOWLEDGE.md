@@ -40,6 +40,7 @@ interface Cat {
   lastTrainingDay: number;
   appearance?: CatAppearance; // Custom appearance options
   portraitUrl?: string; // AI-generated portrait
+  appearanceHash?: string; // Hash for detecting outdated portraits
 }
 ```
 
@@ -346,7 +347,8 @@ interface CatAppearance {
 - **GalleryPhotoCard.tsx**: Photo display card with actions
 - **PhotoLightbox.tsx**: Full-screen photo viewer
 - **DraggableSticker.tsx**: Draggable stickers for photos
-- **CatPortrait.tsx**: Cat portrait display component
+- **CatPortrait.tsx**: AI portrait generation with confirmation dialogs
+- **BatchPortraitGenerator.tsx**: Batch generate portraits for multiple cats
 - **CatAvatar.tsx**: Cat avatar with costume support
 
 ### Support Components:
@@ -462,6 +464,14 @@ interface CatAppearance {
 - Download, copy, or share photos
 - Save to cloud gallery (authenticated users)
 
+### AI Cat Portraits
+- Generate unique AI portraits reflecting cat appearance and costume
+- Confirmation dialog before generation (shows estimated credit cost)
+- Batch portrait generation for multiple cats at once
+- Outdated portrait detection via appearance hash
+- Regenerate portraits when appearance/costume changes
+- Portrait stored in `cat-portraits` storage bucket
+
 ---
 
 ## Database Schema
@@ -573,11 +583,13 @@ interface CatAppearance {
 ```
 src/
 ├── components/
-│   ├── game/                   # Game UI components (45+ files)
+│   ├── game/                   # Game UI components (50+ files)
 │   │   ├── CatFarm.tsx         # Main game orchestrator
 │   │   ├── CatCard.tsx         # Individual cat display + rename
 │   │   ├── CatAvatar.tsx       # Cat avatar with costume
-│   │   ├── CatPortrait.tsx     # Cat portrait display
+│   │   ├── CatPortrait.tsx     # AI portrait generation + confirmation
+│   │   ├── CatVisual.tsx       # Unified cat visual display
+│   │   ├── BatchPortraitGenerator.tsx # Batch portrait generation
 │   │   ├── PhotoBooth.tsx      # Photo booth interface
 │   │   ├── GalleryPhotoCard.tsx # Photo card display
 │   │   ├── PhotoLightbox.tsx   # Full-screen photo viewer
@@ -680,7 +692,8 @@ src/
 │       ├── client.ts           # Supabase client
 │       └── types.ts            # Generated types
 ├── lib/
-│   └── utils.ts                # Utility functions
+│   ├── utils.ts                # Utility functions
+│   └── portraitUtils.ts        # Portrait hash and outdated detection
 └── pages/
     ├── Index.tsx               # Main game page
     ├── Auth.tsx                # Login/signup

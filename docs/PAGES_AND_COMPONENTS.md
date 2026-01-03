@@ -59,7 +59,8 @@ This document provides a comprehensive overview of all pages and components in t
 | `CatCardSkeleton.tsx` | Loading skeleton for CatCard |
 | `CatGridSkeleton.tsx` | Loading skeleton for cat grid |
 | `CatAvatar.tsx` | Cat avatar/icon display |
-| `CatPortrait.tsx` | Detailed cat portrait image |
+| `CatPortrait.tsx` | AI portrait generation with confirmation dialogs |
+| `BatchPortraitGenerator.tsx` | Batch generate portraits for multiple cats |
 | `CatDetailModal.tsx` | Modal with full cat details |
 | `CatCardReaction.tsx` | Animated reactions on cat cards |
 | `CatActivityPopups.tsx` | Activity notification popups |
@@ -351,3 +352,4 @@ Standard shadcn/ui components available:
 | `types/photoBooth.ts` | Photo booth options |
 | `types/grading.ts` | Cat grading system |
 | `types/changelog.ts` | Changelog entries |
+| `lib/portraitUtils.ts` | Portrait hash and outdated detection utilities |
