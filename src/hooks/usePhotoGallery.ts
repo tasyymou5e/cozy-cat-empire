@@ -3,6 +3,38 @@ import { GalleryPhoto, GALLERY_STORAGE_KEY, MAX_GALLERY_PHOTOS } from '@/types/g
 import { useCloudGallery } from './useCloudGallery';
 import { supabase } from '@/integrations/supabase/client';
 
+/**
+ * Hook for managing the photo gallery with local and cloud storage
+ *
+ * Handles photo storage in localStorage with automatic cloud sync when
+ * the user is authenticated. Supports favorites, deletion, and manual sync.
+ *
+ * @param userId - The current user's ID for cloud sync (optional)
+ * @returns Photo list and gallery management functions
+ *
+ * @example
+ * ```tsx
+ * const { photos, savePhoto, deletePhoto, toggleFavorite, syncNow } = usePhotoGallery(userId);
+ *
+ * // Save a new photo
+ * await savePhoto({
+ *   catId: cat.id,
+ *   catName: cat.name,
+ *   imageDataUrl: dataUrl,
+ *   backgroundId: 'forest',
+ *   poseId: 'sitting',
+ *   frameId: 'polaroid',
+ *   stickerCount: 3,
+ *   isFavorite: false
+ * });
+ *
+ * // Toggle favorite status
+ * await toggleFavorite(photoId);
+ *
+ * // Manual cloud sync
+ * await syncNow();
+ * ```
+ */
 export function usePhotoGallery(userId?: string | null) {
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);

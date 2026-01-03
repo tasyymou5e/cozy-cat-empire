@@ -1,6 +1,31 @@
 import { useCallback } from 'react';
 import confetti from 'canvas-confetti';
 
+/**
+ * Hook for triggering confetti animations
+ *
+ * Provides various confetti effects for celebrations, achievements,
+ * and challenge completions using canvas-confetti.
+ *
+ * @returns Functions to trigger different confetti effects
+ *
+ * @example
+ * ```tsx
+ * const { fireConfetti, fireCelebration, fireStars } = useConfetti();
+ *
+ * // Simple side-burst confetti
+ * fireConfetti();
+ *
+ * // Big celebration with continuous bursts
+ * fireCelebration();
+ *
+ * // Star-shaped confetti for achievements
+ * fireStars();
+ *
+ * // Challenge completion burst
+ * fireChallengeBurst();
+ * ```
+ */
 export function useConfetti() {
   const fireConfetti = useCallback(() => {
     // Fire confetti from the left

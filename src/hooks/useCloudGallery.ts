@@ -2,6 +2,32 @@ import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { GalleryPhoto, CloudGalleryPhoto } from '@/types/gallery';
 
+/**
+ * Hook for cloud storage operations on gallery photos
+ *
+ * Low-level hook that handles uploading, downloading, and managing
+ * photo metadata in the cloud. Used internally by usePhotoGallery.
+ *
+ * @param userId - The current user's ID
+ * @returns Cloud storage operation functions
+ *
+ * @example
+ * ```tsx
+ * const { uploadPhoto, loadCloudPhotos, deleteCloudPhoto } = useCloudGallery(userId);
+ *
+ * // Upload a photo to cloud storage
+ * const result = await uploadPhoto(photoId, dataUrl);
+ * if (result) {
+ *   console.log('Uploaded to:', result.url);
+ * }
+ *
+ * // Load all user's cloud photos
+ * const cloudPhotos = await loadCloudPhotos();
+ *
+ * // Delete from cloud
+ * await deleteCloudPhoto(photoId, imagePath);
+ * ```
+ */
 export function useCloudGallery(userId: string | undefined) {
   const uploadPhoto = useCallback(async (
     photoId: string,
