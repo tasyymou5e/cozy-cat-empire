@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { toPng, toBlob } from 'html-to-image';
-import { Download, Copy, Share2, RotateCcw, Sparkles, Save, Image as ImageIcon } from 'lucide-react';
+import { Download, Copy, Share2, RotateCcw, Sparkles, Save, Image as ImageIcon, Cloud, CloudOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -21,6 +21,7 @@ import {
   PHOTO_STICKERS,
 } from '@/types/photoBooth';
 import { usePhotoGallery } from '@/hooks/usePhotoGallery';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PhotoBoothProps {
   cat: Cat;
@@ -29,7 +30,8 @@ interface PhotoBoothProps {
 
 export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }) => {
   const { toast } = useToast();
-  const { savePhoto, photoCount, isFull } = usePhotoGallery();
+  const { user } = useAuth();
+  const { savePhoto, photoCount, isFull, isCloudEnabled, isSyncing } = usePhotoGallery(user?.id);
   const stageRef = useRef<HTMLDivElement>(null);
   
   const [background, setBackground] = useState<PhotoBoothBackground>(PHOTO_BACKGROUNDS[0]);
@@ -166,7 +168,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
         pixelRatio: 2,
       });
       
-      const result = savePhoto({
+      const result = await savePhoto({
         catId: cat.id,
         catName: cat.name,
         imageDataUrl: dataUrl,
@@ -178,9 +180,10 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
       });
       
       if (result.success) {
+        const cloudMessage = isCloudEnabled ? ' Synced to cloud.' : '';
         toast({ 
           title: 'Saved to Gallery!', 
-          description: 'View your photos in the gallery.',
+          description: `View your photos in the gallery.${cloudMessage}`,
         });
       } else {
         toast({ title: 'Error', description: result.error, variant: 'destructive' });
@@ -190,7 +193,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
     } finally {
       setIsExporting(false);
     }
-  }, [cat.id, cat.name, background.id, pose.id, frame.id, stickers.length, isFull, savePhoto, toast]);
+  }, [cat.id, cat.name, background.id, pose.id, frame.id, stickers.length, isFull, savePhoto, toast, isCloudEnabled]);
 
   const getFrameStyle = (): React.CSSProperties => {
     if (frame.id === 'rainbow') {
@@ -273,11 +276,22 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
             Reset
           </Button>
         </div>
-        <div className="text-center">
+        <div className="text-center flex items-center justify-center gap-2">
           <Link to="/gallery" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ImageIcon className="w-4 h-4 inline mr-1" />
             View Gallery ({photoCount} photos)
           </Link>
+          {isCloudEnabled ? (
+            <span className="text-xs text-green-600 flex items-center gap-1">
+              <Cloud className="w-3 h-3" />
+              {isSyncing ? 'Syncing...' : 'Cloud sync on'}
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <CloudOff className="w-3 h-3" />
+              Local only
+            </span>
+          )}
         </div>
       </div>
       

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Trash2, Heart, Eye } from 'lucide-react';
+import { Download, Trash2, Heart, Eye, Cloud, CloudOff, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GalleryPhoto } from '@/types/gallery';
 import { format } from 'date-fns';
@@ -12,6 +12,20 @@ interface GalleryPhotoCardProps {
   onDownload: () => void;
 }
 
+const SyncStatusIcon: React.FC<{ status: GalleryPhoto['syncStatus'] }> = ({ status }) => {
+  switch (status) {
+    case 'synced':
+      return <Cloud className="w-3 h-3 text-green-500" />;
+    case 'syncing':
+      return <Loader2 className="w-3 h-3 text-blue-500 animate-spin" />;
+    case 'error':
+      return <AlertCircle className="w-3 h-3 text-destructive" />;
+    case 'local':
+    default:
+      return <CloudOff className="w-3 h-3 text-muted-foreground" />;
+  }
+};
+
 export const GalleryPhotoCard: React.FC<GalleryPhotoCardProps> = ({
   photo,
   onView,
@@ -19,6 +33,9 @@ export const GalleryPhotoCard: React.FC<GalleryPhotoCardProps> = ({
   onToggleFavorite,
   onDownload,
 }) => {
+  // Use cloud URL if available, otherwise use local dataUrl
+  const imageSrc = photo.imageUrl || photo.imageDataUrl;
+  
   return (
     <div className="group relative rounded-lg overflow-hidden bg-card border shadow-sm hover:shadow-md transition-shadow">
       {/* Image */}
@@ -27,7 +44,7 @@ export const GalleryPhotoCard: React.FC<GalleryPhotoCardProps> = ({
         onClick={onView}
       >
         <img 
-          src={photo.imageDataUrl} 
+          src={imageSrc} 
           alt={`${photo.catName} photo`}
           className="w-full h-full object-cover"
         />
@@ -39,6 +56,11 @@ export const GalleryPhotoCard: React.FC<GalleryPhotoCardProps> = ({
           <Heart className="w-5 h-5 fill-current" />
         </div>
       )}
+      
+      {/* Sync status badge */}
+      <div className="absolute top-2 left-2">
+        <SyncStatusIcon status={photo.syncStatus} />
+      </div>
       
       {/* Info bar */}
       <div className="p-2 border-t bg-card">
