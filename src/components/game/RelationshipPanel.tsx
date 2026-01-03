@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
+import { RelationshipNetworkGraph } from './RelationshipNetworkGraph';
 interface RelationshipPanelProps {
   cats: Cat[];
   relationships: CatRelationship[];
@@ -50,8 +50,9 @@ export function RelationshipPanel({ cats, relationships, groups, events }: Relat
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="relationships" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-3">
+          <TabsList className="grid w-full grid-cols-4 mb-3">
             <TabsTrigger value="relationships" className="text-xs">Bonds</TabsTrigger>
+            <TabsTrigger value="network" className="text-xs">Network</TabsTrigger>
             <TabsTrigger value="groups" className="text-xs">Groups</TabsTrigger>
             <TabsTrigger value="history" className="text-xs">History</TabsTrigger>
           </TabsList>
@@ -119,6 +120,13 @@ export function RelationshipPanel({ cats, relationships, groups, events }: Relat
                 </div>
               )}
             </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="network" className="mt-0">
+            <RelationshipNetworkGraph
+              cats={cats}
+              relationships={relationships}
+            />
           </TabsContent>
 
           <TabsContent value="groups" className="mt-0">
