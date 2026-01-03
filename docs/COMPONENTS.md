@@ -14,12 +14,13 @@ The central component that manages all game panels and state.
 
 **Responsibilities:**
 - Initializes all game hooks (useGameState, useSoundEffects, useConfetti, etc.)
-- Manages 15-tab sidebar layout
+- Manages 16-tab sidebar layout
 - Audio controls and theme switching
 - Cloud save synchronization
 - Notification center integration
 - VIP badge display
 - Daily rewards modal
+- What's New popup for returning players
 
 **Key Props Passed Down:**
 - `state` - Full GameState object
@@ -451,14 +452,47 @@ Challenge completion celebration.
 ## Tutorial & Help
 
 ### TutorialSystem.tsx
-New player onboarding.
+16-step new player onboarding with category badges.
 
-**Steps:**
-1. Welcome message
-2. Get first cat
-3. Feed and care
-4. Enter cat show
-5. Upgrade home
+**Categories:**
+- `basics` - Core gameplay (welcome, first cat, caring, earning, expanding)
+- `economy` - Money and resources (earning money)
+- `cats` - Cat management (grades, costumes, breeding, relationships)
+- `social` - Multiplayer features (friends, trading, challenges)
+- `features` - Advanced features (bulk actions, photo booth, cloud save)
+
+**Steps (16 total):**
+1. Welcome to Cat Farm!
+2. Getting Your First Cat
+3. Caring for Your Cats
+4. Earning Money
+5. Cat Grades & Training
+6. Dress Up Your Cats
+7. Breeding Kittens
+8. Cat Relationships
+9. Bulk Actions
+10. Make Friends & Trade
+11. Weekly Challenges
+12. Photo Booth & Portraits
+13. Cat Collection
+14. Save Your Progress
+15. Expanding Your Empire
+16. You're Ready!
+
+### WhatsNewPopup.tsx
+Changelog popup for returning players.
+
+**Features:**
+- Shows new features since last visit
+- Version-based tracking via localStorage
+- Category badges (major, feature, improvement)
+- Styled version sections with highlights
+- Manual "What's New" button in header
+
+**Version Tracking:**
+- `cat-farm-last-seen-version` in localStorage
+- Only shows after tutorial is complete
+- Displays 1-2 most recent versions
 
 ### KeyboardShortcutsHelp.tsx
 Keyboard shortcuts modal.

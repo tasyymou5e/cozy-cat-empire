@@ -175,13 +175,15 @@ export default defineConfig({
 ```
 src/
 ├── components/
-│   ├── game/           # 45+ game components
+│   ├── game/           # 50+ game components
 │   │   ├── CatFarm.tsx         # Main game orchestrator
 │   │   ├── CatCard.tsx         # Cat display + inline rename
 │   │   ├── PhotoBooth.tsx      # Photo booth interface
 │   │   ├── GalleryPhotoCard.tsx
 │   │   ├── PhotoLightbox.tsx
 │   │   ├── DraggableSticker.tsx
+│   │   ├── TutorialSystem.tsx  # 16-step tutorial
+│   │   ├── WhatsNewPopup.tsx   # Changelog popup
 │   │   └── ...
 │   ├── ui/             # 40+ shadcn/ui primitives
 │   ├── stats/          # 6 statistics components
@@ -217,7 +219,8 @@ src/
 │   ├── challenges.ts        # Weekly challenges
 │   ├── gallery.ts           # Photo gallery types
 │   ├── photoBooth.ts        # Photo booth assets
-│   └── catAppearance.ts     # Cat appearance options
+│   ├── catAppearance.ts     # Cat appearance options
+│   └── changelog.ts         # Version changelog
 ├── contexts/
 │   ├── AuthContext.tsx      # Authentication
 │   ├── SoundContext.tsx     # Sound provider

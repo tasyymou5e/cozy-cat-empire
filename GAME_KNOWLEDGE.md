@@ -301,6 +301,7 @@ interface CatAppearance {
 - Audio controls in header
 - Notification center
 - Cloud sync indicator
+- What's New popup for returning players
 
 ### Cat Display (`src/components/game/CatCard.tsx`)
 - Shows cat stats, relationships, tricks
@@ -355,7 +356,8 @@ interface CatAppearance {
 - **ComfortButton**: 20-second comfort timer
 - **RelationshipAnimations**: Floating emojis
 - **MoodAnimations**: Cat mood indicators
-- **TutorialSystem**: New player tutorial
+- **TutorialSystem**: 16-step new player tutorial with category badges
+- **WhatsNewPopup**: Changelog popup for returning players
 - **KeyboardShortcutsHelp**: Keyboard shortcuts modal
 - **DailyEventToast**: Daily event notifications
 - **NotificationCenter**: Real-time notifications dropdown
@@ -612,7 +614,8 @@ src/
 │   │   ├── FlippableTradingCard.tsx
 │   │   ├── RelationshipAnimations.tsx
 │   │   ├── MoodAnimations.tsx
-│   │   ├── TutorialSystem.tsx
+│   │   ├── TutorialSystem.tsx       # 16-step tutorial with categories
+│   │   ├── WhatsNewPopup.tsx        # Changelog for returning players
 │   │   ├── KeyboardShortcutsHelp.tsx
 │   │   ├── DailyEventToast.tsx
 │   │   ├── NotificationCenter.tsx
@@ -666,7 +669,8 @@ src/
 │   ├── challenges.ts           # Weekly challenge types
 │   ├── gallery.ts              # Photo gallery types
 │   ├── photoBooth.ts           # Photo booth assets
-│   └── catAppearance.ts        # Cat appearance options
+│   ├── catAppearance.ts        # Cat appearance options
+│   └── changelog.ts            # Version changelog entries
 ├── contexts/
 │   ├── AuthContext.tsx         # Authentication
 │   ├── SoundContext.tsx        # Sound provider
