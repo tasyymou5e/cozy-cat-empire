@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useGlobalLeaderboard, LeaderboardCategory, LeaderboardEntry, LeaderboardViewMode, LeaderboardTimePeriod, RankChange } from '@/hooks/useGlobalLeaderboard';
 import { useFriends } from '@/hooks/useFriends';
 import { useLeaderboardRewards } from '@/hooks/useLeaderboardRewards';
@@ -61,7 +62,8 @@ function RankChangeIndicator({ rankChange }: { rankChange?: RankChange }) {
 
 export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) {
   const { friends } = useFriends(userId);
-  const friendIds = friends.map(f => f.id);
+  // Memoize friendIds to prevent unnecessary re-fetches
+  const friendIds = useMemo(() => friends.map(f => f.id), [friends]);
   const { unclaimedCount } = useLeaderboardRewards(userId);
   
   const {

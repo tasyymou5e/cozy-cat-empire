@@ -28,7 +28,6 @@ export type LeaderboardTimePeriod = 'all' | 'daily' | 'weekly' | 'monthly';
 
 export function useGlobalLeaderboard(userId: string | undefined, friendIds?: string[]) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [previousLeaderboard, setPreviousLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [userRank, setUserRank] = useState<number | null>(null);
   const [userStats, setUserStats] = useState<LeaderboardEntry | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,6 +37,10 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
   const [isLive, setIsLive] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoad = useRef(true);
+  
+  // Use refs to track leaderboard state without causing re-renders
+  const previousLeaderboardRef = useRef<LeaderboardEntry[]>([]);
+  const leaderboardRef = useRef<LeaderboardEntry[]>([]);
 
   const getCategoryColumn = (cat: LeaderboardCategory): string => {
     switch (cat) {
@@ -129,14 +132,16 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
       // Calculate rank changes (only after initial load)
       const withRankChanges = isInitialLoad.current 
         ? ranked 
-        : calculateRankChanges(ranked, previousLeaderboard);
+        : calculateRankChanges(ranked, previousLeaderboardRef.current);
 
       // Store current as previous for next comparison
       if (!isInitialLoad.current) {
-        setPreviousLeaderboard(leaderboard);
+        previousLeaderboardRef.current = leaderboardRef.current;
       }
       isInitialLoad.current = false;
-
+      
+      // Update refs
+      leaderboardRef.current = withRankChanges;
       setLeaderboard(withRankChanges);
 
       // Find current user's rank
@@ -172,15 +177,22 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     } finally {
       setLoading(false);
     }
-  }, [category, userId, viewMode, friendIds, timePeriod, previousLeaderboard, leaderboard]);
+  }, [category, userId, viewMode, friendIds, timePeriod]);
+
+  // Use ref to hold latest fetchLeaderboard to avoid subscription churn
+  const fetchLeaderboardRef = useRef(fetchLeaderboard);
+  useEffect(() => {
+    fetchLeaderboardRef.current = fetchLeaderboard;
+  }, [fetchLeaderboard]);
 
   // Initial fetch
   useEffect(() => {
     isInitialLoad.current = true;
     fetchLeaderboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, viewMode, timePeriod, friendIds]);
 
-  // Realtime subscription
+  // Realtime subscription - stable effect that doesn't depend on fetchLeaderboard
   useEffect(() => {
     const channel = supabase
       .channel('leaderboard-realtime')
@@ -197,7 +209,7 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
             clearTimeout(debounceRef.current);
           }
           debounceRef.current = setTimeout(() => {
-            fetchLeaderboard();
+            fetchLeaderboardRef.current();
           }, 500);
         }
       )
@@ -211,7 +223,7 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
       }
       supabase.removeChannel(channel);
     };
-  }, [fetchLeaderboard]);
+  }, []);
 
   const syncPlayerStats = useCallback(async (
     gameState: GameState,
