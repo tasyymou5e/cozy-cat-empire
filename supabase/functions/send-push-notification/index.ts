@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 interface PushPayload {
-  userId: string;
+  userId?: string; // Optional - defaults to authenticated user
   title: string;
   body: string;
   icon?: string;
@@ -22,14 +22,66 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, title, body, icon, url, notificationType }: PushPayload = await req.json();
-
-    console.log('Sending push notification to user:', userId);
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
     const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
+
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('No authorization header provided');
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Create client with user's token to verify identity
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('Authentication failed:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Authenticated user:', user.id);
+
+    const { userId, title, body, icon, url, notificationType }: PushPayload = await req.json();
+    
+    // Determine target user - default to self if not specified
+    const targetUserId = userId || user.id;
+
+    // Authorization check: users can only send to themselves unless they're admin
+    if (targetUserId !== user.id) {
+      // Check if user has admin role using service client
+      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: roleData } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (!roleData) {
+        console.error('User attempted to send notification to another user without admin role');
+        return new Response(
+          JSON.stringify({ error: 'Not authorized to send notifications to other users' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      console.log('Admin user sending notification to:', targetUserId);
+    }
+
+    console.log('Sending push notification to user:', targetUserId);
 
     if (!vapidPrivateKey || !vapidPublicKey) {
       console.error('VAPID keys not configured');
@@ -39,13 +91,14 @@ serve(async (req) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Use service role client for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get user's push subscriptions
     const { data: subscriptions, error: fetchError } = await supabase
       .from('push_subscriptions')
       .select('*')
-      .eq('user_id', userId);
+      .eq('user_id', targetUserId);
 
     if (fetchError) {
       console.error('Error fetching subscriptions:', fetchError);
@@ -113,7 +166,7 @@ serve(async (req) => {
       await supabase
         .from('push_subscriptions')
         .delete()
-        .eq('user_id', userId)
+        .eq('user_id', targetUserId)
         .in('endpoint', expiredEndpoints);
       console.log(`Removed ${expiredEndpoints.length} expired subscriptions`);
     }
