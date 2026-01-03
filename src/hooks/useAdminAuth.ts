@@ -18,14 +18,13 @@ export function useAdminAuth() {
       }
 
       try {
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'admin')
-          .maybeSingle();
+        // Use RPC call to has_role function which uses SECURITY DEFINER to bypass RLS
+        const { data, error } = await supabase.rpc('has_role', {
+          _user_id: user.id,
+          _role: 'admin'
+        });
 
-        setIsAdmin(!!data && !error);
+        setIsAdmin(data === true && !error);
       } catch {
         setIsAdmin(false);
       } finally {
