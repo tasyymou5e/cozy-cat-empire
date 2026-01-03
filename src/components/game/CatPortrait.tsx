@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Cat } from '@/types/game';
 import { CatVisual } from './CatVisual';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Loader2, RefreshCw, AlertCircle, Star, Crown, Trophy } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Sparkles, Loader2, RefreshCw, AlertCircle, AlertTriangle, Star, Crown, Trophy } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { getGradeTier, getGradeStars } from '@/types/grading';
@@ -35,6 +36,13 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
   const [state, setState] = useState<PortraitState>(cat.portraitUrl ? 'complete' : 'idle');
   const [error, setError] = useState<string | null>(null);
   const [localPortraitUrl, setLocalPortraitUrl] = useState<string | undefined>(cat.portraitUrl);
+
+  // Check if portrait is outdated (appearance/costume changed after portrait was generated)
+  const isOutdated = useMemo(() => {
+    if (!cat.portraitUrl || !cat.portraitGeneratedAt) return false;
+    if (!cat.visualsChangedAt) return false;
+    return cat.visualsChangedAt > cat.portraitGeneratedAt;
+  }, [cat.portraitUrl, cat.portraitGeneratedAt, cat.visualsChangedAt]);
 
   const generatePortrait = async () => {
     setState('generating');
@@ -117,8 +125,18 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
         tier === 'rare' && "border-purple-400",
         tier === 'uncommon' && "border-blue-400",
         tier === 'common' && "border-primary/20",
-        state === 'generating' && "animate-pulse"
+        state === 'generating' && "animate-pulse",
+        isOutdated && "ring-2 ring-orange-400 ring-offset-2 ring-offset-background"
       )}>
+        {/* Outdated Badge */}
+        {isOutdated && state === 'complete' && (
+          <div className="absolute top-2 left-2 z-20">
+            <Badge className="bg-orange-500 text-white text-xs gap-1 shadow-lg">
+              <AlertTriangle className="h-3 w-3" />
+              Outdated
+            </Badge>
+          </div>
+        )}
         {/* Ranking Overlay at Top */}
         {portraitUrl && state !== 'generating' && (
           <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/70 via-black/40 to-transparent px-3 py-2">
@@ -228,15 +246,34 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
       )}
 
       {state === 'complete' && portraitUrl && (
-        <Button
-          onClick={generatePortrait}
-          variant="ghost"
-          size="sm"
-          className="gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Regenerate
-        </Button>
+        <div className="flex flex-col items-center gap-1">
+          {isOutdated ? (
+            <>
+              <Button
+                onClick={generatePortrait}
+                variant="secondary"
+                size="sm"
+                className="gap-2 bg-orange-100 hover:bg-orange-200 text-orange-700 dark:bg-orange-900/20 dark:hover:bg-orange-900/40 dark:text-orange-300"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Update Portrait
+              </Button>
+              <p className="text-xs text-muted-foreground text-center max-w-[180px]">
+                Appearance changed since portrait was created
+              </p>
+            </>
+          ) : (
+            <Button
+              onClick={generatePortrait}
+              variant="ghost"
+              size="sm"
+              className="gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Regenerate
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );

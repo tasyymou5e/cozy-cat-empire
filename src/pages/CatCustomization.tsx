@@ -18,7 +18,8 @@ import {
   generateDefaultAppearance, randomizeAppearance,
 } from '@/types/catAppearance';
 import { COSTUMES, getCostumeById } from '@/types/costumes';
-import { ArrowLeft, Save, RotateCcw, Shuffle, Palette, Eye, Scissors, Smile, Shirt, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw, Shuffle, Palette, Eye, Scissors, Smile, Shirt, Loader2, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 /**
  * CatCustomization - Cat appearance editor page
@@ -266,6 +267,16 @@ export default function CatCustomization() {
                   <CatAvatar cat={{ ...selectedCat, appearance: editedAppearance || undefined }} size="md" equippedCostumeId={equippedCostumeId} />
                   <CatAvatar cat={{ ...selectedCat, appearance: editedAppearance || undefined }} size="lg" equippedCostumeId={equippedCostumeId} />
                 </div>
+              )}
+
+              {/* Portrait Invalidation Warning */}
+              {selectedCat?.portraitUrl && hasChanges && (
+                <Alert className="bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800">
+                  <AlertTriangle className="h-4 w-4 text-orange-500" />
+                  <AlertDescription className="text-xs text-orange-700 dark:text-orange-300">
+                    Saving changes will mark the AI portrait as outdated. You can regenerate it in the Photo Booth.
+                  </AlertDescription>
+                </Alert>
               )}
             </CardContent>
           </Card>

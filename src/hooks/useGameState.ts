@@ -972,7 +972,7 @@ export function useGameState(
         ...prev,
         cats: prev.cats.map(c => 
           c.id === catId 
-            ? { ...c, appearance }
+            ? { ...c, appearance, visualsChangedAt: Date.now() }
             : c
         ),
       };
@@ -1023,7 +1023,16 @@ export function useGameState(
         }
       }
       
-      return { ...prev, catCostumes: newCatCostumes };
+      return { 
+        ...prev, 
+        catCostumes: newCatCostumes,
+        // Mark visual change for portrait invalidation
+        cats: prev.cats.map(c =>
+          c.id === catId
+            ? { ...c, visualsChangedAt: Date.now() }
+            : c
+        ),
+      };
     });
   }, []);
 
@@ -1266,7 +1275,7 @@ export function useGameState(
       ...prev,
       cats: prev.cats.map(cat => 
         cat.id === catId 
-          ? { ...cat, portraitUrl, portraitGeneratedAt: Date.now() }
+          ? { ...cat, portraitUrl, portraitGeneratedAt: Date.now(), visualsChangedAt: undefined }
           : cat
       ),
     }));
