@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Cat, BREEDS, CatBreed, CatPersonality } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
-import { getGradeBorderClass } from '@/types/grading';
+import { getGradeBorderClass, getGradeTier } from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
 import { CatAvatar } from './CatAvatar';
 import { ComfortButton } from './ComfortButton';
@@ -59,6 +59,7 @@ const personalityEmojis: Record<string, string> = {
 export function CatCard({ cat, onSell, onHeal, onComfort, onRename, compact = false, relationships = [], allCats = [], equippedCostumeId, reaction }: CatCardProps) {
   const breedInfo = BREEDS[cat.breed];
   const isHealthy = cat.health >= 70;
+  const tier = getGradeTier(cat.grade);
   const gradeBorder = getGradeBorderClass(cat.grade);
   
   const [isEditing, setIsEditing] = useState(false);
@@ -138,9 +139,32 @@ export function CatCard({ cat, onSell, onHeal, onComfort, onRename, compact = fa
 
   return (
     <div 
-      className={`cat-card ${gradeBorder} ${!isHealthy ? 'border-destructive/50' : ''} ${reaction ? 'animate-card-glow' : ''} relative overflow-visible`}
+      className={`cat-card ${gradeBorder} ${!isHealthy ? 'border-destructive/50' : ''} ${reaction ? 'animate-card-glow' : ''} relative overflow-visible transition-all duration-300`}
       style={glowColor ? { '--glow-color': glowColor } as React.CSSProperties : undefined}
     >
+      {/* Ultra rare sparkle overlay */}
+      {tier === 'ultraRare' && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl z-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
+        </div>
+      )}
+      {tier === 'ultraRare' && (
+        <div className="absolute -inset-2 pointer-events-none z-0">
+          {[...Array(6)].map((_, i) => (
+            <span
+              key={i}
+              className="absolute text-sm animate-sparkle"
+              style={{
+                left: `${15 + (i * 14)}%`,
+                top: `${10 + ((i % 3) * 35)}%`,
+                animationDelay: `${i * 0.3}s`,
+              }}
+            >
+              ✨
+            </span>
+          ))}
+        </div>
+      )}
       {reaction && <CatCardReaction reaction={reaction} />}
       <div className="flex items-start justify-between w-full mb-2">
         <div className="flex items-center gap-1">

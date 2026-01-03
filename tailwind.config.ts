@@ -138,29 +138,79 @@ export default {
   					boxShadow: '0 0 20px 5px hsl(var(--primary) / 0.5)'
   				}
   			},
-  			'rainbow': {
-  				'0%': {
-  					borderColor: 'hsl(0, 80%, 60%)'
-  				},
-  				'16%': {
-  					borderColor: 'hsl(60, 80%, 60%)'
-  				},
-  				'33%': {
-  					borderColor: 'hsl(120, 80%, 60%)'
-  				},
-  				'50%': {
-  					borderColor: 'hsl(180, 80%, 60%)'
-  				},
-  				'66%': {
-  					borderColor: 'hsl(240, 80%, 60%)'
-  				},
-  				'83%': {
-  					borderColor: 'hsl(300, 80%, 60%)'
-  				},
-  				'100%': {
-  					borderColor: 'hsl(360, 80%, 60%)'
-  				}
-  			},
+			'rainbow': {
+				'0%': {
+					borderColor: 'hsl(0, 80%, 60%)'
+				},
+				'16%': {
+					borderColor: 'hsl(60, 80%, 60%)'
+				},
+				'33%': {
+					borderColor: 'hsl(120, 80%, 60%)'
+				},
+				'50%': {
+					borderColor: 'hsl(180, 80%, 60%)'
+				},
+				'66%': {
+					borderColor: 'hsl(240, 80%, 60%)'
+				},
+				'83%': {
+					borderColor: 'hsl(300, 80%, 60%)'
+				},
+				'100%': {
+					borderColor: 'hsl(360, 80%, 60%)'
+				}
+			},
+			'rainbow-glow': {
+				'0%': { 
+					boxShadow: '0 0 30px 8px rgba(239,68,68,0.6), inset 0 0 10px rgba(239,68,68,0.2)',
+					borderColor: 'rgb(239,68,68)'
+				},
+				'16%': { 
+					boxShadow: '0 0 30px 8px rgba(234,179,8,0.6), inset 0 0 10px rgba(234,179,8,0.2)',
+					borderColor: 'rgb(234,179,8)'
+				},
+				'33%': { 
+					boxShadow: '0 0 30px 8px rgba(34,197,94,0.6), inset 0 0 10px rgba(34,197,94,0.2)',
+					borderColor: 'rgb(34,197,94)'
+				},
+				'50%': { 
+					boxShadow: '0 0 30px 8px rgba(59,130,246,0.6), inset 0 0 10px rgba(59,130,246,0.2)',
+					borderColor: 'rgb(59,130,246)'
+				},
+				'66%': { 
+					boxShadow: '0 0 30px 8px rgba(168,85,247,0.6), inset 0 0 10px rgba(168,85,247,0.2)',
+					borderColor: 'rgb(168,85,247)'
+				},
+				'83%': { 
+					boxShadow: '0 0 30px 8px rgba(236,72,153,0.6), inset 0 0 10px rgba(236,72,153,0.2)',
+					borderColor: 'rgb(236,72,153)'
+				},
+				'100%': { 
+					boxShadow: '0 0 30px 8px rgba(239,68,68,0.6), inset 0 0 10px rgba(239,68,68,0.2)',
+					borderColor: 'rgb(239,68,68)'
+				}
+			},
+			'golden-glow': {
+				'0%, 100%': { 
+					boxShadow: '0 0 20px 4px rgba(234,179,8,0.4), 0 0 40px 8px rgba(234,179,8,0.2)',
+					filter: 'brightness(1)'
+				},
+				'50%': { 
+					boxShadow: '0 0 30px 8px rgba(234,179,8,0.6), 0 0 60px 12px rgba(234,179,8,0.3)',
+					filter: 'brightness(1.05)'
+				}
+			},
+			'purple-glow': {
+				'0%, 100%': { 
+					boxShadow: '0 0 15px 3px rgba(168,85,247,0.35)',
+					filter: 'brightness(1)'
+				},
+				'50%': { 
+					boxShadow: '0 0 25px 6px rgba(168,85,247,0.5)',
+					filter: 'brightness(1.03)'
+				}
+			},
   			'shake': {
   				'0%, 100%': {
   					transform: 'translateX(0)'
@@ -456,7 +506,10 @@ export default {
   			'float-up': 'float-up 1s ease-out forwards',
   			'sparkle': 'sparkle 1.5s ease-in-out infinite',
   			'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
-  			'rainbow': 'rainbow 3s linear infinite',
+			'rainbow': 'rainbow 3s linear infinite',
+			'rainbow-glow': 'rainbow-glow 4s linear infinite',
+			'golden-glow': 'golden-glow 2.5s ease-in-out infinite',
+			'purple-glow': 'purple-glow 3s ease-in-out infinite',
   			'shake': 'shake 0.3s ease-in-out',
   			'grade-glow': 'grade-glow 2s ease-in-out infinite',
   			'star-spin': 'star-spin 4s linear infinite',
