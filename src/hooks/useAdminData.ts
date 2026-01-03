@@ -166,6 +166,67 @@ export function useAdminErrors({ errorType, status, page = 1, pageSize = 20 }: U
   });
 }
 
+export function useAdminErrorTrends() {
+  return useQuery({
+    queryKey: ['admin-error-trends'],
+    queryFn: async () => {
+      // Fetch errors from the last 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      const { data, error } = await supabase
+        .from('error_logs')
+        .select('created_at, error_type')
+        .gte('created_at', sevenDaysAgo.toISOString())
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      // Group by day and error type
+      const dailyData = new Map<string, Record<string, number>>();
+      
+      // Initialize all 7 days
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toISOString().split('T')[0];
+        dailyData.set(dateKey, {
+          react_error_boundary: 0,
+          uncaught_error: 0,
+          network_error: 0,
+          interaction_error: 0,
+          other: 0,
+          total: 0,
+        });
+      }
+
+      // Count errors per day
+      data?.forEach((row) => {
+        if (!row.created_at) return;
+        const dateKey = row.created_at.split('T')[0];
+        const dayData = dailyData.get(dateKey);
+        if (dayData) {
+          const errorType = row.error_type || 'other';
+          if (errorType in dayData) {
+            dayData[errorType]++;
+          } else {
+            dayData['other']++;
+          }
+          dayData['total']++;
+        }
+      });
+
+      // Convert to array format for recharts
+      return Array.from(dailyData.entries()).map(([date, counts]) => ({
+        date,
+        displayDate: new Date(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        ...counts,
+      }));
+    },
+    staleTime: 60000,
+  });
+}
+
 export function useAdminAuthLogs(page = 1, pageSize = 20) {
   return useQuery({
     queryKey: ['admin-auth-logs', page, pageSize],
