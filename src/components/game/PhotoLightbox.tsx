@@ -6,15 +6,45 @@ import { GalleryPhoto } from '@/types/gallery';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 
+/**
+ * Props for the PhotoLightbox component
+ */
 interface PhotoLightboxProps {
+  /** Currently displayed photo (null if closed) */
   photo: GalleryPhoto | null;
+  /** All photos for navigation */
   photos: GalleryPhoto[];
+  /** Whether the lightbox is open */
   open: boolean;
+  /** Callback when closing the lightbox */
   onClose: () => void;
+  /** Callback when navigating to another photo */
   onNavigate: (photoId: string) => void;
+  /** Callback when toggling favorite status */
   onToggleFavorite: (photoId: string) => void;
+  /** Callback when deleting a photo */
   onDelete: (photoId: string) => void;
 }
+
+/**
+ * PhotoLightbox - Full-screen photo viewer with navigation
+ * 
+ * Displays photos in a modal lightbox with keyboard navigation,
+ * download, share, favorite, and delete actions.
+ * 
+ * @example
+ * ```tsx
+ * <PhotoLightbox
+ *   photo={selectedPhoto}
+ *   photos={allPhotos}
+ *   open={isOpen}
+ *   onClose={handleClose}
+ *   onNavigate={setSelectedPhoto}
+ *   onToggleFavorite={handleToggleFavorite}
+ *   onDelete={handleDelete}
+ * />
+ * ```
+ */
 
 export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   photo,

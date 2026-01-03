@@ -23,10 +23,28 @@ import {
 import { usePhotoGallery } from '@/hooks/usePhotoGallery';
 import { useAuth } from '@/contexts/AuthContext';
 
+/**
+ * Props for the PhotoBooth component
+ */
 interface PhotoBoothProps {
+  /** The cat to photograph */
   cat: Cat;
+  /** Optional equipped costume ID */
   equippedCostumeId?: string;
 }
+
+/**
+ * PhotoBooth - Interactive cat photo creation interface
+ * 
+ * Allows players to take stylized photos of their cats with customizable
+ * backgrounds, poses, frames, and stickers. Supports export to download,
+ * clipboard, share, and gallery saving.
+ * 
+ * @example
+ * ```tsx
+ * <PhotoBooth cat={selectedCat} equippedCostumeId="crown" />
+ * ```
+ */
 
 export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }) => {
   const { toast } = useToast();

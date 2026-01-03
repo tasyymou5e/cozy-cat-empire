@@ -15,6 +15,19 @@ import { format } from 'date-fns';
 type FilterMode = 'all' | 'favorites';
 type SortMode = 'newest' | 'oldest' | 'name';
 
+/**
+ * CatGallery - Photo gallery page for viewing saved photos
+ * 
+ * Displays all saved photos with filtering (favorites, by cat) and sorting
+ * (newest, oldest, name). Supports cloud sync, bulk delete, and lightbox viewing.
+ * 
+ * @route /gallery
+ * 
+ * @example
+ * ```tsx
+ * <Route path="/gallery" element={<CatGallery />} />
+ * ```
+ */
 export default function CatGallery() {
   const { user } = useAuth();
   const { 

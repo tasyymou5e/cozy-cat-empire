@@ -9,6 +9,19 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
 import { PhotoBooth } from '@/components/game/PhotoBooth';
 
+/**
+ * CatPhotoBooth - Photo booth page for taking cat photos
+ * 
+ * Full-page photo booth experience with cat selector. Loads game state
+ * from cloud or local storage and renders the PhotoBooth component.
+ * 
+ * @route /photobooth/:catId?
+ * 
+ * @example
+ * ```tsx
+ * <Route path="/photobooth/:catId?" element={<CatPhotoBooth />} />
+ * ```
+ */
 const CatPhotoBooth: React.FC = () => {
   const { catId } = useParams<{ catId?: string }>();
   const navigate = useNavigate();
