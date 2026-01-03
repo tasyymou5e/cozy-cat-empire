@@ -294,6 +294,7 @@ export default function CatCollection() {
         onTrain={handleTrain}
         treats={state.resources.treats}
         equippedCostumeId={selectedCat ? state.catCostumes[selectedCat.id] : undefined}
+        onPortraitGenerated={actions.updateCatPortrait}
       />
     </div>
   );

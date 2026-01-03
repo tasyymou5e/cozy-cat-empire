@@ -1204,20 +1204,32 @@ export function useGameState(
     });
   }, [relationshipSystem, playSound]);
 
+  // Update cat portrait URL
+  const updateCatPortrait = useCallback((catId: string, portraitUrl: string) => {
+    setState(prev => ({
+      ...prev,
+      cats: prev.cats.map(cat => 
+        cat.id === catId 
+          ? { ...cat, portraitUrl, portraitGeneratedAt: Date.now() }
+          : cat
+      ),
+    }));
+  }, []);
+
   const actions = useMemo(() => ({
     addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
     catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
     doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
     addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
-    trainAllAvailableCats, sellSelectedCats, updateCatAppearance,
+    trainAllAvailableCats, sellSelectedCats, updateCatAppearance, updateCatPortrait,
   }), [
     addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
     catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
     doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
     addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
-    trainAllAvailableCats, sellSelectedCats, updateCatAppearance,
+    trainAllAvailableCats, sellSelectedCats, updateCatAppearance, updateCatPortrait,
   ]);
 
   return {
