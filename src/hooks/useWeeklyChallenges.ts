@@ -6,12 +6,38 @@ import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 import type { ChallengeWithProgress, ChallengeType, WeeklyChallenge, PlayerChallengeProgress } from '@/types/challenges';
 import type { SoundType } from '@/hooks/useSoundEffects';
 
+/**
+ * Haptic feedback functions for challenge events
+ */
 interface HapticFunctions {
   vibrateProgress: () => void;
   vibrateComplete: () => void;
   vibrateAchievement: () => void;
 }
 
+/**
+ * Hook for managing weekly challenges
+ *
+ * Tracks progress on active challenges, handles reward claiming, and provides
+ * real-time updates. Includes sound effects and haptic feedback for progress.
+ *
+ * @param userId - The current user's ID
+ * @param playSound - Function to play sound effects
+ * @param fireChallengeBurst - Function to trigger confetti animation
+ * @param haptics - Haptic feedback functions
+ * @returns Challenge data and management functions
+ *
+ * @example
+ * ```tsx
+ * const { challenges, updateProgress, claimReward } = useWeeklyChallenges(userId, playSound);
+ *
+ * // Update progress when player wins a show
+ * updateProgress('show_wins', 1);
+ *
+ * // Claim reward for completed challenge
+ * const reward = await claimReward(challengeId);
+ * ```
+ */
 export function useWeeklyChallenges(
   userId: string | undefined, 
   playSound?: (type: SoundType) => void,

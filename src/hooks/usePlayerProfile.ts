@@ -1,12 +1,31 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+/**
+ * Player profile data structure
+ */
 export interface PlayerProfile {
   id: string;
   display_name: string | null;
   avatar_emoji: string;
 }
 
+/**
+ * Hook for managing player profile data
+ *
+ * Handles fetching and updating the player's display name and avatar.
+ *
+ * @param userId - The current user's ID
+ * @returns Profile data and update function
+ *
+ * @example
+ * ```tsx
+ * const { profile, updateProfile } = usePlayerProfile(userId);
+ *
+ * // Update display name and avatar
+ * await updateProfile('NewName', '🐱');
+ * ```
+ */
 export function usePlayerProfile(userId: string | undefined) {
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [loading, setLoading] = useState(true);
