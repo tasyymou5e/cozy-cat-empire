@@ -5,7 +5,7 @@ import { useSound } from '@/contexts/SoundContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
-import { FlippableTradingCard } from '@/components/game/FlippableTradingCard';
+import { UnifiedCatCard } from '@/components/game/UnifiedCatCard';
 import { CatDetailModal } from '@/components/game/CatDetailModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -287,13 +287,16 @@ export default function CatCollection() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {filteredAndSortedCats.map(cat => (
-              <FlippableTradingCard
+              <UnifiedCatCard
                 key={cat.id}
                 cat={cat}
+                variant="trading"
                 relationships={relationshipSystem.relationships}
                 allCats={state.cats}
                 onClick={() => setSelectedCat(cat)}
                 equippedCostumeId={state.catCostumes[cat.id]}
+                showFlip
+                animated
               />
             ))}
           </div>
