@@ -29,50 +29,57 @@ import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
 import AdminAIMetrics from "./pages/admin/AdminAIMetrics";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+console.log('[INIT] App.tsx: Module loaded');
 
-const App = () => (
-  <ErrorBoundary componentName="App">
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <AuthProvider>
-          <SoundProvider>
-            <CatReactionProvider>
-              <ErrorLoggerProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/collection" element={<CatCollection />} />
-                      <Route path="/customize/:catId?" element={<CatCustomization />} />
-                      <Route path="/photobooth/:catId?" element={<CatPhotoBooth />} />
-                      <Route path="/gallery" element={<CatGallery />} />
-                      <Route path="/leaderboard" element={<Leaderboard />} />
-                      <Route path="/stats" element={<Stats />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/catking" element={<AdminAuth />} />
-                      <Route path="/catking/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-                      <Route path="/catking/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-                      <Route path="/catking/stats" element={<AdminRoute><AdminStatistics /></AdminRoute>} />
-                      <Route path="/catking/ai-metrics" element={<AdminRoute><AdminAIMetrics /></AdminRoute>} />
-                      <Route path="/catking/errors" element={<AdminRoute><AdminErrorLogs /></AdminRoute>} />
-                      <Route path="/catking/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
-                      <Route path="/catking/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
-                      <Route path="/catking/announcements" element={<AdminRoute><AdminAnnouncements /></AdminRoute>} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </BrowserRouter>
-                </TooltipProvider>
-              </ErrorLoggerProvider>
-            </CatReactionProvider>
-          </SoundProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
-);
+const queryClient = new QueryClient();
+console.log('[INIT] App.tsx: QueryClient created');
+
+const App = () => {
+  console.log('[INIT] App.tsx: App component rendering');
+  
+  return (
+    <ErrorBoundary componentName="App">
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
+            <SoundProvider>
+              <CatReactionProvider>
+                <ErrorLoggerProvider>
+                  <TooltipProvider>
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/collection" element={<CatCollection />} />
+                        <Route path="/customize/:catId?" element={<CatCustomization />} />
+                        <Route path="/photobooth/:catId?" element={<CatPhotoBooth />} />
+                        <Route path="/gallery" element={<CatGallery />} />
+                        <Route path="/leaderboard" element={<Leaderboard />} />
+                        <Route path="/stats" element={<Stats />} />
+                        <Route path="/auth" element={<Auth />} />
+                        <Route path="/catking" element={<AdminAuth />} />
+                        <Route path="/catking/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                        <Route path="/catking/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+                        <Route path="/catking/stats" element={<AdminRoute><AdminStatistics /></AdminRoute>} />
+                        <Route path="/catking/ai-metrics" element={<AdminRoute><AdminAIMetrics /></AdminRoute>} />
+                        <Route path="/catking/errors" element={<AdminRoute><AdminErrorLogs /></AdminRoute>} />
+                        <Route path="/catking/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
+                        <Route path="/catking/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+                        <Route path="/catking/announcements" element={<AdminRoute><AdminAnnouncements /></AdminRoute>} />
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </BrowserRouter>
+                  </TooltipProvider>
+                </ErrorLoggerProvider>
+              </CatReactionProvider>
+            </SoundProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+};
 
 export default App;
