@@ -284,6 +284,20 @@
   }
 }
 
+/* Shimmer Loading Animation */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.before\:animate-shimmer::before {
+  animation: shimmer 1.5s infinite;
+}
+
 @keyframes mood-float {
   0% { opacity: 0; transform: translateY(0) scale(0.5); }
   20% { opacity: 1; transform: translateY(-10px) scale(1); }
