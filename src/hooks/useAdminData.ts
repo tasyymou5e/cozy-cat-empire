@@ -58,6 +58,7 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
           display_name,
           avatar_emoji,
           username,
+          email,
           created_at,
           updated_at
         `)
@@ -65,7 +66,7 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
         .range((page - 1) * pageSize, page * pageSize - 1);
 
       if (search) {
-        query = query.or(`display_name.ilike.%${search}%,username.ilike.%${search}%`);
+        query = query.or(`display_name.ilike.%${search}%,username.ilike.%${search}%,email.ilike.%${search}%`);
       }
 
       const { data: profiles, error: profilesError } = await query;

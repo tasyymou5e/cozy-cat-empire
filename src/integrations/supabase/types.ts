@@ -532,6 +532,7 @@ export type Database = {
           avatar_emoji: string | null
           created_at: string | null
           display_name: string | null
+          email: string | null
           id: string
           updated_at: string | null
           username: string | null
@@ -540,6 +541,7 @@ export type Database = {
           avatar_emoji?: string | null
           created_at?: string | null
           display_name?: string | null
+          email?: string | null
           id: string
           updated_at?: string | null
           username?: string | null
@@ -548,6 +550,7 @@ export type Database = {
           avatar_emoji?: string | null
           created_at?: string | null
           display_name?: string | null
+          email?: string | null
           id?: string
           updated_at?: string | null
           username?: string | null

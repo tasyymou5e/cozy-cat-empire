@@ -35,6 +35,21 @@ import { Search, ChevronLeft, ChevronRight, Shield, User as UserIcon } from 'luc
 import { format } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
 
+const truncateEmail = (email: string): string => {
+  const [localPart, domain] = email.split('@');
+  if (!domain) return email;
+  if (localPart.length <= 3) {
+    return `${localPart}@${domain}`;
+  }
+  return `${localPart.slice(0, 3)}...@${domain}`;
+};
+
+const getDisplayName = (user: { display_name?: string | null; email?: string | null }): string => {
+  if (user.display_name) return user.display_name;
+  if (user.email) return truncateEmail(user.email);
+  return 'No Name';
+};
+
 export default function AdminUsers() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -42,7 +57,7 @@ export default function AdminUsers() {
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [newRole, setNewRole] = useState<string>('');
   
-  const { data, isLoading, refetch } = useAdminUsers({ search, page, pageSize: 10 });
+  const { data, isLoading } = useAdminUsers({ search, page, pageSize: 10 });
   const { logActivity } = useAdminActivityLog();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -179,7 +194,7 @@ export default function AdminUsers() {
                           <div className="flex items-center gap-2">
                             <span className="text-2xl">{user.avatar_emoji || '😺'}</span>
                             <span className="font-medium">
-                              {user.display_name || 'Anonymous'}
+                              {getDisplayName(user)}
                             </span>
                           </div>
                         </TableCell>
@@ -254,7 +269,7 @@ export default function AdminUsers() {
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-muted-foreground mb-4">
-              User: <strong>{selectedUser?.display_name || 'Anonymous'}</strong>
+              User: <strong>{selectedUser ? getDisplayName(selectedUser) : ''}</strong>
             </p>
             <Select value={newRole} onValueChange={setNewRole}>
               <SelectTrigger>
