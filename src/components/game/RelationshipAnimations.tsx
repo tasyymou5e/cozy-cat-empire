@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { RelationshipEvent } from '@/types/relationships';
 import { HeartParticles, SparkParticles, InteractionBubble, EdgeGlow } from './RelationshipParticles';
 import { useSound } from '@/contexts/SoundContext';
+import { useCatReactions } from '@/contexts/CatReactionContext';
 
 interface FloatingEmoji {
   id: string;
@@ -40,6 +41,7 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
   const [particles, setParticles] = useState<ParticleEffect[]>([]);
   const [showGlow, setShowGlow] = useState<'positive' | 'negative' | 'neutral' | null>(null);
   const { playSound } = useSound();
+  const { addReaction } = useCatReactions();
 
   useEffect(() => {
     if (!lastEventId || events.length === 0) return;
@@ -56,6 +58,9 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
       playSound('click');
     }
 
+    // Trigger reactions on both cats involved
+    addReaction(latestEvent.catId1, latestEvent.type);
+    addReaction(latestEvent.catId2, latestEvent.type);
     // Add notification bubble
     setNotifications(prev => [...prev, {
       id: lastEventId,
