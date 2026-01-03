@@ -119,6 +119,10 @@ export function useGameState(
     setMessageType(type);
   };
 
+  const dismissMessage = useCallback(() => {
+    setMessage('');
+  }, []);
+
   // Check achievements
   const checkAchievements = useCallback((newState: GameState, extraKittens = 0): GameState => {
     const stats = {
@@ -1305,7 +1309,7 @@ export function useGameState(
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
     addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
     trainAllAvailableCats, sellSelectedCats, updateCatAppearance, updateCatPortrait,
-    renameCat, feedSingleCat,
+    renameCat, feedSingleCat, dismissMessage,
   }), [
     addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
     catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
@@ -1313,7 +1317,7 @@ export function useGameState(
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
     addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
     trainAllAvailableCats, sellSelectedCats, updateCatAppearance, updateCatPortrait,
-    renameCat, feedSingleCat,
+    renameCat, feedSingleCat, dismissMessage,
   ]);
 
   return {
