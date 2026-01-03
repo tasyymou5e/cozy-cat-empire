@@ -855,6 +855,8 @@ export function useGameState(
       setState(saveData.state);
       setKittensBreed(saveData.kittensBreed || 0);
       if (saveData.relationships) { relationshipSystem.loadRelationships(saveData.relationships); }
+      // Detect groups after loading relationships
+      relationshipSystem.detectGroups(saveData.state.cats);
       showMessage(`Game loaded! Day ${saveData.state.day} 📂`, 'success');
       playSound?.('success');
     } catch { showMessage('Failed to load save!', 'error'); }
@@ -880,6 +882,8 @@ export function useGameState(
     if (relationshipData) {
       relationshipSystem.loadRelationships(relationshipData);
     }
+    // Detect groups after loading relationships
+    relationshipSystem.detectGroups(gameState.cats);
     showMessage(`Cloud save loaded! Day ${gameState.day} ☁️`, 'success');
     playSound?.('success');
   }, [relationshipSystem, playSound]);
