@@ -3,79 +3,134 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ChevronRight, ChevronLeft, X, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface TutorialStep {
   title: string;
   content: string;
   emoji: string;
   highlight?: string;
+  category?: 'basics' | 'economy' | 'cats' | 'social' | 'features';
 }
 
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
-    title: 'Welcome to Cat Farm! 🐱',
+    title: 'Welcome to Cat Farm!',
     content: 'Build your cat empire from a small apartment to a 100-acre farm! Let\'s learn the basics.',
     emoji: '👋',
+    category: 'basics',
   },
   {
     title: 'Getting Your First Cat',
     content: 'Click "Add Stray" in the Actions tab to get a free cat, or buy one from the Market.',
     emoji: '🐾',
     highlight: 'actions',
+    category: 'basics',
   },
   {
     title: 'Caring for Your Cats',
-    content: 'Keep cats happy and healthy by feeding them, playing with toys, and healing when sick.',
+    content: 'Keep cats happy and healthy by buying food, toys, and medicine from the Supplies tab.',
     emoji: '❤️',
     highlight: 'supplies',
+    category: 'basics',
   },
   {
     title: 'Earning Money',
-    content: 'Do chores, enter cat shows with high-grade cats (8+), or sell cats at the market.',
+    content: 'Do chores to earn coins. You can also enter cat shows or sell cats at the market.',
     emoji: '💰',
     highlight: 'chores',
+    category: 'economy',
   },
   {
-    title: 'Cat Grades',
-    content: 'Each cat has a grade (1-20). Higher grades win more shows! Train tricks to boost grades.',
+    title: 'Cat Grades & Training',
+    content: 'Each cat has a grade (1-20). Train tricks to boost grades and win more shows!',
     emoji: '⭐',
     highlight: 'training',
+    category: 'cats',
   },
   {
-    title: 'Breeding',
+    title: 'Dress Up Your Cats',
+    content: 'Buy costumes to make your cats look amazing! Costumes also give bonuses in cat shows.',
+    emoji: '👗',
+    highlight: 'costumes',
+    category: 'cats',
+  },
+  {
+    title: 'Breeding Kittens',
     content: 'Breed two cats to get kittens! Best friends have higher success rates and better offspring.',
     emoji: '💕',
     highlight: 'breeding',
+    category: 'cats',
   },
   {
-    title: 'Relationships',
-    content: 'Cats form friendships and rivalries. Use treats to socialize and improve relationships.',
+    title: 'Cat Relationships',
+    content: 'Cats form friendships and rivalries. Use treats and the Social tab to improve bonds.',
     emoji: '🤝',
     highlight: 'social',
+    category: 'cats',
   },
   {
-    title: 'Comfort Upset Cats',
-    content: 'When cats are sad, use the "Hug & Pet" button - hold for 20 seconds to comfort them.',
-    emoji: '🤗',
+    title: 'Bulk Actions',
+    content: 'Save time with bulk actions! Heal all sick cats, rest tired ones, or train everyone at once.',
+    emoji: '⚡',
+    highlight: 'bulk',
+    category: 'features',
+  },
+  {
+    title: 'Make Friends & Trade',
+    content: 'Add friends to gift cats or trade with other players. Check the Friends and Trading tabs!',
+    emoji: '🎁',
+    highlight: 'friends',
+    category: 'social',
+  },
+  {
+    title: 'Weekly Challenges',
+    content: 'Complete weekly challenges for bonus rewards. Keep your streak going for extra perks!',
+    emoji: '🎯',
+    highlight: 'challenges',
+    category: 'social',
+  },
+  {
+    title: 'Photo Booth & Portraits',
+    content: 'Take custom photos of your cats! You can even generate AI portraits that show their look.',
+    emoji: '📸',
+    category: 'features',
+  },
+  {
+    title: 'Cat Collection',
+    content: 'View your cats as beautiful trading cards! Click the grid icon in the header to explore.',
+    emoji: '🃏',
+    category: 'features',
+  },
+  {
+    title: 'Save Your Progress',
+    content: 'Sign in to save your game to the cloud! Your cats will be safe across all your devices.',
+    emoji: '☁️',
+    category: 'features',
   },
   {
     title: 'Expanding Your Empire',
-    content: 'Upgrade your home to hold more cats. Eventually buy a farm and expand up to 100 acres!',
+    content: 'Upgrade from an apartment to a house, mansion, and eventually a 100-acre farm!',
     emoji: '🏠',
-  },
-  {
-    title: 'Keyboard Shortcuts',
-    content: 'Press ? anytime to see shortcuts. F=Feed, N=Next Day, S=Save, C=Collection, 1-8=Tabs.',
-    emoji: '⌨️',
+    highlight: 'actions',
+    category: 'basics',
   },
   {
     title: 'You\'re Ready!',
-    content: 'Start small, care for your cats, and grow your empire. Good luck, cat farmer!',
+    content: 'Explore all the tabs, care for your cats, and build your empire. Good luck, cat farmer!',
     emoji: '🎉',
   },
 ];
 
 const STORAGE_KEY = 'cat-farm-tutorial-complete';
+
+const categoryStyles = {
+  basics: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+  economy: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+  cats: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+  social: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+  features: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
+};
 
 interface TutorialSystemProps {
   onHighlightTab?: (tab: string | null) => void;
@@ -149,7 +204,17 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <span className="text-3xl">{step.emoji}</span>
-            <h3 className="text-lg font-bold">{step.title}</h3>
+            <div className="flex flex-col gap-1">
+              <h3 className="text-lg font-bold leading-tight">{step.title}</h3>
+              {step.category && (
+                <span className={cn(
+                  "text-xs px-2 py-0.5 rounded-full font-medium w-fit",
+                  categoryStyles[step.category]
+                )}>
+                  {step.category}
+                </span>
+              )}
+            </div>
           </div>
           <Button variant="ghost" size="icon" onClick={handleComplete}>
             <X className="h-4 w-4" />
@@ -187,7 +252,7 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
             <ChevronLeft className="h-4 w-4 mr-1" /> Back
           </Button>
           
-          <div className="flex gap-1">
+          <div className="flex gap-1 flex-wrap justify-center max-w-[120px]">
             {TUTORIAL_STEPS.map((_, i) => (
               <button
                 key={i}
