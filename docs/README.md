@@ -9,8 +9,8 @@ Comprehensive documentation for the Cat Farm game application.
 
 | File | Description |
 |------|-------------|
-| [COMPONENTS.md](./COMPONENTS.md) | Component architecture, 45+ game components, 29 hooks, UI primitives |
-| [GAME_LOGIC.md](./GAME_LOGIC.md) | Game mechanics, cat system, breeding, shows, economy, bulk actions, photo booth |
+| [COMPONENTS.md](./COMPONENTS.md) | Component architecture, 50+ game components, 29 hooks, UI primitives |
+| [GAME_LOGIC.md](./GAME_LOGIC.md) | Game mechanics, cat system, breeding, shows, economy, bulk actions, photo booth, tutorial |
 | [DATABASE_DESIGN.md](./DATABASE_DESIGN.md) | Supabase tables, schemas, relationships, JSONB structures, storage buckets |
 | [SECURITY.md](./SECURITY.md) | RLS policies, authentication, authorization, security practices |
 | [TECH_STACK.md](./TECH_STACK.md) | React, Supabase, audio system, dependencies |
@@ -61,6 +61,11 @@ Comprehensive documentation for the Cat Farm game application.
 - `src/hooks/usePhotoGallery.ts` - Gallery management
 - `src/hooks/useCloudGallery.ts` - Cloud sync
 - `src/types/photoBooth.ts` - Photo assets
+
+#### Onboarding & Changelog
+- `src/components/game/TutorialSystem.tsx` - 16-step tutorial with categories
+- `src/components/game/WhatsNewPopup.tsx` - Changelog for returning players
+- `src/types/changelog.ts` - Version tracking
 - `src/types/gallery.ts` - Gallery types
 
 #### Cat Customization
