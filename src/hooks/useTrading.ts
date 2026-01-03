@@ -35,6 +35,7 @@ export function useTrading(userId: string | undefined) {
   const [incomingTrades, setIncomingTrades] = useState<TradeOffer[]>([]);
   const [outgoingTrades, setOutgoingTrades] = useState<TradeOffer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newTradeAlert, setNewTradeAlert] = useState<TradeOffer | null>(null);
 
   const fetchTrades = useCallback(async () => {
     if (!userId) {
@@ -124,11 +125,30 @@ export function useTrading(userId: string | undefined) {
           table: 'trade_offers',
           filter: `recipient_id=eq.${userId}`
         },
-        (payload) => {
+        async (payload) => {
           if (payload.eventType === 'INSERT') {
-            toast({
-              title: "📦 New Trade Offer!",
-              description: "Someone wants to trade with you!",
+            // Fetch sender name for the popup
+            const newTrade = payload.new as any;
+            let senderName = 'Unknown';
+            
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('display_name')
+              .eq('id', newTrade.sender_id)
+              .single();
+            
+            if (profile?.display_name) {
+              senderName = profile.display_name;
+            }
+            
+            setNewTradeAlert({
+              ...newTrade,
+              offered_cats: (newTrade.offered_cats || []) as Cat[],
+              offered_resources: (newTrade.offered_resources || {}) as Partial<Resources>,
+              requested_cats: (newTrade.requested_cats || []) as Cat[],
+              requested_resources: (newTrade.requested_resources || {}) as Partial<Resources>,
+              status: newTrade.status as TradeOffer['status'],
+              sender_name: senderName
             });
           }
           fetchTrades();
@@ -252,6 +272,10 @@ export function useTrading(userId: string | undefined) {
     }
   };
 
+  const clearNewTrade = useCallback(() => {
+    setNewTradeAlert(null);
+  }, []);
+
   return {
     incomingTrades,
     outgoingTrades,
@@ -260,6 +284,8 @@ export function useTrading(userId: string | undefined) {
     acceptTrade,
     declineTrade,
     cancelTrade,
-    refetch: fetchTrades
+    refetch: fetchTrades,
+    newTradeAlert,
+    clearNewTrade
   };
 }

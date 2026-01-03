@@ -38,7 +38,9 @@ import { LeaderboardPanel } from './LeaderboardPanel';
 import { DailyRewardsPanel } from './DailyRewardsPanel';
 import { BulkActionsPanel } from './BulkActionsPanel';
 import { GiftReceivedDialog } from './GiftReceivedDialog';
+import { TradeReceivedDialog } from './TradeReceivedDialog';
 import { useCatGifts } from '@/hooks/useCatGifts';
+import { useTrading } from '@/hooks/useTrading';
 
 import { FriendsPanel } from './FriendsPanel';
 import { PlayerProfilePanel } from './PlayerProfilePanel';
@@ -98,6 +100,7 @@ export function CatFarm() {
     isVIP,
   } = useDailyLoginRewards(user?.id, playSound, vibrateAchievement, fireConfetti);
   const { newGiftAlert, clearNewGift, acceptGift: acceptCatGift, declineGift: declineCatGift } = useCatGifts(user?.id);
+  const { newTradeAlert, clearNewTrade, acceptTrade: acceptTradeOffer, declineTrade: declineTradeOffer } = useTrading(user?.id);
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
   const [musicOn, setMusicOn] = useState(false);
@@ -110,6 +113,20 @@ export function CatFarm() {
   const [cloudSyncing, setCloudSyncing] = useState(false);
   const [lastCloudSave, setLastCloudSave] = useState<string | null>(null);
   const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
+
+  // Play sound when receiving gift
+  useEffect(() => {
+    if (newGiftAlert) {
+      playSound?.('giftReceived');
+    }
+  }, [newGiftAlert, playSound]);
+
+  // Play sound when receiving trade
+  useEffect(() => {
+    if (newTradeAlert) {
+      playSound?.('tradeReceived');
+    }
+  }, [newTradeAlert, playSound]);
 
   // Handle accepting gift from popup
   const handleAcceptGiftFromPopup = async (giftId: string) => {
@@ -125,6 +142,30 @@ export function CatFarm() {
   const handleDeclineGiftFromPopup = async (giftId: string) => {
     await declineCatGift(giftId);
     clearNewGift();
+  };
+
+  // Handle accepting trade from popup
+  const handleAcceptTradeFromPopup = async (tradeId: string) => {
+    const trade = await acceptTradeOffer(tradeId);
+    if (trade) {
+      // Add received cats and resources
+      if (trade.offered_cats) {
+        for (const cat of trade.offered_cats) {
+          actions.addReceivedCat?.(cat);
+        }
+      }
+      if (trade.offered_money) {
+        actions.addReward?.(trade.offered_money, {});
+      }
+      playSound?.('success');
+      fireConfetti();
+    }
+    clearNewTrade();
+  };
+
+  const handleDeclineTradeFromPopup = async (tradeId: string) => {
+    await declineTradeOffer(tradeId);
+    clearNewTrade();
   };
 
   // Handle claiming daily reward
@@ -313,6 +354,14 @@ export function CatFarm() {
         onAccept={handleAcceptGiftFromPopup}
         onDecline={handleDeclineGiftFromPopup}
         onClose={clearNewGift}
+      />
+      
+      {/* Trade Received Popup */}
+      <TradeReceivedDialog
+        trade={newTradeAlert}
+        onAccept={handleAcceptTradeFromPopup}
+        onDecline={handleDeclineTradeFromPopup}
+        onClose={clearNewTrade}
       />
       
       {/* Daily Login Rewards Modal */}
