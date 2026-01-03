@@ -19,6 +19,8 @@ Player performs actions:
   - Enter cat shows
   - Breed cats
   - Buy/sell cats
+  - Take photos
+  - Customize cats
     ↓
 Player clicks "Next Day"
     ↓
@@ -63,6 +65,7 @@ function createCat(type: 'stray' | 'adopted' | 'pure'): Cat {
     restLevel: 100,
     feedingScore: 0,
     lastTrainingDay: 0,
+    appearance: generateDefaultAppearance(breed), // Breed-specific defaults
   };
 }
 ```
@@ -93,6 +96,108 @@ function createCat(type: 'stray' | 'adopted' | 'pure'): Cat {
 - **Independent**: Slower relationship building, self-sufficient
 - **Curious**: Learns tricks faster, explores more
 - **Shy**: Takes longer to bond but forms deep connections
+
+---
+
+## Cat Renaming System
+
+### Inline Rename Feature
+- Click pencil icon on CatCard to enter edit mode
+- Type new name directly in input field
+- Confirm with checkmark button
+- Cancel with X button to revert
+
+### Random Name Generator
+- Shuffle button generates contextual names
+- Combines breed-specific, personality-based, and universal names
+
+### Breed-Specific Names
+```typescript
+const BREED_NAMES: Record<CatBreed, string[]> = {
+  'siamese': ['Sakura', 'Miko', 'Yuki', 'Suki', 'Kiko', 'Hana', 'Wasabi', 'Tempura', 'Sake', 'Nori', 'Tofu', 'Mochi'],
+  'persian': ['Duchess', 'Prince', 'Valentino', 'Anastasia', 'Cleopatra', 'Empress', 'Countess', 'Marquis', 'Vivienne', 'Reginald'],
+  'maine-coon': ['Bear', 'Moose', 'Timber', 'Ranger', 'Hunter', 'Maple', 'Everest', 'Grizzly', 'Kodiak', 'Aspen', 'Summit'],
+  'british-shorthair': ['Winston', 'Churchill', 'Wellington', 'Sherlock', 'Watson', 'Paddington', 'Biscuit', 'Earl Grey', 'Crumpet'],
+  'ragdoll': ['Marshmallow', 'Velvet', 'Cashmere', 'Fluffernutter', 'Snuggles', 'Cloud', 'Pillow', 'Cottontail', 'Silky'],
+  'bengal': ['Rajah', 'Sheba', 'Zara', 'Jungle', 'Safari', 'Tigris', 'Savanna', 'Leo', 'Panther', 'Aztec', 'Sahara'],
+  'tabby': ['Stripes', 'Marble', 'Autumn', 'Caramel', 'Butterscotch', 'Toffee', 'Cinnamon', 'Tiger', 'Amber'],
+  'stray': ['Scrappy', 'Lucky', 'Rascal', 'Scout', 'Maverick', 'Bandit', 'Dusty', 'Patches', 'Scruffy', 'Streetwise'],
+};
+```
+
+### Personality-Based Names
+```typescript
+const PERSONALITY_NAMES: Record<CatPersonality, string[]> = {
+  'lazy': ['Snoozer', 'Dreamer', 'Sleepy', 'Cozy', 'Lounger', 'Napkin', 'Slumber', 'Dozer', 'Yawnie', 'Pillow'],
+  'playful': ['Zoom', 'Bounce', 'Sparky', 'Frisky', 'Zippy', 'Turbo', 'Rocket', 'Dash', 'Peppy', 'Zinger'],
+  'affectionate': ['Cuddles', 'Sweetie', 'Honey', 'Lovebug', 'Snugglepuff', 'Huggy', 'Smoochie', 'Darling', 'Angel'],
+  'independent': ['Maverick', 'Solo', 'Rebel', 'Sphinx', 'Mystery', 'Enigma', 'Lone Wolf', 'Rogue', 'Drifter'],
+  'curious': ['Scout', 'Explorer', 'Sherlock', 'Detective', 'Peepers', 'Nosy', 'Snoop', 'Inquisitor', 'Seeker'],
+  'shy': ['Whisper', 'Shadow', 'Misty', 'Ghost', 'Phantom', 'Bashful', 'Wallflower', 'Timid', 'Hush'],
+};
+```
+
+### Universal Names
+```typescript
+const UNIVERSAL_NAMES = [
+  'Whiskers', 'Mittens', 'Luna', 'Oliver', 'Bella', 'Max', 'Coco',
+  'Biscuit', 'Muffin', 'Cookie', 'Sir Fluffington', 'Lord Meowington',
+  'Gandalf', 'Yoda', 'Dumbledore', 'Felix', 'Ginger', 'Pepper',
+];
+```
+
+### Name Generation Logic
+```typescript
+const generateRandomName = () => {
+  const breedNames = BREED_NAMES[cat.breed] || [];
+  const personalityNames = PERSONALITY_NAMES[cat.personality] || [];
+  const combinedNames = [...breedNames, ...personalityNames, ...UNIVERSAL_NAMES];
+  const randomIndex = Math.floor(Math.random() * combinedNames.length);
+  return combinedNames[randomIndex];
+};
+```
+
+---
+
+## Cat Appearance System
+
+### Appearance Options
+```typescript
+interface CatAppearance {
+  furColor: FurColor;
+  pattern: FurPattern;
+  patternColor?: string;
+  eyeColor: EyeColor;
+  hairLength: HairLength;
+  facialFeatures: FacialFeature[];
+}
+```
+
+### Available Options
+
+**Fur Colors:**
+- orange, black, white, gray, brown, cream, ginger, calico
+
+**Patterns:**
+- solid, tabby, spotted, tuxedo, bicolor, calico
+
+**Eye Colors:**
+- green, blue, amber, gold, heterochromia, copper
+
+**Hair Lengths:**
+- short, medium, fluffy
+
+**Facial Features:**
+- normal, scar, eyepatch, whiskers_long, grumpy, cute_blush
+
+### Breed Defaults
+```typescript
+function generateDefaultAppearance(breed: CatBreed): CatAppearance {
+  // Returns breed-appropriate defaults
+  // e.g., Siamese gets cream fur, blue eyes
+  // Bengal gets spotted pattern, gold eyes
+}
+```
 
 ---
 
@@ -251,6 +356,7 @@ function breedCats(cat1, cat2): Cat | null {
     breed: Math.random() < 0.5 ? cat1.breed : cat2.breed,
     grade: averageGrade(cat1, cat2) + compatibility.bonus/10,
     personality: inheritPersonality(cat1, cat2),
+    appearance: inheritAppearance(cat1, cat2), // Mix parent appearances
     // ... other stats
   };
   
@@ -261,6 +367,88 @@ function breedCats(cat1, cat2): Cat | null {
 ### Breeding Cooldown
 - 5 days after successful breeding
 - 2 days after failed attempt
+
+---
+
+## Photo Booth System
+
+### Available Assets
+
+**Backgrounds (16 options):**
+- Nature: garden, beach, forest, mountain
+- Fantasy: castle, space, underwater, rainbow
+- Seasonal: spring, summer, autumn, winter
+- Solid: pink, blue, purple, gold
+
+**Cat Poses (7 options):**
+- sitting, playful, sleepy, proud, silly, waving, bouncing
+
+**Frames (7 options):**
+- polaroid, heart, star, vintage, gold, rainbow, paws
+
+**Stickers (24 options across 5 categories):**
+- Hearts: heart, sparkle-heart, floating-hearts
+- Stars: star, shooting-star, constellation
+- Text: meow, purrfect, cute, love
+- Animals: butterfly, fish, mouse, bird
+- Effects: sparkles, bubbles, confetti, rainbow
+
+### Photo Creation Flow
+```typescript
+function createPhoto(cat: Cat, options: PhotoOptions): Photo {
+  return {
+    id: generateId(),
+    catId: cat.id,
+    catName: cat.name,
+    backgroundId: options.background.id,
+    poseId: options.pose.id,
+    frameId: options.frame.id,
+    stickers: options.stickers,
+    createdAt: new Date(),
+    isFavorite: false,
+  };
+}
+```
+
+### Export Options
+- **Download**: Save as PNG to device
+- **Copy**: Copy to clipboard
+- **Share**: Native share dialog (if supported)
+- **Save to Gallery**: Store in cloud (authenticated users)
+
+---
+
+## Photo Gallery System
+
+### Storage
+- Local: localStorage with 50 photo limit
+- Cloud: Supabase storage bucket `photo-gallery`
+
+### Sync Logic
+```typescript
+async function syncWithCloud() {
+  // 1. Load cloud photos
+  const cloudPhotos = await loadCloudPhotos();
+  
+  // 2. Merge with local (cloud wins on conflicts)
+  const merged = mergePhotos(localPhotos, cloudPhotos);
+  
+  // 3. Upload new local photos to cloud
+  for (const photo of newLocalPhotos) {
+    await uploadToCloud(photo);
+  }
+  
+  // 4. Update local storage
+  persistPhotos(merged);
+}
+```
+
+### Gallery Features
+- Filter by cat name
+- Sort by date (newest/oldest) or name
+- Toggle favorites
+- Delete with confirmation
+- Full-screen lightbox viewer
 
 ---
 
