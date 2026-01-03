@@ -292,6 +292,7 @@ export default function CatCollection() {
         onSell={(id) => { actions.sellCat(id); setSelectedCat(null); }}
         onRest={actions.restCat}
         onTrain={handleTrain}
+        onRename={actions.renameCat}
         treats={state.resources.treats}
         equippedCostumeId={selectedCat ? state.catCostumes[selectedCat.id] : undefined}
         onPortraitGenerated={actions.updateCatPortrait}
