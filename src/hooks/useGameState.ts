@@ -13,6 +13,7 @@ import { getRandomDailyEvent, DailyEvent } from '@/types/dailyEvents';
 import { getCostumeById } from '@/types/costumes';
 import { CatRelationship, RelationshipEvent } from '@/types/relationships';
 import { ChallengeType } from '@/types/challenges';
+import { LogActivityParams } from './usePlayerActivityLog';
 
 const SAVE_KEY = 'cat-farm-save';
 const generateId = () => Math.random().toString(36).substr(2, 9); // Unique ID generator
@@ -102,7 +103,8 @@ const createInitialState = (): GameState => ({
 
 export function useGameState(
   playSound?: (type: SoundType) => void,
-  onChallengeProgress?: (type: ChallengeType, increment?: number) => void
+  onChallengeProgress?: (type: ChallengeType, increment?: number) => void,
+  logActivity?: (params: LogActivityParams) => void
 ) {
   const [state, setState] = useState<GameState>(createInitialState);
   const [message, setMessage] = useState<string>('Welcome to Cat Farm! Start your feline empire! 🐱');
@@ -491,6 +493,17 @@ export function useGameState(
         playSound?.('achievement');
         playSound?.('coin');
         onChallengeProgress?.('show_wins', wins);
+        
+        // Log show win activity
+        logActivity?.({
+          activityType: 'show_win',
+          activityDescription: `Won ${wins} award${wins > 1 ? 's' : ''} at the ${tierInfo.name}!`,
+          metadata: {
+            tier: tier,
+            wins: wins,
+            reward: Math.floor(totalReward)
+          }
+        });
       }
       
       return {
@@ -502,7 +515,7 @@ export function useGameState(
         showCooldown: SHOW_COOLDOWN_DAYS,
       };
     });
-  }, [relationshipSystem, playSound, onChallengeProgress]);
+  }, [relationshipSystem, playSound, onChallengeProgress, logActivity]);
 
   const sellCat = useCallback((catId: string) => {
     setState(prev => {
@@ -713,11 +726,23 @@ export function useGameState(
       playSound?.('meow');
       playSound?.('success');
       onChallengeProgress?.('breed_kittens', 1);
+      
+      // Log cat bred activity
+      logActivity?.({
+        activityType: 'cat_bred',
+        activityDescription: `Bred a new ${breed} kitten named ${name}`,
+        metadata: {
+          kitten_name: name,
+          kitten_breed: breed,
+          parent1: parent1.name,
+          parent2: parent2.name
+        }
+      });
 
       const newState = { ...prev, cats: [...prev.cats, kitten], breedingCooldown: 5 };
       return checkAchievements(newState, 1);
     });
-  }, [checkAchievements, relationshipSystem, playSound, onChallengeProgress]);
+  }, [checkAchievements, relationshipSystem, playSound, onChallengeProgress, logActivity]);
 
   const doGroupActivity = useCallback((groupId: string, activityType: 'play' | 'treat' | 'nap') => {
     const group = relationshipSystem.groups.find(g => g.id === groupId);

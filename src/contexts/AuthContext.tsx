@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
 interface AuthContextType {
   user: User | null;
@@ -39,7 +40,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+    
+    // Log login activity (non-blocking)
+    if (!error && data.user) {
+      logPlayerActivity(data.user.id, {
+        activityType: 'login',
+        activityDescription: 'Logged into Cat Farm',
+        metadata: { method: 'email' }
+      });
+    }
+    
     return { error: error as Error | null };
   };
 
@@ -54,6 +65,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    // Log logout activity before signing out (non-blocking)
+    if (user) {
+      logPlayerActivity(user.id, {
+        activityType: 'logout',
+        activityDescription: 'Logged out of Cat Farm'
+      });
+    }
     await supabase.auth.signOut();
   };
 

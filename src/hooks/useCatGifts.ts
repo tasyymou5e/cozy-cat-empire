@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Cat } from '@/types/game';
 import { toast } from '@/hooks/use-toast';
+import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
 interface CatGift {
   id: string;
@@ -157,6 +158,13 @@ export function useCatGifts(userId: string | undefined) {
 
       if (error) throw error;
 
+      // Log gift sent activity (non-blocking)
+      logPlayerActivity(userId, {
+        activityType: 'gift_sent',
+        activityDescription: `Sent ${cat.name} as a gift`,
+        metadata: { cat_name: cat.name, cat_breed: cat.breed, recipient_id: recipientId }
+      });
+
       toast({
         title: "Gift Sent! 🎁",
         description: `${cat.name} is on their way to their new home!`,
@@ -176,6 +184,8 @@ export function useCatGifts(userId: string | undefined) {
   };
 
   const acceptGift = async (giftId: string): Promise<Cat | null> => {
+    if (!userId) return null;
+    
     try {
       const gift = receivedGifts.find(g => g.id === giftId);
       if (!gift) return null;
@@ -186,6 +196,13 @@ export function useCatGifts(userId: string | undefined) {
         .eq('id', giftId);
 
       if (error) throw error;
+
+      // Log gift received activity (non-blocking)
+      logPlayerActivity(userId, {
+        activityType: 'gift_received',
+        activityDescription: `Received ${gift.cat_data.name} as a gift`,
+        metadata: { cat_name: gift.cat_data.name, cat_breed: gift.cat_data.breed, sender_id: gift.sender_id }
+      });
 
       toast({
         title: "Gift Accepted! 🎉",
