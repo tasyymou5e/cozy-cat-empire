@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { Cat } from '@/types/game';
-import { CatAvatar } from './CatAvatar';
+import { CatVisual } from './CatVisual';
 import { DraggableSticker } from './DraggableSticker';
 import {
   PhotoBoothBackground,
@@ -254,11 +254,11 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
             className={`absolute inset-0 flex items-center justify-center ${pose.animation || ''}`}
             style={{ transform: pose.transform }}
           >
-            <CatAvatar 
+            <CatVisual 
               cat={cat} 
               equippedCostumeId={equippedCostumeId}
-              size="xl" 
-              showCostume 
+              size="xl"
+              preferPortrait={true}
               animated
             />
           </div>

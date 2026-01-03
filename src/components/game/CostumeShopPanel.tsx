@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ShoppingBag, Shirt, Sparkles } from 'lucide-react';
 import { computeAppearanceHash } from '@/lib/portraitUtils';
+import { CatVisual } from './CatVisual';
 
 interface CostumeShopPanelProps {
   cats: Cat[];
@@ -184,11 +185,8 @@ export function CostumeShopPanel({
                           setEquipDialogOpen(true);
                         }}
                       >
-                        <div className="relative">
-                          <span className="text-2xl">{catEmojis[cat.breed]}</span>
-                          {costume && (
-                            <span className="absolute -top-1 -right-1 text-sm">{costume.emoji}</span>
-                          )}
+                      <div className="relative">
+                          <CatVisual cat={cat} size="sm" equippedCostumeId={catCostumes[cat.id]} preferPortrait={true} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm truncate">{cat.name}</p>

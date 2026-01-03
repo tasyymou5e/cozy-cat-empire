@@ -2,7 +2,7 @@ import { Cat } from '@/types/game';
 import { CatRelationship, getRelationshipLevel, getRelationshipEmoji } from '@/types/relationships';
 import { getGradeTier, getGradeStars, TRICKS } from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
-import { CatAvatar } from './CatAvatar';
+import { CatVisual } from './CatVisual';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Star, Heart, HeartCrack, Trophy, Zap } from 'lucide-react';
@@ -66,10 +66,11 @@ export function TradingCard({ cat, relationships, allCats, onClick, equippedCost
       </div>
       {/* Cat Display */}
       <div className="relative flex-shrink-0 h-24 flex items-center justify-center mb-2 rounded-md bg-gradient-to-b from-background/50 to-transparent">
-        <CatAvatar 
+        <CatVisual 
           cat={cat} 
           size="lg" 
           equippedCostumeId={equippedCostumeId}
+          preferPortrait={true}
           animated={tier === 'ultraRare' || tier === 'veryRare'}
         />
         {tier === 'ultraRare' && (

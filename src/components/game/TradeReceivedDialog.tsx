@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeftRight, Check, X, Sparkles, Coins, Package } from 'lucide-react';
 import { Cat, Resources, BREEDS } from '@/types/game';
-import { CatAvatar } from './CatAvatar';
+import { CatVisual } from './CatVisual';
 
 interface TradeOffer {
   id: string;
@@ -67,7 +67,7 @@ export function TradeReceivedDialog({ trade, onAccept, onDecline, onClose }: Tra
                 <div className="space-y-1">
                   {trade.offered_cats.map((cat, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-sm">
-                      <CatAvatar cat={cat} size="sm" />
+                      <CatVisual cat={cat} size="sm" preferPortrait={true} />
                       <span className="font-medium">{cat.name}</span>
                       <Badge variant="outline" className="text-xs">
                         {BREEDS[cat.breed]?.name || cat.breed}
