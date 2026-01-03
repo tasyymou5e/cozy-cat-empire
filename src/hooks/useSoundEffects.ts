@@ -1,6 +1,6 @@
 import { useCallback, useRef, useEffect } from 'react';
 
-type SoundType = 
+export type SoundType = 
   | 'click' 
   | 'success' 
   | 'error' 
@@ -20,7 +20,11 @@ type SoundType =
   | 'challengeProgress'
   | 'challengeComplete'
   | 'heartBurst'
-  | 'sparkClash';
+  | 'sparkClash'
+  | 'catEating'
+  | 'catPlaying'
+  | 'catSleeping'
+  | 'catGrooming';
 
 type MusicMood = 'morning' | 'afternoon' | 'evening' | 'night' | 'celebration' | 'tense';
 
@@ -186,6 +190,22 @@ const SOUND_CONFIGS: Record<SoundType, SoundConfig | SoundConfig[]> = {
     { frequency: 350, type: 'sawtooth', duration: 0.06, volume: 0.12 },
     { frequency: 280, type: 'square', duration: 0.08, volume: 0.1 },
     { frequency: 180, type: 'sawtooth', duration: 0.12, volume: 0.08, ramp: 'down' },
+  ],
+  // Cat activity sounds - subtle and cozy
+  catEating: [
+    { frequency: 300, type: 'sine', duration: 0.08, volume: 0.12 },
+    { frequency: 350, type: 'sine', duration: 0.06, volume: 0.1 },
+    { frequency: 320, type: 'sine', duration: 0.07, volume: 0.08 },
+  ],
+  catPlaying: [
+    { frequency: 800, type: 'sine', duration: 0.08, volume: 0.15 },
+    { frequency: 1000, type: 'sine', duration: 0.06, volume: 0.12 },
+    { frequency: 900, type: 'sine', duration: 0.1, volume: 0.1 },
+  ],
+  catSleeping: { frequency: 25, type: 'sine', duration: 0.6, volume: 0.08, harmonics: [50, 75] },
+  catGrooming: [
+    { frequency: 500, type: 'sine', duration: 0.05, volume: 0.1 },
+    { frequency: 600, type: 'sine', duration: 0.04, volume: 0.08 },
   ],
 };
 
@@ -520,4 +540,4 @@ export function useSoundEffects() {
   };
 }
 
-export type { SoundType, MusicMood };
+export type { MusicMood };
