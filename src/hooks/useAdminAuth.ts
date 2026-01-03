@@ -1,39 +1,65 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 export function useAdminAuth() {
   const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [roleCheckComplete, setRoleCheckComplete] = useState(false);
+  const checkInProgress = useRef(false);
 
   useEffect(() => {
-    async function checkAdminRole() {
-      if (authLoading) return;
-      
-      if (!user) {
-        setIsAdmin(false);
-        setLoading(false);
-        return;
-      }
+    // Reset state when user changes
+    if (!user) {
+      setIsAdmin(false);
+      setRoleCheckComplete(!authLoading); // Only complete if auth is done loading
+      return;
+    }
 
+    // Prevent duplicate checks
+    if (checkInProgress.current) return;
+
+    let cancelled = false;
+    checkInProgress.current = true;
+    setRoleCheckComplete(false); // Mark as checking
+
+    async function checkAdminRole() {
       try {
-        // Use RPC call to has_role function which uses SECURITY DEFINER to bypass RLS
+        console.log('[useAdminAuth] Starting role check for user:', user.id);
+        
         const { data, error } = await supabase.rpc('has_role', {
           _user_id: user.id,
           _role: 'admin'
         });
 
-        setIsAdmin(data === true && !error);
-      } catch {
-        setIsAdmin(false);
+        console.log('[useAdminAuth] RPC result:', { data, error });
+
+        if (!cancelled) {
+          setIsAdmin(data === true && !error);
+        }
+      } catch (err) {
+        console.error('[useAdminAuth] Role check error:', err);
+        if (!cancelled) {
+          setIsAdmin(false);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setRoleCheckComplete(true);
+          checkInProgress.current = false;
+        }
       }
     }
 
     checkAdminRole();
-  }, [user, authLoading]);
 
-  return { isAdmin, loading: loading || authLoading, user };
+    return () => {
+      cancelled = true;
+      checkInProgress.current = false;
+    };
+  }, [user?.id, authLoading]);
+
+  // Loading is true if auth is loading OR if we have a user but haven't completed the role check
+  const loading = authLoading || (!!user && !roleCheckComplete);
+
+  return { isAdmin, loading, user };
 }
