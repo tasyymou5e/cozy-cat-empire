@@ -29,7 +29,7 @@ interface CatDetailModalProps {
   onRename?: (catId: string, newName: string) => boolean;
   treats: number;
   equippedCostumeId?: string;
-  onPortraitGenerated?: (catId: string, portraitUrl: string) => void;
+  onPortraitGenerated?: (catId: string, portraitUrl: string, hash?: string) => void;
 }
 
 const catEmojis: Record<string, string> = {

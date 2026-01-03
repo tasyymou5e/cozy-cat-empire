@@ -27,7 +27,7 @@ export interface Cat {
   appearance?: CatAppearance; // Visual customization
   portraitUrl?: string; // AI-generated portrait URL
   portraitGeneratedAt?: number; // Timestamp of generation
-  visualsChangedAt?: number; // Timestamp of last appearance/costume change (for portrait invalidation)
+  appearanceHash?: string; // Hash of appearance/costume when portrait was generated (for caching)
 }
 
 export interface Resources {

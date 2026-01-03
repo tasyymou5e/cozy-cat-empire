@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
 import { UnifiedCatCard } from '@/components/game/UnifiedCatCard';
 import { CatDetailModal } from '@/components/game/CatDetailModal';
+import { BatchPortraitGenerator } from '@/components/game/BatchPortraitGenerator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -115,9 +116,9 @@ export default function CatCollection() {
   };
 
   // Handle portrait generation with cloud save
-  const handlePortraitGenerated = async (catId: string, portraitUrl: string) => {
+  const handlePortraitGenerated = async (catId: string, portraitUrl: string, hash?: string) => {
     // Update local state first
-    actions.updateCatPortrait(catId, portraitUrl);
+    actions.updateCatPortrait(catId, portraitUrl, hash);
     
     // Save to cloud if logged in
     if (user) {
@@ -125,7 +126,7 @@ export default function CatCollection() {
         ...state,
         cats: state.cats.map(c => 
           c.id === catId 
-            ? { ...c, portraitUrl }
+            ? { ...c, portraitUrl, appearanceHash: hash }
             : c
         ),
       };
@@ -177,6 +178,13 @@ export default function CatCollection() {
                 </Link>
               </DropdownMenuContent>
             </DropdownMenu>
+            {state.cats.length > 0 && (
+              <BatchPortraitGenerator
+                cats={state.cats}
+                catCostumes={state.catCostumes}
+                onPortraitGenerated={handlePortraitGenerated}
+              />
+            )}
           </div>
           
           <div className="grid grid-cols-4 sm:flex sm:items-center gap-2 sm:gap-4 text-sm">
