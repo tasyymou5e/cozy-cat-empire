@@ -1,10 +1,30 @@
 import { cn } from "@/lib/utils";
 
+/**
+ * Props for the AnimatedBackground component
+ */
 interface AnimatedBackgroundProps {
+  /** Content to render within the background */
   children: React.ReactNode;
+  /** Additional CSS classes */
   className?: string;
+  /** Background style variant */
   variant?: 'default' | 'auth' | 'cozy' | 'minimal' | 'game';
 }
+
+/**
+ * AnimatedBackground - Animated gradient background with floating orbs
+ * 
+ * Provides a visually appealing animated background with different variants
+ * for different page contexts. Includes floating decorative blur effects.
+ * 
+ * @example
+ * ```tsx
+ * <AnimatedBackground variant="auth" className="min-h-screen">
+ *   <LoginForm />
+ * </AnimatedBackground>
+ * ```
+ */
 
 export function AnimatedBackground({ 
   children, 

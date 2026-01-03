@@ -1,10 +1,31 @@
 import { cn } from "@/lib/utils";
 
+/**
+ * Props for the FloatingDecorations component
+ */
 interface FloatingDecorationsProps {
+  /** Type of decorative icons to display */
   variant?: 'paws' | 'hearts' | 'stars' | 'cats';
+  /** Number of decorations to show */
   density?: 'low' | 'medium' | 'high';
+  /** Additional CSS classes */
   className?: string;
 }
+
+/**
+ * FloatingDecorations - Floating emoji decorations overlay
+ * 
+ * Renders floating, animated emoji icons as decorative elements.
+ * Use as an overlay on pages for visual flair.
+ * 
+ * @example
+ * ```tsx
+ * <div className="relative">
+ *   <FloatingDecorations variant="paws" density="low" className="opacity-20" />
+ *   <MainContent />
+ * </div>
+ * ```
+ */
 
 export function FloatingDecorations({ 
   variant = 'paws',

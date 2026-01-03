@@ -7,10 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 
+/**
+ * Props for the StatusBar component
+ */
 interface StatusBarProps {
+  /** Current game state */
   state: GameState;
+  /** Callback when upgrading home */
   onUpgrade: () => void;
+  /** Callback when entering a cat show */
   onCatShow: (tier: ShowTier) => void;
+  /** Cat relationships for social stats display */
   relationships?: CatRelationship[];
 }
 
@@ -21,6 +28,22 @@ const houseEmojis = {
   farm: '🌾',
 };
 
+/**
+ * StatusBar - Displays game status including money, cats, home, and show stats
+ * 
+ * Shows current day, season, money, cat count, home size, show wins, and
+ * relationship summary. Includes upgrade button and cat show panel.
+ * 
+ * @example
+ * ```tsx
+ * <StatusBar 
+ *   state={gameState}
+ *   onUpgrade={handleUpgrade}
+ *   onCatShow={handleCatShow}
+ *   relationships={relationships}
+ * />
+ * ```
+ */
 export const StatusBar = React.forwardRef<HTMLDivElement, StatusBarProps>(
   function StatusBar({ state, onUpgrade, onCatShow, relationships = [] }, ref) {
   let nextCost: number;

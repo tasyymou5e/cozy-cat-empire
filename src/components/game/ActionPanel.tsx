@@ -1,13 +1,39 @@
 import { Button } from '@/components/ui/button';
 import { Cat, CAT_COSTS } from '@/types/game';
 
+/**
+ * Props for the ActionPanel component
+ */
 interface ActionPanelProps {
+  /** Callback when adding a new cat */
   onAddCat: (type: Cat['type']) => void;
+  /** Callback when advancing to the next day */
   onNextDay: () => void;
+  /** Current money available */
   money: number;
+  /** Maximum cat capacity */
   space: number;
+  /** Current number of cats owned */
   catCount: number;
 }
+
+/**
+ * ActionPanel - Primary actions for acquiring cats and advancing time
+ * 
+ * Provides buttons for getting new cats (stray, adopted, pure breed)
+ * and advancing to the next day. Shows cost and availability.
+ * 
+ * @example
+ * ```tsx
+ * <ActionPanel
+ *   onAddCat={handleAddCat}
+ *   onNextDay={handleNextDay}
+ *   money={150}
+ *   space={5}
+ *   catCount={2}
+ * />
+ * ```
+ */
 
 export function ActionPanel({
   onAddCat,

@@ -4,14 +4,41 @@ import { Costume, getCostumeById } from '@/types/costumes';
 import { getGradeTier } from '@/types/grading';
 import { cn } from '@/lib/utils';
 
+/**
+ * Props for the CatAvatar component
+ */
 interface CatAvatarProps {
+  /** The cat data for generating the avatar */
   cat: Cat;
+  /** Optional costume ID to display on the cat */
   equippedCostumeId?: string;
+  /** Size variant for the avatar */
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  /** Whether to show equipped costume */
   showCostume?: boolean;
+  /** Enable micro-animations (breathing, blinking, ear twitches) */
   animated?: boolean;
+  /** Additional CSS classes */
   className?: string;
 }
+
+/**
+ * CatAvatar - Renders a customizable cat face avatar
+ * 
+ * Generates a unique cat avatar based on breed appearance including fur color,
+ * pattern, eye color, and facial features. Supports costumes, animations,
+ * and tier-specific effects for rare cats.
+ * 
+ * @example
+ * ```tsx
+ * <CatAvatar 
+ *   cat={myCat} 
+ *   size="md" 
+ *   animated 
+ *   equippedCostumeId="crown"
+ * />
+ * ```
+ */
 
 const sizeClasses = {
   xs: 'w-8 h-8',

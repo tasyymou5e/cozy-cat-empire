@@ -1,6 +1,25 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
+/**
+ * GlassCard - Glassmorphism-styled card component
+ * 
+ * A translucent card with backdrop blur, subtle borders, and shadow effects.
+ * Use for elevated content areas that need visual distinction.
+ * 
+ * @example
+ * ```tsx
+ * <GlassCard className="p-4">
+ *   <GlassCardHeader>
+ *     <GlassCardTitle>My Card</GlassCardTitle>
+ *     <GlassCardDescription>Card description</GlassCardDescription>
+ *   </GlassCardHeader>
+ *   <GlassCardContent>
+ *     Content goes here
+ *   </GlassCardContent>
+ * </GlassCard>
+ * ```
+ */
 const GlassCard = React.forwardRef<
   HTMLDivElement, 
   React.HTMLAttributes<HTMLDivElement>

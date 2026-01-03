@@ -2,14 +2,43 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { GameState, RESOURCE_COSTS } from '@/types/game';
 
+/**
+ * Props for the ResourcePanel component
+ */
 interface ResourcePanelProps {
+  /** Current resource amounts */
   resources: GameState['resources'];
+  /** Current money available */
   money: number;
+  /** Number of cats (determines resource consumption) */
   catCount: number;
+  /** Callback when buying a resource */
   onBuyResource: (resource: keyof GameState['resources'], cost: number) => void;
+  /** Callback when feeding all cats */
   onFeedCats: () => void;
+  /** Callback when using toys for playtime */
   onUseToys: () => void;
 }
+
+/**
+ * ResourcePanel - Manage and purchase game resources
+ * 
+ * Displays current supplies (food, medicine, toys, treats) with buy buttons.
+ * Provides actions to feed all cats and initiate playtime. Shows animated
+ * feedback when purchasing resources.
+ * 
+ * @example
+ * ```tsx
+ * <ResourcePanel
+ *   resources={{ food: 10, medicine: 2, toys: 3, treats: 5 }}
+ *   money={150}
+ *   catCount={3}
+ *   onBuyResource={handleBuy}
+ *   onFeedCats={handleFeed}
+ *   onUseToys={handlePlay}
+ * />
+ * ```
+ */
 
 export function ResourcePanel({
   resources,
