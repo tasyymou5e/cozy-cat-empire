@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import { Cat, BREEDS } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
 import { getGradeBorderClass } from '@/types/grading';
@@ -9,11 +10,14 @@ import { CatReaction } from '@/contexts/CatReactionContext';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Pencil, Check, X } from 'lucide-react';
 interface CatCardProps {
   cat: Cat;
   onSell: (id: string) => void;
   onHeal: (id: string) => void;
   onComfort?: (id: string) => void;
+  onRename?: (catId: string, newName: string) => void;
   compact?: boolean;
   relationships?: CatRelationship[];
   allCats?: Cat[];
@@ -26,10 +30,51 @@ const personalityEmojis: Record<string, string> = {
   'independent': '😎', 'curious': '🔍', 'shy': '🙈',
 };
 
-export function CatCard({ cat, onSell, onHeal, onComfort, compact = false, relationships = [], allCats = [], equippedCostumeId, reaction }: CatCardProps) {
+export function CatCard({ cat, onSell, onHeal, onComfort, onRename, compact = false, relationships = [], allCats = [], equippedCostumeId, reaction }: CatCardProps) {
   const breedInfo = BREEDS[cat.breed];
   const isHealthy = cat.health >= 70;
   const gradeBorder = getGradeBorderClass(cat.grade);
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(cat.name);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  useEffect(() => {
+    setEditName(cat.name);
+  }, [cat.name]);
+
+  const handleStartEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditName(cat.name);
+    setIsEditing(true);
+  };
+
+  const handleConfirmRename = () => {
+    if (onRename && editName.trim() && editName !== cat.name) {
+      onRename(cat.id, editName.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelRename = () => {
+    setEditName(cat.name);
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleConfirmRename();
+    } else if (e.key === 'Escape') {
+      handleCancelRename();
+    }
+  };
   
   const glowColor = reaction?.type === 'positive' 
     ? 'rgba(236, 72, 153, 0.4)' 
@@ -71,7 +116,52 @@ export function CatCard({ cat, onSell, onHeal, onComfort, compact = false, relat
         <GradeBadge grade={cat.grade} />
       </div>
       
-      <h3 className="font-bold text-foreground">{cat.name}</h3>
+      <div className="flex items-center gap-1 w-full group">
+        {isEditing ? (
+          <div className="flex items-center gap-1 flex-1">
+            <Input
+              ref={inputRef}
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onKeyDown={handleKeyDown}
+              maxLength={20}
+              className="h-6 text-sm font-bold px-1 py-0 flex-1"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="h-5 w-5 text-green-600 hover:bg-green-100"
+              onClick={(e) => { e.stopPropagation(); handleConfirmRename(); }}
+            >
+              <Check className="h-3 w-3" />
+            </Button>
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="h-5 w-5 text-red-600 hover:bg-red-100"
+              onClick={(e) => { e.stopPropagation(); handleCancelRename(); }}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          <>
+            <h3 className="font-bold text-foreground truncate">{cat.name}</h3>
+            {onRename && (
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={handleStartEdit}
+                title="Rename cat"
+              >
+                <Pencil className="h-3 w-3" />
+              </Button>
+            )}
+          </>
+        )}
+      </div>
       <p className="text-xs text-muted-foreground mb-1">{breedInfo.name}</p>
       <p className="text-xs text-muted-foreground mb-2">
         {personalityEmojis[cat.personality]} {cat.personality}
