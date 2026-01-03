@@ -40,52 +40,104 @@ export default function Auth() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRecoveryFlow, setIsRecoveryFlow] = useState(false);
+  const [isProcessingRecovery, setIsProcessingRecovery] = useState(false);
 
-  // Detect PASSWORD_RECOVERY event for password reset flow
+  // Handle password recovery from URL on mount
   useEffect(() => {
+    const handleRecovery = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const queryParams = new URLSearchParams(window.location.search);
+      
+      // Check for recovery type in hash or query
+      const hashType = hashParams.get('type');
+      const queryType = queryParams.get('type');
+      const isRecovery = hashType === 'recovery' || queryType === 'recovery';
+      
+      if (!isRecovery) return;
+      
+      setIsRecoveryFlow(true);
+      setIsProcessingRecovery(true);
+      setError('');
+      
+      try {
+        // Method 1: Hash tokens (implicit flow)
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          
+          if (error) throw error;
+          
+          setMode('update-password');
+          window.history.replaceState(null, '', window.location.pathname);
+          return;
+        }
+        
+        // Method 2: PKCE code flow
+        const code = queryParams.get('code');
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          
+          if (error) throw error;
+          
+          setMode('update-password');
+          window.history.replaceState(null, '', window.location.pathname);
+          return;
+        }
+        
+        // Method 3: Token hash flow (OTP)
+        const tokenHash = queryParams.get('token_hash') || hashParams.get('token_hash');
+        if (tokenHash) {
+          const { error } = await supabase.auth.verifyOtp({
+            type: 'recovery',
+            token_hash: tokenHash,
+          });
+          
+          if (error) throw error;
+          
+          setMode('update-password');
+          window.history.replaceState(null, '', window.location.pathname);
+          return;
+        }
+        
+        // No valid tokens found
+        throw new Error('Invalid or expired password reset link');
+        
+      } catch (err: any) {
+        console.error('Recovery error:', err);
+        setError('Password reset link is invalid or expired. Please request a new one.');
+        setIsRecoveryFlow(false);
+      } finally {
+        setIsProcessingRecovery(false);
+      }
+    };
+    
+    handleRecovery();
+    
+    // Also listen for PASSWORD_RECOVERY event
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      console.log('Auth event:', event);
       if (event === 'PASSWORD_RECOVERY') {
         setMode('update-password');
+        setIsRecoveryFlow(true);
         setSuccess('');
         setError('');
       }
     });
 
-    // Check URL hash for recovery token and exchange for session
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get('access_token');
-    const refreshToken = hashParams.get('refresh_token');
-    const type = hashParams.get('type');
-
-    if (type === 'recovery' && accessToken && refreshToken) {
-      // Exchange tokens for session
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      }).then(({ error }) => {
-        if (error) {
-          console.error('Error setting session:', error);
-          setError('Password reset link expired or invalid. Please request a new one.');
-        } else {
-          setMode('update-password');
-          // Clear hash from URL
-          window.history.replaceState(null, '', window.location.pathname);
-        }
-      });
-    } else if (type === 'recovery') {
-      setMode('update-password');
-    }
-
     return () => subscription.unsubscribe();
   }, []);
 
-  // Redirect if already logged in (but not during password update)
+  // Redirect if already logged in (but not during recovery flow)
   useEffect(() => {
-    if (user && !loading && mode !== 'update-password') {
+    if (user && !loading && !isRecoveryFlow && mode !== 'update-password') {
       navigate('/');
     }
-  }, [user, loading, navigate, mode]);
+  }, [user, loading, navigate, mode, isRecoveryFlow]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,13 +154,29 @@ export default function Auth() {
 
       setIsSubmitting(true);
       try {
+        // Verify we have an active session before updating
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setError('Session expired. Please request a new password reset link.');
+          setIsRecoveryFlow(false);
+          setMode('forgot-password');
+          return;
+        }
+        
         const { error } = await supabase.auth.updateUser({ password });
         if (error) {
-          setError(error.message);
+          if (error.message.includes('session')) {
+            setError('Session expired. Please request a new password reset link.');
+            setIsRecoveryFlow(false);
+            setMode('forgot-password');
+          } else {
+            setError(error.message);
+          }
         } else {
           setSuccess('Password updated successfully! You can now log in.');
           setPassword('');
           setConfirmPassword('');
+          setIsRecoveryFlow(false);
           setMode('login');
         }
       } finally {
@@ -184,10 +252,10 @@ export default function Auth() {
     setConfirmPassword('');
   };
 
-  if (loading) {
+  if (loading || isProcessingRecovery) {
     return (
       <AnimatedBackground variant="auth" className="flex items-center justify-center">
-        <LoadingCat size="lg" text="Loading your cat empire..." />
+        <LoadingCat size="lg" text={isProcessingRecovery ? "Verifying reset link..." : "Loading your cat empire..."} />
       </AnimatedBackground>
     );
   }
