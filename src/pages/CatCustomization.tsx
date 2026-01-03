@@ -24,7 +24,7 @@ export default function CatCustomization() {
   const { catId } = useParams<{ catId?: string }>();
   const navigate = useNavigate();
   const { playSound } = useSound();
-  const { state, actions } = useGameState(playSound);
+  const { state, kittensBreed, relationshipSystem, actions } = useGameState(playSound);
   const { user } = useAuth();
   const { cloudLoad, cloudSave } = useCloudSave(user?.id);
   
@@ -103,6 +103,20 @@ export default function CatCustomization() {
     
     // Save to local
     actions.saveGame();
+    
+    // Save to cloud if logged in
+    if (user) {
+      const updatedGameState = {
+        ...state,
+        cats: state.cats.map(c => 
+          c.id === selectedCat.id 
+            ? { ...c, appearance: editedAppearance }
+            : c
+        ),
+      };
+      const relationshipData = relationshipSystem.getRelationshipSaveData();
+      await cloudSave(updatedGameState, kittensBreed, relationshipData);
+    }
     
     setHasChanges(false);
     setIsSaving(false);
