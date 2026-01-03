@@ -242,7 +242,11 @@ export type Database = {
           error_type: string
           id: string
           metadata: Json | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
           route: string | null
+          status: string | null
           user_agent: string | null
           user_id: string | null
         }
@@ -254,7 +258,11 @@ export type Database = {
           error_type: string
           id?: string
           metadata?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           route?: string | null
+          status?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
@@ -266,7 +274,11 @@ export type Database = {
           error_type?: string
           id?: string
           metadata?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           route?: string | null
+          status?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
@@ -432,6 +444,33 @@ export type Database = {
           total_kittens_bred?: number | null
           total_money_earned?: number | null
           total_show_wins?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      player_activity_log: {
+        Row: {
+          activity_description: string
+          activity_type: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_description: string
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_description?: string
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
           user_id?: string
         }
         Relationships: []

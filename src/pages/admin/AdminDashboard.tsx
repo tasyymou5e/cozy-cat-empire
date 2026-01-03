@@ -1,4 +1,5 @@
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { ActivityFeed } from '@/components/admin/ActivityFeed';
 import { useAdminStats } from '@/hooks/useAdminData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -119,38 +120,44 @@ export default function AdminDashboard() {
           />
         </div>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-3">
-            <a
-              href="/catking/users"
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
-            >
-              Manage Users
-            </a>
-            <a
-              href="/catking/errors"
-              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md text-sm font-medium hover:bg-destructive/90 transition-colors"
-            >
-              View Errors
-            </a>
-            <a
-              href="/catking/stats"
-              className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md text-sm font-medium hover:bg-secondary/90 transition-colors"
-            >
-              View Statistics
-            </a>
-            <a
-              href="/catking/moderation"
-              className="px-4 py-2 bg-muted text-muted-foreground rounded-md text-sm font-medium hover:bg-muted/80 transition-colors"
-            >
-              Moderation Tools
-            </a>
-          </CardContent>
-        </Card>
+        {/* Activity Feed and Quick Actions */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Activity Feed */}
+          <ActivityFeed />
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-3">
+              <a
+                href="/catking/users"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+              >
+                Manage Users
+              </a>
+              <a
+                href="/catking/errors"
+                className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md text-sm font-medium hover:bg-destructive/90 transition-colors"
+              >
+                View Errors
+              </a>
+              <a
+                href="/catking/stats"
+                className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md text-sm font-medium hover:bg-secondary/90 transition-colors"
+              >
+                View Statistics
+              </a>
+              <a
+                href="/catking/moderation"
+                className="px-4 py-2 bg-muted text-muted-foreground rounded-md text-sm font-medium hover:bg-muted/80 transition-colors"
+              >
+                Moderation Tools
+              </a>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </AdminLayout>
   );

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useAdminUsers } from '@/hooks/useAdminData';
 import { useAdminActivityLog } from '@/hooks/useAdminActivityLog';
+import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
 import { supabase } from '@/integrations/supabase/client';
 import { UserDetailModal } from '@/components/admin/UserDetailModal';
 import { ExportButton } from '@/components/admin/ExportButton';
@@ -10,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
@@ -78,24 +80,157 @@ export default function AdminUsers() {
   const [userToSuspend, setUserToSuspend] = useState<any>(null);
   const [suspensionReason, setSuspensionReason] = useState('');
   const [isSuspending, setIsSuspending] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   
   const { data, isLoading } = useAdminUsers({ search, page, pageSize: 10 });
   const { logActivity } = useAdminActivityLog();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const toggleSelectUser = (userId: string) => {
+    setSelectedUsers((prev) => {
+      const next = new Set(prev);
+      if (next.has(userId)) {
+        next.delete(userId);
+      } else {
+        next.add(userId);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedUsers.size === (data?.users.length || 0)) {
+      setSelectedUsers(new Set());
+    } else {
+      setSelectedUsers(new Set(data?.users.map((u) => u.id) || []));
+    }
+  };
+
+  const handleBulkRoleChange = async (role: string) => {
+    const userIds = Array.from(selectedUsers);
+    
+    try {
+      // Delete existing roles
+      await supabase.from('user_roles').delete().in('user_id', userIds);
+      
+      // Insert new roles if not 'user'
+      if (role !== 'user') {
+        const { error } = await supabase.from('user_roles').insert(
+          userIds.map((userId) => ({ user_id: userId, role: role as 'admin' | 'moderator' | 'user' }))
+        );
+        if (error) throw error;
+      }
+
+      await logActivity({
+        actionType: 'bulk_role_change',
+        actionDescription: `Changed role to ${role} for ${userIds.length} users`,
+        metadata: { userIds, newRole: role },
+      });
+
+      toast({ title: 'Roles Updated', description: `${userIds.length} user(s) updated to ${role}` });
+      setSelectedUsers(new Set());
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  const handleBulkSuspend = async (reason: string) => {
+    const userIds = Array.from(selectedUsers);
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          suspended_at: new Date().toISOString(),
+          suspension_reason: reason || 'No reason provided',
+        })
+        .in('id', userIds);
+
+      if (error) throw error;
+
+      await logActivity({
+        actionType: 'bulk_suspend',
+        actionDescription: `Suspended ${userIds.length} users`,
+        metadata: { userIds, reason },
+      });
+
+      toast({ title: 'Users Suspended', description: `${userIds.length} user(s) suspended` });
+      setSelectedUsers(new Set());
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  const handleBulkUnsuspend = async () => {
+    const userIds = Array.from(selectedUsers);
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          suspended_at: null,
+          suspension_reason: null,
+        })
+        .in('id', userIds);
+
+      if (error) throw error;
+
+      await logActivity({
+        actionType: 'bulk_unsuspend',
+        actionDescription: `Unsuspended ${userIds.length} users`,
+        metadata: { userIds },
+      });
+
+      toast({ title: 'Users Unsuspended', description: `${userIds.length} user(s) unsuspended` });
+      setSelectedUsers(new Set());
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const userIds = Array.from(selectedUsers);
+    let successCount = 0;
+    
+    for (const userId of userIds) {
+      try {
+        const response = await supabase.functions.invoke('admin-delete-user', {
+          body: { userId },
+        });
+        if (!response.error) successCount++;
+      } catch (error) {
+        console.error(`Failed to delete user ${userId}:`, error);
+      }
+    }
+
+    await logActivity({
+      actionType: 'bulk_delete',
+      actionDescription: `Deleted ${successCount} of ${userIds.length} users`,
+      metadata: { userIds, successCount },
+    });
+
+    toast({
+      title: 'Users Deleted',
+      description: `${successCount} of ${userIds.length} user(s) deleted`,
+    });
+    setSelectedUsers(new Set());
+    queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+  };
+
   const handleRoleChange = async () => {
     if (!selectedUser || !newRole) return;
 
     try {
       if (newRole === 'user') {
-        // Remove role entry (default is user)
         await supabase
           .from('user_roles')
           .delete()
           .eq('user_id', selectedUser.id);
       } else {
-        // Delete existing role first, then insert new one
         await supabase
           .from('user_roles')
           .delete()
@@ -324,6 +459,16 @@ export default function AdminUsers() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={
+                          data?.users.length
+                            ? selectedUsers.size === data.users.length
+                            : false
+                        }
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
                     <TableHead>User</TableHead>
                     <TableHead>Username</TableHead>
                     <TableHead>Status</TableHead>
@@ -338,7 +483,7 @@ export default function AdminUsers() {
                   {isLoading ? (
                     Array.from({ length: 5 }).map((_, i) => (
                       <TableRow key={i}>
-                        {Array.from({ length: 8 }).map((_, j) => (
+                        {Array.from({ length: 9 }).map((_, j) => (
                           <TableCell key={j}>
                             <Skeleton className="h-6 w-20" />
                           </TableCell>
@@ -347,13 +492,19 @@ export default function AdminUsers() {
                     ))
                   ) : data?.users.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                         No users found
                       </TableCell>
                     </TableRow>
                   ) : (
                     data?.users.map((user) => (
                       <TableRow key={user.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedUsers.has(user.id)}
+                            onCheckedChange={() => toggleSelectUser(user.id)}
+                          />
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span className="text-2xl">{user.avatar_emoji || '😺'}</span>
@@ -471,6 +622,16 @@ export default function AdminUsers() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Bulk Actions Bar */}
+      <BulkActionsBar
+        selectedCount={selectedUsers.size}
+        onClear={() => setSelectedUsers(new Set())}
+        onBulkRoleChange={handleBulkRoleChange}
+        onBulkSuspend={handleBulkSuspend}
+        onBulkUnsuspend={handleBulkUnsuspend}
+        onBulkDelete={handleBulkDelete}
+      />
 
       {/* Role Dialog */}
       <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
