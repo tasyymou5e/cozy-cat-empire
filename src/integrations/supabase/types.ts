@@ -200,6 +200,51 @@ export type Database = {
         }
         Relationships: []
       }
+      gallery_photos: {
+        Row: {
+          background_id: string
+          cat_id: string
+          cat_name: string
+          created_at: string | null
+          frame_id: string
+          id: string
+          image_path: string
+          is_favorite: boolean | null
+          pose_id: string
+          sticker_count: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          background_id: string
+          cat_id: string
+          cat_name: string
+          created_at?: string | null
+          frame_id: string
+          id?: string
+          image_path: string
+          is_favorite?: boolean | null
+          pose_id: string
+          sticker_count?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          background_id?: string
+          cat_id?: string
+          cat_name?: string
+          created_at?: string | null
+          frame_id?: string
+          id?: string
+          image_path?: string
+          is_favorite?: boolean | null
+          pose_id?: string
+          sticker_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       game_saves: {
         Row: {
           created_at: string | null

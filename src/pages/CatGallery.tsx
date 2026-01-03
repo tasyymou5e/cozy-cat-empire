@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Trash2, Heart, Camera, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Trash2, Heart, Camera, Image as ImageIcon, Cloud, CloudOff, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -8,13 +8,19 @@ import { usePhotoGallery } from '@/hooks/usePhotoGallery';
 import { GalleryPhotoCard } from '@/components/game/GalleryPhotoCard';
 import { PhotoLightbox } from '@/components/game/PhotoLightbox';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { MAX_GALLERY_PHOTOS } from '@/types/gallery';
+import { format } from 'date-fns';
 
 type FilterMode = 'all' | 'favorites';
 type SortMode = 'newest' | 'oldest' | 'name';
 
 export default function CatGallery() {
-  const { photos, deletePhoto, toggleFavorite, clearGallery, photoCount } = usePhotoGallery();
+  const { user } = useAuth();
+  const { 
+    photos, deletePhoto, toggleFavorite, clearGallery, photoCount,
+    isSyncing, lastSyncTime, syncNow, isCloudEnabled 
+  } = usePhotoGallery(user?.id);
   const { toast } = useToast();
   
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
@@ -70,14 +76,19 @@ export default function CatGallery() {
     toast({ title: 'Downloaded!', description: 'Photo saved to your device.' });
   };
 
-  const handleDelete = (photoId: string) => {
-    deletePhoto(photoId);
+  const handleDelete = async (photoId: string) => {
+    await deletePhoto(photoId);
     toast({ title: 'Deleted', description: 'Photo removed from gallery.' });
   };
 
-  const handleClearAll = () => {
-    clearGallery();
+  const handleClearAll = async () => {
+    await clearGallery();
     toast({ title: 'Gallery cleared', description: 'All photos have been deleted.' });
+  };
+
+  const handleSync = async () => {
+    await syncNow();
+    toast({ title: 'Synced!', description: 'Gallery synced with cloud.' });
   };
 
   return (
@@ -95,9 +106,32 @@ export default function CatGallery() {
             <span className="text-sm text-muted-foreground">
               {photoCount} / {MAX_GALLERY_PHOTOS}
             </span>
+            {isCloudEnabled ? (
+              <span className="text-xs text-green-600 flex items-center gap-1">
+                <Cloud className="w-3 h-3" />
+                {isSyncing ? 'Syncing...' : 'Cloud'}
+              </span>
+            ) : (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <CloudOff className="w-3 h-3" />
+                Local
+              </span>
+            )}
           </div>
           
           <div className="flex items-center gap-2">
+            {isCloudEnabled && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleSync}
+                disabled={isSyncing}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                Sync
+              </Button>
+            )}
+            
             <Link to="/photobooth">
               <Button variant="outline" size="sm">
                 <Camera className="w-4 h-4 mr-2" />
