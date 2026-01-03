@@ -81,7 +81,7 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
       const [statsResult, rolesResult] = await Promise.all([
         supabase
           .from('player_stats')
-          .select('user_id, total_show_wins, total_cats_owned, last_updated')
+          .select('user_id, total_show_wins, total_cats_owned, total_kittens_bred, total_money_earned, last_updated')
           .in('user_id', userIds),
         supabase
           .from('user_roles')
