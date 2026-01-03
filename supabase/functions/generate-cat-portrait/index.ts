@@ -18,10 +18,16 @@ interface CatData {
     hairLength?: string;
     facialFeature?: string;
   };
+  costume?: {
+    id: string;
+    name: string;
+    emoji: string;
+    category: string;
+  };
 }
 
 function buildPrompt(cat: CatData): string {
-  const { breed, personality, appearance } = cat;
+  const { breed, personality, appearance, costume } = cat;
   
   const furColor = appearance?.furColor || 'orange';
   const pattern = appearance?.pattern || 'solid';
@@ -65,6 +71,32 @@ function buildPrompt(cat: CatData): string {
       cute_blush: 'The cat has rosy pink cheeks giving it an extra cute appearance.',
     };
     prompt += featureDescriptions[facialFeature] || '';
+  }
+  
+  // Add costume description if equipped
+  if (costume) {
+    const costumeDescriptions: Record<string, string> = {
+      'party_hat': 'wearing a colorful party hat',
+      'top_hat': 'wearing an elegant black top hat',
+      'crown': 'wearing a golden royal crown',
+      'wizard_hat': 'wearing a mystical purple wizard hat with stars',
+      'sweater': 'wearing a cozy knitted sweater',
+      'tuxedo': 'wearing an elegant black tuxedo',
+      'superhero': 'wearing a flowing superhero cape',
+      'pirate': 'dressed as a pirate with an eyepatch',
+      'bow_tie': 'wearing a cute bow tie',
+      'sunglasses': 'wearing cool sunglasses',
+      'necklace': 'wearing a pearl necklace',
+      'scarf': 'wearing a silk scarf',
+      'angel_wings': 'with beautiful white angel wings',
+      'dragon': 'in a fierce dragon costume',
+      'astronaut': 'in a space suit helmet',
+      'unicorn': 'with a magical unicorn horn',
+      'vip_bronze_collar': 'wearing a distinguished bronze VIP collar',
+      'vip_silver_cape': 'wearing an elegant silver VIP cape',
+      'vip_gold_crown': 'wearing a magnificent golden VIP crown',
+    };
+    prompt += (costumeDescriptions[costume.id] || `wearing ${costume.name}`) + '. ';
   }
   
   prompt += 'Digital illustration style, soft warm studio lighting, detailed fluffy fur texture, cozy warm-toned background, cat facing the camera, ultra cute and expressive, professional pet portrait, high quality, 4K detail.';

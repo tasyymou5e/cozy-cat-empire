@@ -23,10 +23,10 @@ type FilterTier = 'all' | 'common' | 'uncommon' | 'rare' | 'veryRare' | 'ultraRa
 export default function CatCollection() {
   const { playSound, isEnabled, setEnabled } = useSound();
   const { theme, setTheme } = useTheme();
-  const { state, relationshipSystem, actions } = useGameState(playSound);
+  const { state, kittensBreed, relationshipSystem, actions } = useGameState(playSound);
   const isMobile = useIsMobile();
   const { user } = useAuth();
-  const { cloudLoad } = useCloudSave(user?.id);
+  const { cloudLoad, cloudSave } = useCloudSave(user?.id);
   
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('grade');
@@ -112,6 +112,26 @@ export default function CatCollection() {
 
   const handleTrain = (catId: string, trickId: string) => {
     actions.trainCat(catId, trickId as any);
+  };
+
+  // Handle portrait generation with cloud save
+  const handlePortraitGenerated = async (catId: string, portraitUrl: string) => {
+    // Update local state first
+    actions.updateCatPortrait(catId, portraitUrl);
+    
+    // Save to cloud if logged in
+    if (user) {
+      const updatedState = {
+        ...state,
+        cats: state.cats.map(c => 
+          c.id === catId 
+            ? { ...c, portraitUrl }
+            : c
+        ),
+      };
+      const relationshipData = relationshipSystem.getRelationshipSaveData();
+      await cloudSave(updatedState, kittensBreed, relationshipData);
+    }
   };
 
   return (
@@ -295,7 +315,7 @@ export default function CatCollection() {
         onRename={actions.renameCat}
         treats={state.resources.treats}
         equippedCostumeId={selectedCat ? state.catCostumes[selectedCat.id] : undefined}
-        onPortraitGenerated={actions.updateCatPortrait}
+        onPortraitGenerated={handlePortraitGenerated}
       />
     </div>
   );
