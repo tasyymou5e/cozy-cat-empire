@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Cat } from '@/types/game';
+import { useSound } from '@/contexts/SoundContext';
+import { SoundType } from '@/hooks/useSoundEffects';
 
 interface ActivityPopup {
   id: string;
@@ -27,9 +29,17 @@ const POSITIONS = [
   { top: '60%', left: '75%' },
 ];
 
+const ACTIVITY_SOUNDS: Record<string, SoundType> = {
+  'eating': 'catEating',
+  'playing': 'catPlaying',
+  'sleeping': 'catSleeping',
+  'grooming': 'catGrooming',
+};
+
 export function CatActivityPopups({ cats }: CatActivityPopupsProps) {
   const [popups, setPopups] = useState<ActivityPopup[]>([]);
   const [positionIndex, setPositionIndex] = useState(0);
+  const { playSound } = useSound();
 
   useEffect(() => {
     if (cats.length === 0) return;
@@ -50,6 +60,12 @@ export function CatActivityPopups({ cats }: CatActivityPopupsProps) {
       setPositionIndex((prev) => prev + 1);
       setPopups((prev) => [...prev, newPopup]);
 
+      // Play activity sound
+      const soundType = ACTIVITY_SOUNDS[randomActivity.key];
+      if (soundType) {
+        playSound(soundType);
+      }
+
       // Remove popup after 5 seconds
       setTimeout(() => {
         setPopups((prev) => prev.filter((p) => p.id !== newPopup.id));
@@ -57,7 +73,7 @@ export function CatActivityPopups({ cats }: CatActivityPopupsProps) {
     }, 8000 + Math.random() * 4000); // Every 8-12 seconds
 
     return () => clearInterval(interval);
-  }, [cats, positionIndex]);
+  }, [cats, positionIndex, playSound]);
 
   return (
     <>
