@@ -280,3 +280,23 @@
 .animate-shake {
   animation: shake 0.2s ease-in-out infinite;
 }
+
+/* Photo Booth Pose Animations */
+@keyframes cat-wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+}
+
+@keyframes cat-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.animate-cat-wave {
+  animation: cat-wave 0.8s ease-in-out infinite;
+}
+
+.animate-cat-bounce {
+  animation: cat-bounce 0.5s ease-in-out infinite;
+}
