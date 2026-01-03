@@ -5,6 +5,7 @@ import { SoundType } from '@/hooks/useSoundEffects';
 
 interface ActivityPopup {
   id: string;
+  catId: string;
   catName: string;
   activity: string;
   emoji: string;
@@ -13,6 +14,7 @@ interface ActivityPopup {
 
 interface CatActivityPopupsProps {
   cats: Cat[];
+  onCatClick?: (catId: string) => void;
 }
 
 const ACTIVITIES = [
@@ -26,6 +28,8 @@ const ACTIVITIES = [
   { key: 'cuddling', emojis: ['💕', '🤗', '❤️'], text: 'is cuddling' },
   { key: 'training', emojis: ['🎓', '🏆', '📚'], text: 'is learning tricks' },
   { key: 'mischief', emojis: ['😈', '🙀', '💥'], text: 'is being mischievous' },
+  { key: 'zoomies', emojis: ['💨', '🏃', '⚡'], text: 'has the zoomies!' },
+  { key: 'sunbathing', emojis: ['☀️', '😌', '🌞'], text: 'is sunbathing' },
 ];
 
 const POSITIONS = [
@@ -46,9 +50,11 @@ const ACTIVITY_SOUNDS: Record<string, SoundType> = {
   'cuddling': 'catCuddling',
   'training': 'catTraining',
   'mischief': 'catMischief',
+  'zoomies': 'catZoomies',
+  'sunbathing': 'catSunbathing',
 };
 
-export function CatActivityPopups({ cats }: CatActivityPopupsProps) {
+export function CatActivityPopups({ cats, onCatClick }: CatActivityPopupsProps) {
   const [popups, setPopups] = useState<ActivityPopup[]>([]);
   const [positionIndex, setPositionIndex] = useState(0);
   const { playSound } = useSound();
@@ -63,6 +69,7 @@ export function CatActivityPopups({ cats }: CatActivityPopupsProps) {
 
       const newPopup: ActivityPopup = {
         id: `${Date.now()}-${Math.random()}`,
+        catId: randomCat.id,
         catName: randomCat.name,
         activity: randomActivity.text,
         emoji: randomEmoji,
@@ -92,7 +99,8 @@ export function CatActivityPopups({ cats }: CatActivityPopupsProps) {
       {popups.map((popup) => (
         <div
           key={popup.id}
-          className="fixed z-50 bg-card/95 border border-border rounded-xl shadow-lg p-3 animate-activity-popup pointer-events-none"
+          onClick={() => onCatClick?.(popup.catId)}
+          className="fixed z-50 bg-card/95 border border-border rounded-xl shadow-lg p-3 animate-activity-popup cursor-pointer hover:scale-105 hover:bg-card transition-all duration-200"
           style={{
             top: popup.position.top,
             left: popup.position.left,
@@ -100,12 +108,13 @@ export function CatActivityPopups({ cats }: CatActivityPopupsProps) {
         >
           <div className="flex items-center gap-2">
             <span className="text-2xl">🐱</span>
-            <div>
+            <div className="flex-1">
               <p className="font-medium text-sm text-foreground">{popup.catName}</p>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <span className="text-base">{popup.emoji}</span> {popup.activity}...
               </p>
             </div>
+            <span className="text-muted-foreground text-xs opacity-60">👆</span>
           </div>
         </div>
       ))}
