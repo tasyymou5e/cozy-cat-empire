@@ -11,17 +11,43 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+/**
+ * Props for the BreedingPanel component
+ */
 interface BreedingPanelProps {
+  /** Array of all cats available for breeding */
   cats: Cat[];
+  /** Days remaining until breeding is available again */
   cooldown: number;
+  /** Whether there is space for a new kitten */
   hasSpace: boolean;
+  /** Callback when breeding two cats */
   onBreed: (cat1Id: string, cat2Id: string) => void;
+  /** Optional function to check breeding compatibility between two cats */
   getBreedingCompatibility?: (cat1Id: string, cat2Id: string) => {
     canBreed: boolean;
     bonus: number;
     message: string;
   };
 }
+
+/**
+ * BreedingPanel - Cat breeding interface
+ * 
+ * Allows players to select two cats to breed and create kittens.
+ * Shows compatibility status and handles breeding cooldowns.
+ * 
+ * @example
+ * ```tsx
+ * <BreedingPanel
+ *   cats={cats}
+ *   cooldown={0}
+ *   hasSpace={true}
+ *   onBreed={handleBreed}
+ *   getBreedingCompatibility={checkCompatibility}
+ * />
+ * ```
+ */
 
 export function BreedingPanel({ cats, cooldown, hasSpace, onBreed, getBreedingCompatibility }: BreedingPanelProps) {
   const [parent1, setParent1] = useState<string>('');

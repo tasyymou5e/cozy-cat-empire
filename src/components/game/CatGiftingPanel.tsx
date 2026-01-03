@@ -12,12 +12,36 @@ import { useFriends } from '@/hooks/useFriends';
 import { Cat } from '@/types/game';
 import { BREEDS } from '@/types/game';
 
+/**
+ * Props for the CatGiftingPanel component
+ */
 interface CatGiftingPanelProps {
+  /** Current user's ID (undefined if not logged in) */
   userId: string | undefined;
+  /** Array of cats available for gifting */
   cats: Cat[];
+  /** Callback when a cat gift is sent */
   onGiftSent: (catId: string) => void;
+  /** Callback when a cat gift is received */
   onGiftReceived: (cat: Cat) => void;
 }
+
+/**
+ * CatGiftingPanel - Cat gifting interface
+ * 
+ * Allows players to send cats as gifts to friends and receive gifted cats.
+ * Shows sent gifts with status and pending received gifts.
+ * 
+ * @example
+ * ```tsx
+ * <CatGiftingPanel
+ *   userId={user?.id}
+ *   cats={cats}
+ *   onGiftSent={handleGiftSent}
+ *   onGiftReceived={handleGiftReceived}
+ * />
+ * ```
+ */
 
 export function CatGiftingPanel({ userId, cats, onGiftSent, onGiftReceived }: CatGiftingPanelProps) {
   const { receivedGifts, sentGifts, loading, sendGift, acceptGift, declineGift } = useCatGifts(userId);

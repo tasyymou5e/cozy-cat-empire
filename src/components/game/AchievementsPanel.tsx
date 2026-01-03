@@ -2,8 +2,13 @@ import { Achievement } from '@/types/game';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
+/**
+ * Props for the AchievementsPanel component
+ */
 interface AchievementsPanelProps {
+  /** Array of all achievements */
   achievements: Achievement[];
+  /** Current player statistics for progress calculation */
   currentStats: {
     cats: number;
     showWins: number;
@@ -15,6 +20,21 @@ interface AchievementsPanelProps {
     challengesCompleted: number;
   };
 }
+
+/**
+ * AchievementsPanel - Achievement tracking interface
+ * 
+ * Displays all game achievements with unlock status and progress.
+ * Shows progress bars for incomplete achievements.
+ * 
+ * @example
+ * ```tsx
+ * <AchievementsPanel
+ *   achievements={achievements}
+ *   currentStats={{ cats: 5, showWins: 3, money: 1000, ... }}
+ * />
+ * ```
+ */
 
 export function AchievementsPanel({ achievements, currentStats }: AchievementsPanelProps) {
   const getProgress = (achievement: Achievement) => {

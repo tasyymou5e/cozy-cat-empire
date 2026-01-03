@@ -13,11 +13,19 @@ import { useTrading } from '@/hooks/useTrading';
 import { useFriends } from '@/hooks/useFriends';
 import { Cat, Resources, BREEDS } from '@/types/game';
 
+/**
+ * Props for the TradingPanel component
+ */
 interface TradingPanelProps {
+  /** Current user's ID (undefined if not logged in) */
   userId: string | undefined;
+  /** Array of cats available for trading */
   cats: Cat[];
+  /** Current money available */
   money: number;
+  /** Current resource amounts */
   resources: Resources;
+  /** Callback when a trade is completed */
   onTradeComplete: (
     removeCats: string[],
     addCats: Cat[],
@@ -25,6 +33,24 @@ interface TradingPanelProps {
     resourceChanges: Partial<Resources>
   ) => void;
 }
+
+/**
+ * TradingPanel - Player-to-player trading interface
+ * 
+ * Allows players to create, send, and manage trade offers with friends.
+ * Supports trading cats and money. Shows incoming and outgoing trades.
+ * 
+ * @example
+ * ```tsx
+ * <TradingPanel
+ *   userId={user?.id}
+ *   cats={cats}
+ *   money={150}
+ *   resources={resources}
+ *   onTradeComplete={handleTradeComplete}
+ * />
+ * ```
+ */
 
 export function TradingPanel({ userId, cats, money, resources, onTradeComplete }: TradingPanelProps) {
   const { incomingTrades, outgoingTrades, loading, createTrade, acceptTrade, declineTrade, cancelTrade } = useTrading(userId);

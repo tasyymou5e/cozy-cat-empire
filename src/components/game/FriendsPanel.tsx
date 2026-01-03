@@ -8,9 +8,25 @@ import { Badge } from '@/components/ui/badge';
 import { Users, UserPlus, Bell, Trophy, Cat, Heart, Check, X, Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
+/**
+ * Props for the FriendsPanel component
+ */
 interface FriendsPanelProps {
+  /** Current user's ID (undefined if not logged in) */
   userId: string | undefined;
 }
+
+/**
+ * FriendsPanel - Social friends management interface
+ * 
+ * Allows players to view friends, manage friend requests, and add new friends.
+ * Displays friend stats including show wins, cats owned, and kittens bred.
+ * 
+ * @example
+ * ```tsx
+ * <FriendsPanel userId={user?.id} />
+ * ```
+ */
 
 export function FriendsPanel({ userId }: FriendsPanelProps) {
   const {

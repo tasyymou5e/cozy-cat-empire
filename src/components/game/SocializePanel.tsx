@@ -11,12 +11,36 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+/**
+ * Props for the SocializePanel component
+ */
 interface SocializePanelProps {
+  /** Array of cats available for socialization */
   cats: Cat[];
+  /** Number of treats available (2 required per socialization) */
   treats: number;
+  /** Function to get relationship between two cats */
   getRelationship: (catId1: string, catId2: string) => CatRelationship | null;
+  /** Callback when socializing two cats */
   onSocialize: (cat1Id: string, cat2Id: string) => void;
 }
+
+/**
+ * SocializePanel - Cat socialization interface
+ * 
+ * Allows players to manually socialize two cats to improve their relationship.
+ * Uses treats as a resource and shows current relationship status.
+ * 
+ * @example
+ * ```tsx
+ * <SocializePanel
+ *   cats={cats}
+ *   treats={5}
+ *   getRelationship={getRelationship}
+ *   onSocialize={handleSocialize}
+ * />
+ * ```
+ */
 
 export function SocializePanel({ cats, treats, getRelationship, onSocialize }: SocializePanelProps) {
   const [cat1Id, setCat1Id] = useState<string>('');
