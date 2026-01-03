@@ -49,6 +49,8 @@ import { CatGiftingPanel } from './CatGiftingPanel';
 import { TradingPanel } from './TradingPanel';
 import { NotificationCenter } from './NotificationCenter';
 import { WeeklyChallengesPanel } from './WeeklyChallengesPanel';
+import { WhatsNewPopup } from './WhatsNewPopup';
+import { CURRENT_VERSION } from '@/types/changelog';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { CatGridSkeleton } from './CatGridSkeleton';
 import { PanelSkeleton } from './PanelSkeleton';
@@ -61,7 +63,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target, CalendarDays } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target, CalendarDays, Sparkles } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Resources } from '@/types/game';
 
@@ -119,6 +121,7 @@ export function CatFarm() {
   const [cloudSyncing, setCloudSyncing] = useState(false);
   const [lastCloudSave, setLastCloudSave] = useState<string | null>(null);
   const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
 
   // Play sound when receiving gift
   useEffect(() => {
@@ -310,6 +313,19 @@ export function CatFarm() {
     }
   }, [message, musicOn, triggerTense, getCurrentMood]);
 
+  // Check for What's New popup on mount (after tutorial)
+  useEffect(() => {
+    const lastSeenVersion = localStorage.getItem('cat-farm-last-seen-version');
+    const tutorialComplete = localStorage.getItem('cat-farm-tutorial-complete');
+    
+    // Only show if tutorial is done and version is new
+    if (tutorialComplete && lastSeenVersion !== CURRENT_VERSION) {
+      // Delay so daily rewards appears first
+      const timer = setTimeout(() => setShowWhatsNew(true), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   const toggleSound = () => {
     const newState = !soundOn;
     setSoundOn(newState);
@@ -437,6 +453,12 @@ export function CatFarm() {
         isVIP={isVIP}
       />
       
+      {/* What's New Popup */}
+      <WhatsNewPopup
+        open={showWhatsNew}
+        onClose={() => setShowWhatsNew(false)}
+      />
+      
       <header className="game-header">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">🐱 Cat Farm</h1>
@@ -522,6 +544,17 @@ export function CatFarm() {
               <Keyboard className="h-4 w-4" />
             </Button>
           )}
+          
+          {/* What's New Button */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setShowWhatsNew(true)} 
+            title="What's New"
+            className="min-h-10 min-w-10"
+          >
+            <Sparkles className="h-4 w-4" />
+          </Button>
           
           {/* Notification Center */}
           <NotificationCenter userId={user?.id} onNavigate={setSideTab} />
