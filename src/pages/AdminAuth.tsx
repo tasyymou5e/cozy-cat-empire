@@ -18,7 +18,7 @@ const authSchema = z.object({
 export default function AdminAuth() {
   const navigate = useNavigate();
   const { signIn, signOut, user } = useAuth();
-  const { isAdmin, loading: adminLoading } = useAdminAuth();
+  const { isAdmin, loading: adminLoading, checked } = useAdminAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,9 +28,16 @@ export default function AdminAuth() {
 
   // Check admin status when user changes
   useEffect(() => {
-    if (adminLoading) return;
+    console.log('[AdminAuth] Effect running:', { user: user?.id, isAdmin, adminLoading, checked });
+    
+    // Don't do anything while still loading or checking
+    if (adminLoading || !checked) {
+      console.log('[AdminAuth] Still loading/checking, skipping...');
+      return;
+    }
     
     if (user && isAdmin) {
+      console.log('[AdminAuth] User is admin, navigating to dashboard');
       // Log successful admin login
       logAuthAttempt({
         email: user.email || 'unknown',
@@ -39,8 +46,9 @@ export default function AdminAuth() {
         userId: user.id,
       });
       navigate('/catking/dashboard');
-    } else if (user && !isAdmin) {
-      // Log access denied
+    } else if (user && !isAdmin && checked) {
+      console.log('[AdminAuth] User is NOT admin, denying access');
+      // Log access denied - only when we've definitively checked
       logAuthAttempt({
         email: user.email || 'unknown',
         attemptType: 'access_denied',
@@ -51,7 +59,7 @@ export default function AdminAuth() {
       setAccessDenied(true);
       signOut();
     }
-  }, [user, isAdmin, adminLoading, navigate, signOut]);
+  }, [user, isAdmin, adminLoading, checked, navigate, signOut]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
