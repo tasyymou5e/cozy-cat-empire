@@ -3,11 +3,12 @@ import { Cat } from '@/types/game';
 import { CatVisual } from './CatVisual';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Loader2, RefreshCw, AlertCircle, AlertTriangle, Star, Crown, Trophy } from 'lucide-react';
+import { Sparkles, Loader2, RefreshCw, AlertCircle, AlertTriangle, Star, Crown, Trophy, Coins } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { getGradeTier, getGradeStars } from '@/types/grading';
 import { getCostumeById } from '@/types/costumes';
+import { isPortraitOutdated, computeAppearanceHash, PORTRAIT_CREDIT_COST } from '@/lib/portraitUtils';
 
 function TierIcon({ tier, className }: { tier: string; className?: string }) {
   switch (tier) {
@@ -27,7 +28,7 @@ function TierIcon({ tier, className }: { tier: string; className?: string }) {
 interface CatPortraitProps {
   cat: Cat;
   equippedCostumeId?: string;
-  onPortraitGenerated?: (catId: string, portraitUrl: string) => void;
+  onPortraitGenerated?: (catId: string, portraitUrl: string, hash: string) => void;
 }
 
 type PortraitState = 'idle' | 'generating' | 'complete' | 'error';
@@ -37,12 +38,10 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
   const [error, setError] = useState<string | null>(null);
   const [localPortraitUrl, setLocalPortraitUrl] = useState<string | undefined>(cat.portraitUrl);
 
-  // Check if portrait is outdated (appearance/costume changed after portrait was generated)
+  // Check if portrait is outdated using appearance hash
   const isOutdated = useMemo(() => {
-    if (!cat.portraitUrl || !cat.portraitGeneratedAt) return false;
-    if (!cat.visualsChangedAt) return false;
-    return cat.visualsChangedAt > cat.portraitGeneratedAt;
-  }, [cat.portraitUrl, cat.portraitGeneratedAt, cat.visualsChangedAt]);
+    return isPortraitOutdated(cat, equippedCostumeId);
+  }, [cat, equippedCostumeId]);
 
   const generatePortrait = async () => {
     setState('generating');
@@ -81,7 +80,8 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
       if (data?.portraitUrl) {
         setLocalPortraitUrl(data.portraitUrl);
         setState('complete');
-        onPortraitGenerated?.(cat.id, data.portraitUrl);
+        const hash = computeAppearanceHash(cat, equippedCostumeId);
+        onPortraitGenerated?.(cat.id, data.portraitUrl, hash);
       } else {
         throw new Error('No portrait URL received');
       }
@@ -222,15 +222,21 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
 
       {/* Action Buttons */}
       {state === 'idle' && !portraitUrl && (
-        <Button
-          onClick={generatePortrait}
-          variant="outline"
-          size="sm"
-          className="gap-2 bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20"
-        >
-          <Sparkles className="w-4 h-4" />
-          Generate Portrait
-        </Button>
+        <div className="flex flex-col items-center gap-1">
+          <Button
+            onClick={generatePortrait}
+            variant="outline"
+            size="sm"
+            className="gap-2 bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20"
+          >
+            <Sparkles className="w-4 h-4" />
+            Generate Portrait
+            <Badge variant="secondary" className="ml-1 gap-1 text-xs">
+              <Coins className="w-3 h-3" />
+              ~{PORTRAIT_CREDIT_COST}
+            </Badge>
+          </Button>
+        </div>
       )}
 
       {state === 'error' && (
