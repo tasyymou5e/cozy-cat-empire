@@ -10,6 +10,36 @@ import {
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
+/**
+ * useRelationships - Cat relationship management system
+ * 
+ * Manages social relationships between cats including friendships, rivalries,
+ * group detection, compatibility checks, and daily relationship events.
+ * 
+ * @returns Object containing:
+ * - `relationships` - Array of all cat relationships
+ * - `events` - Recent relationship events (last 100)
+ * - `groups` - Detected social groups/cliques
+ * - `lastEventId` - ID of most recent event for animation triggers
+ * - `getRelationship` - Get relationship between two cats
+ * - `updateRelationship` - Update/create relationship score
+ * - `addEvent` - Add a relationship event
+ * - `socializeCats` - Manually socialize two cats
+ * - `processDailyRelationships` - Process random daily interactions
+ * - `detectGroups` - Detect friend groups using graph analysis
+ * - `getHappinessModifier` - Get happiness bonus/penalty from relationships
+ * - `getBreedingCompatibility` - Check breeding compatibility
+ * - `removeCatRelationships` - Clean up when cat is removed
+ * - `loadRelationships` - Load from save data
+ * - `getRelationshipSaveData` - Get data for saving
+ * 
+ * @example
+ * ```tsx
+ * const relationshipSystem = useRelationships();
+ * relationshipSystem.socializeCats(cat1, cat2, day);
+ * const compat = relationshipSystem.getBreedingCompatibility(cat1.id, cat2.id);
+ * ```
+ */
 export function useRelationships() {
   const [relationships, setRelationships] = useState<CatRelationship[]>([]);
   const [events, setEvents] = useState<RelationshipEvent[]>([]);

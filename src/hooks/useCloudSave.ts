@@ -16,6 +16,27 @@ interface CloudSaveData {
   last_played_at: string;
 }
 
+/**
+ * useCloudSave - Cloud save/load functionality for game persistence
+ * 
+ * Provides functions to save and load game state to/from the cloud database.
+ * Requires user authentication to function.
+ * 
+ * @param userId - The authenticated user's ID
+ * 
+ * @returns Object containing:
+ * - `cloudSave` - Save game state to cloud
+ * - `cloudLoad` - Load game state from cloud
+ * - `hasCloudSave` - Check if cloud save exists
+ * - `getLastSaveTime` - Get timestamp of last save
+ * 
+ * @example
+ * ```tsx
+ * const { cloudSave, cloudLoad, hasCloudSave } = useCloudSave(user?.id);
+ * await cloudSave(gameState, kittensBreed, relationshipData);
+ * const { data } = await cloudLoad();
+ * ```
+ */
 export function useCloudSave(userId: string | undefined) {
   const lastSaveRef = useRef<string | null>(null);
 

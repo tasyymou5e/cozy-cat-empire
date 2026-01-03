@@ -38,16 +38,29 @@ const UNIVERSAL_NAMES = [
   'Biscuit', 'Muffin', 'Cookie', 'Sir Fluffington', 'Lord Meowington',
   'Gandalf', 'Yoda', 'Dumbledore', 'Felix', 'Ginger', 'Pepper',
 ];
+/**
+ * Props for the CatCard component
+ */
 interface CatCardProps {
+  /** The cat data to display */
   cat: Cat;
+  /** Callback when user sells the cat */
   onSell: (id: string) => void;
+  /** Callback when user heals the cat */
   onHeal: (id: string) => void;
+  /** Optional callback when user comforts the cat */
   onComfort?: (id: string) => void;
+  /** Optional callback when user renames the cat */
   onRename?: (catId: string, newName: string) => void;
+  /** Display in compact mode (smaller, less details) */
   compact?: boolean;
+  /** Array of relationships for displaying friend/enemy badges */
   relationships?: CatRelationship[];
+  /** All cats for relationship calculations */
   allCats?: Cat[];
+  /** ID of equipped costume to display */
   equippedCostumeId?: string;
+  /** Current reaction animation state */
   reaction?: CatReaction;
 }
 
@@ -56,6 +69,26 @@ const personalityEmojis: Record<string, string> = {
   'independent': '😎', 'curious': '🔍', 'shy': '🙈',
 };
 
+/**
+ * CatCard - Displays an individual cat with stats, actions, and customization
+ * 
+ * Shows cat information including health, happiness, hunger, grade, tricks,
+ * and relationships. Provides actions for selling, healing, comforting, and
+ * renaming cats. Supports compact mode for lists.
+ * 
+ * @example
+ * ```tsx
+ * <CatCard 
+ *   cat={myCat}
+ *   onSell={handleSell}
+ *   onHeal={handleHeal}
+ *   onComfort={handleComfort}
+ *   onRename={handleRename}
+ *   relationships={catRelationships}
+ *   equippedCostumeId="crown"
+ * />
+ * ```
+ */
 export function CatCard({ cat, onSell, onHeal, onComfort, onRename, compact = false, relationships = [], allCats = [], equippedCostumeId, reaction }: CatCardProps) {
   const breedInfo = BREEDS[cat.breed];
   const isHealthy = cat.health >= 70;

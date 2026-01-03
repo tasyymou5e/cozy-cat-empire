@@ -1,10 +1,28 @@
 import { cn } from "@/lib/utils";
 
+/**
+ * Props for the LoadingCat component
+ */
 interface LoadingCatProps {
+  /** Size of the loading animation */
   size?: 'sm' | 'md' | 'lg';
+  /** Loading text to display */
   text?: string;
+  /** Additional CSS classes */
   className?: string;
 }
+
+/**
+ * LoadingCat - Cat-themed loading indicator
+ * 
+ * Displays a bouncing cat emoji with paw prints and optional loading text.
+ * Use as a fun loading state for cat-related content.
+ * 
+ * @example
+ * ```tsx
+ * <LoadingCat size="lg" text="Loading your cats..." />
+ * ```
+ */
 
 export function LoadingCat({ 
   size = 'md', 

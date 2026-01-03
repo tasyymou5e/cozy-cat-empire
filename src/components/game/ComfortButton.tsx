@@ -3,14 +3,38 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Heart } from 'lucide-react';
 
+/**
+ * Props for the ComfortButton component
+ */
 interface ComfortButtonProps {
+  /** ID of the cat to comfort */
   catId: string;
+  /** Name of the cat (for display) */
   catName: string;
+  /** Callback when comforting is complete */
   onComfort: (catId: string) => void;
+  /** Whether the button is disabled */
   disabled?: boolean;
 }
 
-const COMFORT_DURATION = 20; // seconds
+/** Duration in seconds for the comfort action */
+const COMFORT_DURATION = 20;
+
+/**
+ * ComfortButton - Hold-to-comfort interaction for upset cats
+ * 
+ * Provides a 20-second hold interaction to comfort cats that are unhappy
+ * or stressed. Shows progress bar during comforting with cancel option.
+ * 
+ * @example
+ * ```tsx
+ * <ComfortButton
+ *   catId="cat123"
+ *   catName="Whiskers"
+ *   onComfort={handleComfort}
+ * />
+ * ```
+ */
 
 export function ComfortButton({ catId, catName, onComfort, disabled }: ComfortButtonProps) {
   const [isComforting, setIsComforting] = useState(false);

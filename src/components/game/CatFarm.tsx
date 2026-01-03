@@ -77,6 +77,24 @@ const MOOD_LABELS = {
   tense: '⚡ Tense',
 };
 
+/**
+ * CatFarm - Main game orchestrator component
+ * 
+ * The central hub that manages all game panels, state, and interactions.
+ * Handles cloud saves, achievements, daily rewards, notifications, and
+ * coordinates between all sub-panels.
+ * 
+ * @example
+ * ```tsx
+ * <CatFarm />
+ * ```
+ * 
+ * @remarks
+ * - Requires AuthProvider, SoundProvider, and CatReactionProvider as ancestors
+ * - Automatically loads cloud save on login
+ * - Auto-saves every 5 minutes when logged in
+ * - Manages 16-tab sidebar layout for different game features
+ */
 export function CatFarm() {
   const { 
     playSound, setEnabled, isEnabled, setVolume, getVolume,

@@ -283,6 +283,35 @@ function getMoodForDay(day: number): MusicMood {
   }
 }
 
+/**
+ * useSoundEffects - Procedural audio system for game sounds and music
+ * 
+ * Provides sound effects and ambient background music using Web Audio API.
+ * Includes mood-based music that changes with game progression.
+ * 
+ * @returns Object containing:
+ * - `playSound` - Play a sound effect by type
+ * - `setEnabled` - Enable/disable sound effects
+ * - `isEnabled` - Check if sounds are enabled
+ * - `setVolume` - Set SFX volume (0-1)
+ * - `getVolume` - Get current SFX volume
+ * - `startMusic` - Start ambient music
+ * - `stopMusic` - Stop ambient music
+ * - `isMusicPlaying` - Check if music is playing
+ * - `setMusicVolume` - Set music volume
+ * - `updateMusicForDay` - Update music mood based on game day
+ * - `getCurrentMood` - Get current music mood
+ * - `triggerCelebration` - Trigger celebration mood
+ * - `triggerTense` - Trigger tense mood
+ * 
+ * @example
+ * ```tsx
+ * const { playSound, startMusic, updateMusicForDay } = useSoundEffects();
+ * playSound('meow');
+ * startMusic();
+ * updateMusicForDay(currentDay);
+ * ```
+ */
 export function useSoundEffects() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const enabledRef = useRef(true);

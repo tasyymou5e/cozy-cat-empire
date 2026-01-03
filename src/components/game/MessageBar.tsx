@@ -2,12 +2,33 @@ import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+/**
+ * Props for the MessageBar component
+ */
 interface MessageBarProps {
+  /** The message text to display */
   message: string;
+  /** Message type affecting styling */
   type: 'info' | 'success' | 'warning' | 'error';
+  /** Optional callback to dismiss the message */
   onDismiss?: () => void;
 }
 
+/**
+ * MessageBar - Displays game notifications and alerts
+ * 
+ * Shows messages with different styling based on type. Success messages
+ * auto-dismiss after 5 seconds. Can be manually dismissed via X button.
+ * 
+ * @example
+ * ```tsx
+ * <MessageBar 
+ *   message="Cat fed successfully!"
+ *   type="success"
+ *   onDismiss={() => setMessage('')}
+ * />
+ * ```
+ */
 export const MessageBar = React.forwardRef<HTMLDivElement, MessageBarProps>(
   function MessageBar({ message, type, onDismiss }, ref) {
     useEffect(() => {

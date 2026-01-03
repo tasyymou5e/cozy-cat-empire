@@ -2,11 +2,30 @@ import { getGradeTier, getGradeStars, getGradeColor } from '@/types/grading';
 import { Badge } from '@/components/ui/badge';
 import { Star } from 'lucide-react';
 
+/**
+ * Props for the GradeBadge component
+ */
 interface GradeBadgeProps {
+  /** Cat grade value (1-20) */
   grade: number;
+  /** Whether to show star indicators */
   showStars?: boolean;
+  /** Badge size variant */
   size?: 'sm' | 'md' | 'lg';
 }
+
+/**
+ * GradeBadge - Visual indicator for cat grade tier
+ * 
+ * Displays the cat's grade with tier-specific styling and optional stars.
+ * Tiers: common (1-4), uncommon (5-8), rare (9-12), veryRare (13-16), ultraRare (17-20).
+ * Higher tiers have progressively fancier animations.
+ * 
+ * @example
+ * ```tsx
+ * <GradeBadge grade={15} showStars size="md" />
+ * ```
+ */
 
 export function GradeBadge({ grade, showStars = true, size = 'md' }: GradeBadgeProps) {
   const tier = getGradeTier(grade);

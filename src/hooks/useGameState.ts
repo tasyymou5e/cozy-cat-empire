@@ -101,6 +101,33 @@ const createInitialState = (): GameState => ({
 });
 
 
+/**
+ * useGameState - Core game logic and state management hook
+ * 
+ * Manages all game state including cats, money, resources, achievements,
+ * and game progression. Handles daily cycles, cat shows, breeding, training,
+ * and all game mechanics.
+ * 
+ * @param playSound - Optional sound effect callback
+ * @param onChallengeProgress - Optional callback for tracking challenge progress
+ * @param logActivity - Optional callback for logging player activity
+ * 
+ * @returns Object containing:
+ * - `state` - Current GameState
+ * - `message` - Current notification message
+ * - `messageType` - Message severity ('info' | 'success' | 'warning' | 'error')
+ * - `kittensBreed` - Total kittens bred count
+ * - `currentDailyEvent` - Active daily event if any
+ * - `relationshipSystem` - Cat relationship management
+ * - `actions` - All game action handlers
+ * 
+ * @example
+ * ```tsx
+ * const { state, actions, message } = useGameState(playSound, updateProgress);
+ * actions.addCat('stray');
+ * actions.feedCats();
+ * ```
+ */
 export function useGameState(
   playSound?: (type: SoundType) => void,
   onChallengeProgress?: (type: ChallengeType, increment?: number) => void,
