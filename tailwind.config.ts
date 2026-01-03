@@ -435,6 +435,16 @@ export default {
 			'trade-pulse': {
 				'0%, 100%': { transform: 'scale(1)' },
 				'50%': { transform: 'scale(1.1)' }
+			},
+			'zoomies': {
+				'0%, 100%': { transform: 'translateX(0)' },
+				'25%': { transform: 'translateX(-4px)' },
+				'50%': { transform: 'translateX(4px)' },
+				'75%': { transform: 'translateX(-2px)' }
+			},
+			'bounce-gentle': {
+				'0%, 100%': { transform: 'translateY(0)' },
+				'50%': { transform: 'translateY(-3px)' }
 			}
 		},
   		animation: {
@@ -482,7 +492,8 @@ export default {
 			'gift-unwrap': 'gift-unwrap 0.5s ease-out forwards',
 			'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
 			'float-heart': 'float-heart 1.5s ease-out forwards',
-			'trade-pulse': 'trade-pulse 1s ease-in-out infinite'
+			'trade-pulse': 'trade-pulse 1s ease-in-out infinite',
+			'zoomies': 'zoomies 0.2s ease-in-out infinite'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',

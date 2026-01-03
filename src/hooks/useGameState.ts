@@ -1216,6 +1216,63 @@ export function useGameState(
     }));
   }, []);
 
+  // Rename cat
+  const renameCat = useCallback((catId: string, newName: string) => {
+    const trimmedName = newName.trim();
+    if (!trimmedName || trimmedName.length > 20) {
+      showMessage('Name must be 1-20 characters!', 'warning');
+      playSound?.('error');
+      return false;
+    }
+    
+    let success = false;
+    setState(prev => {
+      const cat = prev.cats.find(c => c.id === catId);
+      if (!cat) return prev;
+      
+      // Check for duplicate names
+      const isDuplicate = prev.cats.some(c => c.id !== catId && c.name.toLowerCase() === trimmedName.toLowerCase());
+      if (isDuplicate) {
+        showMessage('Another cat already has this name!', 'warning');
+        playSound?.('error');
+        return prev;
+      }
+      
+      showMessage(`${cat.name} is now called ${trimmedName}! ✏️`, 'success');
+      playSound?.('success');
+      success = true;
+      return {
+        ...prev,
+        cats: prev.cats.map(c => c.id === catId ? { ...c, name: trimmedName } : c),
+      };
+    });
+    return success;
+  }, [playSound]);
+
+  // Feed single cat
+  const feedSingleCat = useCallback((catId: string) => {
+    setState(prev => {
+      if (prev.resources.food < 1) {
+        showMessage("No food available! Buy from shop. 🍖", 'warning');
+        playSound?.('error');
+        return prev;
+      }
+      const cat = prev.cats.find(c => c.id === catId);
+      if (!cat) return prev;
+      
+      showMessage(`${cat.name} enjoyed the snack! 😋`, 'success');
+      playSound?.('purr');
+      return {
+        ...prev,
+        resources: { ...prev.resources, food: prev.resources.food - 1 },
+        cats: prev.cats.map(c => c.id === catId 
+          ? { ...c, hunger: Math.min(100, c.hunger + 30), happiness: Math.min(100, c.happiness + 5) } 
+          : c
+        ),
+      };
+    });
+  }, [playSound]);
+
   const actions = useMemo(() => ({
     addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
     catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
@@ -1223,6 +1280,7 @@ export function useGameState(
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
     addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
     trainAllAvailableCats, sellSelectedCats, updateCatAppearance, updateCatPortrait,
+    renameCat, feedSingleCat,
   }), [
     addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
     catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
@@ -1230,6 +1288,7 @@ export function useGameState(
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
     addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
     trainAllAvailableCats, sellSelectedCats, updateCatAppearance, updateCatPortrait,
+    renameCat, feedSingleCat,
   ]);
 
   return {

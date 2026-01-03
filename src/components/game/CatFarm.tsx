@@ -351,6 +351,11 @@ export function CatFarm() {
           const cat = state.cats.find(c => c.id === catId);
           if (cat) playSound('click');
         }}
+        onFeed={(catId) => actions.feedSingleCat?.(catId)}
+        onComfort={(catId) => actions.comfortCat(catId)}
+        onHeal={(catId) => actions.useMedicine(catId)}
+        hasFood={state.resources.food > 0}
+        hasMedicine={state.resources.medicine > 0}
       />
       <DailyEventToast event={currentDailyEvent} onDismiss={actions.clearDailyEvent} />
       

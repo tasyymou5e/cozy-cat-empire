@@ -10,9 +10,10 @@ import { ComfortButton } from './ComfortButton';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, HeartCrack, Trophy, Zap, DollarSign, Sparkles, Moon, Dumbbell, Palette } from 'lucide-react';
+import { Heart, HeartCrack, Trophy, Zap, DollarSign, Sparkles, Moon, Dumbbell, Palette, Pencil, Check, X } from 'lucide-react';
 
 interface CatDetailModalProps {
   cat: Cat | null;
@@ -25,6 +26,7 @@ interface CatDetailModalProps {
   onSell: (catId: string) => void;
   onRest: (catId: string) => void;
   onTrain: (catId: string, trickId: string) => void;
+  onRename?: (catId: string, newName: string) => boolean;
   treats: number;
   equippedCostumeId?: string;
   onPortraitGenerated?: (catId: string, portraitUrl: string) => void;
@@ -46,9 +48,11 @@ const personalityDescriptions: Record<string, string> = {
 
 export function CatDetailModal({ 
   cat, relationships, allCats, open, onClose, 
-  onComfort, onHeal, onSell, onRest, onTrain, treats, equippedCostumeId, onPortraitGenerated
+  onComfort, onHeal, onSell, onRest, onTrain, onRename, treats, equippedCostumeId, onPortraitGenerated
 }: CatDetailModalProps) {
   const [activeTab, setActiveTab] = useState('stats');
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newName, setNewName] = useState('');
   
   if (!cat) return null;
 
@@ -65,13 +69,64 @@ export function CatDetailModal({
   const needsComfort = cat.happiness < 50 || enemies.length > friends.length;
   const canEnterShow = cat.grade >= MIN_SHOW_GRADE;
 
+  const handleStartRename = () => {
+    setNewName(cat.name);
+    setIsRenaming(true);
+  };
+
+  const handleConfirmRename = () => {
+    if (onRename && newName.trim() && newName.trim() !== cat.name) {
+      onRename(cat.id, newName.trim());
+    }
+    setIsRenaming(false);
+  };
+
+  const handleCancelRename = () => {
+    setIsRenaming(false);
+    setNewName('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleConfirmRename();
+    } else if (e.key === 'Escape') {
+      handleCancelRename();
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <CatAvatar cat={cat} size="md" equippedCostumeId={equippedCostumeId} />
-            <span>{cat.name}</span>
+            {isRenaming ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  maxLength={20}
+                  className="w-32 h-8"
+                  autoFocus
+                />
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleConfirmRename}>
+                  <Check className="h-4 w-4 text-green-500" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleCancelRename}>
+                  <X className="h-4 w-4 text-red-500" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <span>{cat.name}</span>
+                {onRename && (
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleStartRename} title="Rename cat">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                )}
+              </>
+            )}
             <GradeBadge grade={cat.grade} size="lg" />
           </DialogTitle>
         </DialogHeader>

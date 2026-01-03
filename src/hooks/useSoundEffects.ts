@@ -33,6 +33,7 @@ export type SoundType =
   | 'catMischief'
   | 'catZoomies'
   | 'catSunbathing'
+  | 'catBirdwatching'
   | 'giftReceived'
   | 'tradeReceived';
 
@@ -251,6 +252,11 @@ const SOUND_CONFIGS: Record<SoundType, SoundConfig | SoundConfig[]> = {
     { frequency: 1100, type: 'sawtooth', duration: 0.08, volume: 0.1, ramp: 'down' },
   ],
   catSunbathing: { frequency: 150, type: 'sine', duration: 0.6, volume: 0.06, harmonics: [200, 250] },
+  catBirdwatching: [
+    { frequency: 600, type: 'sine', duration: 0.1, volume: 0.08 },
+    { frequency: 800, type: 'sine', duration: 0.08, volume: 0.1 },
+    { frequency: 1000, type: 'sine', duration: 0.06, volume: 0.12 },
+  ],
   // Gift and trade notification sounds
   giftReceived: [
     { frequency: 523, type: 'sine', duration: 0.1, volume: 0.2 },

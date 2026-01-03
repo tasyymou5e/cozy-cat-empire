@@ -9,27 +9,34 @@ interface ActivityPopup {
   catName: string;
   activity: string;
   emoji: string;
+  animation: string;
   position: { top: string; left: string };
 }
 
 interface CatActivityPopupsProps {
   cats: Cat[];
   onCatClick?: (catId: string) => void;
+  onFeed?: (catId: string) => void;
+  onComfort?: (catId: string) => void;
+  onHeal?: (catId: string) => void;
+  hasFood?: boolean;
+  hasMedicine?: boolean;
 }
 
 const ACTIVITIES = [
-  { key: 'eating', emojis: ['🍖', '🐟', '🍽️'], text: 'is eating' },
-  { key: 'playing', emojis: ['🎾', '🧶', '🎮'], text: 'is playing' },
-  { key: 'sleeping', emojis: ['💤', '😴', '🌙'], text: 'is napping' },
-  { key: 'grooming', emojis: ['✨', '🛁', '🐾'], text: 'is grooming' },
-  { key: 'exploring', emojis: ['🔍', '🗺️', '👀'], text: 'is exploring' },
-  { key: 'hunting', emojis: ['🎯', '🐭', '🦋'], text: 'is hunting' },
-  { key: 'stretching', emojis: ['🧘', '💪', '🌟'], text: 'is stretching' },
-  { key: 'cuddling', emojis: ['💕', '🤗', '❤️'], text: 'is cuddling' },
-  { key: 'training', emojis: ['🎓', '🏆', '📚'], text: 'is learning tricks' },
-  { key: 'mischief', emojis: ['😈', '🙀', '💥'], text: 'is being mischievous' },
-  { key: 'zoomies', emojis: ['💨', '🏃', '⚡'], text: 'has the zoomies!' },
-  { key: 'sunbathing', emojis: ['☀️', '😌', '🌞'], text: 'is sunbathing' },
+  { key: 'eating', emojis: ['🍖', '🐟', '🍽️'], text: 'is eating', animation: 'animate-bounce-gentle' },
+  { key: 'playing', emojis: ['🎾', '🧶', '🎮'], text: 'is playing', animation: 'animate-wiggle' },
+  { key: 'sleeping', emojis: ['💤', '😴', '🌙'], text: 'is napping', animation: 'animate-cat-breathe' },
+  { key: 'grooming', emojis: ['✨', '🛁', '🐾'], text: 'is grooming', animation: 'animate-sparkle' },
+  { key: 'exploring', emojis: ['🔍', '🗺️', '👀'], text: 'is exploring', animation: 'animate-pulse' },
+  { key: 'hunting', emojis: ['🎯', '🐭', '🦋'], text: 'is hunting', animation: 'animate-shake' },
+  { key: 'stretching', emojis: ['🧘', '💪', '🌟'], text: 'is stretching', animation: 'animate-scale-in' },
+  { key: 'cuddling', emojis: ['💕', '🤗', '❤️'], text: 'is cuddling', animation: 'animate-heart-pop' },
+  { key: 'training', emojis: ['🎓', '🏆', '📚'], text: 'is learning tricks', animation: 'animate-progress-pop' },
+  { key: 'mischief', emojis: ['😈', '🙀', '💥'], text: 'is being mischievous', animation: 'animate-shake' },
+  { key: 'zoomies', emojis: ['💨', '🏃', '⚡'], text: 'has the zoomies!', animation: 'animate-zoomies' },
+  { key: 'sunbathing', emojis: ['☀️', '😌', '🌞'], text: 'is sunbathing', animation: 'animate-glow-pulse' },
+  { key: 'birdwatching', emojis: ['🐦', '👁️', '🪶'], text: 'is watching birds', animation: 'animate-eye-shimmer' },
 ];
 
 const POSITIONS = [
@@ -52,9 +59,18 @@ const ACTIVITY_SOUNDS: Record<string, SoundType> = {
   'mischief': 'catMischief',
   'zoomies': 'catZoomies',
   'sunbathing': 'catSunbathing',
+  'birdwatching': 'catBirdwatching',
 };
 
-export function CatActivityPopups({ cats, onCatClick }: CatActivityPopupsProps) {
+export function CatActivityPopups({ 
+  cats, 
+  onCatClick,
+  onFeed,
+  onComfort,
+  onHeal,
+  hasFood = false,
+  hasMedicine = false,
+}: CatActivityPopupsProps) {
   const [popups, setPopups] = useState<ActivityPopup[]>([]);
   const [positionIndex, setPositionIndex] = useState(0);
   const { playSound } = useSound();
@@ -73,6 +89,7 @@ export function CatActivityPopups({ cats, onCatClick }: CatActivityPopupsProps) 
         catName: randomCat.name,
         activity: randomActivity.text,
         emoji: randomEmoji,
+        animation: randomActivity.animation,
         position: POSITIONS[positionIndex % POSITIONS.length],
       };
 
@@ -94,6 +111,11 @@ export function CatActivityPopups({ cats, onCatClick }: CatActivityPopupsProps) 
     return () => clearInterval(interval);
   }, [cats, positionIndex, playSound]);
 
+  const handleQuickAction = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation();
+    action();
+  };
+
   return (
     <>
       {popups.map((popup) => (
@@ -107,14 +129,39 @@ export function CatActivityPopups({ cats, onCatClick }: CatActivityPopupsProps) 
           }}
         >
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🐱</span>
+            <span className={`text-2xl ${popup.animation}`}>🐱</span>
             <div className="flex-1">
               <p className="font-medium text-sm text-foreground">{popup.catName}</p>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <span className="text-base">{popup.emoji}</span> {popup.activity}...
+                <span className={`text-base ${popup.animation}`}>{popup.emoji}</span> {popup.activity}...
               </p>
             </div>
-            <span className="text-muted-foreground text-xs opacity-60">👆</span>
+            {/* Quick Actions */}
+            <div className="flex gap-1">
+              <button
+                onClick={(e) => handleQuickAction(e, () => onFeed?.(popup.catId))}
+                className="p-1.5 hover:bg-accent rounded-lg text-base transition-colors disabled:opacity-40"
+                title="Feed"
+                disabled={!hasFood}
+              >
+                🍖
+              </button>
+              <button
+                onClick={(e) => handleQuickAction(e, () => onComfort?.(popup.catId))}
+                className="p-1.5 hover:bg-accent rounded-lg text-base transition-colors"
+                title="Comfort"
+              >
+                💕
+              </button>
+              <button
+                onClick={(e) => handleQuickAction(e, () => onHeal?.(popup.catId))}
+                className="p-1.5 hover:bg-accent rounded-lg text-base transition-colors disabled:opacity-40"
+                title="Heal"
+                disabled={!hasMedicine}
+              >
+                💊
+              </button>
+            </div>
           </div>
         </div>
       ))}
