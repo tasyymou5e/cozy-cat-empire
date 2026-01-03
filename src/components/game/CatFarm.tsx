@@ -646,7 +646,7 @@ export function CatFarm() {
       </header>
 
       <StatusBar state={state} onUpgrade={actions.upgradeHouse} onCatShow={actions.catShow} relationships={relationshipSystem.relationships} />
-      <MessageBar message={message} type={messageType} />
+      <MessageBar message={message} type={messageType} onDismiss={actions.dismissMessage} />
 
       <Tabs value={sideTab} onValueChange={setSideTab} className="flex-1 flex flex-col">
         {/* Tab navigation - sticky at top */}
