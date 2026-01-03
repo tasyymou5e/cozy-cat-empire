@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { RelationshipEvent } from '@/types/relationships';
 import { HeartParticles, SparkParticles, InteractionBubble, EdgeGlow } from './RelationshipParticles';
+import { useSound } from '@/contexts/SoundContext';
 
 interface FloatingEmoji {
   id: string;
@@ -38,12 +39,22 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
   const [notifications, setNotifications] = useState<InteractionNotification[]>([]);
   const [particles, setParticles] = useState<ParticleEffect[]>([]);
   const [showGlow, setShowGlow] = useState<'positive' | 'negative' | 'neutral' | null>(null);
+  const { playSound } = useSound();
 
   useEffect(() => {
     if (!lastEventId || events.length === 0) return;
     
     const latestEvent = events.find(e => e.id === lastEventId);
     if (!latestEvent) return;
+
+    // Play sound based on interaction type
+    if (latestEvent.type === 'positive') {
+      playSound('heartBurst');
+    } else if (latestEvent.type === 'negative') {
+      playSound('sparkClash');
+    } else {
+      playSound('click');
+    }
 
     // Add notification bubble
     setNotifications(prev => [...prev, {

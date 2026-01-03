@@ -18,7 +18,9 @@ type SoundType =
   | 'moodSad'
   | 'dailyEvent'
   | 'challengeProgress'
-  | 'challengeComplete';
+  | 'challengeComplete'
+  | 'heartBurst'
+  | 'sparkClash';
 
 type MusicMood = 'morning' | 'afternoon' | 'evening' | 'night' | 'celebration' | 'tense';
 
@@ -173,6 +175,17 @@ const SOUND_CONFIGS: Record<SoundType, SoundConfig | SoundConfig[]> = {
     { frequency: 554, type: 'sine', duration: 0.12, volume: 0.22 },
     { frequency: 659, type: 'sine', duration: 0.12, volume: 0.24 },
     { frequency: 880, type: 'sine', duration: 0.25, volume: 0.3 },
+  ],
+  heartBurst: [
+    { frequency: 523, type: 'sine', duration: 0.08, volume: 0.2 },
+    { frequency: 659, type: 'sine', duration: 0.08, volume: 0.22 },
+    { frequency: 784, type: 'sine', duration: 0.1, volume: 0.25 },
+    { frequency: 1047, type: 'sine', duration: 0.15, volume: 0.2 },
+  ],
+  sparkClash: [
+    { frequency: 350, type: 'sawtooth', duration: 0.06, volume: 0.12 },
+    { frequency: 280, type: 'square', duration: 0.08, volume: 0.1 },
+    { frequency: 180, type: 'sawtooth', duration: 0.12, volume: 0.08, ramp: 'down' },
   ],
 };
 
