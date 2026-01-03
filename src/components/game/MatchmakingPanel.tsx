@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sparkles } from 'lucide-react';
+import { CatVisual } from './CatVisual';
 
 interface MatchmakingPanelProps {
   cats: Cat[];
@@ -110,9 +111,11 @@ export function MatchmakingPanel({ cats, relationships, onSocialize, treats }: M
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
+                        <CatVisual cat={match.cat1} size="xs" />
                         <span className="font-medium text-sm">{match.cat1.name}</span>
                         <span className="text-pink-500">💕</span>
                         <span className="font-medium text-sm">{match.cat2.name}</span>
+                        <CatVisual cat={match.cat2} size="xs" />
                       </div>
                       <Badge variant="outline" className={`text-xs ${badge.className}`}>
                         {badge.label}

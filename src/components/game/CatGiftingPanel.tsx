@@ -11,6 +11,7 @@ import { useCatGifts } from '@/hooks/useCatGifts';
 import { useFriends } from '@/hooks/useFriends';
 import { Cat } from '@/types/game';
 import { BREEDS } from '@/types/game';
+import { CatVisual } from './CatVisual';
 
 /**
  * Props for the CatGiftingPanel component
@@ -140,7 +141,11 @@ export function CatGiftingPanel({ userId, cats, onGiftSent, onGiftReceived }: Ca
                     <SelectContent>
                       {cats.map(cat => (
                         <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name} ({BREEDS[cat.breed]?.name || cat.breed})
+                          <div className="flex items-center gap-2">
+                            <CatVisual cat={cat} size="xs" />
+                            <span>{cat.name}</span>
+                            <span className="text-xs text-muted-foreground">{BREEDS[cat.breed]?.name || cat.breed}</span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>

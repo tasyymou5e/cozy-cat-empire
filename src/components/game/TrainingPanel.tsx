@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Cat, BREEDS } from '@/types/game';
 import { TRICKS, TrickId, MIN_SHOW_GRADE } from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
+import { CatVisual } from './CatVisual';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -100,7 +101,8 @@ export function TrainingPanel({ cats, treats, toys, day, onTrain, onRest }: Trai
                   {cats.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>
                       <div className="flex items-center gap-2">
-                        {cat.name}
+                        <CatVisual cat={cat} size="xs" />
+                        <span>{cat.name}</span>
                         <GradeBadge grade={cat.grade} size="sm" showStars={false} />
                         {cat.lastTrainingDay >= day && (
                           <Badge variant="outline" className="text-xs bg-amber-50 text-amber-600">

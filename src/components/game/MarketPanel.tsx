@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { MarketListing, BREEDS } from '@/types/game';
 import { Badge } from '@/components/ui/badge';
 import { useConfetti } from '@/hooks/useConfetti';
+import { CatVisual } from './CatVisual';
 
 /**
  * Props for the MarketPanel component
@@ -36,16 +37,6 @@ interface MarketPanelProps {
  * ```
  */
 
-const catEmojis: Record<string, string> = {
-  'stray': '🐱',
-  'tabby': '🐈',
-  'persian': '😺',
-  'siamese': '😸',
-  'maine-coon': '🦁',
-  'british-shorthair': '😻',
-  'ragdoll': '🐾',
-  'bengal': '🐆',
-};
 
 export function MarketPanel({ listings, money, hasSpace, onBuy }: MarketPanelProps) {
   const [animatingListing, setAnimatingListing] = useState<string | null>(null);
@@ -92,11 +83,11 @@ export function MarketPanel({ listings, money, hasSpace, onBuy }: MarketPanelPro
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className={`text-2xl transition-transform duration-300 ${
-                    isAnimating ? 'scale-125' : ''
+                  <div className={`transition-transform duration-300 ${
+                    isAnimating ? 'scale-110' : ''
                   }`}>
-                    {catEmojis[listing.cat.breed]}
-                  </span>
+                    <CatVisual cat={listing.cat} size="sm" animated />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-sm">{listing.cat.name}</p>
