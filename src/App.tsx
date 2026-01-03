@@ -12,6 +12,7 @@ import { AdminRoute } from "./components/admin/AdminRoute";
 import Index from "./pages/Index";
 import CatCollection from "./pages/CatCollection";
 import CatCustomization from "./pages/CatCustomization";
+import CatPhotoBooth from "./pages/CatPhotoBooth";
 import Leaderboard from "./pages/Leaderboard";
 import Stats from "./pages/Stats";
 import Auth from "./pages/Auth";
@@ -41,6 +42,7 @@ const App = () => (
                     <Route path="/" element={<Index />} />
                     <Route path="/collection" element={<CatCollection />} />
                     <Route path="/customize/:catId?" element={<CatCustomization />} />
+                    <Route path="/photobooth/:catId?" element={<CatPhotoBooth />} />
                     <Route path="/leaderboard" element={<Leaderboard />} />
                     <Route path="/stats" element={<Stats />} />
                     <Route path="/auth" element={<Auth />} />

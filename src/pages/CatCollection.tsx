@@ -144,6 +144,12 @@ export default function CatCollection() {
                   {theme === 'dark' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
                   {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <Link to="/photobooth">
+                  <DropdownMenuItem className="cursor-pointer">
+                    📸 Photo Booth
+                  </DropdownMenuItem>
+                </Link>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

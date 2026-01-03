@@ -164,6 +164,11 @@ export default function CatCustomization() {
           </div>
           
           <div className="flex items-center gap-2">
+            <Link to={selectedCat ? `/photobooth/${selectedCat.id}` : '/photobooth'}>
+              <Button variant="outline" size="sm">
+                📸 Photo Booth
+              </Button>
+            </Link>
             <Button variant="outline" size="sm" onClick={handleRandomize}>
               <Shuffle className="h-4 w-4 mr-2" />
               Randomize

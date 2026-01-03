@@ -273,6 +273,12 @@ export function CatDetailModal({
                   </Button>
                 </Link>
 
+                <Link to={`/photobooth/${cat.id}`}>
+                  <Button variant="outline" className="w-full">
+                    📸 Photo Booth
+                  </Button>
+                </Link>
+
                 <Button onClick={() => onSell(cat.id)} variant="destructive" className="w-full">
                   💰 Sell for ${cat.value}
                 </Button>
