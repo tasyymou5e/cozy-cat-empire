@@ -163,18 +163,27 @@ export default defineConfig({
 ```
 src/
 ├── components/
-│   ├── game/           # 35+ game components
+│   ├── game/           # 42 game components
 │   ├── ui/             # 40+ shadcn/ui primitives
-│   ├── stats/          # Statistics components
+│   ├── stats/          # 6 statistics components
+│   ├── admin/          # Admin dashboard components
 │   ├── ErrorBoundary.tsx
 │   └── ErrorLoggerProvider.tsx
-├── hooks/
-│   ├── useGameState.ts      # Core game logic
+├── hooks/              # 26 custom hooks
+│   ├── useGameState.ts      # Core game logic + bulk actions
 │   ├── useRelationships.ts  # Cat relationships
 │   ├── useSoundEffects.ts   # Audio system
 │   ├── useCloudSave.ts      # Cloud persistence
 │   ├── useFriends.ts        # Social features
-│   └── ...                   # 15+ custom hooks
+│   ├── useHaptics.ts        # Mobile haptic feedback
+│   ├── useDailyLoginRewards.ts # Login streaks + VIP
+│   ├── useWeeklyChallenges.ts  # Challenge tracking
+│   ├── useLeaderboardHistory.ts # Historical rankings
+│   ├── useLeaderboardRewards.ts # Reward claiming
+│   ├── usePushNotifications.ts  # Web push notifications
+│   ├── useChallengeAchievements.ts # Challenge linking
+│   ├── usePlayerStats.ts   # Player statistics
+│   └── ...
 ├── types/
 │   ├── game.ts              # Cat, GameState
 │   ├── grading.ts           # Grade system

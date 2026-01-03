@@ -225,13 +225,29 @@ interface Cat {
 - Bell icon with unread count badge
 - Click to navigate to relevant tab
 
+### 10. Bulk Actions System (`src/components/game/BulkActionsPanel.tsx`)
+
+**Bulk Action Functions:**
+- Heal All Sick: Heal cats with health < 70 (costs 1 medicine per cat)
+- Rest All Tired: Rest cats with restLevel < 50 (free)
+- Comfort All Unhappy: Comfort cats with happiness < 50 (free)
+- Train All Available: Train all untrained cats today (costs 1 treat + 1 toy per cat)
+- Sell Selected: Multi-select cats for bulk selling with confirmation dialog
+
+**Features:**
+- Status summary badges showing sick/tired/unhappy/trainable counts
+- Resource cost indicators on action buttons
+- Disabled states when no cats need action
+- Multi-select mode with Select All/Deselect All
+- Confirmation dialog for irreversible bulk sell
+
 ---
 
 ## Components
 
 ### Main Game (`src/components/game/CatFarm.tsx`)
 - Master component orchestrating all panels
-- 15-tab sidebar layout
+- 16-tab sidebar layout (includes Bulk Actions)
 - Audio controls in header
 - Notification center
 - Cloud sync indicator
@@ -262,6 +278,9 @@ interface Cat {
 - **TradingPanel**: Create and manage trades
 - **AchievementsPanel**: Track progress
 - **SaveLoadPanel**: Persist game state
+- **BulkActionsPanel**: Mass cat management operations
+- **LeaderboardRewardsPanel**: Claim leaderboard rewards
+- **LeaderboardHistoryChart**: Historical ranking visualization
 
 ### Support Components:
 - **StatusBar**: Money, day, house, cat show (React.forwardRef)
@@ -274,6 +293,7 @@ interface Cat {
 - **KeyboardShortcutsHelp**: Keyboard shortcuts modal
 - **DailyEventToast**: Daily event notifications
 - **NotificationCenter**: Real-time notifications dropdown
+- **NotificationSettings**: Push notification preferences
 
 ---
 
@@ -435,9 +455,10 @@ interface Cat {
 ```
 src/
 ├── components/
-│   ├── game/                   # Game UI components (35 files)
+│   ├── game/                   # Game UI components (42 files)
 │   │   ├── CatFarm.tsx         # Main game orchestrator
 │   │   ├── CatCard.tsx         # Individual cat display
+│   │   ├── BulkActionsPanel.tsx # Mass cat management
 │   │   ├── ActionPanel.tsx     # Add cats, next day
 │   │   ├── ChorePanel.tsx      # Earn money through tasks
 │   │   ├── ResourcePanel.tsx   # Buy/use resources
@@ -451,6 +472,8 @@ src/
 │   │   ├── RelationshipPanel.tsx
 │   │   ├── LeaderboardPanel.tsx
 │   │   ├── GlobalLeaderboardPanel.tsx
+│   │   ├── LeaderboardHistoryChart.tsx
+│   │   ├── LeaderboardRewardsPanel.tsx
 │   │   ├── FriendsPanel.tsx
 │   │   ├── PlayerProfilePanel.tsx
 │   │   ├── CatGiftingPanel.tsx
@@ -470,13 +493,18 @@ src/
 │   │   ├── TutorialSystem.tsx
 │   │   ├── KeyboardShortcutsHelp.tsx
 │   │   ├── DailyEventToast.tsx
-│   │   └── NotificationCenter.tsx
-│   ├── ui/                     # shadcn/ui components
+│   │   ├── NotificationCenter.tsx
+│   │   ├── NotificationSettings.tsx
+│   │   ├── DailyRewardsPanel.tsx
+│   │   └── WeeklyChallengesPanel.tsx
+│   ├── ui/                     # shadcn/ui components (40+ files)
+│   ├── stats/                  # Statistics components (6 files)
+│   ├── admin/                  # Admin dashboard components
 │   ├── ErrorBoundary.tsx       # React error boundary
 │   ├── ErrorLoggerProvider.tsx # Global error handler
 │   └── NavLink.tsx
-├── hooks/
-│   ├── useGameState.ts         # Core game logic
+├── hooks/                      # 26 custom hooks
+│   ├── useGameState.ts         # Core game logic + bulk actions
 │   ├── useRelationships.ts     # Cat relationships
 │   ├── useSoundEffects.ts      # Audio system
 │   ├── useConfetti.ts          # Celebrations
@@ -489,6 +517,17 @@ src/
 │   ├── useNotifications.ts     # Real-time notifications
 │   ├── useKeyboardShortcuts.ts
 │   ├── useErrorLogger.ts       # Error logging system
+│   ├── useHaptics.ts           # Mobile haptic feedback
+│   ├── useDailyLoginRewards.ts # Login streaks + VIP
+│   ├── useWeeklyChallenges.ts  # Challenge tracking
+│   ├── useLeaderboardHistory.ts # Historical rankings
+│   ├── useLeaderboardRewards.ts # Reward claiming
+│   ├── usePushNotifications.ts # Web push notifications
+│   ├── useChallengeAchievements.ts # Challenge-achievement linking
+│   ├── usePlayerStats.ts       # Player statistics
+│   ├── useAdminAuth.ts         # Admin authentication
+│   ├── useAdminData.ts         # Admin data queries
+│   ├── useAdminActivityLog.ts  # Admin activity logging
 │   ├── use-mobile.tsx
 │   └── use-toast.ts
 ├── types/
@@ -497,7 +536,9 @@ src/
 │   ├── relationships.ts        # Relationship types
 │   ├── costumes.ts             # Costume definitions
 │   ├── showEvents.ts           # Show tiers and events
-│   └── dailyEvents.ts          # Daily random events
+│   ├── dailyEvents.ts          # Daily random events
+│   ├── dailyRewards.ts         # VIP tier definitions
+│   └── challenges.ts           # Weekly challenge types
 ├── contexts/
 │   ├── AuthContext.tsx         # Authentication
 │   └── SoundContext.tsx        # Sound provider
@@ -511,11 +552,19 @@ src/
     ├── Index.tsx               # Main game page
     ├── Auth.tsx                # Login/signup
     ├── CatCollection.tsx       # Trading card view
+    ├── Leaderboard.tsx         # Global leaderboard page
+    ├── Stats.tsx               # Player statistics
+    ├── AdminAuth.tsx           # Admin login
+    ├── admin/                  # Admin dashboard pages
     └── NotFound.tsx
 
 supabase/
 ├── config.toml                 # Supabase configuration
-└── migrations/                 # Database migrations
+├── migrations/                 # Database migrations
+└── functions/
+    ├── process-leaderboard-rewards/
+    ├── generate-weekly-challenges/
+    └── send-push-notification/
 ```
 
 ---

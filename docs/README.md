@@ -9,12 +9,13 @@ Comprehensive documentation for the Cat Farm game application.
 
 | File | Description |
 |------|-------------|
-| [COMPONENTS.md](./COMPONENTS.md) | Component architecture, 35+ game components, UI primitives |
-| [GAME_LOGIC.md](./GAME_LOGIC.md) | Game mechanics, cat system, breeding, shows, economy |
+| [COMPONENTS.md](./COMPONENTS.md) | Component architecture, 42 game components, 26 hooks, UI primitives |
+| [GAME_LOGIC.md](./GAME_LOGIC.md) | Game mechanics, cat system, breeding, shows, economy, bulk actions |
 | [DATABASE_DESIGN.md](./DATABASE_DESIGN.md) | Supabase tables, schemas, relationships, JSONB structures |
 | [SECURITY.md](./SECURITY.md) | RLS policies, authentication, authorization, security practices |
 | [TECH_STACK.md](./TECH_STACK.md) | React, Supabase, audio system, dependencies |
 | [ERROR_LOGGING.md](./ERROR_LOGGING.md) | Error types, logging system, monitoring |
+| [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) | Admin panel, user management, moderation |
 
 ---
 
@@ -40,7 +41,19 @@ Comprehensive documentation for the Cat Farm game application.
 #### Rewards & Progress
 - `src/hooks/useDailyLoginRewards.ts` - Daily rewards + VIP
 - `src/hooks/useWeeklyChallenges.ts` - Weekly challenges
+- `src/hooks/useLeaderboardRewards.ts` - Leaderboard rewards
+- `src/hooks/useLeaderboardHistory.ts` - Historical rankings
+- `src/hooks/usePlayerStats.ts` - Player statistics
 - `src/types/dailyRewards.ts` - VIP tier definitions
+
+#### Bulk Actions
+- `src/components/game/BulkActionsPanel.tsx` - Mass cat management UI
+- `src/hooks/useGameState.ts` - Bulk action functions
+
+#### Mobile & Notifications
+- `src/hooks/useHaptics.ts` - Haptic feedback
+- `src/hooks/usePushNotifications.ts` - Web push
+- `src/components/game/NotificationSettings.tsx` - Preferences UI
 
 #### Audio & Effects
 - `src/hooks/useSoundEffects.ts` - Procedural audio
