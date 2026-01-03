@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
 import { Cat } from '@/types/game';
 import { useSound } from '@/contexts/SoundContext';
 import { SoundType } from '@/hooks/useSoundEffects';
@@ -145,10 +146,10 @@ export function CatActivityPopups({
           {/* Dismiss button */}
           <button
             onClick={(e) => dismissPopup(e, popup.id)}
-            className="absolute -top-2 -right-2 w-5 h-5 bg-muted hover:bg-destructive hover:text-destructive-foreground rounded-full flex items-center justify-center text-xs text-muted-foreground transition-colors shadow-sm"
-            title="Dismiss"
+            className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center z-10 hover:bg-destructive/80 transition-colors shadow-sm"
+            aria-label="Dismiss"
           >
-            ✕
+            <X className="h-3.5 w-3.5" />
           </button>
           <div className="flex items-center gap-2">
             <span className={`text-2xl ${popup.animation}`}>🐱</span>
