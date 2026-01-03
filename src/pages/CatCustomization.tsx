@@ -20,6 +20,20 @@ import {
 import { COSTUMES, getCostumeById } from '@/types/costumes';
 import { ArrowLeft, Save, RotateCcw, Shuffle, Palette, Eye, Scissors, Smile, Shirt, Loader2 } from 'lucide-react';
 
+/**
+ * CatCustomization - Cat appearance editor page
+ * 
+ * Full-page cat customization experience allowing players to edit
+ * fur color, pattern, eye color, hair length, facial features, and
+ * equip costumes. Supports live preview and cloud save.
+ * 
+ * @route /customize/:catId?
+ * 
+ * @example
+ * ```tsx
+ * <Route path="/customize/:catId?" element={<CatCustomization />} />
+ * ```
+ */
 export default function CatCustomization() {
   const { catId } = useParams<{ catId?: string }>();
   const navigate = useNavigate();

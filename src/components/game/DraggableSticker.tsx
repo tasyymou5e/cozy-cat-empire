@@ -2,13 +2,38 @@ import React, { useState, useRef } from 'react';
 import { X } from 'lucide-react';
 import { PlacedSticker, PHOTO_STICKERS } from '@/types/photoBooth';
 
+/**
+ * Props for the DraggableSticker component
+ */
 interface DraggableStickerProps {
+  /** Sticker placement data */
   sticker: PlacedSticker;
+  /** Reference to the container element for position calculations */
   containerRef: React.RefObject<HTMLDivElement>;
+  /** Callback when sticker position changes */
   onUpdate: (id: string, updates: Partial<PlacedSticker>) => void;
+  /** Callback when removing the sticker */
   onRemove: (id: string) => void;
+  /** Whether the photo is being exported (hides delete button) */
   isExporting?: boolean;
 }
+
+/**
+ * DraggableSticker - Draggable sticker element for photo booth
+ * 
+ * Renders a sticker that can be dragged to reposition within the photo.
+ * Supports mouse and touch input. Shows delete button on hover.
+ * 
+ * @example
+ * ```tsx
+ * <DraggableSticker
+ *   sticker={placedSticker}
+ *   containerRef={stageRef}
+ *   onUpdate={handleUpdate}
+ *   onRemove={handleRemove}
+ * />
+ * ```
+ */
 
 export const DraggableSticker: React.FC<DraggableStickerProps> = ({
   sticker,

@@ -4,13 +4,26 @@ import { Button } from '@/components/ui/button';
 import { GalleryPhoto } from '@/types/gallery';
 import { format } from 'date-fns';
 
+/**
+ * Props for the GalleryPhotoCard component
+ */
 interface GalleryPhotoCardProps {
+  /** The photo data to display */
   photo: GalleryPhoto;
+  /** Callback when viewing the photo in lightbox */
   onView: () => void;
+  /** Callback when deleting the photo */
   onDelete: () => void;
+  /** Callback when toggling favorite status */
   onToggleFavorite: () => void;
+  /** Callback when downloading the photo */
   onDownload: () => void;
 }
+
+/**
+ * SyncStatusIcon - Shows cloud sync status indicator
+ * @internal
+ */
 
 const SyncStatusIcon: React.FC<{ status: GalleryPhoto['syncStatus'] }> = ({ status }) => {
   switch (status) {
@@ -26,6 +39,24 @@ const SyncStatusIcon: React.FC<{ status: GalleryPhoto['syncStatus'] }> = ({ stat
   }
 };
 
+/**
+ * GalleryPhotoCard - Photo thumbnail card for gallery display
+ * 
+ * Displays a photo thumbnail with cat name, date, favorite status,
+ * and cloud sync status. Shows action overlay on hover for view,
+ * favorite, download, and delete operations.
+ * 
+ * @example
+ * ```tsx
+ * <GalleryPhotoCard
+ *   photo={photo}
+ *   onView={handleView}
+ *   onDelete={handleDelete}
+ *   onToggleFavorite={handleToggleFavorite}
+ *   onDownload={handleDownload}
+ * />
+ * ```
+ */
 export const GalleryPhotoCard: React.FC<GalleryPhotoCardProps> = ({
   photo,
   onView,
