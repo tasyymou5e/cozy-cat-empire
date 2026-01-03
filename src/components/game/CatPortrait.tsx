@@ -6,6 +6,7 @@ import { Sparkles, Loader2, RefreshCw, AlertCircle, Star, Crown, Trophy } from '
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { getGradeTier, getGradeStars } from '@/types/grading';
+import { getCostumeById } from '@/types/costumes';
 
 function TierIcon({ tier, className }: { tier: string; className?: string }) {
   switch (tier) {
@@ -39,6 +40,9 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
     setState('generating');
     setError(null);
 
+    // Get costume details if equipped
+    const costume = equippedCostumeId ? getCostumeById(equippedCostumeId) : undefined;
+
     try {
       const { data, error: fnError } = await supabase.functions.invoke('generate-cat-portrait', {
         body: {
@@ -48,6 +52,12 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
             breed: cat.breed,
             personality: cat.personality,
             appearance: cat.appearance,
+            costume: costume ? {
+              id: costume.id,
+              name: costume.name,
+              emoji: costume.emoji,
+              category: costume.category,
+            } : undefined,
           },
         },
       });
