@@ -244,6 +244,68 @@ export default {
 				'50%': {
 					boxShadow: '0 0 20px 5px hsl(45 100% 50% / 0.5)'
 				}
+			},
+			'heart-cascade': {
+				'0%': {
+					transform: 'translateY(0) translateX(0) scale(0)',
+					opacity: '0'
+				},
+				'20%': {
+					transform: 'translateY(-15px) translateX(var(--x-spread)) scale(1)',
+					opacity: '1'
+				},
+				'100%': {
+					transform: 'translateY(-80px) translateX(var(--x-spread)) scale(0.3)',
+					opacity: '0'
+				}
+			},
+			'spark-burst': {
+				'0%': {
+					transform: 'translate(0, 0) scale(0) rotate(0deg)',
+					opacity: '1'
+				},
+				'30%': {
+					transform: 'translate(var(--x-spread), var(--y-spread)) scale(1.2) rotate(var(--rotation))',
+					opacity: '1'
+				},
+				'100%': {
+					transform: 'translate(calc(var(--x-spread) * 1.5), calc(var(--y-spread) * 1.5)) scale(0) rotate(calc(var(--rotation) * 2))',
+					opacity: '0'
+				}
+			},
+			'slide-in-top': {
+				'0%': {
+					transform: 'translateY(-100%) translateX(-50%)',
+					opacity: '0'
+				},
+				'100%': {
+					transform: 'translateY(0) translateX(-50%)',
+					opacity: '1'
+				}
+			},
+			'edge-glow': {
+				'0%': {
+					opacity: '0'
+				},
+				'30%': {
+					opacity: '1'
+				},
+				'100%': {
+					opacity: '0'
+				}
+			},
+			'float-up-enhanced': {
+				'0%': {
+					transform: 'translateY(0) scale(1)',
+					opacity: '1'
+				},
+				'50%': {
+					opacity: '1'
+				},
+				'100%': {
+					transform: 'translateY(-60px) scale(0.4)',
+					opacity: '0'
+				}
 			}
 		},
   		animation: {
@@ -264,7 +326,12 @@ export default {
 			'progress-float': 'progress-float 0.8s ease-out forwards',
 			'streak-flame': 'streak-flame 0.5s ease-in-out infinite',
 			'shimmer': 'shimmer 3s linear infinite',
-			'vip-glow': 'vip-glow 2s ease-in-out infinite'
+			'vip-glow': 'vip-glow 2s ease-in-out infinite',
+			'heart-cascade': 'heart-cascade 2s ease-out forwards',
+			'spark-burst': 'spark-burst 0.8s ease-out forwards',
+			'slide-in-top': 'slide-in-top 0.4s ease-out forwards',
+			'edge-glow': 'edge-glow 0.8s ease-out forwards',
+			'float-up-enhanced': 'float-up-enhanced 2s ease-out forwards'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',
