@@ -902,6 +902,19 @@ export type Database = {
       }
     }
     Views: {
+      public_leaderboard: {
+        Row: {
+          achievements_unlocked: number | null
+          avatar_emoji: string | null
+          display_name: string | null
+          highest_cat_grade: number | null
+          total_cats_owned: number | null
+          total_kittens_bred: number | null
+          total_money_earned: number | null
+          total_show_wins: number | null
+        }
+        Relationships: []
+      }
       public_profiles: {
         Row: {
           avatar_emoji: string | null
