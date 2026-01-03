@@ -1,6 +1,9 @@
 import { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+/**
+ * Callback functions for keyboard shortcut actions
+ */
 interface ShortcutActions {
   onFeed?: () => void;
   onNextDay?: () => void;
@@ -8,6 +11,7 @@ interface ShortcutActions {
   onTabChange?: (tab: string) => void;
 }
 
+/** Mapping of number keys to tab names */
 const TAB_KEYS: Record<string, string> = {
   '1': 'actions',
   '2': 'chores',
@@ -19,6 +23,33 @@ const TAB_KEYS: Record<string, string> = {
   '8': 'more',
 };
 
+/**
+ * Hook for keyboard shortcuts in the game interface
+ *
+ * Provides keyboard navigation and quick actions for power users.
+ * Automatically ignores shortcuts when typing in input fields.
+ *
+ * @param actions - Callback functions for shortcut actions
+ *
+ * Supported shortcuts:
+ * - F: Feed all cats
+ * - N: Next day
+ * - S / Ctrl+S: Save game
+ * - C: Go to cat collection
+ * - H: Go home (farm)
+ * - 1-8: Switch between tabs
+ * - ?: Show shortcuts help
+ *
+ * @example
+ * ```tsx
+ * useKeyboardShortcuts({
+ *   onFeed: () => feedAllCats(),
+ *   onNextDay: () => advanceDay(),
+ *   onSave: () => saveGame(),
+ *   onTabChange: (tab) => setActiveTab(tab)
+ * });
+ * ```
+ */
 export function useKeyboardShortcuts(actions: ShortcutActions) {
   const navigate = useNavigate();
 
@@ -81,6 +112,7 @@ export function useKeyboardShortcuts(actions: ShortcutActions) {
   }, [handleKeyDown]);
 }
 
+/** List of available keyboard shortcuts for help display */
 export const SHORTCUTS = [
   { key: 'F', description: 'Feed all cats' },
   { key: 'N', description: 'Next day' },
