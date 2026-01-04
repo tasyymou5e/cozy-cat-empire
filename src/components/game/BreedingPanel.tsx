@@ -31,6 +31,8 @@ interface BreedingPanelProps {
     bonus: number;
     message: string;
   };
+  /** Map of cat IDs to equipped costume IDs */
+  catCostumes?: Record<string, string>;
 }
 
 /**
@@ -51,7 +53,7 @@ interface BreedingPanelProps {
  * ```
  */
 
-export function BreedingPanel({ cats, cooldown, hasSpace, onBreed, getBreedingCompatibility }: BreedingPanelProps) {
+export function BreedingPanel({ cats, cooldown, hasSpace, onBreed, getBreedingCompatibility, catCostumes }: BreedingPanelProps) {
   const [parent1, setParent1] = useState<string>('');
   const [parent2, setParent2] = useState<string>('');
 
@@ -102,7 +104,7 @@ export function BreedingPanel({ cats, cooldown, hasSpace, onBreed, getBreedingCo
                   {eligibleCats.filter(c => c.id !== parent2).map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>
                       <div className="flex items-center gap-2">
-                        <CatVisual cat={cat} size="xs" />
+                        <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
                         <span>{cat.name}</span>
                         <GradeBadge grade={cat.grade} size="sm" showStars={false} />
                       </div>
@@ -122,7 +124,7 @@ export function BreedingPanel({ cats, cooldown, hasSpace, onBreed, getBreedingCo
                   {eligibleCats.filter(c => c.id !== parent1).map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>
                       <div className="flex items-center gap-2">
-                        <CatVisual cat={cat} size="xs" />
+                        <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
                         <span>{cat.name}</span>
                         <GradeBadge grade={cat.grade} size="sm" showStars={false} />
                       </div>

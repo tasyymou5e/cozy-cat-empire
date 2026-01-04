@@ -18,9 +18,10 @@ interface RelationshipPanelProps {
   relationships: CatRelationship[];
   groups: CatGroup[];
   events: RelationshipEvent[];
+  catCostumes?: Record<string, string>;
 }
 
-export function RelationshipPanel({ cats, relationships, groups, events }: RelationshipPanelProps) {
+export function RelationshipPanel({ cats, relationships, groups, events, catCostumes }: RelationshipPanelProps) {
   const [filter, setFilter] = useState<'all' | 'friends' | 'rivals'>('all');
 
   const getCatName = (catId: string) => cats.find(c => c.id === catId)?.name || 'Unknown';
@@ -101,20 +102,20 @@ export function RelationshipPanel({ cats, relationships, groups, events }: Relat
                         'bg-secondary/30 border-border'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {cats.find(c => c.id === rel.catId1) && (
-                            <CatVisual cat={cats.find(c => c.id === rel.catId1)!} size="xs" />
-                          )}
-                          <span className="font-medium text-sm">{getCatName(rel.catId1)}</span>
-                          <span className={getRelationshipColor(rel.level)}>
-                            {getRelationshipEmoji(rel.level)}
-                          </span>
-                          <span className="font-medium text-sm">{getCatName(rel.catId2)}</span>
-                          {cats.find(c => c.id === rel.catId2) && (
-                            <CatVisual cat={cats.find(c => c.id === rel.catId2)!} size="xs" />
-                          )}
-                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {cats.find(c => c.id === rel.catId1) && (
+                              <CatVisual cat={cats.find(c => c.id === rel.catId1)!} size="xs" equippedCostumeId={catCostumes?.[rel.catId1]} />
+                            )}
+                            <span className="font-medium text-sm">{getCatName(rel.catId1)}</span>
+                            <span className={getRelationshipColor(rel.level)}>
+                              {getRelationshipEmoji(rel.level)}
+                            </span>
+                            <span className="font-medium text-sm">{getCatName(rel.catId2)}</span>
+                            {cats.find(c => c.id === rel.catId2) && (
+                              <CatVisual cat={cats.find(c => c.id === rel.catId2)!} size="xs" equippedCostumeId={catCostumes?.[rel.catId2]} />
+                            )}
+                          </div>
                         <Badge variant="outline" className={`text-xs ${getRelationshipColor(rel.level)}`}>
                           {rel.score > 0 ? '+' : ''}{rel.score}
                         </Badge>

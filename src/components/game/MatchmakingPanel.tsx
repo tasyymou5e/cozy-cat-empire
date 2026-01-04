@@ -12,6 +12,7 @@ interface MatchmakingPanelProps {
   relationships: CatRelationship[];
   onSocialize: (cat1Id: string, cat2Id: string) => void;
   treats: number;
+  catCostumes?: Record<string, string>;
 }
 
 interface MatchSuggestion {
@@ -22,7 +23,7 @@ interface MatchSuggestion {
   reason: string;
 }
 
-export function MatchmakingPanel({ cats, relationships, onSocialize, treats }: MatchmakingPanelProps) {
+export function MatchmakingPanel({ cats, relationships, onSocialize, treats, catCostumes }: MatchmakingPanelProps) {
   const suggestions = useMemo(() => {
     if (cats.length < 2) return [];
 
@@ -111,11 +112,11 @@ export function MatchmakingPanel({ cats, relationships, onSocialize, treats }: M
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <CatVisual cat={match.cat1} size="xs" />
+                        <CatVisual cat={match.cat1} size="xs" equippedCostumeId={catCostumes?.[match.cat1.id]} />
                         <span className="font-medium text-sm">{match.cat1.name}</span>
                         <span className="text-pink-500">💕</span>
                         <span className="font-medium text-sm">{match.cat2.name}</span>
-                        <CatVisual cat={match.cat2} size="xs" />
+                        <CatVisual cat={match.cat2} size="xs" equippedCostumeId={catCostumes?.[match.cat2.id]} />
                       </div>
                       <Badge variant="outline" className={`text-xs ${badge.className}`}>
                         {badge.label}

@@ -13,6 +13,7 @@ interface GroupActivitiesPanelProps {
   treats: number;
   toys: number;
   onGroupActivity: (groupId: string, activityType: 'play' | 'treat' | 'nap') => void;
+  catCostumes?: Record<string, string>;
 }
 
 const ACTIVITIES = [
@@ -21,7 +22,7 @@ const ACTIVITIES = [
   { id: 'nap', name: 'Group Nap', emoji: '😴', cost: { toys: 0, treats: 0 }, happinessBonus: 5, relationshipBonus: 3 },
 ];
 
-export function GroupActivitiesPanel({ cats, groups, treats, toys, onGroupActivity }: GroupActivitiesPanelProps) {
+export function GroupActivitiesPanel({ cats, groups, treats, toys, onGroupActivity, catCostumes }: GroupActivitiesPanelProps) {
   const friendlyGroups = groups.filter(g => g.type === 'friendly');
 
   const canAfford = (activity: typeof ACTIVITIES[0]) => {
@@ -71,7 +72,7 @@ export function GroupActivitiesPanel({ cats, groups, treats, toys, onGroupActivi
                     <div className="flex flex-wrap gap-1 mb-3">
                       {memberCats.map(cat => (
                         <Badge key={cat.id} variant="outline" className="text-xs flex items-center gap-1">
-                          <CatVisual cat={cat} size="xs" className="w-4 h-4" />
+                          <CatVisual cat={cat} size="xs" className="w-4 h-4" equippedCostumeId={catCostumes?.[cat.id]} />
                           {cat.name}
                         </Badge>
                       ))}

@@ -24,6 +24,8 @@ interface SocializePanelProps {
   getRelationship: (catId1: string, catId2: string) => CatRelationship | null;
   /** Callback when socializing two cats */
   onSocialize: (cat1Id: string, cat2Id: string) => void;
+  /** Map of cat IDs to equipped costume IDs */
+  catCostumes?: Record<string, string>;
 }
 
 /**
@@ -43,7 +45,7 @@ interface SocializePanelProps {
  * ```
  */
 
-export function SocializePanel({ cats, treats, getRelationship, onSocialize }: SocializePanelProps) {
+export function SocializePanel({ cats, treats, getRelationship, onSocialize, catCostumes }: SocializePanelProps) {
   const [cat1Id, setCat1Id] = useState<string>('');
   const [cat2Id, setCat2Id] = useState<string>('');
 
@@ -89,7 +91,7 @@ export function SocializePanel({ cats, treats, getRelationship, onSocialize }: S
                   {cats.filter(c => c.id !== cat2Id).map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>
                       <div className="flex items-center gap-2">
-                        <CatVisual cat={cat} size="xs" />
+                        <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
                         <span>{cat.name}</span>
                         <span className="text-xs text-muted-foreground">{BREEDS[cat.breed].name}</span>
                       </div>
@@ -109,7 +111,7 @@ export function SocializePanel({ cats, treats, getRelationship, onSocialize }: S
                   {cats.filter(c => c.id !== cat1Id).map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>
                       <div className="flex items-center gap-2">
-                        <CatVisual cat={cat} size="xs" />
+                        <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
                         <span>{cat.name}</span>
                         <span className="text-xs text-muted-foreground">{BREEDS[cat.breed].name}</span>
                       </div>

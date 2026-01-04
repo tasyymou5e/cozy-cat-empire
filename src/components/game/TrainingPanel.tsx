@@ -33,6 +33,8 @@ interface TrainingPanelProps {
   onTrain: (catId: string, trickId: TrickId) => void;
   /** Callback when resting a cat */
   onRest: (catId: string) => void;
+  /** Map of cat IDs to equipped costume IDs */
+  catCostumes?: Record<string, string>;
 }
 
 /**
@@ -54,7 +56,7 @@ interface TrainingPanelProps {
  * ```
  */
 
-export function TrainingPanel({ cats, treats, toys, day, onTrain, onRest }: TrainingPanelProps) {
+export function TrainingPanel({ cats, treats, toys, day, onTrain, onRest, catCostumes }: TrainingPanelProps) {
   const [selectedCatId, setSelectedCatId] = useState<string>('');
   
   const selectedCat = cats.find(c => c.id === selectedCatId);
@@ -101,7 +103,7 @@ export function TrainingPanel({ cats, treats, toys, day, onTrain, onRest }: Trai
                   {cats.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>
                       <div className="flex items-center gap-2">
-                        <CatVisual cat={cat} size="xs" />
+                        <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
                         <span>{cat.name}</span>
                         <GradeBadge grade={cat.grade} size="sm" showStars={false} />
                         {cat.lastTrainingDay >= day && (
