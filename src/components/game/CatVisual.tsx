@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Cat } from '@/types/game';
 import { CatAvatar } from './CatAvatar';
 import { getGradeTier, getGradeStars } from '@/types/grading';
 import { Star, Crown, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GRAPHICS_CONFIG } from '@/config/graphics';
+import { COSTUMES } from '@/types/costumes';
+
+// Lazy load PaperCatAvatar for code splitting
+const PaperCatAvatar = lazy(() => import('./PaperCatAvatar'));
 
 /**
  * Size options for CatVisual component
@@ -221,6 +225,15 @@ export function CatVisual({
             </div>
           )}
           
+          {/* Costume badge on AI portraits */}
+          {GRAPHICS_CONFIG.showCostumeOnPortrait && equippedCostumeId && (
+            <div className="absolute bottom-1 right-1 z-10">
+              <span className="text-lg drop-shadow-lg">
+                {COSTUMES.find(c => c.id === equippedCostumeId)?.emoji || '👔'}
+              </span>
+            </div>
+          )}
+          
           {/* Ultra rare sparkle effect */}
           {tier === 'ultraRare' && (
             <div className="absolute inset-0 pointer-events-none">
@@ -228,6 +241,17 @@ export function CatVisual({
             </div>
           )}
         </>
+      ) : GRAPHICS_CONFIG.vectorEngine === 'paperjs' ? (
+        /* Paper.js Vector Avatar */
+        <Suspense fallback={<div className="w-full h-full bg-muted animate-pulse rounded-full" />}>
+          <PaperCatAvatar
+            cat={cat}
+            equippedCostumeId={equippedCostumeId}
+            size={avatarSizeMap[size]}
+            showCostume
+            animated={animated || tier === 'ultraRare' || tier === 'veryRare'}
+          />
+        </Suspense>
       ) : (
         /* Fallback to CatAvatar */
         <div className={cn(
