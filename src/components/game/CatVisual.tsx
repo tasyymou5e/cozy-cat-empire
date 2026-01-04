@@ -4,6 +4,7 @@ import { CatAvatar } from './CatAvatar';
 import { getGradeTier, getGradeStars } from '@/types/grading';
 import { Star, Crown, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { GRAPHICS_CONFIG } from '@/config/graphics';
 
 /**
  * Size options for CatVisual component
@@ -139,7 +140,7 @@ export function CatVisual({
   cat,
   equippedCostumeId,
   size = 'md',
-  preferPortrait = false,
+  preferPortrait = GRAPHICS_CONFIG.enablePortraitPriority,
   animated = false,
   showGrade = false,
   className,
