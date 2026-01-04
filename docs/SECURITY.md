@@ -14,6 +14,7 @@ Cat Farm uses Supabase Authentication with email/password.
 - Auto-confirm email signups enabled (for development)
 - Password minimum length: 6 characters
 - Email validation via Zod schema
+- Password reset via edge function
 
 ### Auth Flow
 ```
@@ -64,6 +65,68 @@ const { error } = await supabase.auth.signUp({
     emailRedirectTo: `${window.location.origin}/`
   },
 });
+```
+
+### Password Reset
+Password reset is handled via an edge function:
+```typescript
+// supabase/functions/send-password-reset/index.ts
+const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email);
+```
+
+---
+
+## Admin Authentication
+
+### Role-Based Access Control
+Admins are identified via the `user_roles` table:
+
+```sql
+CREATE TABLE public.user_roles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  role app_role NOT NULL, -- 'admin' | 'moderator' | 'user'
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TYPE app_role AS ENUM ('admin', 'moderator', 'user');
+```
+
+### has_role() Function
+```sql
+CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role app_role)
+RETURNS boolean
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.user_roles
+    WHERE user_id = _user_id
+      AND role = _role
+  )
+$$;
+```
+
+### Admin Route Protection
+```typescript
+// AdminRoute.tsx
+export function AdminRoute({ children }: AdminRouteProps) {
+  const { isAdmin, loading, user } = useAdminAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (loading) return;
+    if (!user || !isAdmin) {
+      logAuthAttempt({ attemptType: 'access_denied', ... });
+      navigate('/catking');
+    }
+  }, [loading, user, isAdmin]);
+
+  if (!isAdmin) return null;
+  return <>{children}</>;
+}
 ```
 
 ---
@@ -196,6 +259,27 @@ ON public.error_logs FOR SELECT
 USING (auth.uid() = user_id);
 ```
 
+### Admin Tables
+```sql
+-- Only admins can access admin activity log
+CREATE POLICY "Admins can view activity log"
+ON public.admin_activity_log FOR SELECT
+USING (has_role(auth.uid(), 'admin'::app_role));
+
+CREATE POLICY "Admins can insert activity log"
+ON public.admin_activity_log FOR INSERT
+WITH CHECK (has_role(auth.uid(), 'admin'::app_role));
+
+-- Auth attempts log - anyone can insert, only admins can view
+CREATE POLICY "Anyone can log auth attempts"
+ON public.auth_attempts_log FOR INSERT
+WITH CHECK (true);
+
+CREATE POLICY "Admins can view auth attempts"
+ON public.auth_attempts_log FOR SELECT
+USING (has_role(auth.uid(), 'admin'::app_role));
+```
+
 ---
 
 ## Input Validation
@@ -229,6 +313,12 @@ These functions have `verify_jwt = false`:
 - `process-leaderboard-rewards` - Scheduled task
 - `generate-weekly-challenges` - Scheduled task
 - `send-push-notification` - Internal notification service
+- `send-password-reset` - Public password reset
+
+### Protected Edge Functions
+These functions require authentication:
+- `generate-cat-portrait` - Uses user context for AI usage tracking
+- `admin-delete-user` - Admin-only, uses has_role() check
 
 ### Edge Function Environment
 ```typescript
@@ -252,7 +342,10 @@ if (localStorage.getItem('isAdmin')) { /* dangerous */ }
 ✅ Always use server-side:
 ```typescript
 // RLS policies or database function
-const { data } = await supabase.rpc('is_admin', { user_id: userId });
+const { data } = await supabase.rpc('has_role', { 
+  _user_id: userId, 
+  _role: 'admin' 
+});
 ```
 
 ### 2. No Sensitive Data in Logs
@@ -317,6 +410,14 @@ const corsHeaders = {
 - Message length limits
 - Database storage limits (not implemented, consider)
 
+### 6. Admin Impersonation
+**Risk:** User attempts to access admin features.
+
+**Mitigation:**
+- Role checks via database function (SECURITY DEFINER)
+- AdminRoute component with server-side verification
+- All admin actions logged to admin_activity_log
+
 ---
 
 ## Security Checklist
@@ -327,12 +428,15 @@ const corsHeaders = {
 - [x] Auto-confirm for development
 - [x] Email redirect URLs configured
 - [x] Protected routes redirect to /auth
+- [x] Password reset functionality
 
 ### Authorization
 - [x] RLS enabled on all tables
 - [x] Policies check auth.uid()
-- [x] No roles stored on profiles (avoid privilege escalation)
+- [x] Admin roles stored in separate table
+- [x] has_role() function with SECURITY DEFINER
 - [x] Service role only in edge functions
+- [x] Admin route protection
 
 ### Data Protection
 - [x] JSONB for complex game state
@@ -345,14 +449,20 @@ const corsHeaders = {
 - [x] CORS configured for edge functions
 - [x] API keys properly scoped (anon vs service role)
 
+### Audit Logging
+- [x] Admin actions logged to admin_activity_log
+- [x] Auth attempts logged to auth_attempts_log
+- [x] Player activities logged to player_activity_log
+- [x] AI usage logged to ai_usage_log
+
 ---
 
 ## Future Security Improvements
 
 ### Recommended Enhancements
 1. **Rate Limiting**: Add database rate limits for social actions
-2. **Audit Logging**: Track sensitive operations (trades, gifts)
-3. **IP Blocking**: For abuse prevention
-4. **2FA**: Optional two-factor authentication
-5. **Data Export**: GDPR compliance endpoint
-6. **Account Deletion**: Full data purge capability
+2. **IP Blocking**: For abuse prevention
+3. **2FA**: Optional two-factor authentication
+4. **Data Export**: GDPR compliance endpoint
+5. **Account Deletion**: Full data purge capability (partially implemented via admin)
+6. **Session Management**: Multiple device session handling

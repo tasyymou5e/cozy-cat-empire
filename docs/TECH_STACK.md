@@ -175,22 +175,24 @@ export default defineConfig({
 ```
 src/
 ├── components/
-│   ├── game/           # 50+ game components
+│   ├── game/           # 63+ game components
 │   │   ├── CatFarm.tsx         # Main game orchestrator
 │   │   ├── CatCard.tsx         # Cat display + inline rename
+│   │   ├── CatVisual.tsx       # Unified cat visual
 │   │   ├── PhotoBooth.tsx      # Photo booth interface
 │   │   ├── GalleryPhotoCard.tsx
 │   │   ├── PhotoLightbox.tsx
 │   │   ├── DraggableSticker.tsx
 │   │   ├── TutorialSystem.tsx  # 16-step tutorial
 │   │   ├── WhatsNewPopup.tsx   # Changelog popup
+│   │   ├── *Skeleton.tsx       # Loading skeletons
 │   │   └── ...
 │   ├── ui/             # 40+ shadcn/ui primitives
-│   ├── stats/          # 6 statistics components
-│   ├── admin/          # Admin dashboard components
+│   ├── stats/          # 7 statistics components
+│   ├── admin/          # 7 admin dashboard components
 │   ├── ErrorBoundary.tsx
 │   └── ErrorLoggerProvider.tsx
-├── hooks/              # 29 custom hooks
+├── hooks/              # 32 custom hooks
 │   ├── useGameState.ts      # Core game logic + bulk actions
 │   ├── useRelationships.ts  # Cat relationships
 │   ├── useSoundEffects.ts   # Audio system
@@ -207,6 +209,11 @@ src/
 │   ├── usePushNotifications.ts  # Web push notifications
 │   ├── useChallengeAchievements.ts # Challenge linking
 │   ├── usePlayerStats.ts   # Player statistics
+│   ├── usePlayerActivityLog.ts # Activity logging
+│   ├── useAdminAuth.ts     # Admin authentication
+│   ├── useAdminData.ts     # Admin data queries
+│   ├── useAdminActivityLog.ts # Admin activity logging
+│   ├── useAdminAIData.ts   # AI usage metrics
 │   └── ...
 ├── types/
 │   ├── game.ts              # Cat, GameState
@@ -225,10 +232,15 @@ src/
 │   ├── AuthContext.tsx      # Authentication
 │   ├── SoundContext.tsx     # Sound provider
 │   └── CatReactionContext.tsx # Cat reactions
+├── config/
+│   └── graphics.ts          # Graphics configuration
 ├── integrations/
 │   └── supabase/
 │       ├── client.ts        # Supabase client
 │       └── types.ts         # Generated types
+├── lib/
+│   ├── utils.ts             # Utility functions
+│   └── portraitUtils.ts     # Portrait utilities
 ├── pages/
 │   ├── Index.tsx            # Main game
 │   ├── Auth.tsx             # Login/signup
@@ -238,9 +250,17 @@ src/
 │   ├── CatCustomization.tsx # Cat appearance editor
 │   ├── Leaderboard.tsx      # Global rankings
 │   ├── Stats.tsx            # Personal stats
+│   ├── AdminAuth.tsx        # Admin login
 │   └── admin/               # Admin dashboard
-└── lib/
-    └── utils.ts             # Utility functions
+│       ├── AdminDashboard.tsx
+│       ├── AdminUsers.tsx
+│       ├── AdminStatistics.tsx
+│       ├── AdminErrorLogs.tsx
+│       ├── AdminModeration.tsx
+│       ├── AdminAnnouncements.tsx
+│       ├── AdminSettings.tsx
+│       └── AdminAIMetrics.tsx
+└── index.css                # Global styles
 
 supabase/
 ├── config.toml              # Supabase config
@@ -249,7 +269,9 @@ supabase/
     ├── process-leaderboard-rewards/
     ├── generate-weekly-challenges/
     ├── generate-cat-portrait/
-    └── send-push-notification/
+    ├── send-push-notification/
+    ├── send-password-reset/
+    └── admin-delete-user/
 ```
 
 ---
@@ -339,6 +361,7 @@ supabase/
 - localStorage
 - Clipboard API
 - Share API
+- Vibration API (mobile)
 
 ---
 

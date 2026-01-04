@@ -1,7 +1,7 @@
 # Cat Farm - Component Architecture
 
 ## Overview
-Cat Farm uses a modular component architecture with 45+ game components, 29 custom hooks, UI primitives from shadcn/ui, and supporting components for error handling and navigation.
+Cat Farm uses a modular component architecture with 63+ game components, 32 custom hooks, 40+ UI primitives from shadcn/ui, and supporting components for error handling and navigation.
 
 ---
 
@@ -14,7 +14,7 @@ The central component that manages all game panels and state.
 
 **Responsibilities:**
 - Initializes all game hooks (useGameState, useSoundEffects, useConfetti, etc.)
-- Manages 16-tab sidebar layout
+- Manages tab-based sidebar layout
 - Audio controls and theme switching
 - Cloud save synchronization
 - Notification center integration
@@ -81,6 +81,7 @@ Visual grade tier indicator.
 **Props:**
 - `grade: number` (1-20)
 - `size?: 'sm' | 'md' | 'lg'`
+- `showStars?: boolean`
 
 **Tier Colors:**
 - Common (1-4): Gray
@@ -97,6 +98,9 @@ Cat avatar display with costume support.
 - `costumeId?: string`
 - `size?: 'sm' | 'md' | 'lg' | 'xl'`
 - `showPose?: boolean`
+
+### CatVisual.tsx
+Unified cat visual component for consistent display.
 
 ### CatPortrait.tsx
 AI portrait generation and display with confirmation dialogs.
@@ -130,6 +134,40 @@ Batch generate portraits for multiple cats at once.
 - Progress tracking during generation
 - Results summary with success/failure counts
 - Abort functionality during batch processing
+
+### UnifiedCatCard.tsx
+Alternative cat card implementation with unified styling.
+
+### CatCardReaction.tsx
+Animated reaction display for cat cards.
+
+---
+
+## Skeleton Components
+
+### CatCardSkeleton.tsx
+Loading skeleton for cat cards.
+
+**Props:**
+- `compact?: boolean`
+
+### CatGridSkeleton.tsx
+Loading skeleton for cat grids.
+
+**Props:**
+- `count?: number`
+- `compact?: boolean`
+
+### PanelSkeleton.tsx
+Loading skeleton for panels.
+
+**Props:**
+- `rows?: number`
+- `showHeader?: boolean`
+- `showButtons?: boolean`
+
+### StatusBarSkeleton.tsx
+Loading skeleton for status bar.
 
 ---
 
@@ -195,6 +233,9 @@ Player-to-player trading.
 - Accept/decline/cancel trades
 - 7-day expiration
 
+### TradingCard.tsx
+Display trading card for cats.
+
 ---
 
 ## Breeding & Training
@@ -251,6 +292,9 @@ View all cat relationships.
 - Friend/enemy counts
 - Social groups/cliques
 
+### RelationshipNetworkGraph.tsx
+Visual network graph of cat relationships.
+
 ---
 
 ## Leaderboard & Competition
@@ -272,6 +316,12 @@ Cross-player competition.
 - Kittens Bred
 - Money Earned
 - Achievements
+
+### LeaderboardHistoryChart.tsx
+Historical ranking visualization.
+
+### LeaderboardRewardsPanel.tsx
+Claim periodic leaderboard rewards.
 
 ### CatShowPanel.tsx
 Cat show entry and management.
@@ -302,6 +352,9 @@ Edit player profile.
 - Display name
 - Avatar emoji
 
+### ProfileSetupDialog.tsx
+New user profile setup dialog.
+
 ### CatGiftingPanel.tsx
 Gift cats to friends.
 
@@ -311,6 +364,12 @@ Gift cats to friends.
 - Optional message
 - Track sent/received gifts
 
+### GiftReceivedDialog.tsx
+Dialog popup when receiving a gift.
+
+### TradeReceivedDialog.tsx
+Dialog popup when receiving a trade offer.
+
 ### NotificationCenter.tsx
 Real-time notification dropdown.
 
@@ -319,6 +378,9 @@ Real-time notification dropdown.
 - Cat gifts received
 - Trade offers
 - Challenge completions
+
+### NotificationSettings.tsx
+Push notification preferences.
 
 ---
 
@@ -445,6 +507,16 @@ Local save management.
 - Export/import JSON
 - Cloud sync status
 
+### BulkActionsPanel.tsx
+Mass cat management operations.
+
+**Features:**
+- Heal All Sick
+- Rest All Tired
+- Comfort All Unhappy
+- Train All Available
+- Bulk Sell Selected
+
 ---
 
 ## Animation Components
@@ -457,6 +529,9 @@ Floating emoji animations for relationship events.
 - Broken heart (-negative)
 - Sparkles (best friends)
 
+### RelationshipParticles.tsx
+Particle effects for relationships.
+
 ### MoodAnimations.tsx
 Cat mood indicators.
 
@@ -465,6 +540,9 @@ Cat mood indicators.
 - Sad (drooping)
 - Hungry (food icon)
 - Sick (medicine icon)
+
+### CatActivityPopups.tsx
+Activity notification popups.
 
 ### ChallengeProgressAnimation.tsx
 Challenge completion celebration.
@@ -514,11 +592,6 @@ Changelog popup for returning players.
 - Styled version sections with highlights
 - Manual "What's New" button in header
 
-**Version Tracking:**
-- `cat-farm-last-seen-version` in localStorage
-- Only shows after tutorial is complete
-- Displays 1-2 most recent versions
-
 ### KeyboardShortcutsHelp.tsx
 Keyboard shortcuts modal.
 
@@ -532,55 +605,8 @@ Keyboard shortcuts modal.
 ### DailyEventToast.tsx
 Daily random event notifications.
 
----
-
-## Trading Card Components
-
-### TradingCard.tsx
-Static trading card display.
-
-### FlippableTradingCard.tsx
-Interactive flip animation card.
-
----
-
-## Bulk Actions & Leaderboard Components
-
-### BulkActionsPanel.tsx
-Mass cat management operations panel.
-
-**Features:**
-- Status summary badges (sick/tired/unhappy/trainable counts)
-- Heal All, Rest All, Comfort All, Train All buttons
-- Multi-select mode for bulk selling
-- Resource cost display on buttons
-- Confirmation dialog for irreversible sales
-
-### LeaderboardHistoryChart.tsx
-Historical ranking visualization.
-
-**Features:**
-- Line chart showing rank progression over time
-- Category-based filtering
-- Current rank and best rank display
-- Trend indicator (up/down/steady)
-
-### LeaderboardRewardsPanel.tsx
-Leaderboard reward claiming interface.
-
-**Features:**
-- Daily/weekly/monthly reward tiers
-- Individual and "Claim All" buttons
-- Reward structure information
-- Coin and badge rewards display
-
-### NotificationSettings.tsx
-Push notification preferences management.
-
-**Features:**
-- Toggle settings for different notification types
-- Push notification subscription/unsubscription
-- Per-category preferences (friends, gifts, trades)
+### AnnouncementBanner.tsx
+System-wide announcement display.
 
 ---
 
@@ -591,25 +617,53 @@ Located in `src/components/ui/`:
 - accordion.tsx
 - alert-dialog.tsx
 - alert.tsx
+- AnimatedBackground.tsx
+- aspect-ratio.tsx
 - avatar.tsx
 - badge.tsx
+- breadcrumb.tsx
 - button.tsx
+- calendar.tsx
 - card.tsx
+- carousel.tsx
+- chart.tsx
 - checkbox.tsx
+- collapsible.tsx
+- command.tsx
+- context-menu.tsx
 - dialog.tsx
+- drawer.tsx
 - dropdown-menu.tsx
+- FloatingDecorations.tsx
 - form.tsx
+- GlassCard.tsx
+- hover-card.tsx
+- input-otp.tsx
 - input.tsx
 - label.tsx
+- LoadingCat.tsx
+- menubar.tsx
+- navigation-menu.tsx
+- pagination.tsx
 - popover.tsx
 - progress.tsx
+- radio-group.tsx
+- resizable.tsx
 - scroll-area.tsx
 - select.tsx
 - separator.tsx
+- sheet.tsx
+- sidebar.tsx
+- skeleton.tsx
 - slider.tsx
+- sonner.tsx
 - switch.tsx
+- table.tsx
 - tabs.tsx
+- textarea.tsx
 - toast.tsx / toaster.tsx
+- toggle-group.tsx
+- toggle.tsx
 - tooltip.tsx
 
 ---
@@ -635,6 +689,34 @@ Global error handler provider.
 
 ---
 
+## Stats Components
+
+Located in `src/components/stats/`:
+
+- AchievementShowcase.tsx
+- CategoryPerformanceChart.tsx
+- LeaderboardRankings.tsx
+- RankProgressionChart.tsx
+- RewardsHistory.tsx
+- StatsOverviewCards.tsx
+- WealthProgressionChart.tsx
+
+---
+
+## Admin Components
+
+Located in `src/components/admin/`:
+
+- ActivityFeed.tsx
+- AdminLayout.tsx
+- AdminRoute.tsx
+- BulkActionsBar.tsx
+- ChallengeForm.tsx
+- ExportButton.tsx
+- UserDetailModal.tsx
+
+---
+
 ## Component Hierarchy
 
 ```
@@ -654,6 +736,8 @@ App.tsx
 │                           ├── CatCustomization
 │                           ├── Leaderboard
 │                           ├── Stats
+│                           ├── AdminAuth
+│                           ├── admin/* (AdminRoute wrapped)
 │                           └── NotFound
 ```
 
