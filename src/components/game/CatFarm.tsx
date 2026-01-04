@@ -709,17 +709,18 @@ export function CatFarm() {
             ) : (
               <div className="cat-grid">
                 {state.cats.map(cat => (
-                <CatCard 
-                    key={cat.id} 
-                    cat={cat} 
-                    onSell={actions.sellCat} 
-                    onHeal={actions.useMedicine}
-                    onComfort={actions.comfortCat}
-                    onRename={actions.renameCat}
-                    relationships={relationshipSystem.relationships} 
-                    allCats={state.cats}
-                    reaction={getCatReaction(cat.id)}
-                  />
+                        <CatCard 
+                          key={cat.id} 
+                          cat={cat} 
+                          equippedCostumeId={state.catCostumes[cat.id]}
+                          onSell={actions.sellCat} 
+                          onHeal={actions.useMedicine}
+                          onComfort={actions.comfortCat}
+                          onRename={actions.renameCat}
+                          relationships={relationshipSystem.relationships} 
+                          allCats={state.cats}
+                          reaction={getCatReaction(cat.id)}
+                        />
                 ))}
               </div>
             )}

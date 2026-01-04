@@ -477,7 +477,7 @@ function getVariantDefaults(variant: CatCardVariant) {
       return { showPortrait: true, showStats: true, showRelationships: true, showActions: true, showFlip: false, animated: true };
     case 'card':
     default:
-      return { showPortrait: false, showStats: true, showRelationships: true, showActions: true, showFlip: false, animated: true };
+      return { showPortrait: true, showStats: true, showRelationships: true, showActions: true, showFlip: false, animated: true };
   }
 }
 
