@@ -1,0 +1,188 @@
+/**
+ * PaperCatAvatar - High-quality vector cat avatar using Paper.js
+ * 
+ * This component generates detailed vector cat faces programmatically
+ * using Paper.js. It supports all appearance options and creates
+ * breed-specific shapes for each cat type.
+ */
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { Cat } from '@/types/game';
+import { generateCatAvatarUrl } from '@/lib/catVectorGenerator';
+import { generateFullAvatarHash, getCachedAvatar, setCachedAvatar } from '@/lib/avatarCache';
+import { CatAvatar } from './CatAvatar';
+import { cn } from '@/lib/utils';
+import { GRAPHICS_CONFIG } from '@/config/graphics';
+import { COSTUME_VECTORS } from '@/lib/costumeVectors';
+import { COSTUMES } from '@/types/costumes';
+
+export interface PaperCatAvatarProps {
+  cat: Cat;
+  equippedCostumeId?: string;
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  showCostume?: boolean;
+  animated?: boolean;
+  className?: string;
+}
+
+const sizeClasses: Record<string, string> = {
+  xs: 'w-8 h-8',
+  sm: 'w-12 h-12',
+  md: 'w-16 h-16',
+  lg: 'w-24 h-24',
+  xl: 'w-32 h-32',
+};
+
+const costumeSizeClasses: Record<string, string> = {
+  xs: 'text-xs',
+  sm: 'text-sm',
+  md: 'text-base',
+  lg: 'text-xl',
+  xl: 'text-2xl',
+};
+
+export function PaperCatAvatar({
+  cat,
+  equippedCostumeId,
+  size = 'md',
+  showCostume = true,
+  animated = false,
+  className,
+}: PaperCatAvatarProps) {
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  // Generate hash for caching
+  const avatarHash = useMemo(() => {
+    return generateFullAvatarHash(cat, equippedCostumeId, size);
+  }, [cat, equippedCostumeId, size]);
+
+  // Generate or retrieve cached avatar
+  useEffect(() => {
+    if (!GRAPHICS_CONFIG.vectorEngine || GRAPHICS_CONFIG.vectorEngine !== 'paperjs') {
+      setHasError(true);
+      return;
+    }
+
+    setIsLoading(true);
+    setHasError(false);
+
+    // Check cache first
+    if (GRAPHICS_CONFIG.cacheGeneratedAvatars) {
+      const cached = getCachedAvatar(avatarHash);
+      if (cached) {
+        setAvatarUrl(cached);
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // Generate new avatar
+    try {
+      const url = generateCatAvatarUrl(cat, equippedCostumeId, size);
+      if (url) {
+        setAvatarUrl(url);
+        if (GRAPHICS_CONFIG.cacheGeneratedAvatars) {
+          setCachedAvatar(avatarHash, url);
+        }
+      } else {
+        setHasError(true);
+      }
+    } catch (error) {
+      console.error('PaperCatAvatar generation failed:', error);
+      setHasError(true);
+    }
+
+    setIsLoading(false);
+  }, [cat, equippedCostumeId, size, avatarHash]);
+
+  // Fallback to CatAvatar on error
+  if (hasError) {
+    return (
+      <CatAvatar
+        cat={cat}
+        equippedCostumeId={equippedCostumeId}
+        size={size}
+        showCostume={showCostume}
+        animated={animated}
+        className={className}
+      />
+    );
+  }
+
+  // Get costume info for overlay
+  const costume = equippedCostumeId ? COSTUMES.find(c => c.id === equippedCostumeId) : null;
+  const vectorCostume = equippedCostumeId ? COSTUME_VECTORS[equippedCostumeId] : null;
+
+  return (
+    <div
+      className={cn(
+        'relative flex items-center justify-center rounded-full overflow-hidden bg-gradient-to-br from-background to-muted',
+        sizeClasses[size],
+        animated && 'animate-cat-breathe',
+        className
+      )}
+    >
+      {isLoading ? (
+        <div className="w-full h-full bg-muted animate-pulse rounded-full" />
+      ) : avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={`${cat.name} avatar`}
+          className="w-full h-full object-contain"
+          onError={() => setHasError(true)}
+        />
+      ) : null}
+
+      {/* Costume Overlay */}
+      {showCostume && costume && !isLoading && (
+        <div className="absolute inset-0 pointer-events-none">
+          {vectorCostume ? (
+            // Vector costume (SVG)
+            <svg
+              viewBox="-30 -50 60 60"
+              className="absolute w-full h-full"
+              style={{
+                transform: `scale(${vectorCostume.scales[size] || vectorCostume.scales.md || 1})`,
+              }}
+            >
+              <g transform={`translate(${vectorCostume.anchor.x}, ${vectorCostume.anchor.y})`}>
+                <path
+                  d={vectorCostume.path}
+                  fill={vectorCostume.fill}
+                  stroke={vectorCostume.stroke}
+                  strokeWidth={vectorCostume.strokeWidth}
+                />
+                {vectorCostume.decorations?.map((dec, i) => (
+                  <path
+                    key={i}
+                    d={dec.path}
+                    fill={dec.fill}
+                    stroke={dec.stroke}
+                  />
+                ))}
+              </g>
+            </svg>
+          ) : (
+            // Emoji fallback
+            <span
+              className={cn(
+                'absolute',
+                costumeSizeClasses[size],
+                costume.category === 'hat' && '-top-1 left-1/2 -translate-x-1/2',
+                costume.category === 'accessory' && 'bottom-1 left-1/2 -translate-x-1/2',
+                costume.category === 'outfit' && 'bottom-0 left-1/2 -translate-x-1/2',
+                costume.category === 'special' && 'top-0 right-0'
+              )}
+            >
+              {costume.emoji}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default PaperCatAvatar;
