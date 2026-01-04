@@ -25,6 +25,8 @@ interface CatGiftingPanelProps {
   onGiftSent: (catId: string) => void;
   /** Callback when a cat gift is received */
   onGiftReceived: (cat: Cat) => void;
+  /** Map of cat IDs to equipped costume IDs */
+  catCostumes?: Record<string, string>;
 }
 
 /**
@@ -44,7 +46,7 @@ interface CatGiftingPanelProps {
  * ```
  */
 
-export function CatGiftingPanel({ userId, cats, onGiftSent, onGiftReceived }: CatGiftingPanelProps) {
+export function CatGiftingPanel({ userId, cats, onGiftSent, onGiftReceived, catCostumes }: CatGiftingPanelProps) {
   const { receivedGifts, sentGifts, loading, sendGift, acceptGift, declineGift } = useCatGifts(userId);
   const { friends } = useFriends(userId);
   const [selectedCat, setSelectedCat] = useState<string>('');
@@ -142,7 +144,7 @@ export function CatGiftingPanel({ userId, cats, onGiftSent, onGiftReceived }: Ca
                       {cats.map(cat => (
                         <SelectItem key={cat.id} value={cat.id}>
                           <div className="flex items-center gap-2">
-                            <CatVisual cat={cat} size="xs" />
+                            <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
                             <span>{cat.name}</span>
                             <span className="text-xs text-muted-foreground">{BREEDS[cat.breed]?.name || cat.breed}</span>
                           </div>

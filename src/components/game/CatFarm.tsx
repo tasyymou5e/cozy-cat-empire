@@ -751,11 +751,11 @@ export function CatFarm() {
             </TabsContent>
             <TabsContent value="breeding" className="mt-0">
               <BreedingPanel cats={state.cats} cooldown={state.breedingCooldown} hasSpace={state.cats.length < state.space}
-                onBreed={actions.breedCats} getBreedingCompatibility={relationshipSystem.getBreedingCompatibility} />
+                onBreed={actions.breedCats} getBreedingCompatibility={relationshipSystem.getBreedingCompatibility} catCostumes={state.catCostumes} />
             </TabsContent>
             <TabsContent value="training" className="mt-0">
               <TrainingPanel cats={state.cats} treats={state.resources.treats} toys={state.resources.toys}
-                day={state.day} onTrain={actions.trainCat} onRest={actions.restCat} />
+                day={state.day} onTrain={actions.trainCat} onRest={actions.restCat} catCostumes={state.catCostumes} />
             </TabsContent>
             <TabsContent value="bulk" className="mt-0">
               <BulkActionsPanel 
@@ -768,20 +768,21 @@ export function CatFarm() {
                 onComfortAll={actions.comfortAllUnhappyCats}
                 onTrainAll={actions.trainAllAvailableCats}
                 onSellSelected={actions.sellSelectedCats}
+                catCostumes={state.catCostumes}
               />
             </TabsContent>
             <TabsContent value="social" className="mt-0 space-y-4">
               <SocializePanel cats={state.cats} treats={state.resources.treats}
-                getRelationship={relationshipSystem.getRelationship} onSocialize={actions.socializeCats} />
+                getRelationship={relationshipSystem.getRelationship} onSocialize={actions.socializeCats} catCostumes={state.catCostumes} />
               <MatchmakingPanel cats={state.cats} relationships={relationshipSystem.relationships}
-                onSocialize={actions.socializeCats} treats={state.resources.treats} />
+                onSocialize={actions.socializeCats} treats={state.resources.treats} catCostumes={state.catCostumes} />
               <GroupActivitiesPanel cats={state.cats} groups={relationshipSystem.groups}
-                treats={state.resources.treats} toys={state.resources.toys} onGroupActivity={actions.doGroupActivity} />
+                treats={state.resources.treats} toys={state.resources.toys} onGroupActivity={actions.doGroupActivity} catCostumes={state.catCostumes} />
               <RelationshipPanel cats={state.cats} relationships={relationshipSystem.relationships}
-                groups={relationshipSystem.groups} events={relationshipSystem.events} />
+                groups={relationshipSystem.groups} events={relationshipSystem.events} catCostumes={state.catCostumes} />
             </TabsContent>
             <TabsContent value="leaderboard" className="mt-0">
-              <LeaderboardPanel cats={state.cats} relationships={relationshipSystem.relationships} />
+              <LeaderboardPanel cats={state.cats} relationships={relationshipSystem.relationships} catCostumes={state.catCostumes} />
             </TabsContent>
             <TabsContent value="friends" className="mt-0">
               <FriendsPanel userId={user?.id} />
@@ -795,6 +796,7 @@ export function CatFarm() {
                 cats={state.cats}
                 onGiftSent={(catId) => actions.sellCat(catId)}
                 onGiftReceived={(cat) => actions.addReceivedCat?.(cat)}
+                catCostumes={state.catCostumes}
               />
             </TabsContent>
             <TabsContent value="trading" className="mt-0">
@@ -808,6 +810,7 @@ export function CatFarm() {
                   addCats.forEach(cat => actions.addReceivedCat?.(cat));
                   // Money and resources handled by trade system
                 }}
+                catCostumes={state.catCostumes}
               />
             </TabsContent>
             <TabsContent value="challenges" className="mt-0">

@@ -32,6 +32,8 @@ interface BulkActionsProps {
   onTrainAll: () => void;
   /** Callback to sell selected cats */
   onSellSelected: (catIds: string[]) => void;
+  /** Map of cat IDs to equipped costume IDs */
+  catCostumes?: Record<string, string>;
 }
 
 /**
@@ -66,7 +68,8 @@ export function BulkActionsPanel({
   onRestAll, 
   onComfortAll, 
   onTrainAll, 
-  onSellSelected 
+  onSellSelected,
+  catCostumes
 }: BulkActionsProps) {
   const [selectMode, setSelectMode] = useState(false);
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
@@ -245,7 +248,7 @@ export function BulkActionsPanel({
                         checked={selectedCats.includes(cat.id)}
                         onCheckedChange={() => toggleSelect(cat.id)}
                       />
-                      <CatVisual cat={cat} size="xs" />
+                      <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{cat.name}</p>
                         <p className="text-xs text-muted-foreground">

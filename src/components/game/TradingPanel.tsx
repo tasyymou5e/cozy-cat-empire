@@ -33,6 +33,8 @@ interface TradingPanelProps {
     moneyChange: number,
     resourceChanges: Partial<Resources>
   ) => void;
+  /** Map of cat IDs to equipped costume IDs */
+  catCostumes?: Record<string, string>;
 }
 
 /**
@@ -53,7 +55,7 @@ interface TradingPanelProps {
  * ```
  */
 
-export function TradingPanel({ userId, cats, money, resources, onTradeComplete }: TradingPanelProps) {
+export function TradingPanel({ userId, cats, money, resources, onTradeComplete, catCostumes }: TradingPanelProps) {
   const { incomingTrades, outgoingTrades, loading, createTrade, acceptTrade, declineTrade, cancelTrade } = useTrading(userId);
   const { friends } = useFriends(userId);
   const [selectedFriend, setSelectedFriend] = useState<string>('');
@@ -192,7 +194,7 @@ export function TradingPanel({ userId, cats, money, resources, onTradeComplete }
                           checked={selectedCats.includes(cat.id)}
                           onCheckedChange={() => handleCatToggle(cat.id)}
                         />
-                        <CatVisual cat={cat} size="xs" />
+                        <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
                         <span className="text-xs truncate">{cat.name}</span>
                       </label>
                     ))}

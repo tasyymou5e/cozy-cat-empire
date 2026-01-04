@@ -1,6 +1,7 @@
 import { Cat, BREEDS } from '@/types/game';
 import { CatRelationship, getRelationshipLevel } from '@/types/relationships';
 import { GradeBadge } from './GradeBadge';
+import { CatVisual } from './CatVisual';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Trophy, Star, Heart, Sparkles } from 'lucide-react';
@@ -8,12 +9,8 @@ import { Trophy, Star, Heart, Sparkles } from 'lucide-react';
 interface LeaderboardPanelProps {
   cats: Cat[];
   relationships: CatRelationship[];
+  catCostumes?: Record<string, string>;
 }
-
-const catEmojis: Record<string, string> = {
-  'stray': '🐱', 'tabby': '🐈', 'persian': '😺', 'siamese': '😸',
-  'maine-coon': '🦁', 'british-shorthair': '🐾', 'ragdoll': '💫', 'bengal': '🐆',
-};
 
 const rankEmojis = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
 
@@ -22,7 +19,7 @@ interface RankedCat extends Cat {
   score: number;
 }
 
-export function LeaderboardPanel({ cats, relationships }: LeaderboardPanelProps) {
+export function LeaderboardPanel({ cats, relationships, catCostumes }: LeaderboardPanelProps) {
   // Sort by show wins
   const byWins: RankedCat[] = [...cats]
     .sort((a, b) => b.showWins - a.showWins)
@@ -71,7 +68,7 @@ export function LeaderboardPanel({ cats, relationships }: LeaderboardPanelProps)
             }`}
           >
             <span className="text-lg w-6 text-center">{rankEmojis[cat.rank - 1] || `${cat.rank}`}</span>
-            <span className="text-xl">{catEmojis[cat.breed]}</span>
+            <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate">{cat.name}</p>
               <p className="text-xs text-muted-foreground">{BREEDS[cat.breed].name}</p>

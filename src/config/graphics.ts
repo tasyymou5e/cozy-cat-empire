@@ -48,6 +48,54 @@ export const GRAPHICS_CONFIG = {
    * Enable flip animation on trading cards
    */
   enableCardFlip: true,
+
+  /**
+   * Vector rendering engine
+   * - 'paperjs': Use Paper.js for high-quality vector generation
+   * - 'simple': Use CSS-based avatar rendering
+   */
+  vectorEngine: 'simple' as 'paperjs' | 'simple',
+
+  /**
+   * Show breed-specific avatar shapes and features
+   */
+  avatarBreedFeatures: true,
+
+  /**
+   * Use detailed pattern rendering on avatars
+   */
+  avatarDetailedPatterns: true,
+
+  /**
+   * How to display costumes
+   * - 'vector': Use SVG vector costumes
+   * - 'emoji': Use emoji overlays
+   * - 'auto': Best available option
+   */
+  costumeDisplayMode: 'auto' as 'vector' | 'emoji' | 'auto',
+
+  /**
+   * Show costume indicator badge on AI portraits
+   */
+  showCostumeOnPortrait: true,
+
+  /**
+   * Cache generated Paper.js avatars
+   */
+  cacheGeneratedAvatars: true,
+
+  /**
+   * Fallback behavior when portrait fails to load
+   * - 'avatar': Show CatAvatar component
+   * - 'placeholder': Show generic placeholder
+   * - 'silhouette': Show cat silhouette
+   */
+  portraitFallbackBehavior: 'avatar' as 'avatar' | 'placeholder' | 'silhouette',
+
+  /**
+   * Respect prefers-reduced-motion for accessibility
+   */
+  enableReducedMotion: false,
 } as const;
 
 /**
