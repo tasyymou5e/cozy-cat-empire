@@ -54,7 +54,7 @@ export const GRAPHICS_CONFIG = {
    * - 'paperjs': Use Paper.js for high-quality vector generation
    * - 'simple': Use CSS-based avatar rendering
    */
-  vectorEngine: 'simple' as 'paperjs' | 'simple',
+  vectorEngine: 'paperjs' as 'paperjs' | 'simple',
 
   /**
    * Show breed-specific avatar shapes and features
