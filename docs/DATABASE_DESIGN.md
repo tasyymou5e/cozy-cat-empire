@@ -46,9 +46,12 @@ User profile information.
 ```sql
 CREATE TABLE public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT,
   display_name TEXT,
   avatar_emoji TEXT DEFAULT '😺',
   username TEXT UNIQUE,
+  suspended_at TIMESTAMPTZ,
+  suspension_reason TEXT,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -58,9 +61,12 @@ CREATE TABLE public.profiles (
 
 **Key Fields:**
 - `id`: Links to Supabase auth.users
+- `email`: User's email address
 - `display_name`: Public name shown in leaderboards
 - `avatar_emoji`: Single emoji for avatar
 - `username`: Unique searchable identifier
+- `suspended_at`: Suspension timestamp (if suspended)
+- `suspension_reason`: Reason for suspension
 
 ---
 
@@ -162,7 +168,7 @@ CREATE TABLE public.player_friends (
 **Status Values:**
 - `pending`: Request sent, awaiting acceptance
 - `accepted`: Mutual friendship confirmed
-- `blocked`: User blocked (future feature)
+- `blocked`: User blocked
 
 ---
 
@@ -199,8 +205,8 @@ CREATE TABLE public.cat_gifts (
   showWins: number,
   grade: number,
   tricksLearned: string[],
-  appearance?: CatAppearance, // Custom appearance
-  portraitUrl?: string,       // AI portrait URL
+  appearance?: CatAppearance,
+  portraitUrl?: string,
   // ... full Cat interface
 }
 ```
@@ -461,6 +467,10 @@ CREATE TABLE public.error_logs (
   route TEXT,
   user_agent TEXT,
   metadata JSONB DEFAULT '{}',
+  status TEXT DEFAULT 'new', -- new, investigating, resolved
+  resolution_notes TEXT,
+  resolved_at TIMESTAMPTZ,
+  resolved_by UUID,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 ```
@@ -471,6 +481,152 @@ CREATE TABLE public.error_logs (
 - `component_error`: React component errors
 - `network_error`: Failed HTTP requests
 - `interaction_error`: User interaction errors
+
+---
+
+### player_activity_log
+Player activity tracking.
+
+```sql
+CREATE TABLE public.player_activity_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  activity_type TEXT NOT NULL,
+  activity_description TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**Activity Types:**
+- `login`, `logout`
+- `trade_created`, `trade_completed`
+- `gift_sent`, `gift_received`
+- `cat_bred`, `show_win`
+- `challenge_completed`, `purchase`
+
+---
+
+## Admin Tables
+
+### admin_activity_log
+Admin action tracking.
+
+```sql
+CREATE TABLE public.admin_activity_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  admin_user_id UUID NOT NULL,
+  action_type TEXT NOT NULL,
+  action_description TEXT NOT NULL,
+  target_user_id UUID,
+  target_table TEXT,
+  target_record_id UUID,
+  ip_address TEXT,
+  user_agent TEXT,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+---
+
+### auth_attempts_log
+Authentication attempt tracking.
+
+```sql
+CREATE TABLE public.auth_attempts_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL,
+  attempt_type TEXT NOT NULL,
+  success BOOLEAN DEFAULT false,
+  user_id UUID,
+  ip_address TEXT,
+  user_agent TEXT,
+  error_message TEXT,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+---
+
+### user_roles
+User role assignments.
+
+```sql
+CREATE TABLE public.user_roles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  role app_role NOT NULL, -- 'admin' | 'moderator' | 'user'
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TYPE app_role AS ENUM ('admin', 'moderator', 'user');
+```
+
+---
+
+### announcements
+System-wide announcements.
+
+```sql
+CREATE TABLE public.announcements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  type TEXT DEFAULT 'info', -- info, warning, success, event
+  is_active BOOLEAN DEFAULT true,
+  expires_at TIMESTAMPTZ,
+  created_by UUID,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+---
+
+### ai_usage_log
+AI feature usage tracking.
+
+```sql
+CREATE TABLE public.ai_usage_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID,
+  function_name TEXT NOT NULL,
+  model TEXT NOT NULL,
+  status TEXT NOT NULL,
+  tokens_used INTEGER,
+  execution_time_ms INTEGER,
+  error_message TEXT,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+---
+
+## Views
+
+### public_profiles
+Public profile information view.
+
+```sql
+CREATE VIEW public_profiles AS
+SELECT id, display_name, avatar_emoji, created_at
+FROM profiles;
+```
+
+### public_leaderboard
+Public leaderboard view.
+
+```sql
+CREATE VIEW public_leaderboard AS
+SELECT 
+  display_name, avatar_emoji,
+  total_show_wins, total_cats_owned,
+  total_kittens_bred, total_money_earned,
+  achievements_unlocked, highest_cat_grade
+FROM player_stats;
+```
 
 ---
 
@@ -517,8 +673,13 @@ SECURITY DEFINER
 SET search_path TO 'public'
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id)
-  VALUES (NEW.id);
+  INSERT INTO public.profiles (id, email, display_name, username)
+  VALUES (
+    NEW.id, 
+    NEW.email,
+    NEW.raw_user_meta_data ->> 'display_name',
+    NEW.raw_user_meta_data ->> 'username'
+  );
   RETURN NEW;
 END;
 $$;
@@ -542,6 +703,49 @@ AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
+END;
+$$;
+```
+
+### has_role()
+Check if user has specific role.
+
+```sql
+CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role app_role)
+RETURNS boolean
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.user_roles
+    WHERE user_id = _user_id
+      AND role = _role
+  )
+$$;
+```
+
+### admin_delete_user()
+Admin function to delete users.
+
+```sql
+CREATE OR REPLACE FUNCTION public.admin_delete_user(_user_id UUID)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+  -- Verify caller is admin
+  IF NOT has_role(auth.uid(), 'admin'::app_role) THEN
+    RAISE EXCEPTION 'Access denied: Admin role required';
+  END IF;
+  
+  -- Delete user profile (will cascade to related data via foreign keys)
+  DELETE FROM public.profiles WHERE id = _user_id;
+  
+  RETURN TRUE;
 END;
 $$;
 ```
@@ -572,6 +776,10 @@ CREATE INDEX idx_challenge_progress_user ON player_challenge_progress(user_id);
 -- Gallery queries
 CREATE INDEX idx_gallery_user ON gallery_photos(user_id, created_at DESC);
 CREATE INDEX idx_gallery_favorite ON gallery_photos(user_id, is_favorite);
+
+-- Error logs
+CREATE INDEX idx_error_logs_created ON error_logs(created_at DESC);
+CREATE INDEX idx_error_logs_type ON error_logs(error_type);
 ```
 
 ---
@@ -591,3 +799,5 @@ All tables have RLS enabled. See [SECURITY.md](./SECURITY.md) for detailed polic
 | trade_offers | ❌ | ✅ | Sender/recipient access |
 | gallery_photos | ❌ | ✅ | Owner access only |
 | error_logs | ❌ | ✅ | Owner access only |
+| player_activity_log | ❌ | ✅ | Owner access only |
+| admin_* tables | ❌ | Admin only | Admin access only |
