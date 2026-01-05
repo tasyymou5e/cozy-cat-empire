@@ -8,12 +8,13 @@ export interface PlayerProfile {
   id: string;
   display_name: string | null;
   avatar_emoji: string;
+  username: string | null;
 }
 
 /**
  * Hook for managing player profile data
  *
- * Handles fetching and updating the player's display name and avatar.
+ * Handles fetching and updating the player's display name, avatar, and username.
  *
  * @param userId - The current user's ID
  * @returns Profile data and update function
@@ -22,8 +23,8 @@ export interface PlayerProfile {
  * ```tsx
  * const { profile, updateProfile } = usePlayerProfile(userId);
  *
- * // Update display name and avatar
- * await updateProfile('NewName', '🐱');
+ * // Update display name, avatar, and username
+ * await updateProfile('NewName', '🐱', 'newusername');
  * ```
  */
 export function usePlayerProfile(userId: string | undefined) {
@@ -41,7 +42,7 @@ export function usePlayerProfile(userId: string | undefined) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_emoji')
+        .select('id, display_name, avatar_emoji, username')
         .eq('id', userId)
         .maybeSingle();
 
@@ -51,6 +52,7 @@ export function usePlayerProfile(userId: string | undefined) {
         id: data.id,
         display_name: data.display_name,
         avatar_emoji: data.avatar_emoji || '😺',
+        username: data.username,
       } : null);
     } catch (err) {
       console.error('Failed to fetch profile:', err);
@@ -65,19 +67,35 @@ export function usePlayerProfile(userId: string | undefined) {
 
   const updateProfile = useCallback(async (
     displayName: string,
-    avatarEmoji: string
+    avatarEmoji: string,
+    username?: string
   ): Promise<{ success: boolean; error?: string }> => {
     if (!userId) return { success: false, error: 'Not logged in' };
 
     try {
+      const updateData: Record<string, any> = { 
+        display_name: displayName, 
+        avatar_emoji: avatarEmoji 
+      };
+      
+      // Only include username if provided
+      if (username !== undefined) {
+        updateData.username = username.trim().toLowerCase() || null;
+      }
+      
       const { error } = await supabase
         .from('profiles')
-        .update({ display_name: displayName, avatar_emoji: avatarEmoji })
+        .update(updateData)
         .eq('id', userId);
 
       if (error) throw error;
 
-      setProfile(prev => prev ? { ...prev, display_name: displayName, avatar_emoji: avatarEmoji } : null);
+      setProfile(prev => prev ? { 
+        ...prev, 
+        display_name: displayName, 
+        avatar_emoji: avatarEmoji,
+        username: username !== undefined ? (username.trim().toLowerCase() || null) : prev.username
+      } : null);
       return { success: true };
     } catch (err) {
       console.error('Failed to update profile:', err);

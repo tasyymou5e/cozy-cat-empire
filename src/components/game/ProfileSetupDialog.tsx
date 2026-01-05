@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
-import { Check, Sparkles, Shuffle, Loader2 } from 'lucide-react';
+import { Check, Sparkles, Shuffle, Loader2, AtSign, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,37 +25,144 @@ export function ProfileSetupDialog({ userId }: ProfileSetupDialogProps) {
   const { profile, loading, updateProfile } = usePlayerProfile(userId);
   const [open, setOpen] = useState(false);
   const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
   const [avatarEmoji, setAvatarEmoji] = useState('😺');
   const [saving, setSaving] = useState(false);
+  
+  // Display name state
   const [nameSuggestions, setNameSuggestions] = useState<string[]>([]);
   const [isCheckingName, setIsCheckingName] = useState(false);
   const [nameError, setNameError] = useState('');
+  const [nameAvailable, setNameAvailable] = useState<boolean | null>(null);
+  
+  // Username state
+  const [usernameSuggestions, setUsernameSuggestions] = useState<string[]>([]);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (loading || !userId) return;
     
     // Only show for legacy users who don't have a display_name
-    // New users set their profile during signup
     const needsSetup = !profile?.display_name;
     
     if (needsSetup) {
       setOpen(true);
       setAvatarEmoji(profile?.avatar_emoji || '😺');
+      setUsername(profile?.username || '');
     }
   }, [profile, loading, userId]);
 
-  // Check display name availability
-  const checkDisplayNameAvailability = async (name: string): Promise<boolean> => {
+  // Validate display name with edge function
+  const validateDisplayName = async (name: string) => {
     const sanitized = name.trim();
-    if (sanitized.length < 3) return false;
+    if (sanitized.length < 3) {
+      setNameError('Display name must be at least 3 characters');
+      setNameAvailable(null);
+      return;
+    }
     
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('display_name')
-      .ilike('display_name', sanitized)
-      .limit(1);
+    setIsCheckingName(true);
+    setNameError('');
+    setNameSuggestions([]);
     
-    return !error && (!data || data.length === 0);
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-display-name', {
+        body: { displayName: sanitized, action: 'validate', excludeUserId: userId }
+      });
+      
+      if (error) throw error;
+      
+      if (data.profanityViolation) {
+        setNameError('Display name contains inappropriate content');
+        setNameAvailable(false);
+      } else if (!data.available) {
+        setNameError('This name is already taken');
+        setNameAvailable(false);
+        setNameSuggestions(data.suggestions || []);
+      } else if (!data.valid) {
+        setNameError(data.error || 'Invalid display name');
+        setNameAvailable(null);
+      } else {
+        setNameAvailable(true);
+      }
+    } catch (err) {
+      console.error('Failed to validate display name:', err);
+      // Fallback to local check
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, display_name')
+        .ilike('display_name', sanitized)
+        .limit(1);
+      
+      const isTaken = data && data.length > 0 && data[0].id !== userId;
+      setNameAvailable(!isTaken);
+      if (isTaken) {
+        setNameError('This name is already taken');
+        setNameSuggestions(generateNameSuggestions(sanitized));
+      }
+    } finally {
+      setIsCheckingName(false);
+    }
+  };
+
+  // Validate username with edge function
+  const validateUsername = async (name: string) => {
+    const sanitized = name.trim().toLowerCase();
+    if (!sanitized) {
+      setUsernameAvailable(null);
+      setUsernameError('');
+      return;
+    }
+    if (sanitized.length < 3) {
+      setUsernameError('Username must be at least 3 characters');
+      setUsernameAvailable(null);
+      return;
+    }
+    
+    setIsCheckingUsername(true);
+    setUsernameError('');
+    setUsernameSuggestions([]);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-display-name', {
+        body: { username: sanitized, action: 'validate_username', excludeUserId: userId }
+      });
+      
+      if (error) throw error;
+      
+      if (data.profanityViolation) {
+        setUsernameError('Username contains inappropriate content');
+        setUsernameAvailable(false);
+      } else if (!data.available) {
+        setUsernameError('This username is already taken');
+        setUsernameAvailable(false);
+        setUsernameSuggestions(data.suggestions || []);
+      } else if (!data.valid) {
+        setUsernameError(data.error || 'Invalid username');
+        setUsernameAvailable(null);
+      } else {
+        setUsernameAvailable(true);
+      }
+    } catch (err) {
+      console.error('Failed to validate username:', err);
+      // Fallback
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .ilike('username', sanitized)
+        .limit(1);
+      
+      const isTaken = data && data.length > 0 && data[0].id !== userId;
+      setUsernameAvailable(!isTaken);
+      if (isTaken) {
+        setUsernameError('This username is already taken');
+        setUsernameSuggestions(generateUsernameSuggestions(sanitized));
+      }
+    } finally {
+      setIsCheckingUsername(false);
+    }
   };
 
   // Generate name suggestions
@@ -79,86 +186,111 @@ export function ProfileSetupDialog({ userId }: ProfileSetupDialogProps) {
     return suggestions.slice(0, 5);
   };
 
-  // Check name on blur
-  const handleNameBlur = async () => {
-    if (!displayName.trim()) return;
+  const generateUsernameSuggestions = (baseName: string): string[] => {
+    const suggestions: string[] = [];
+    const clean = baseName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
     
-    // Validate format
-    const sanitized = displayName.trim();
-    if (sanitized.length < 3) {
-      setNameError('Display name must be at least 3 characters');
-      setNameSuggestions([]);
-      return;
-    }
-    if (sanitized.length > 30) {
-      setNameError('Display name must be 30 characters or less');
-      setNameSuggestions([]);
-      return;
-    }
-    if (!/^[a-zA-Z0-9\s_-]+$/.test(sanitized)) {
-      setNameError('Only letters, numbers, spaces, underscores, and hyphens allowed');
-      setNameSuggestions([]);
-      return;
-    }
+    if (clean.length < 2) return suggestions;
     
-    setIsCheckingName(true);
-    setNameError('');
-    setNameSuggestions([]);
+    const base = /^[a-zA-Z]/.test(clean) ? clean : `cat${clean}`;
     
-    const isAvailable = await checkDisplayNameAvailability(displayName);
+    suggestions.push(`${base}${Math.floor(Math.random() * 999)}`);
+    suggestions.push(`${base}_${Math.floor(Math.random() * 99)}`);
+    suggestions.push(`${base}_cat`);
+    suggestions.push(`meow_${base}`);
     
-    if (!isAvailable) {
-      setNameError('This name is already taken');
-      setNameSuggestions(generateNameSuggestions(displayName));
-    }
-    
-    setIsCheckingName(false);
+    return suggestions.slice(0, 5);
   };
 
-  // Regenerate suggestions
-  const handleRegenerateSuggestions = () => {
+  const handleNameBlur = () => {
     if (displayName.trim()) {
-      setNameSuggestions(generateNameSuggestions(displayName));
+      validateDisplayName(displayName);
     }
   };
 
-  // Select a suggestion
-  const handleSelectSuggestion = (suggestion: string) => {
+  const handleUsernameBlur = () => {
+    if (username.trim()) {
+      validateUsername(username);
+    }
+  };
+
+  const handleSelectNameSuggestion = (suggestion: string) => {
     setDisplayName(suggestion);
     setNameError('');
     setNameSuggestions([]);
+    setNameAvailable(null);
+    validateDisplayName(suggestion);
+  };
+
+  const handleSelectUsernameSuggestion = (suggestion: string) => {
+    setUsername(suggestion);
+    setUsernameError('');
+    setUsernameSuggestions([]);
+    setUsernameAvailable(null);
+    validateUsername(suggestion);
   };
 
   const handleSave = async () => {
-    const sanitized = displayName.trim();
+    const sanitizedName = displayName.trim();
+    const sanitizedUsername = username.trim().toLowerCase();
     
-    if (!sanitized) {
+    if (!sanitizedName) {
       toast.error('Please enter a display name');
       return;
     }
     
-    if (sanitized.length < 3 || sanitized.length > 30) {
+    if (sanitizedName.length < 3 || sanitizedName.length > 30) {
       toast.error('Display name must be 3-30 characters');
       return;
     }
     
-    if (!/^[a-zA-Z0-9\s_-]+$/.test(sanitized)) {
+    if (!/^[a-zA-Z0-9\s_-]+$/.test(sanitizedName)) {
       toast.error('Invalid characters in display name');
+      return;
+    }
+
+    if (sanitizedUsername && !/^[a-zA-Z][a-zA-Z0-9_]*$/.test(sanitizedUsername)) {
+      toast.error('Invalid username format');
+      return;
+    }
+
+    if (nameAvailable === false || usernameAvailable === false) {
+      toast.error('Please fix the validation errors');
       return;
     }
 
     setSaving(true);
     
-    // Check availability before saving
-    const isAvailable = await checkDisplayNameAvailability(sanitized);
-    if (!isAvailable) {
-      setNameError('This name is already taken');
-      setNameSuggestions(generateNameSuggestions(displayName));
-      setSaving(false);
-      return;
+    // Final validation
+    try {
+      const { data: nameCheck } = await supabase.functions.invoke('validate-display-name', {
+        body: { displayName: sanitizedName, action: 'validate', excludeUserId: userId }
+      });
+      
+      if (nameCheck?.profanityViolation || !nameCheck?.available) {
+        setNameError(nameCheck?.profanityViolation ? 'Display name contains inappropriate content' : 'This name is already taken');
+        setNameAvailable(false);
+        setSaving(false);
+        return;
+      }
+
+      if (sanitizedUsername) {
+        const { data: usernameCheck } = await supabase.functions.invoke('validate-display-name', {
+          body: { username: sanitizedUsername, action: 'validate_username', excludeUserId: userId }
+        });
+        
+        if (usernameCheck?.profanityViolation || !usernameCheck?.available) {
+          setUsernameError(usernameCheck?.profanityViolation ? 'Username contains inappropriate content' : 'This username is already taken');
+          setUsernameAvailable(false);
+          setSaving(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Validation error:', err);
     }
     
-    const result = await updateProfile(sanitized, avatarEmoji);
+    const result = await updateProfile(sanitizedName, avatarEmoji, sanitizedUsername || undefined);
     setSaving(false);
 
     if (result.success) {
@@ -169,7 +301,8 @@ export function ProfileSetupDialog({ userId }: ProfileSetupDialogProps) {
     }
   };
 
-  // Make dialog non-dismissable for legacy users who need to set up profile
+  const hasErrors = nameError || usernameError || nameAvailable === false || usernameAvailable === false;
+
   return (
     <Dialog open={open} onOpenChange={() => {/* Cannot close without saving */}}>
       <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
@@ -217,34 +350,35 @@ export function ProfileSetupDialog({ userId }: ProfileSetupDialogProps) {
                   setDisplayName(e.target.value);
                   setNameError('');
                   setNameSuggestions([]);
+                  setNameAvailable(null);
                 }}
                 onBlur={handleNameBlur}
                 maxLength={30}
-                className={nameError ? 'border-destructive' : ''}
+                className={`pr-10 ${nameError ? 'border-destructive' : nameAvailable === true ? 'border-green-500' : ''}`}
               />
-              {isCheckingName && (
-                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-              )}
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                {isCheckingName && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                {nameAvailable === true && <Check className="h-4 w-4 text-green-500" />}
+                {nameAvailable === false && <AlertCircle className="h-4 w-4 text-destructive" />}
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               3-30 characters. Letters, numbers, spaces, underscores, hyphens only.
             </p>
             
-            {/* Name Error */}
             {nameError && (
               <p className="text-sm text-destructive flex items-center gap-1">
                 <span>😿</span> {nameError}
               </p>
             )}
             
-            {/* Name Suggestions */}
             {nameSuggestions.length > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Try one of these:</span>
                   <button
                     type="button"
-                    onClick={handleRegenerateSuggestions}
+                    onClick={() => setNameSuggestions(generateNameSuggestions(displayName))}
                     className="text-xs text-primary hover:underline flex items-center gap-1"
                   >
                     <Shuffle className="h-3 w-3" />
@@ -256,10 +390,78 @@ export function ProfileSetupDialog({ userId }: ProfileSetupDialogProps) {
                     <button
                       key={suggestion}
                       type="button"
-                      onClick={() => handleSelectSuggestion(suggestion)}
+                      onClick={() => handleSelectNameSuggestion(suggestion)}
                       className="px-3 py-1 text-sm bg-primary/10 hover:bg-primary/20 rounded-full border border-primary/20 transition-colors"
                     >
                       {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Username Input */}
+          <div className="space-y-2">
+            <Label htmlFor="dialogUsername" className="flex items-center gap-1">
+              <AtSign className="h-3 w-3" />
+              Username (optional)
+            </Label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</div>
+              <Input
+                id="dialogUsername"
+                placeholder="coolcat"
+                value={username}
+                onChange={(e) => {
+                  const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                  setUsername(value);
+                  setUsernameError('');
+                  setUsernameSuggestions([]);
+                  setUsernameAvailable(null);
+                }}
+                onBlur={handleUsernameBlur}
+                maxLength={20}
+                className={`pl-8 pr-10 ${usernameError ? 'border-destructive' : usernameAvailable === true ? 'border-green-500' : ''}`}
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                {isCheckingUsername && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                {usernameAvailable === true && <Check className="h-4 w-4 text-green-500" />}
+                {usernameAvailable === false && <AlertCircle className="h-4 w-4 text-destructive" />}
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              For @mentions (3-20 chars, starts with letter, a-z, 0-9, _)
+            </p>
+            
+            {usernameError && (
+              <p className="text-sm text-destructive flex items-center gap-1">
+                <span>😿</span> {usernameError}
+              </p>
+            )}
+            
+            {usernameSuggestions.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Try one of these:</span>
+                  <button
+                    type="button"
+                    onClick={() => setUsernameSuggestions(generateUsernameSuggestions(username))}
+                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                  >
+                    <Shuffle className="h-3 w-3" />
+                    More
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {usernameSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => handleSelectUsernameSuggestion(suggestion)}
+                      className="px-3 py-1 text-sm bg-primary/10 hover:bg-primary/20 rounded-full border border-primary/20 transition-colors"
+                    >
+                      @{suggestion}
                     </button>
                   ))}
                 </div>
@@ -271,7 +473,7 @@ export function ProfileSetupDialog({ userId }: ProfileSetupDialogProps) {
         <DialogFooter>
           <Button 
             onClick={handleSave} 
-            disabled={saving || !displayName.trim() || !!nameError}
+            disabled={saving || !displayName.trim() || !!hasErrors}
             className="w-full"
           >
             {saving ? (

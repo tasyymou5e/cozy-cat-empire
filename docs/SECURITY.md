@@ -296,17 +296,74 @@ const authSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-// Profile validation
-const profileSchema = z.object({
-  display_name: z.string().trim().max(30).optional(),
-  avatar_emoji: z.string().max(4).optional(),
+// Signup validation (includes display name and username)
+const signupSchema = z.object({
+  email: z.string().trim().email({ message: 'Invalid email address' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  displayName: z.string()
+    .trim()
+    .min(3, { message: 'Display name must be at least 3 characters' })
+    .max(30, { message: 'Display name must be 30 characters or less' })
+    .regex(/^[a-zA-Z0-9\s_-]+$/, { 
+      message: 'Only letters, numbers, spaces, underscores, and hyphens allowed' 
+    }),
+  username: z.string()
+    .trim()
+    .min(3, { message: 'Username must be at least 3 characters' })
+    .max(20, { message: 'Username must be 20 characters or less' })
+    .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, { 
+      message: 'Username must start with a letter and contain only letters, numbers, and underscores' 
+    }),
 });
 ```
+
+### Profanity Filter
+The `validate-display-name` edge function includes a comprehensive profanity filter:
+
+**Features:**
+- 100+ common profane words blocked
+- Leetspeak detection (e.g., `@$$` → `ass`, `sh1t` → `shit`)
+- Repeated character normalization (e.g., `fuuuuck` → `fuck`)
+- Spacing bypass detection (e.g., `f.u.c.k`, `s_h_i_t`)
+- Whitelist for common false positives (Scunthorpe problem)
+- Multi-language support (English primary, basic Spanish/Portuguese)
+
+**Implementation:**
+```typescript
+// Leetspeak normalization
+const LEETSPEAK_MAP = {
+  '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's',
+  '7': 't', '8': 'b', '@': 'a', '$': 's', '!': 'i',
+};
+
+// Text normalization before checking
+function normalizeText(text: string): string {
+  let normalized = text.toLowerCase();
+  for (const [leet, letter] of Object.entries(LEETSPEAK_MAP)) {
+    normalized = normalized.split(leet).join(letter);
+  }
+  normalized = normalized.replace(/(.)\1{2,}/g, '$1');
+  normalized = normalized.replace(/[\s_.,-]/g, '');
+  return normalized;
+}
+```
+
+### Username Validation Rules
+
+| Rule | Value | Description |
+|------|-------|-------------|
+| Minimum length | 3 | Short usernames reserved |
+| Maximum length | 20 | Fits in UI elements |
+| Allowed characters | `a-z`, `0-9`, `_` | Simple, clean format |
+| Must start with | Letter | Prevents confusion |
+| Case sensitivity | Insensitive | `CoolCat` = `coolcat` |
+| Uniqueness | Required | Unique index enforced |
 
 ### Data Sanitization
 - Error messages truncated to 5,000 characters
 - Error stacks truncated to 10,000 characters
 - User agent strings captured for debugging
+- Display names and usernames validated server-side before storage
 
 ---
 
@@ -319,6 +376,8 @@ These functions have `verify_jwt = false`:
 - `send-push-notification` - Internal notification service
 - `send-password-reset` - Public password reset
 - `cleanup-error-logs` - Scheduled daily cleanup (called via pg_cron)
+- `validate-display-name` - Validates display names and usernames with profanity filter
+- `manage-portrait-credits` - Portrait credit management
 
 ### Protected Edge Functions
 These functions require authentication:
