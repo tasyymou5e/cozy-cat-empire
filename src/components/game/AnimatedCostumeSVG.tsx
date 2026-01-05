@@ -7,7 +7,7 @@
 
 import React, { useMemo } from 'react';
 import { VectorCostume } from '@/lib/costumeVectors';
-import { GRAPHICS_CONFIG } from '@/config/graphics';
+import { useGraphicsSettings } from '@/hooks/useGraphicsSettings';
 import { cn } from '@/lib/utils';
 
 interface AnimatedCostumeSVGProps {
@@ -45,8 +45,10 @@ export function AnimatedCostumeSVG({
   isAnimated = true,
   className,
 }: AnimatedCostumeSVGProps) {
+  const { settings } = useGraphicsSettings();
   const scale = costume.scales[size] || costume.scales.md || 1;
-  const shouldAnimate = isAnimated && GRAPHICS_CONFIG.enableCostumeAnimations;
+  const shouldAnimate = isAnimated && settings.enableCostumeAnimations;
+  const shouldShowParticles = shouldAnimate && settings.enableParticles;
   
   // Get animation class
   const animationClass = useMemo(() => {
@@ -56,7 +58,7 @@ export function AnimatedCostumeSVG({
 
   // Render particles if costume has them
   const renderParticles = () => {
-    if (!shouldAnimate || !costume.particles) return null;
+    if (!shouldShowParticles || !costume.particles) return null;
     
     const { type, count, color } = costume.particles;
     const particleColor = color || '#FFD700';

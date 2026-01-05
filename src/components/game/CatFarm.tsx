@@ -52,6 +52,7 @@ import { TradingPanel } from './TradingPanel';
 import { NotificationCenter } from './NotificationCenter';
 import { WeeklyChallengesPanel } from './WeeklyChallengesPanel';
 import { WhatsNewPopup } from './WhatsNewPopup';
+import { GraphicsSettingsPanel } from './GraphicsSettingsPanel';
 import { CURRENT_VERSION } from '@/types/changelog';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { CatGridSkeleton } from './CatGridSkeleton';
@@ -834,6 +835,7 @@ export function CatFarm() {
               <AchievementsPanel achievements={state.achievements}
                 currentStats={{ cats: state.cats.length, showWins: state.totalShowWins, money: state.totalMoneyEarned,
                   breeding: kittensBreed, house: state.houseSize !== 'apartment', farm: state.houseSize === 'farm', acres: state.acres, challengesCompleted: totalChallengesCompleted }} />
+              <GraphicsSettingsPanel />
               <SaveLoadPanel 
                 onSave={user ? handleCloudSave : actions.saveGame} 
                 onLoad={user ? handleCloudLoad : actions.loadGame} 
