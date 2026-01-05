@@ -21,6 +21,7 @@
 | [UNIFIED_CAT_VISUALS.md](UNIFIED_CAT_VISUALS.md) | UnifiedCatCard component system |
 | [ARCHITECTURE_DIAGRAMS.md](ARCHITECTURE_DIAGRAMS.md) | Visual architecture diagrams |
 | [GAMIFICATION_IMPROVEMENTS_PLAN.md](GAMIFICATION_IMPROVEMENTS_PLAN.md) | 8 gamification systems (all implemented) |
+| [NAVIGATION_IMPROVEMENTS.md](NAVIGATION_IMPROVEMENTS.md) | 8-phase UI navigation improvement plan |
 | [PAGES_AND_COMPONENTS.md](PAGES_AND_COMPONENTS.md) | Page and component reference |
 
 ---
