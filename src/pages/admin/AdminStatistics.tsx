@@ -1,5 +1,5 @@
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { useAdminStats, useAdminUsers } from '@/hooks/useAdminData';
+import { useAdminStats, useAdminUsers, useAdminRetentionAnalytics } from '@/hooks/useAdminData';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -23,8 +23,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  AreaChart,
-  Area,
 } from 'recharts';
 import {
   TrendingUp,
@@ -33,15 +31,20 @@ import {
   Users,
   Coins,
   PiggyBank,
+  CalendarDays,
+  Flame,
+  Activity,
 } from 'lucide-react';
 import { useMemo } from 'react';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
 const WEALTH_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+const STREAK_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))', 'hsl(var(--primary))'];
 
 export default function AdminStatistics() {
   const { data: stats, isLoading: statsLoading } = useAdminStats();
   const { data: usersData, isLoading: usersLoading } = useAdminUsers({ pageSize: 100 });
+  const { data: retentionData, isLoading: retentionLoading } = useAdminRetentionAnalytics();
 
   const gameMetrics = [
     { name: 'Total Cats', value: stats?.totalCats ?? 0 },
@@ -163,6 +166,7 @@ export default function AdminStatistics() {
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="economy">Economy</TabsTrigger>
+            <TabsTrigger value="retention">Retention</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -606,6 +610,182 @@ export default function AdminStatistics() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="retention" className="space-y-6">
+            {/* Retention Stats Cards */}
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    DAU
+                  </CardTitle>
+                  <Activity className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                  {retentionLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold">{retentionData?.dau ?? 0}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {(retentionData?.dauPercent ?? 0).toFixed(1)}% of users
+                      </p>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    WAU
+                  </CardTitle>
+                  <CalendarDays className="h-4 w-4 text-blue-500" />
+                </CardHeader>
+                <CardContent>
+                  {retentionLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold">{retentionData?.wau ?? 0}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {(retentionData?.wauPercent ?? 0).toFixed(1)}% of users
+                      </p>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    MAU
+                  </CardTitle>
+                  <Users className="h-4 w-4 text-purple-500" />
+                </CardHeader>
+                <CardContent>
+                  {retentionLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold">{retentionData?.mau ?? 0}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {(retentionData?.mauPercent ?? 0).toFixed(1)}% of users
+                      </p>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Avg Streak
+                  </CardTitle>
+                  <Flame className="h-4 w-4 text-orange-500" />
+                </CardHeader>
+                <CardContent>
+                  {retentionLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold">{(retentionData?.avgStreak ?? 0).toFixed(1)}</div>
+                      <p className="text-xs text-muted-foreground">
+                        Max: {retentionData?.maxStreak ?? 0} days
+                      </p>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Streak Distribution */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Flame className="h-5 w-5 text-orange-500" />
+                    Login Streak Distribution
+                  </CardTitle>
+                  <CardDescription>Number of players in each streak range</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {retentionLoading ? (
+                    <Skeleton className="h-64 w-full" />
+                  ) : retentionData?.streakDistribution ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={retentionData.streakDistribution}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="range" tick={{ fontSize: 12 }} />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                          {retentionData.streakDistribution.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={STREAK_COLORS[index % STREAK_COLORS.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-64 flex items-center justify-center text-muted-foreground">
+                      No data available
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Activity Metrics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-green-500" />
+                    Activity Summary
+                  </CardTitle>
+                  <CardDescription>User engagement metrics</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {retentionLoading ? (
+                    <div className="space-y-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Skeleton key={i} className="h-8 w-full" />
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                        <span className="text-sm">Total Users</span>
+                        <span className="font-bold">{retentionData?.totalUsers ?? 0}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                        <span className="text-sm">Total Logins (All Time)</span>
+                        <span className="font-bold">{(retentionData?.totalLogins ?? 0).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                        <span className="text-sm">DAU/MAU Ratio</span>
+                        <Badge variant={
+                          (retentionData?.dau && retentionData?.mau && retentionData.mau > 0)
+                            ? (retentionData.dau / retentionData.mau) > 0.2 ? 'default' : 'secondary'
+                            : 'secondary'
+                        }>
+                          {retentionData?.mau && retentionData.mau > 0
+                            ? ((retentionData.dau / retentionData.mau) * 100).toFixed(1)
+                            : 0}%
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                        <span className="text-sm">Longest Streak</span>
+                        <div className="flex items-center gap-1">
+                          <Flame className="h-4 w-4 text-orange-500" />
+                          <span className="font-bold">{retentionData?.maxStreak ?? 0} days</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                        <span className="text-sm">Avg Login Streak</span>
+                        <span className="font-bold">{(retentionData?.avgStreak ?? 0).toFixed(1)} days</span>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
