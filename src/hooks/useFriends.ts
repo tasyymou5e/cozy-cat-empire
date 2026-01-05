@@ -8,6 +8,7 @@ export interface Friend {
   id: string;
   friend_id: string;
   display_name: string | null;
+  username: string | null;
   avatar_emoji: string;
   status: 'pending' | 'accepted' | 'blocked';
   created_at: string;
@@ -25,6 +26,7 @@ export interface FriendRequest {
   id: string;
   user_id: string;
   display_name: string | null;
+  username: string | null;
   avatar_emoji: string;
   created_at: string;
 }
@@ -73,10 +75,10 @@ export function useFriends(userId: string | undefined) {
       );
 
       if (friendIds.length > 0) {
-        // Fetch friend profiles and stats
+        // Fetch friend profiles (with username) and stats
         const { data: profiles } = await supabase
-          .from('public_profiles')
-          .select('id, display_name, avatar_emoji')
+          .from('profiles')
+          .select('id, display_name, avatar_emoji, username')
           .in('id', friendIds);
 
         const { data: stats } = await supabase
@@ -93,6 +95,7 @@ export function useFriends(userId: string | undefined) {
             id: f.id,
             friend_id: friendId,
             display_name: profile?.display_name || null,
+            username: profile?.username || null,
             avatar_emoji: profile?.avatar_emoji || '😺',
             status: f.status as 'accepted',
             created_at: f.created_at,
@@ -121,8 +124,8 @@ export function useFriends(userId: string | undefined) {
       if (pendingData && pendingData.length > 0) {
         const senderIds = pendingData.map(p => p.user_id);
         const { data: senderProfiles } = await supabase
-          .from('public_profiles')
-          .select('id, display_name, avatar_emoji')
+          .from('profiles')
+          .select('id, display_name, avatar_emoji, username')
           .in('id', senderIds);
 
         const requests: FriendRequest[] = pendingData.map(p => {
@@ -131,6 +134,7 @@ export function useFriends(userId: string | undefined) {
             id: p.id,
             user_id: p.user_id,
             display_name: profile?.display_name || null,
+            username: profile?.username || null,
             avatar_emoji: profile?.avatar_emoji || '😺',
             created_at: p.created_at,
           };
@@ -155,11 +159,12 @@ export function useFriends(userId: string | undefined) {
     if (!userId) return { success: false, error: 'Not logged in' };
 
     try {
-      // Find user by display_name
+      // Find user by display_name OR username
+      const searchTerm = friendUsername.trim();
       const { data: profiles, error: searchError } = await supabase
-        .from('public_profiles')
-        .select('id, display_name')
-        .ilike('display_name', friendUsername)
+        .from('profiles')
+        .select('id, display_name, username')
+        .or(`display_name.ilike.${searchTerm},username.ilike.${searchTerm}`)
         .limit(1);
 
       if (searchError) throw searchError;
