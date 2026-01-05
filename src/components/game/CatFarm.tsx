@@ -17,6 +17,7 @@ import { useDailyObjectives } from '@/hooks/useDailyObjectives';
 import { useCollectionProgress } from '@/hooks/useCollectionProgress';
 import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 import { useLegacy } from '@/hooks/useLegacy';
+import { useSpecializations } from '@/hooks/useSpecializations';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -49,6 +50,7 @@ import { DailyObjectivesPanel } from './DailyObjectivesPanel';
 import { CollectionProgressPanel } from './CollectionProgressPanel';
 import { LuckyWheelPanel } from './LuckyWheelPanel';
 import { HallOfFamePanel } from './HallOfFamePanel';
+import { SpecializationPanel } from './SpecializationPanel';
 import { useCatGifts } from '@/hooks/useCatGifts';
 import { useTrading } from '@/hooks/useTrading';
 import { usePlayerActivityLog } from '@/hooks/usePlayerActivityLog';
@@ -154,6 +156,9 @@ export function CatFarm() {
   
   // Hall of Fame / Legacy system
   const { retiredCats, totalLegacyBonus, retireCat, canRetire, getEligibility, getKittenBonuses } = useLegacy();
+  
+  // Specialization system
+  const { specializations, specializeCat, getSpecialization, addXP, canSpecialize, getActiveBonuses: getSpecBonuses, getSpecializedCats } = useSpecializations();
 
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
@@ -846,6 +851,7 @@ export function CatFarm() {
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="wheel" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'wheel' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Dices className="h-4 w-4" />{canSpin && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full animate-pulse" />}</TabsTrigger></TooltipTrigger><TooltipContent>Lucky Wheel</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="collection" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'collection' ? 'ring-2 ring-primary animate-pulse' : ''}`}><BookOpen className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Collection</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="legacy" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'legacy' ? 'ring-2 ring-primary animate-pulse' : ''}`}>👑{retiredCats.length > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-amber-500 rounded-full text-[10px] flex items-center justify-center text-white">{retiredCats.length}</span>}</TabsTrigger></TooltipTrigger><TooltipContent>Hall of Fame</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="specializations" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'specializations' ? 'ring-2 ring-primary animate-pulse' : ''}`}>✨{specializations.length > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-purple-500 rounded-full text-[10px] flex items-center justify-center text-white">{specializations.length}</span>}</TabsTrigger></TooltipTrigger><TooltipContent>Specializations</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger></TooltipTrigger><TooltipContent>Settings</TooltipContent></Tooltip>
             </TabsList>
           </TooltipProvider>
@@ -1030,6 +1036,19 @@ export function CatFarm() {
                 canRetire={canRetire}
                 getEligibility={getEligibility}
                 getKittenBonuses={getKittenBonuses}
+              />
+            </TabsContent>
+            <TabsContent value="specializations" className="mt-0">
+              <SpecializationPanel
+                cats={state.cats}
+                specializations={specializations}
+                catCostumes={state.catCostumes}
+                relationships={relationshipSystem.relationships}
+                kittensBred={kittensBreed}
+                onSpecialize={specializeCat}
+                canSpecialize={canSpecialize}
+                getSpecialization={getSpecialization}
+                getActiveBonuses={getSpecBonuses}
               />
             </TabsContent>
             <TabsContent value="more" className="mt-0 space-y-4">
