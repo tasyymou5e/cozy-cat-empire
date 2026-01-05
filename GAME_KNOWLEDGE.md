@@ -8,6 +8,7 @@
 > - [docs/TECH_STACK.md](docs/TECH_STACK.md) - Technology stack
 > - [docs/ERROR_LOGGING.md](docs/ERROR_LOGGING.md) - Error logging system
 > - [docs/SOCIAL_FEATURES.md](docs/SOCIAL_FEATURES.md) - Social & multiplayer features
+> - [docs/GAMIFICATION_IMPROVEMENTS_PLAN.md](docs/GAMIFICATION_IMPROVEMENTS_PLAN.md) - Gamification systems plan
 
 ## Overview
 Cat Farm is a browser-based idle/management game where players build a cat empire. Start with a small apartment and grow to own a 100-acre farm with dozens of cats. Features cloud saves, global leaderboards, social features, cat gifting, player trading, VIP rewards, weekly challenges, photo booth, and cat customization.
@@ -508,6 +509,25 @@ interface CatAppearance {
 
 - **photo-gallery**: Photo booth images (public)
 - **cat-portraits**: AI-generated portraits (public)
+
+---
+
+## Gamification Systems
+
+> See [docs/GAMIFICATION_IMPROVEMENTS_PLAN.md](docs/GAMIFICATION_IMPROVEMENTS_PLAN.md) for detailed implementation plan.
+
+### Implemented Features:
+
+| System | Description | Files |
+|--------|-------------|-------|
+| **Milestone Celebrations** | Visual celebrations for achievements with titles and rewards | `src/types/milestones.ts`, `src/hooks/useMilestones.ts`, `src/components/game/MilestonePopup.tsx` |
+| **Daily Objectives** | 3 rotating daily goals with bonus completion reward | `src/types/dailyObjectives.ts`, `src/hooks/useDailyObjectives.ts`, `src/components/game/DailyObjectivesPanel.tsx` |
+| **Collection Progress** | Track completion across breeds, personalities, costumes, tricks | `src/types/collections.ts`, `src/hooks/useCollectionProgress.ts`, `src/components/game/CollectionProgressPanel.tsx` |
+| **Lucky Wheel** | Daily spin with tiered prizes and VIP bonuses | `src/types/luckyWheel.ts`, `src/hooks/useLuckyWheel.ts`, `src/components/game/LuckyWheelPanel.tsx` |
+| **Cat Legacy/Hall of Fame** | Retire legendary cats for permanent bonuses | `src/types/legacy.ts`, `src/hooks/useLegacy.ts`, `src/components/game/HallOfFamePanel.tsx` |
+| **Specialization Paths** | Show Star, Social Butterfly, or Dynasty Builder paths | `src/types/specializations.ts`, `src/hooks/useSpecializations.ts`, `src/components/game/SpecializationPanel.tsx` |
+| **Seasonal Battle Pass** | Free and premium reward tracks with XP progression | `src/types/battlePass.ts`, `src/hooks/useBattlePass.ts`, `src/components/game/BattlePassPanel.tsx` |
+| **Cooperative Challenges** | Work with friends toward shared goals | `src/types/coopChallenges.ts`, `src/hooks/useCoopChallenges.ts`, `src/components/game/CoopChallengesPanel.tsx` |
 
 ---
 
