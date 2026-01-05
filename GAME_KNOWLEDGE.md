@@ -96,6 +96,18 @@ interface CatAppearance {
 - Compatibility affects breeding success
 - Groups form automatically among friends
 - Happiness modifiers based on relationships
+- **Relationship Decay System** - relationships deteriorate over time without interaction
+
+**Relationship Decay Rules:**
+| Days Since Interaction | Decay Amount | Effect |
+|------------------------|--------------|--------|
+| 3+ days | -1 point/day | Slow fade |
+| 5+ days | -2 points/day | Noticeable decline |
+| 7+ days | -3 points/day | Significant deterioration |
+
+- **Grace Period**: 3 days before decay starts
+- **Minimum Threshold**: Decay stops at -20 (rival level) - won't create enemies automatically
+- **Decay Events**: Generated when relationship level drops due to decay
 
 ### 5. Game State (`src/hooks/useGameState.ts`)
 
