@@ -797,6 +797,11 @@ export function CatFarm() {
               <Globe className="h-4 w-4" />
             </Button>
           </Link>
+          <Link to="/relationships">
+            <Button variant="ghost" size="sm" title="Cat Relationships" className="min-h-10 min-w-10">
+              💗
+            </Button>
+          </Link>
           <Link to="/stats">
             <Button variant="ghost" size="sm" title="Your Stats" className="min-h-10 min-w-10">
               <BarChart3 className="h-4 w-4" />

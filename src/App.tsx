@@ -15,6 +15,7 @@ import CatCollection from "./pages/CatCollection";
 import CatCustomization from "./pages/CatCustomization";
 import CatPhotoBooth from "./pages/CatPhotoBooth";
 import CatGallery from "./pages/CatGallery";
+import CatRelationships from "./pages/CatRelationships";
 import Leaderboard from "./pages/Leaderboard";
 import Stats from "./pages/Stats";
 import Auth from "./pages/Auth";
@@ -50,6 +51,7 @@ const App = () => {
                         <Route path="/customize/:catId?" element={<CatCustomization />} />
                         <Route path="/photobooth/:catId?" element={<CatPhotoBooth />} />
                         <Route path="/gallery" element={<CatGallery />} />
+                        <Route path="/relationships" element={<CatRelationships />} />
                         <Route path="/leaderboard" element={<Leaderboard />} />
                         <Route path="/stats" element={<Stats />} />
                         <Route path="/auth" element={<Auth />} />

@@ -193,6 +193,11 @@ export default function CatCollection() {
                     🖼️ Photo Gallery
                   </DropdownMenuItem>
                 </Link>
+                <Link to="/relationships">
+                  <DropdownMenuItem className="cursor-pointer">
+                    💗 Cat Relationships
+                  </DropdownMenuItem>
+                </Link>
               </DropdownMenuContent>
             </DropdownMenu>
             {state.cats.length > 0 && (
