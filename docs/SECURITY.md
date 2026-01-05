@@ -257,6 +257,10 @@ WITH CHECK (true);
 CREATE POLICY "Users can view their own errors"
 ON public.error_logs FOR SELECT
 USING (auth.uid() = user_id);
+
+-- Note: No UPDATE or DELETE allowed via RLS
+-- Cleanup is performed by cleanup-error-logs edge function using service role
+-- Automatic cleanup: Daily at 3 AM UTC, deletes logs older than 30 days
 ```
 
 ### Admin Tables
@@ -314,6 +318,7 @@ These functions have `verify_jwt = false`:
 - `generate-weekly-challenges` - Scheduled task
 - `send-push-notification` - Internal notification service
 - `send-password-reset` - Public password reset
+- `cleanup-error-logs` - Scheduled daily cleanup (called via pg_cron)
 
 ### Protected Edge Functions
 These functions require authentication:
@@ -406,9 +411,11 @@ const corsHeaders = {
 **Risk:** Attacker floods error_logs table.
 
 **Mitigation:**
+- **Client-side rate limiting**: 10 errors per minute max
 - Client-side deduplication (singleton pattern)
-- Message length limits
-- Database storage limits (not implemented, consider)
+- Message length limits (5,000 chars message, 10,000 chars stack)
+- **Automatic cleanup**: Daily cron job deletes logs older than 30 days
+- Database storage limits apply
 
 ### 6. Admin Impersonation
 **Risk:** User attempts to access admin features.

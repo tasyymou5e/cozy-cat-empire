@@ -1,7 +1,7 @@
 # Cat Farm - Component Architecture
 
 ## Overview
-Cat Farm uses a modular component architecture with 77+ game components, 42 custom hooks, 40+ UI primitives from shadcn/ui, and supporting components for error handling and navigation.
+Cat Farm uses a modular component architecture with 82+ game components, 42 custom hooks, 40+ UI primitives from shadcn/ui, and supporting components for error handling and navigation.
 
 ---
 
@@ -736,6 +736,61 @@ Located in `src/components/ui/`:
 
 ---
 
+## Navigation Components
+
+### CategoryTabBar.tsx
+Grouped two-tier tab navigation with 5 categories.
+
+**Props:**
+- `activeTab: string`
+- `onTabChange: (tab: string) => void`
+- `highlightedTab?: string`
+- `badges?: Record<string, number>`
+
+**Categories:** Farm, Cats, Social, Progress, Settings
+
+### QuickAccessMenu.tsx
+Quick access dropdown in header with recent tabs.
+
+**Features:**
+- Recent tabs section (last 4 visited)
+- External page links
+- Settings shortcut
+
+### MobileBottomNav.tsx
+Bottom navigation bar for mobile devices.
+
+**Props:**
+- `activeTab: string`
+- `onTabChange: (tab: string) => void`
+- `badges?: Record<string, number>`
+- `onMoreClick: () => void`
+
+### MobileMenuSheet.tsx
+Full-screen mobile menu sheet.
+
+### Breadcrumbs.tsx
+Breadcrumb navigation for external pages.
+
+---
+
+## Settings Components
+
+### GraphicsSettingsPanel.tsx
+Runtime graphics settings UI.
+
+**Settings Available:**
+- Enable animations
+- Enable particles
+- Enable tier glows
+- Avatar quality (low/medium/high)
+- Card border style
+- Portrait priority
+- Costume animations
+- Reduced motion
+
+---
+
 ## Error Handling Components
 
 ### ErrorBoundary.tsx
@@ -743,7 +798,7 @@ React error boundary wrapper.
 
 **Features:**
 - Catches React component errors
-- Logs to error_logs table
+- Logs to error_logs table with rate limiting
 - Shows user-friendly fallback UI
 - Retry button
 
@@ -754,6 +809,7 @@ Global error handler provider.
 - Uncaught exceptions
 - Unhandled promise rejections
 - User interactions for correlation
+- **Rate limiting**: 10 errors per minute max
 
 ---
 

@@ -399,7 +399,7 @@ interface CatAppearance {
 
 ---
 
-## Custom Hooks (32 total)
+## Custom Hooks (42 total)
 
 ### Core Game Hooks:
 - **useGameState.ts**: Core game logic + bulk actions
@@ -408,6 +408,7 @@ interface CatAppearance {
 - **useConfetti.ts**: Celebration effects
 - **useHaptics.ts**: Mobile haptic feedback
 - **useKeyboardShortcuts.ts**: Keyboard navigation
+- **useGraphicsSettings.ts**: Runtime graphics customization
 
 ### Cloud & Persistence:
 - **useCloudSave.ts**: Cloud persistence
@@ -423,6 +424,8 @@ interface CatAppearance {
 - **usePlayerProfile.ts**: Profile management
 - **usePlayerStats.ts**: Player statistics
 - **usePlayerActivityLog.ts**: Activity logging
+- **useCoopChallenges.ts**: Cooperative challenges
+- **useRelationshipReminders.ts**: Relationship decay notifications
 
 ### Leaderboard & Rewards:
 - **useGlobalLeaderboard.ts**: Global rankings
@@ -431,6 +434,13 @@ interface CatAppearance {
 - **useDailyLoginRewards.ts**: Login streaks + VIP
 - **useWeeklyChallenges.ts**: Challenge tracking
 - **useChallengeAchievements.ts**: Challenge-achievement linking
+- **useDailyObjectives.ts**: Daily objectives tracking
+- **useLuckyWheel.ts**: Daily spin wheel
+- **useBattlePass.ts**: Seasonal battle pass
+- **useMilestones.ts**: Milestone celebrations
+- **useCollectionProgress.ts**: Collection progress tracking
+- **useLegacy.ts**: Cat retirement/Hall of Fame
+- **useSpecializations.ts**: Cat specialization paths
 
 ### Admin Hooks:
 - **useAdminAuth.ts**: Admin authentication
@@ -439,7 +449,7 @@ interface CatAppearance {
 - **useAdminAIData.ts**: AI usage metrics
 
 ### Utility Hooks:
-- **useErrorLogger.ts**: Error logging system
+- **useErrorLogger.ts**: Error logging system with rate limiting
 - **usePortraitOutdatedToast.tsx**: Portrait update notifications
 - **useInfiniteScroll.ts**: Infinite scroll utility
 - **use-mobile.tsx**: Mobile detection
@@ -470,7 +480,7 @@ interface CatAppearance {
 
 ---
 
-## Edge Functions (6 total)
+## Edge Functions (7 total)
 
 - **process-leaderboard-rewards**: Process periodic leaderboard rewards
 - **generate-weekly-challenges**: Generate new weekly challenges
@@ -478,6 +488,7 @@ interface CatAppearance {
 - **send-push-notification**: Send web push notifications
 - **send-password-reset**: Password reset email
 - **admin-delete-user**: Admin user deletion
+- **cleanup-error-logs**: Daily cleanup of error logs older than 30 days
 
 ---
 
