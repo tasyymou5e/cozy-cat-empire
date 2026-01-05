@@ -226,59 +226,33 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
                 <Globe className="h-4 w-4" />
                 <span className="hidden sm:inline">Global</span>
               </ToggleGroupItem>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <ToggleGroupItem 
-                      value="friends" 
-                      aria-label="Friends leaderboard" 
-                      className="gap-1"
-                      disabled={!userId}
-                    >
-                      <Users className="h-4 w-4" />
-                      <span className="hidden sm:inline">Friends</span>
-                    </ToggleGroupItem>
-                  </span>
-                </TooltipTrigger>
-                {!userId && (
-                  <TooltipContent>
-                    <p>Log in to view friends leaderboard</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
+              <ToggleGroupItem 
+                value="friends" 
+                aria-label="Friends leaderboard" 
+                className="gap-1"
+                disabled={!userId}
+                title={!userId ? "Log in to view friends leaderboard" : undefined}
+              >
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Friends</span>
+              </ToggleGroupItem>
             </ToggleGroup>
           </TooltipProvider>
 
           {/* Scroll Mode Toggle */}
-          <TooltipProvider>
-            <ToggleGroup
-              type="single"
-              value={scrollMode}
-              onValueChange={(v) => v && setScrollMode(v as ScrollMode)}
-              className="justify-start"
-            >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <ToggleGroupItem value="pagination" aria-label="Pagination mode" className="gap-1">
-                    <Rows3 className="h-4 w-4" />
-                  </ToggleGroupItem>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Pagination</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <ToggleGroupItem value="infinite" aria-label="Infinite scroll mode" className="gap-1">
-                    <List className="h-4 w-4" />
-                  </ToggleGroupItem>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Infinite Scroll</p>
-                </TooltipContent>
-              </Tooltip>
-            </ToggleGroup>
-          </TooltipProvider>
+          <ToggleGroup
+            type="single"
+            value={scrollMode}
+            onValueChange={(v) => v && setScrollMode(v as ScrollMode)}
+            className="justify-start"
+          >
+            <ToggleGroupItem value="pagination" aria-label="Pagination mode" className="gap-1" title="Pagination">
+              <Rows3 className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="infinite" aria-label="Infinite scroll mode" className="gap-1" title="Infinite Scroll">
+              <List className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
 
           {/* Time Period Toggle */}
           <ToggleGroup
