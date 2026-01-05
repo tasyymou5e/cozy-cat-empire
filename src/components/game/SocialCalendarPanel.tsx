@@ -13,7 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Clock, CheckCircle, Heart } from 'lucide-react';
+import { AlertTriangle, Clock, CheckCircle, Heart, Sparkles } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface SocialCalendarPanelProps {
   cats: Cat[];
@@ -21,6 +22,8 @@ interface SocialCalendarPanelProps {
   currentDay: number;
   catCostumes?: Record<string, string>;
   onSocialize?: (cat1Id: string, cat2Id: string) => void;
+  /** Callback to navigate to Socialize panel with pre-selected cats */
+  onQuickSocialize?: (cat1Id: string, cat2Id: string) => void;
 }
 
 interface RelationshipWithDecay extends CatRelationship {
@@ -34,6 +37,7 @@ function RelationshipSection({
   cats, 
   catCostumes,
   colorClass,
+  onQuickSocialize,
 }: { 
   title: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -41,11 +45,24 @@ function RelationshipSection({
   cats: Cat[];
   catCostumes?: Record<string, string>;
   colorClass: string;
+  onQuickSocialize?: (cat1Id: string, cat2Id: string) => void;
 }) {
+  const { toast } = useToast();
   const getCatName = (catId: string) => cats.find(c => c.id === catId)?.name || 'Unknown';
   const getCat = (catId: string) => cats.find(c => c.id === catId);
   
   if (items.length === 0) return null;
+
+  const handleQuickSocialize = (rel: RelationshipWithDecay) => {
+    if (onQuickSocialize) {
+      onQuickSocialize(rel.catId1, rel.catId2);
+      toast({
+        title: "🤝 Quick Socialize",
+        description: `${getCatName(rel.catId1)} and ${getCatName(rel.catId2)} are ready to bond!`,
+        duration: 3000,
+      });
+    }
+  };
   
   return (
     <div className="mb-6">
@@ -60,6 +77,7 @@ function RelationshipSection({
         {items.map(rel => {
           const cat1 = getCat(rel.catId1);
           const cat2 = getCat(rel.catId2);
+          const showQuickSocialize = onQuickSocialize && rel.decayInfo.daysSinceInteraction >= 2;
           
           return (
             <div 
@@ -87,6 +105,17 @@ function RelationshipSection({
                   </span>
                 )}
               </div>
+              {showQuickSocialize && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-2 gap-2"
+                  onClick={() => handleQuickSocialize(rel)}
+                >
+                  <Sparkles className="h-3 w-3" />
+                  Quick Socialize
+                </Button>
+              )}
             </div>
           );
         })}
@@ -106,6 +135,7 @@ export function SocialCalendarPanel({
   relationships, 
   currentDay, 
   catCostumes,
+  onQuickSocialize,
 }: SocialCalendarPanelProps) {
   // Sort relationships by days since interaction (most neglected first)
   const sortedRelationships = useMemo(() => {
@@ -184,6 +214,7 @@ export function SocialCalendarPanel({
               cats={cats}
               catCostumes={catCostumes}
               colorClass="text-red-600"
+              onQuickSocialize={onQuickSocialize}
             />
             <RelationshipSection 
               title="⚠️ Warning (5-6 days)" 
@@ -192,6 +223,7 @@ export function SocialCalendarPanel({
               cats={cats}
               catCostumes={catCostumes}
               colorClass="text-orange-600"
+              onQuickSocialize={onQuickSocialize}
             />
             <RelationshipSection 
               title="💭 Needs Attention (3-4 days)" 
@@ -200,6 +232,7 @@ export function SocialCalendarPanel({
               cats={cats}
               catCostumes={catCostumes}
               colorClass="text-yellow-600"
+              onQuickSocialize={onQuickSocialize}
             />
             <RelationshipSection 
               title="✅ Healthy (0-2 days)" 
@@ -208,6 +241,7 @@ export function SocialCalendarPanel({
               cats={cats}
               catCostumes={catCostumes}
               colorClass="text-green-600"
+              onQuickSocialize={onQuickSocialize}
             />
           </ScrollArea>
         )}

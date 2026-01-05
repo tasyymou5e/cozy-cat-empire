@@ -497,7 +497,7 @@ Tracks consecutive days where all friendships are maintained within the grace pe
 
 **Component:** `src/components/game/SocialCalendarPanel.tsx`
 
-Dedicated view for relationship maintenance prioritization.
+Dedicated view for relationship maintenance prioritization with Quick Socialize integration.
 
 ```typescript
 interface SocialCalendarPanelProps {
@@ -506,6 +506,8 @@ interface SocialCalendarPanelProps {
   currentDay: number;
   catCostumes?: Record<string, string>;
   onSocialize?: (cat1Id: string, cat2Id: string) => void;
+  /** Callback to navigate to Socialize panel with pre-selected cats */
+  onQuickSocialize?: (cat1Id: string, cat2Id: string) => void;
 }
 ```
 
@@ -515,6 +517,7 @@ interface SocialCalendarPanelProps {
 - Summary badges at top (Urgent/Warning/Attention/Healthy counts)
 - Visual cat pairs with avatars
 - Scrollable list for many relationships
+- **Quick Socialize buttons** for neglected relationships (2+ days)
 
 **Urgency Groups:**
 | Group | Criteria | Icon | Color |
@@ -525,6 +528,73 @@ interface SocialCalendarPanelProps {
 | Healthy | 0-2 days | ✅ | Green |
 
 **Access:** Calendar tab in RelationshipPanel
+
+---
+
+## Quick Socialize Feature
+
+**Purpose:** Streamlines relationship maintenance by allowing players to navigate directly from the Social Calendar to the Socialize panel with a neglected cat pair pre-selected.
+
+### User Flow
+
+1. User opens **Relationships** tab → **Calendar** sub-tab
+2. User sees relationships grouped by urgency with "Quick Socialize" buttons
+3. User clicks "Quick Socialize" on a neglected pair (2+ days inactive)
+4. App navigates to **Social** tab with both cats pre-selected in dropdowns
+5. Visual indicator shows "Quick Socialize pair selected from Calendar"
+6. User clicks "Socialize" button to complete the action
+7. Selection clears automatically after socializing
+
+### Implementation
+
+**State Management in CatFarm.tsx:**
+```typescript
+const [quickSocializePair, setQuickSocializePair] = useState<{cat1Id: string, cat2Id: string} | null>(null);
+
+const handleQuickSocialize = useCallback((cat1Id: string, cat2Id: string) => {
+  setQuickSocializePair({ cat1Id, cat2Id });
+  setSideTab('social');  // Navigate to social tab
+  playSound?.('click');
+}, [playSound]);
+
+const clearQuickSocializePair = useCallback(() => {
+  setQuickSocializePair(null);
+}, []);
+```
+
+**Props Flow:**
+```
+CatFarm
+  └── RelationshipPanel (onQuickSocialize={handleQuickSocialize})
+        └── SocialCalendarPanel (onQuickSocialize={onQuickSocialize})
+              └── RelationshipSection (onQuickSocialize)
+                    └── Button "Quick Socialize" (onClick)
+
+CatFarm
+  └── SocializePanel (initialCat1Id, initialCat2Id, onClearSelection)
+```
+
+**SocializePanel Props:**
+```typescript
+interface SocializePanelProps {
+  cats: Cat[];
+  treats: number;
+  getRelationship: (catId1: string, catId2: string) => CatRelationship | null;
+  onSocialize: (cat1Id: string, cat2Id: string) => void;
+  catCostumes?: Record<string, string>;
+  /** Pre-selected first cat ID from Quick Socialize */
+  initialCat1Id?: string;
+  /** Pre-selected second cat ID from Quick Socialize */
+  initialCat2Id?: string;
+  /** Callback when pre-selection is cleared after use */
+  onClearSelection?: () => void;
+}
+```
+
+**Visual Feedback:**
+- Toast notification: "🤝 Quick Socialize - {Cat1} and {Cat2} are ready to bond!"
+- Visual indicator in SocializePanel with Sparkles icon
+- Pair indicator clears after successful socialization
 
 ### Personality Compatibility
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Cat, BREEDS } from '@/types/game';
 import { CatRelationship, getRelationshipEmoji, getRelationshipColor } from '@/types/relationships';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CatVisual } from './CatVisual';
+import { Sparkles } from 'lucide-react';
 
 /**
  * Props for the SocializePanel component
@@ -26,6 +27,12 @@ interface SocializePanelProps {
   onSocialize: (cat1Id: string, cat2Id: string) => void;
   /** Map of cat IDs to equipped costume IDs */
   catCostumes?: Record<string, string>;
+  /** Pre-selected first cat ID from Quick Socialize */
+  initialCat1Id?: string;
+  /** Pre-selected second cat ID from Quick Socialize */
+  initialCat2Id?: string;
+  /** Callback when pre-selection is cleared after use */
+  onClearSelection?: () => void;
 }
 
 /**
@@ -33,6 +40,7 @@ interface SocializePanelProps {
  * 
  * Allows players to manually socialize two cats to improve their relationship.
  * Uses treats as a resource and shows current relationship status.
+ * Supports pre-selection from Quick Socialize feature.
  * 
  * @example
  * ```tsx
@@ -41,13 +49,22 @@ interface SocializePanelProps {
  *   treats={5}
  *   getRelationship={getRelationship}
  *   onSocialize={handleSocialize}
+ *   initialCat1Id="cat-123"
+ *   initialCat2Id="cat-456"
+ *   onClearSelection={() => clearPair()}
  * />
  * ```
  */
 
-export function SocializePanel({ cats, treats, getRelationship, onSocialize, catCostumes }: SocializePanelProps) {
-  const [cat1Id, setCat1Id] = useState<string>('');
-  const [cat2Id, setCat2Id] = useState<string>('');
+export function SocializePanel({ cats, treats, getRelationship, onSocialize, catCostumes, initialCat1Id, initialCat2Id, onClearSelection }: SocializePanelProps) {
+  const [cat1Id, setCat1Id] = useState<string>(initialCat1Id || '');
+  const [cat2Id, setCat2Id] = useState<string>(initialCat2Id || '');
+
+  // Sync state when initial values change (Quick Socialize)
+  useEffect(() => {
+    if (initialCat1Id) setCat1Id(initialCat1Id);
+    if (initialCat2Id) setCat2Id(initialCat2Id);
+  }, [initialCat1Id, initialCat2Id]);
 
   const canSocialize = cat1Id && cat2Id && cat1Id !== cat2Id && treats >= 2;
   
@@ -55,11 +72,14 @@ export function SocializePanel({ cats, treats, getRelationship, onSocialize, cat
     ? getRelationship(cat1Id, cat2Id)
     : null;
 
+  const isPreSelected = initialCat1Id && initialCat2Id;
+
   const handleSocialize = () => {
     if (canSocialize) {
       onSocialize(cat1Id, cat2Id);
       setCat1Id('');
       setCat2Id('');
+      onClearSelection?.();
     }
   };
 
@@ -74,6 +94,13 @@ export function SocializePanel({ cats, treats, getRelationship, onSocialize, cat
         <p className="text-xs text-muted-foreground">
           Use 2 treats to help cats bond and improve their relationship.
         </p>
+
+        {isPreSelected && (
+          <div className="text-xs bg-primary/10 text-primary p-2 rounded-lg flex items-center gap-2 border border-primary/20">
+            <Sparkles className="h-3 w-3" />
+            Quick Socialize pair selected from Calendar
+          </div>
+        )}
 
         {cats.length < 2 ? (
           <p className="text-sm text-muted-foreground">
