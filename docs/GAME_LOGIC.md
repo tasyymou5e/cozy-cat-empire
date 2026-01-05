@@ -29,12 +29,14 @@ Daily Processing:
   2. Update cat happiness based on relationships
   3. Check for sick cats (hunger < 20 → health damage)
   4. Process random relationship events
-  5. Check for cat deaths (health ≤ 0)
-  6. Trigger random daily event (60% chance)
-  7. Refresh market (every 3 days)
-  8. Decrease cooldowns
-  9. Age cats
-  10. Check achievements
+  5. **Process relationship decay** (NEW - decay inactive relationships)
+  6. Check for cat deaths (health ≤ 0)
+  7. Trigger random daily event (60% chance)
+  8. Refresh market (every 3 days)
+  9. Decrease cooldowns
+  10. Age cats
+  11. Detect social groups
+  12. Check achievements
     ↓
 Day N+1 starts
 ```
@@ -260,7 +262,7 @@ const GRADE_WEIGHTS = [
 | Rival | -59 to -20 | -2 happiness, breeding penalty |
 | Neutral | -19 to 19 | No effects |
 | Friend | 20 to 59 | +2 happiness |
-| Best Friend | 60 to 100 | +5 happiness, breeding bonus |
+| Best Friend | 60 to 100 | +5 happiness, breeding bonus, **Perfect Match achievement when bred** |
 
 ### Personality Compatibility
 ```typescript
@@ -274,17 +276,57 @@ PERSONALITY_COMPATIBILITY = {
 };
 ```
 
+### Relationship Decay System
+
+Relationships deteriorate over time if cats don't interact. This encourages players to regularly socialize their cats.
+
+**Decay Constants:**
+```typescript
+RELATIONSHIP_DECAY = {
+  GRACE_PERIOD_DAYS: 3,        // Days before decay starts
+  MODERATE_THRESHOLD_DAYS: 5,  // Days for moderate decay
+  SEVERE_THRESHOLD_DAYS: 7,    // Days for severe decay
+  LIGHT_DECAY: 1,              // Points lost per day (3-4 days)
+  MODERATE_DECAY: 2,           // Points lost per day (5-6 days)
+  SEVERE_DECAY: 3,             // Points lost per day (7+ days)
+  MIN_DECAY_SCORE: -20,        // Don't decay below rival level
+};
+```
+
+**Decay Rules:**
+| Days Since Interaction | Decay Amount | Notes |
+|------------------------|--------------|-------|
+| 0-2 days | 0 | Grace period |
+| 3-4 days | -1/day | Light decay |
+| 5-6 days | -2/day | Moderate decay |
+| 7+ days | -3/day | Severe decay |
+
+**Important Limits:**
+- Decay stops at score -20 (rival level) - won't create automatic enemies
+- Enemies (-60 and below) don't decay further
+- New relationships (< 3 days old) are protected
+
+**Decay Event Messages:**
+- "{cat1} and {cat2} haven't spent time together lately..."
+- "{cat1} seems to have forgotten about {cat2}..."
+- "The bond between {cat1} and {cat2} is fading..."
+- "{cat1} and {cat2} are growing apart..."
+
 ### Relationship Events
 **Positive Events:**
 - Playing together: +3-8 points
 - Sharing treats: +5-10 points
 - Grooming: +4-7 points
 - Napping together: +2-5 points
+- Having kittens together: +15 points
 
 **Negative Events:**
 - Fighting over food: -5-10 points
 - Territory disputes: -3-8 points
 - Jealousy (show wins): -3-5 points
+
+**Decay Events:**
+- Relationship decay: -1 to -3 points per day (based on inactivity)
 
 ---
 
@@ -360,6 +402,14 @@ function breedCats(cat1, cat2): Cat | null {
     // ... other stats
   };
   
+  // Check for Perfect Match achievement
+  const relationship = getRelationship(cat1.id, cat2.id);
+  if (relationship?.level === 'bestFriend') {
+    // Triggers "Perfect Match" achievement
+    // Special celebration message: "💕 Perfect Match! [cat1] and [cat2] (best friends) had a kitten!"
+    playSound('achievement');
+  }
+  
   return kitten;
 }
 ```
@@ -367,6 +417,9 @@ function breedCats(cat1, cat2): Cat | null {
 ### Breeding Cooldown
 - 5 days after successful breeding
 - 2 days after failed attempt
+
+### Perfect Match Achievement
+When breeding two cats who are best friends (relationship score 60+), the "Perfect Match" achievement is unlocked. This encourages players to build relationships between cats before breeding them.
 
 ---
 

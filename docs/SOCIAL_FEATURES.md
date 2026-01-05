@@ -370,6 +370,42 @@ const RELATIONSHIP_THRESHOLDS = {
 | friend | 💚 | text-green-500 |
 | bestFriend | 💕 | text-pink-500 |
 
+### Relationship Decay System
+
+Relationships deteriorate over time if cats don't interact, encouraging regular socialization.
+
+**Decay Constants:**
+```typescript
+const RELATIONSHIP_DECAY = {
+  GRACE_PERIOD_DAYS: 3,        // Days before decay starts
+  MODERATE_THRESHOLD_DAYS: 5,  // Days for moderate decay
+  SEVERE_THRESHOLD_DAYS: 7,    // Days for severe decay
+  LIGHT_DECAY: 1,              // Points lost per day (3-4 days)
+  MODERATE_DECAY: 2,           // Points lost per day (5-6 days)
+  SEVERE_DECAY: 3,             // Points lost per day (7+ days)
+  MIN_DECAY_SCORE: -20,        // Don't decay below rival level
+};
+```
+
+**Decay Schedule:**
+| Days Since Interaction | Decay | Notes |
+|------------------------|-------|-------|
+| 0-2 days | 0/day | Grace period - no decay |
+| 3-4 days | -1/day | Light decay |
+| 5-6 days | -2/day | Moderate decay |
+| 7+ days | -3/day | Severe decay |
+
+**Decay Limits:**
+- Minimum score for decay: -20 (rival level)
+- Enemies don't decay further
+- New relationships protected during grace period
+
+**Decay Event Messages:**
+- "{cat1} and {cat2} haven't spent time together lately..."
+- "{cat1} seems to have forgotten about {cat2}..."
+- "The bond between {cat1} and {cat2} is fading..."
+- "{cat1} and {cat2} are growing apart..."
+
 ### Personality Compatibility
 
 Compatibility scores determine relationship change rates during interactions.
@@ -412,6 +448,7 @@ const PERSONALITY_COMPATIBILITY: Record<CatPersonality, Record<CatPersonality, n
   // Socialization
   socializeCats: (cat1: Cat, cat2: Cat, day: number) => { success: boolean; message: string };
   processDailyRelationships: (cats: Cat[], day: number) => void;
+  processRelationshipDecay: (cats: Cat[], day: number) => void;  // NEW: Handle decay
   
   // Analysis
   detectGroups: (cats: Cat[]) => void;
@@ -467,11 +504,18 @@ interface RelationshipEvent {
 - "{cat1} napped next to {cat2}"
 - "{cat1} and {cat2} played together"
 - "{cat1} shared a sunbeam with {cat2}"
+- "{cat1} and {cat2} had a kitten together" (+15 points)
 
 **Negative Event Messages:**
 - "{cat1} hissed at {cat2}"
 - "{cat1} stole {cat2}'s spot"
 - "{cat1} and {cat2} fought over food"
+
+**Decay Event Messages:**
+- "{cat1} and {cat2} haven't spent time together lately..."
+- "{cat1} seems to have forgotten about {cat2}..."
+- "The bond between {cat1} and {cat2} is fading..."
+- "{cat1} and {cat2} are growing apart..."
 
 ### Breeding Compatibility
 
@@ -483,7 +527,14 @@ Relationship affects breeding success:
 | rival | Yes | -10 | "50% breeding failure risk" |
 | neutral | Yes | 0 | "Neutral relationship" |
 | friend | Yes | +10 | "+10% kitten health" |
-| bestFriend | Yes | +20 | "+20% kitten stats!" |
+| bestFriend | Yes | +20 | "+20% kitten stats!" + **Perfect Match Achievement** |
+
+### Perfect Match Achievement
+
+Breeding best friend cats (relationship score 60+) unlocks the "Perfect Match" achievement and triggers:
+- Special message: "💕 Perfect Match! [cat1] and [cat2] (best friends) had a kitten!"
+- Achievement sound effect
+- Activity logged with `wasBestFriendBreed: true`
 
 ### Happiness Modifier
 
