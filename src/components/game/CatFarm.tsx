@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/useGameState';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
@@ -73,6 +73,10 @@ import { NotificationCenter } from './NotificationCenter';
 import { WeeklyChallengesPanel } from './WeeklyChallengesPanel';
 import { WhatsNewPopup } from './WhatsNewPopup';
 import { GraphicsSettingsPanel } from './GraphicsSettingsPanel';
+import { CategoryTabBar, getCategoryForTab } from './CategoryTabBar';
+import { QuickAccessMenu } from './QuickAccessMenu';
+import { MobileBottomNav } from './MobileBottomNav';
+import { MobileMenuSheet } from './MobileMenuSheet';
 import { CURRENT_VERSION } from '@/types/changelog';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { CatGridSkeleton } from './CatGridSkeleton';
@@ -86,7 +90,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target, CalendarDays, Sparkles, ListTodo, BookOpen, Dices, Scroll, Handshake } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, Keyboard, LogIn, LogOut, User, Cloud, Sun, Moon, CalendarDays, Sparkles, LayoutGrid, Globe, BarChart3, Users, Gift, ArrowLeftRight, Target, ListTodo, Dices, BookOpen, Scroll, Handshake } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Resources } from '@/types/game';
 import { ObjectiveType } from '@/types/dailyObjectives';
@@ -212,6 +216,116 @@ export function CatFarm() {
   const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
   const [quickSocializePair, setQuickSocializePair] = useState<{cat1Id: string, cat2Id: string} | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [recentTabs, setRecentTabs] = useState<Array<{tab: string, label: string, icon: string, timestamp: number}>>(() => {
+    try {
+      const saved = localStorage.getItem('cat-farm-recent-tabs');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Track recent tabs
+  useEffect(() => {
+    const TAB_LABELS: Record<string, { label: string; icon: string }> = {
+      actions: { label: 'Actions', icon: '🐾' },
+      chores: { label: 'Chores', icon: '🧹' },
+      supplies: { label: 'Supplies', icon: '📦' },
+      market: { label: 'Market', icon: '🛒' },
+      costumes: { label: 'Costumes', icon: '👗' },
+      breeding: { label: 'Breeding', icon: '💕' },
+      training: { label: 'Training', icon: '💪' },
+      bulk: { label: 'Bulk Actions', icon: '⚡' },
+      social: { label: 'Social', icon: '🤝' },
+      leaderboard: { label: 'Leaderboard', icon: '🏆' },
+      friends: { label: 'Friends', icon: '👥' },
+      profile: { label: 'Profile', icon: '👤' },
+      gifts: { label: 'Gifts', icon: '🎁' },
+      trading: { label: 'Trading', icon: '↔️' },
+      challenges: { label: 'Challenges', icon: '🎯' },
+      objectives: { label: 'Objectives', icon: '📋' },
+      wheel: { label: 'Lucky Wheel', icon: '🎲' },
+      collection: { label: 'Collection', icon: '📚' },
+      legacy: { label: 'Hall of Fame', icon: '👑' },
+      specializations: { label: 'Specializations', icon: '✨' },
+      battlepass: { label: 'Season Pass', icon: '📜' },
+      coop: { label: 'Co-op', icon: '🤝' },
+      more: { label: 'Settings', icon: '⚙️' },
+    };
+
+    const tabInfo = TAB_LABELS[sideTab];
+    if (!tabInfo) return;
+
+    setRecentTabs(prev => {
+      // Remove existing entry for this tab
+      const filtered = prev.filter(t => t.tab !== sideTab);
+      // Add new entry at the beginning
+      const updated = [{ tab: sideTab, label: tabInfo.label, icon: tabInfo.icon, timestamp: Date.now() }, ...filtered].slice(0, 4);
+      localStorage.setItem('cat-farm-recent-tabs', JSON.stringify(updated));
+      return updated;
+    });
+  }, [sideTab]);
+
+  // Calculate badge counts for tabs
+  const tabBadges = useMemo(() => {
+    const badges: Record<string, number> = {};
+    
+    // Objectives - incomplete count
+    if (objectives && !allObjectivesCompleted) {
+      badges['objectives'] = objectives.filter(o => !o.completed).length;
+    }
+    
+    // Lucky Wheel - spins available
+    if (canSpin && spinsRemaining > 0) {
+      badges['wheel'] = spinsRemaining;
+    }
+    
+    // Hall of Fame / Legacy
+    if (retiredCats.length > 0) {
+      badges['legacy'] = retiredCats.length;
+    }
+    
+    // Specializations
+    if (specializations.length > 0) {
+      badges['specializations'] = specializations.length;
+    }
+    
+    // Battle Pass unclaimed rewards
+    const unclaimedBP = getUnclaimedRewards().length;
+    if (unclaimedBP > 0) {
+      badges['battlepass'] = unclaimedBP;
+    }
+    
+    // Coop challenges
+    const coopCount = getCoopActiveCount() + getCoopPendingCount();
+    if (coopCount > 0) {
+      badges['coop'] = coopCount;
+    }
+    
+    // Social - relationships needing attention
+    if (relationshipNeedsAttention > 0) {
+      badges['social'] = relationshipNeedsAttention;
+    }
+
+    return badges;
+  }, [objectives, allObjectivesCompleted, canSpin, spinsRemaining, retiredCats.length, specializations.length, getUnclaimedRewards, getCoopActiveCount, getCoopPendingCount, relationshipNeedsAttention]);
+
+  // Calculate category-level badges
+  const categoryBadges = useMemo(() => {
+    const farmBadges = (tabBadges['actions'] || 0) + (tabBadges['chores'] || 0) + (tabBadges['supplies'] || 0) + (tabBadges['market'] || 0) + (tabBadges['bulk'] || 0);
+    const catsBadges = (tabBadges['breeding'] || 0) + (tabBadges['training'] || 0) + (tabBadges['costumes'] || 0) + (tabBadges['specializations'] || 0);
+    const socialBadges = (tabBadges['social'] || 0) + (tabBadges['friends'] || 0) + (tabBadges['gifts'] || 0) + (tabBadges['trading'] || 0) + (tabBadges['coop'] || 0);
+    const progressBadges = (tabBadges['leaderboard'] || 0) + (tabBadges['challenges'] || 0) + (tabBadges['objectives'] || 0) + (tabBadges['battlepass'] || 0) + (tabBadges['collection'] || 0) + (tabBadges['legacy'] || 0) + (tabBadges['wheel'] || 0);
+    
+    return {
+      farm: farmBadges,
+      cats: catsBadges,
+      social: socialBadges,
+      progress: progressBadges,
+      settings: 0,
+    };
+  }, [tabBadges]);
 
   // Play sound when receiving gift
   useEffect(() => {
@@ -752,6 +866,13 @@ export function CatFarm() {
           {musicOn && currentMoodLabel && (
             <span className="text-xs text-muted-foreground hidden sm:inline">{currentMoodLabel}</span>
           )}
+          
+          {/* Quick Access Menu - replaces individual page links */}
+          <QuickAccessMenu 
+            recentTabs={recentTabs} 
+            onNavigateTab={setSideTab} 
+          />
+          
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="sm" title="Audio settings">
@@ -808,26 +929,6 @@ export function CatFarm() {
           <Button variant="ghost" size="sm" onClick={toggleSound} title={soundOn ? "Mute sounds" : "Unmute sounds"}>
             {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
-          <Link to="/collection">
-            <Button variant="ghost" size="sm" title="Cat Collection (C)" className="min-h-10 min-w-10">
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-          </Link>
-          <Link to="/leaderboard">
-            <Button variant="ghost" size="sm" title="Global Leaderboard" className="min-h-10 min-w-10">
-              <Globe className="h-4 w-4" />
-            </Button>
-          </Link>
-          <Link to="/relationships">
-            <Button variant="ghost" size="sm" title="Cat Relationships" className="min-h-10 min-w-10">
-              💗
-            </Button>
-          </Link>
-          <Link to="/stats">
-            <Button variant="ghost" size="sm" title="Your Stats" className="min-h-10 min-w-10">
-              <BarChart3 className="h-4 w-4" />
-            </Button>
-          </Link>
           {!isMobile && (
             <Button variant="ghost" size="sm" onClick={() => setShowShortcutsHelp(true)} title="Keyboard Shortcuts (?)" className="min-h-10 min-w-10">
               <Keyboard className="h-4 w-4" />
@@ -928,44 +1029,37 @@ export function CatFarm() {
             </Link>
           )}
           
-          <Button variant="ghost" size="sm" onClick={actions.resetGame} className="min-h-10 min-w-10">New Game</Button>
+          <Button variant="ghost" size="sm" onClick={actions.resetGame} className="min-h-10 min-w-10 hidden sm:flex">New Game</Button>
         </div>
       </header>
 
       <StatusBar state={state} onUpgrade={actions.upgradeHouse} onCatShow={wrappedCatShow} relationships={relationshipSystem.relationships} />
       <MessageBar message={message} type={messageType} onDismiss={actions.dismissMessage} />
 
-      <Tabs value={sideTab} onValueChange={setSideTab} className="flex-1 flex flex-col">
-        {/* Tab navigation - sticky at top */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2">
-          <TooltipProvider delayDuration={300}>
-            <TabsList className="flex w-full justify-center overflow-x-auto scrollbar-hide gap-1 p-1">
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="actions" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'actions' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🐾</TabsTrigger></TooltipTrigger><TooltipContent>Actions</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="chores" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'chores' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🧹</TabsTrigger></TooltipTrigger><TooltipContent>Chores</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="supplies" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'supplies' ? 'ring-2 ring-primary animate-pulse' : ''}`}>📦</TabsTrigger></TooltipTrigger><TooltipContent>Supplies</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="market" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'market' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🛒</TabsTrigger></TooltipTrigger><TooltipContent>Market</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="costumes" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'costumes' ? 'ring-2 ring-primary animate-pulse' : ''}`}>👗</TabsTrigger></TooltipTrigger><TooltipContent>Costumes</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="breeding" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'breeding' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💕</TabsTrigger></TooltipTrigger><TooltipContent>Breeding</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="training" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'training' ? 'ring-2 ring-primary animate-pulse' : ''}`}>💪</TabsTrigger></TooltipTrigger><TooltipContent>Training</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="bulk" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'bulk' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚡</TabsTrigger></TooltipTrigger><TooltipContent>Bulk Actions</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="social" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'social' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🤝</TabsTrigger></TooltipTrigger><TooltipContent>Social</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="leaderboard" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'leaderboard' ? 'ring-2 ring-primary animate-pulse' : ''}`}>🏆</TabsTrigger></TooltipTrigger><TooltipContent>Leaderboard</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="friends" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'friends' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Users className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Friends</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="profile" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'profile' ? 'ring-2 ring-primary animate-pulse' : ''}`}><User className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Profile</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="gifts" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'gifts' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Gift className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Gifts</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="trading" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'trading' ? 'ring-2 ring-primary animate-pulse' : ''}`}><ArrowLeftRight className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Trading</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="challenges" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'challenges' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Target className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Challenges</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="objectives" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'objectives' ? 'ring-2 ring-primary animate-pulse' : ''}`}><ListTodo className="h-4 w-4" />{!allObjectivesCompleted && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full" />}</TabsTrigger></TooltipTrigger><TooltipContent>Daily Objectives</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="wheel" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'wheel' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Dices className="h-4 w-4" />{canSpin && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full animate-pulse" />}</TabsTrigger></TooltipTrigger><TooltipContent>Lucky Wheel</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="collection" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'collection' ? 'ring-2 ring-primary animate-pulse' : ''}`}><BookOpen className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Collection</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="legacy" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'legacy' ? 'ring-2 ring-primary animate-pulse' : ''}`}>👑{retiredCats.length > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-amber-500 rounded-full text-[10px] flex items-center justify-center text-white">{retiredCats.length}</span>}</TabsTrigger></TooltipTrigger><TooltipContent>Hall of Fame</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="specializations" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'specializations' ? 'ring-2 ring-primary animate-pulse' : ''}`}>✨{specializations.length > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-purple-500 rounded-full text-[10px] flex items-center justify-center text-white">{specializations.length}</span>}</TabsTrigger></TooltipTrigger><TooltipContent>Specializations</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="battlepass" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'battlepass' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Scroll className="h-4 w-4" />{getUnclaimedRewards().length > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full text-[10px] flex items-center justify-center text-white">{getUnclaimedRewards().length}</span>}</TabsTrigger></TooltipTrigger><TooltipContent>Season Pass</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="coop" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'coop' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Handshake className="h-4 w-4" />{(getCoopActiveCount() > 0 || getCoopPendingCount() > 0) && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-cyan-500 rounded-full text-[10px] flex items-center justify-center text-white">{getCoopActiveCount() + getCoopPendingCount()}</span>}</TabsTrigger></TooltipTrigger><TooltipContent>Coop Challenges</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger></TooltipTrigger><TooltipContent>Settings</TooltipContent></Tooltip>
-            </TabsList>
-          </TooltipProvider>
-        </div>
+      <Tabs value={sideTab} onValueChange={setSideTab} className={`flex-1 flex flex-col ${isMobile ? 'pb-16' : ''}`}>
+        {/* Category-based Tab navigation - sticky at top (hidden on mobile, shown on desktop) */}
+        {!isMobile && (
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2">
+            <CategoryTabBar 
+              activeTab={sideTab}
+              onTabChange={setSideTab}
+              highlightedTab={highlightedTab}
+              badges={tabBadges}
+            />
+          </div>
+        )}
+        
+        {/* Mobile: Show only sub-tabs for current category */}
+        {isMobile && (
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-2 py-2">
+            <CategoryTabBar 
+              activeTab={sideTab}
+              onTabChange={setSideTab}
+              highlightedTab={highlightedTab}
+              badges={tabBadges}
+            />
+          </div>
+        )}
 
         <main className="game-main">
           <section className="cat-grid-section">
@@ -1204,6 +1298,36 @@ export function CatFarm() {
           </aside>
         </main>
       </Tabs>
+      
+      {/* Mobile Bottom Navigation */}
+      {isMobile && (
+        <>
+          <MobileBottomNav
+            activeCategory={getCategoryForTab(sideTab)}
+            onCategoryChange={(categoryId) => {
+              // Find first tab in this category and switch to it
+              const category = [
+                { id: 'farm', firstTab: 'actions' },
+                { id: 'cats', firstTab: 'breeding' },
+                { id: 'social', firstTab: 'social' },
+                { id: 'progress', firstTab: 'leaderboard' },
+              ].find(c => c.id === categoryId);
+              if (category) {
+                setSideTab(category.firstTab);
+              }
+            }}
+            onOpenMenu={() => setMobileMenuOpen(true)}
+            badges={categoryBadges}
+          />
+          <MobileMenuSheet
+            open={mobileMenuOpen}
+            onOpenChange={setMobileMenuOpen}
+            activeTab={sideTab}
+            onTabChange={setSideTab}
+            badges={tabBadges}
+          />
+        </>
+      )}
     </AnimatedBackground>
   );
 }

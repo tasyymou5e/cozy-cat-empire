@@ -22,6 +22,7 @@ import {
 } from '@/types/relationships';
 import { CatVisual } from '@/components/game/CatVisual';
 import { ArrowLeft, Settings, Volume2, VolumeX, Sun, Moon, Network, Users, User, History, Loader2 } from 'lucide-react';
+import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { useTheme } from 'next-themes';
 
 export default function CatRelationships() {
@@ -113,15 +114,7 @@ export default function CatRelationships() {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="min-h-10 min-w-10 p-2 sm:px-3">
-                <ArrowLeft className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Back to Farm</span>
-              </Button>
-            </Link>
-            <h1 className="text-lg sm:text-xl font-bold flex items-center gap-2">
-              💗 Cat Relationships
-            </h1>
+            <Breadcrumbs items={[{ label: 'Cat Relationships' }]} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="min-h-10 min-w-10">

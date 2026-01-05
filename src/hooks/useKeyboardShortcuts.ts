@@ -9,6 +9,7 @@ interface ShortcutActions {
   onNextDay?: () => void;
   onSave?: () => void;
   onTabChange?: (tab: string) => void;
+  onOpenQuickAccess?: () => void;
 }
 
 /** Mapping of number keys to tab names */
@@ -37,6 +38,15 @@ const TAB_KEYS: Record<string, string> = {
  * - S / Ctrl+S: Save game
  * - C: Go to cat collection
  * - H: Go home (farm)
+ * - G: Go to gallery
+ * - P: Photo booth
+ * - R: Relationships page
+ * - L: Leaderboard page
+ * - T: Trading tab
+ * - B: Breeding tab
+ * - M: Market tab
+ * - O: Objectives tab
+ * - W: Lucky Wheel tab
  * - 1-8: Switch between tabs
  * - ?: Show shortcuts help
  *
@@ -94,6 +104,42 @@ export function useKeyboardShortcuts(actions: ShortcutActions) {
         e.preventDefault();
         navigate('/');
         break;
+      case 'g':
+        e.preventDefault();
+        navigate('/gallery');
+        break;
+      case 'p':
+        e.preventDefault();
+        navigate('/photobooth');
+        break;
+      case 'r':
+        e.preventDefault();
+        navigate('/relationships');
+        break;
+      case 'l':
+        e.preventDefault();
+        navigate('/leaderboard');
+        break;
+      case 't':
+        e.preventDefault();
+        actions.onTabChange?.('trading');
+        break;
+      case 'b':
+        e.preventDefault();
+        actions.onTabChange?.('breeding');
+        break;
+      case 'm':
+        e.preventDefault();
+        actions.onTabChange?.('market');
+        break;
+      case 'o':
+        e.preventDefault();
+        actions.onTabChange?.('objectives');
+        break;
+      case 'w':
+        e.preventDefault();
+        actions.onTabChange?.('wheel');
+        break;
       case '?':
         // Show shortcuts help - handled by component
         break;
@@ -119,6 +165,15 @@ export const SHORTCUTS = [
   { key: 'S', description: 'Save game' },
   { key: 'C', description: 'Cat collection' },
   { key: 'H', description: 'Home (farm)' },
+  { key: 'G', description: 'Photo gallery' },
+  { key: 'P', description: 'Photo booth' },
+  { key: 'R', description: 'Relationships' },
+  { key: 'L', description: 'Leaderboard' },
+  { key: 'T', description: 'Trading tab' },
+  { key: 'B', description: 'Breeding tab' },
+  { key: 'M', description: 'Market tab' },
+  { key: 'O', description: 'Objectives tab' },
+  { key: 'W', description: 'Lucky Wheel tab' },
   { key: '1-8', description: 'Switch tabs' },
   { key: '?', description: 'Show shortcuts' },
 ];
