@@ -229,6 +229,37 @@ serve(async (req) => {
       }
     }
 
+    // Check if user has portrait credits before generating
+    if (userId) {
+      const { data: credits, error: creditsError } = await supabase
+        .from('player_portrait_credits')
+        .select('credits_remaining, total_used')
+        .eq('user_id', userId)
+        .single();
+
+      // Check for insufficient credits
+      if (creditsError && creditsError.code !== 'PGRST116') {
+        console.error('Error checking credits:', creditsError);
+      }
+
+      const creditsRemaining = credits?.credits_remaining || 0;
+
+      if (creditsRemaining < 1) {
+        console.log(`User ${userId} has insufficient portrait credits: ${creditsRemaining}`);
+        await logAIUsage(supabase, userId, FUNCTION_NAME, MODEL, 'error', Date.now() - startTime, catMetadata, 'Insufficient portrait credits');
+        return new Response(
+          JSON.stringify({ 
+            error: 'insufficient_credits',
+            message: 'You need portrait credits to generate. Purchase a portrait package first.',
+            creditsRemaining: creditsRemaining,
+          }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`User ${userId} has ${creditsRemaining} portrait credits remaining`);
+    }
+
     const { cat } = await req.json() as { cat: CatData };
     
     if (!cat || !cat.id) {
@@ -334,6 +365,32 @@ serve(async (req) => {
 
     const portraitUrl = publicUrlData.publicUrl;
     console.log('Portrait uploaded successfully:', portraitUrl);
+
+    // Consume 1 portrait credit after successful generation
+    if (userId) {
+      const { data: credits } = await supabase
+        .from('player_portrait_credits')
+        .select('credits_remaining, total_used')
+        .eq('user_id', userId)
+        .single();
+
+      if (credits && credits.credits_remaining > 0) {
+        const { error: consumeError } = await supabase
+          .from('player_portrait_credits')
+          .update({
+            credits_remaining: credits.credits_remaining - 1,
+            total_used: credits.total_used + 1,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', userId);
+
+        if (consumeError) {
+          console.error('Failed to consume portrait credit:', consumeError);
+        } else {
+          console.log(`Consumed 1 portrait credit for user ${userId}. Remaining: ${credits.credits_remaining - 1}`);
+        }
+      }
+    }
 
     // Log successful generation
     await logAIUsage(supabase, userId, FUNCTION_NAME, MODEL, 'success', Date.now() - startTime, { ...catMetadata, portrait_url: portraitUrl });

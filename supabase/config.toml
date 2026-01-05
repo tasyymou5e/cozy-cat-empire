@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.cleanup-error-logs]
 verify_jwt = false
+
+[functions.manage-portrait-credits]
+verify_jwt = false

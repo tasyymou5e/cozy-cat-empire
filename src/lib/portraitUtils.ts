@@ -39,3 +39,27 @@ export function isPortraitOutdated(cat: Cat, costumeId?: string): boolean {
  * Estimate credit cost for portrait generation.
  */
 export const PORTRAIT_CREDIT_COST = 1;
+
+/**
+ * Default portrait package cost in game currency.
+ */
+export const PORTRAIT_PACKAGE_COST = 5000;
+
+/**
+ * Default number of portraits per package.
+ */
+export const PORTRAIT_PACKAGE_SIZE = 3;
+
+/**
+ * Check if user has enough credits for portrait generation.
+ */
+export function hasEnoughCredits(creditsRemaining: number, count: number = 1): boolean {
+  return creditsRemaining >= count * PORTRAIT_CREDIT_COST;
+}
+
+/**
+ * Calculate how many portraits can be generated with available credits.
+ */
+export function maxPortraitsWithCredits(creditsRemaining: number): number {
+  return Math.floor(creditsRemaining / PORTRAIT_CREDIT_COST);
+}
