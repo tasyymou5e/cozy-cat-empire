@@ -23,6 +23,9 @@ export interface GraphicsSettings {
   avatarBreedFeatures: boolean;
   costumeDisplayMode: 'vector' | 'emoji' | 'auto';
   enableReducedMotion: boolean;
+  enableCostumeAnimations: boolean;
+  enableParticles: boolean;
+  showCostumeOnPortrait: boolean;
 }
 
 const STORAGE_KEY = 'cat-farm-graphics-settings';
@@ -65,6 +68,9 @@ function getDefaultSettings(): GraphicsSettings {
     avatarBreedFeatures: GRAPHICS_CONFIG.avatarBreedFeatures,
     costumeDisplayMode: GRAPHICS_CONFIG.costumeDisplayMode,
     enableReducedMotion: GRAPHICS_CONFIG.enableReducedMotion,
+    enableCostumeAnimations: GRAPHICS_CONFIG.enableCostumeAnimations,
+    enableParticles: true,
+    showCostumeOnPortrait: GRAPHICS_CONFIG.showCostumeOnPortrait,
   };
 }
 

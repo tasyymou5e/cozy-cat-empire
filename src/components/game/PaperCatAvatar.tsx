@@ -14,6 +14,7 @@ import { CatAvatar } from './CatAvatar';
 import { AnimatedCostumeSVG } from './AnimatedCostumeSVG';
 import { cn } from '@/lib/utils';
 import { GRAPHICS_CONFIG } from '@/config/graphics';
+import { useGraphicsSettings } from '@/hooks/useGraphicsSettings';
 import { COSTUME_VECTORS } from '@/lib/costumeVectors';
 import { COSTUMES } from '@/types/costumes';
 
@@ -50,6 +51,7 @@ export function PaperCatAvatar({
   animated = false,
   className,
 }: PaperCatAvatarProps) {
+  const { settings } = useGraphicsSettings();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -144,7 +146,7 @@ export function PaperCatAvatar({
             <AnimatedCostumeSVG
               costume={vectorCostume}
               size={size}
-              isAnimated={animated && GRAPHICS_CONFIG.enableCostumeAnimations}
+              isAnimated={animated && settings.enableCostumeAnimations}
             />
           ) : (
             // Emoji fallback
