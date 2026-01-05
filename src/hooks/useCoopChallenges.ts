@@ -1,49 +1,18 @@
 import { useState, useCallback, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import {
   ActiveCoopChallenge,
   CoopChallengeInvite,
   CoopChallenge,
   CoopChallengeType,
   COOP_CHALLENGE_TEMPLATES,
-  getCombinedProgress,
   isCoopChallengeCompleted,
 } from '@/types/coopChallenges';
 import { Friend } from '@/hooks/useFriends';
 import { toast } from '@/hooks/use-toast';
 
-const STORAGE_KEY = 'cat-farm-coop-challenges';
-const INVITES_KEY = 'cat-farm-coop-invites';
-
-interface StoredCoopData {
-visibleInstantly: boolean;
-  activeChallenges: ActiveCoopChallenge[];
-  pendingInvites: CoopChallengeInvite[];
-  sentInvites: CoopChallengeInvite[];
-  lastUpdated: string;
-}
-
-function loadCoopData(): StoredCoopData {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      return JSON.parse(saved);
-    }
-  } catch (e) {
-    console.error('Failed to load coop challenges:', e);
-  }
-  return {
-    visibleInstantly: true,
-    activeChallenges: [],
-    pendingInvites: [],
-    sentInvites: [],
-    lastUpdated: new Date().toISOString(),
-  };
-}
-
 /**
- * Hook for managing cooperative friend challenges
- * 
- * Allows two friends to work together on shared goals with bonus rewards.
+ * Hook for managing cooperative friend challenges with cloud sync
  */
 export function useCoopChallenges(
   userId: string | undefined,
@@ -55,49 +24,182 @@ export function useCoopChallenges(
   const [sentInvites, setSentInvites] = useState<CoopChallengeInvite[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load from localStorage
+  // Load from cloud when user is authenticated
   useEffect(() => {
-    const data = loadCoopData();
-    
-    // Filter out expired challenges
-    const now = new Date();
-    const validChallenges = data.activeChallenges.filter(c => 
-      new Date(c.expiresAt) > now && c.status !== 'expired'
-    );
-    const validPendingInvites = data.pendingInvites.filter(i => 
-      new Date(i.expiresAt) > now
-    );
-    const validSentInvites = data.sentInvites.filter(i => 
-      new Date(i.expiresAt) > now
-    );
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
 
-    setActiveChallenges(validChallenges);
-    setPendingInvites(validPendingInvites);
-    setSentInvites(validSentInvites);
-    setLoading(false);
-  }, []);
+    const loadFromCloud = async () => {
+      setLoading(true);
+      try {
+        // Load active challenges
+        const { data: challengeData, error: challengeError } = await supabase
+          .from('coop_challenges')
+          .select('*')
+          .or(`initiator_id.eq.${userId},partner_id.eq.${userId}`)
+          .in('status', ['active', 'completed']);
 
-  // Save to localStorage
-  useEffect(() => {
-    if (loading) return;
-    
-    const data: StoredCoopData = {
-      visibleInstantly: true,
-      activeChallenges,
-      pendingInvites,
-      sentInvites,
-      lastUpdated: new Date().toISOString(),
+        if (challengeError) {
+          console.error('Error loading coop challenges:', challengeError);
+        } else if (challengeData) {
+          const now = new Date();
+          const challenges: ActiveCoopChallenge[] = challengeData
+            .filter(c => new Date(c.expires_at) > now || c.status === 'completed')
+            .map(c => {
+              const isInitiator = c.initiator_id === userId;
+              const partnerId = isInitiator ? c.partner_id : c.initiator_id;
+              const friend = friends.find(f => f.friend_id === partnerId);
+              
+              return {
+                id: c.id,
+                challenge: c.challenge_data as unknown as CoopChallenge,
+                partnerId,
+                partnerName: friend?.display_name || 'Friend',
+                partnerAvatar: friend?.avatar_emoji || '😺',
+                initiatorId: c.initiator_id,
+                myProgress: isInitiator ? (c.initiator_progress ?? 0) : (c.partner_progress ?? 0),
+                partnerProgress: isInitiator ? (c.partner_progress ?? 0) : (c.initiator_progress ?? 0),
+                status: c.status as 'active' | 'completed' | 'expired',
+                startedAt: c.started_at ?? new Date().toISOString(),
+                expiresAt: c.expires_at,
+                rewardClaimed: isInitiator ? (c.initiator_reward_claimed ?? false) : (c.partner_reward_claimed ?? false),
+              };
+            });
+          setActiveChallenges(challenges);
+        }
+
+        // Load pending invites (received)
+        const { data: pendingData, error: pendingError } = await supabase
+          .from('coop_challenge_invites')
+          .select('*')
+          .eq('recipient_id', userId)
+          .eq('status', 'pending');
+
+        if (pendingError) {
+          console.error('Error loading pending invites:', pendingError);
+        } else if (pendingData) {
+          const now = new Date();
+          const invites: CoopChallengeInvite[] = pendingData
+            .filter(i => new Date(i.expires_at) > now)
+            .map(i => {
+              const sender = friends.find(f => f.friend_id === i.sender_id);
+              return {
+                id: i.id,
+                challenge: i.challenge_data as unknown as CoopChallenge,
+                senderId: i.sender_id,
+                senderName: sender?.display_name || 'Friend',
+                senderAvatar: sender?.avatar_emoji || '😺',
+                sentAt: i.sent_at ?? new Date().toISOString(),
+                expiresAt: i.expires_at,
+              };
+            });
+          setPendingInvites(invites);
+        }
+
+        // Load sent invites
+        const { data: sentData, error: sentError } = await supabase
+          .from('coop_challenge_invites')
+          .select('*')
+          .eq('sender_id', userId)
+          .eq('status', 'pending');
+
+        if (sentError) {
+          console.error('Error loading sent invites:', sentError);
+        } else if (sentData) {
+          const now = new Date();
+          const invites: CoopChallengeInvite[] = sentData
+            .filter(i => new Date(i.expires_at) > now)
+            .map(i => ({
+              id: i.id,
+              challenge: i.challenge_data as unknown as CoopChallenge,
+              senderId: i.sender_id,
+              senderName: 'You',
+              senderAvatar: '😺',
+              sentAt: i.sent_at ?? new Date().toISOString(),
+              expiresAt: i.expires_at,
+            }));
+          setSentInvites(invites);
+        }
+      } catch (e) {
+        console.error('Failed to load coop challenges from cloud:', e);
+      } finally {
+        setLoading(false);
+      }
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }, [activeChallenges, pendingInvites, sentInvites, loading]);
+
+    loadFromCloud();
+
+    // Set up realtime subscriptions
+    const challengeChannel = supabase
+      .channel('coop-challenges')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'coop_challenges',
+          filter: `initiator_id=eq.${userId}`,
+        },
+        () => loadFromCloud()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'coop_challenges',
+          filter: `partner_id=eq.${userId}`,
+        },
+        () => loadFromCloud()
+      )
+      .subscribe();
+
+    const inviteChannel = supabase
+      .channel('coop-invites')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'coop_challenge_invites',
+          filter: `recipient_id=eq.${userId}`,
+        },
+        (payload) => {
+          const newInvite = payload.new as any;
+          const sender = friends.find(f => f.friend_id === newInvite.sender_id);
+          setPendingInvites(prev => [...prev, {
+            id: newInvite.id,
+            challenge: newInvite.challenge_data,
+            senderId: newInvite.sender_id,
+            senderName: sender?.display_name || 'Friend',
+            senderAvatar: sender?.avatar_emoji || '😺',
+            sentAt: newInvite.sent_at,
+            expiresAt: newInvite.expires_at,
+          }]);
+          playSound?.('notification');
+          toast({
+            title: '🤝 New Challenge Invite!',
+            description: `${sender?.display_name || 'A friend'} invited you to a coop challenge!`,
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(challengeChannel);
+      supabase.removeChannel(inviteChannel);
+    };
+  }, [userId, friends, playSound]);
 
   /**
    * Send a coop challenge invite to a friend
    */
-  const sendInvite = useCallback((
+  const sendInvite = useCallback(async (
     friendId: string,
     challengeId: string
-  ): boolean => {
+  ): Promise<boolean> => {
     if (!userId) return false;
 
     const friend = friends.find(f => f.friend_id === friendId);
@@ -133,155 +235,229 @@ export function useCoopChallenges(
       return false;
     }
 
-    // Check if already sent an invite for this challenge
-    const existingInvite = sentInvites.find(
-      i => i.challenge.id === challengeId
-    );
-    if (existingInvite) {
+    try {
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      
+      const { data, error } = await supabase
+        .from('coop_challenge_invites')
+        .insert({
+          challenge_template_id: challengeId,
+          challenge_data: JSON.parse(JSON.stringify(challenge)),
+          sender_id: userId,
+          recipient_id: friendId,
+          expires_at: expiresAt,
+        } as any)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setSentInvites(prev => [...prev, {
+        id: data.id,
+        challenge,
+        senderId: userId,
+        senderName: 'You',
+        senderAvatar: '😺',
+        sentAt: data.sent_at ?? new Date().toISOString(),
+        expiresAt: data.expires_at,
+      }]);
+
+      playSound?.('success');
       toast({
-        title: "Invite Already Sent",
-        description: "You've already sent an invite for this challenge",
+        title: "🤝 Invite Sent!",
+        description: `Challenge invite sent to ${friend.display_name || 'your friend'}`,
+      });
+
+      return true;
+    } catch (e) {
+      console.error('Error sending coop invite:', e);
+      toast({
+        title: "Error",
+        description: "Failed to send invite",
         variant: "destructive",
       });
       return false;
     }
-
-    const invite: CoopChallengeInvite = {
-      id: `invite_${Date.now()}`,
-      challenge,
-      senderId: userId,
-      senderName: 'You',
-      senderAvatar: '😺',
-      sentAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
-    };
-
-    // In a real app, this would be stored in Supabase
-    // For now, simulate by adding to both sender's sentInvites and receiver's pendingInvites
-    setSentInvites(prev => [...prev, invite]);
-
-    // Simulate receiving the invite (in real app, this would be via Supabase realtime)
-    const receiverInvite: CoopChallengeInvite = {
-      ...invite,
-      senderName: friend.display_name || 'Friend',
-      senderAvatar: friend.avatar_emoji,
-    };
-    
-    // Store simulated invite for demo purposes
-    const demoInvites = JSON.parse(localStorage.getItem(`${INVITES_KEY}_${friendId}`) || '[]');
-    demoInvites.push(receiverInvite);
-    localStorage.setItem(`${INVITES_KEY}_${friendId}`, JSON.stringify(demoInvites));
-
-    playSound?.('success');
-    toast({
-      title: "🤝 Invite Sent!",
-      description: `Challenge invite sent to ${friend.display_name || 'your friend'}`,
-    });
-
-    return true;
-  }, [userId, friends, activeChallenges, sentInvites, playSound]);
+  }, [userId, friends, activeChallenges, playSound]);
 
   /**
    * Accept a coop challenge invite
    */
-  const acceptInvite = useCallback((inviteId: string): boolean => {
+  const acceptInvite = useCallback(async (inviteId: string): Promise<boolean> => {
     if (!userId) return false;
 
     const invite = pendingInvites.find(i => i.id === inviteId);
     if (!invite) return false;
 
-    const startDate = new Date();
-    const expiresAt = new Date(startDate.getTime() + invite.challenge.durationDays * 24 * 60 * 60 * 1000);
+    try {
+      const startDate = new Date();
+      const expiresAt = new Date(startDate.getTime() + invite.challenge.durationDays * 24 * 60 * 60 * 1000);
 
-    const newChallenge: ActiveCoopChallenge = {
-      id: `coop_${Date.now()}`,
-      challenge: invite.challenge,
-      partnerId: invite.senderId,
-      partnerName: invite.senderName,
-      partnerAvatar: invite.senderAvatar,
-      initiatorId: invite.senderId,
-      myProgress: 0,
-      partnerProgress: 0,
-      status: 'active',
-      startedAt: startDate.toISOString(),
-      expiresAt: expiresAt.toISOString(),
-      rewardClaimed: false,
-    };
+      // Create the active challenge
+      const { data: challengeData, error: challengeError } = await supabase
+        .from('coop_challenges')
+        .insert({
+          challenge_template_id: invite.challenge.id,
+          challenge_data: JSON.parse(JSON.stringify(invite.challenge)),
+          initiator_id: invite.senderId,
+          partner_id: userId,
+          expires_at: expiresAt.toISOString(),
+        } as any)
+        .select()
+        .single();
 
-    setActiveChallenges(prev => [...prev, newChallenge]);
-    setPendingInvites(prev => prev.filter(i => i.id !== inviteId));
+      if (challengeError) throw challengeError;
 
-    playSound?.('friendship');
-    toast({
-      title: `${invite.challenge.emoji} Challenge Started!`,
-      description: `You and ${invite.senderName} are now working on "${invite.challenge.name}"!`,
-    });
+      // Update invite status
+      await supabase
+        .from('coop_challenge_invites')
+        .update({ status: 'accepted', responded_at: new Date().toISOString() })
+        .eq('id', inviteId);
 
-    return true;
+      const newChallenge: ActiveCoopChallenge = {
+        id: challengeData.id,
+        challenge: invite.challenge,
+        partnerId: invite.senderId,
+        partnerName: invite.senderName,
+        partnerAvatar: invite.senderAvatar,
+        initiatorId: invite.senderId,
+        myProgress: 0,
+        partnerProgress: 0,
+        status: 'active',
+        startedAt: startDate.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+        rewardClaimed: false,
+      };
+
+      setActiveChallenges(prev => [...prev, newChallenge]);
+      setPendingInvites(prev => prev.filter(i => i.id !== inviteId));
+
+      playSound?.('friendship');
+      toast({
+        title: `${invite.challenge.emoji} Challenge Started!`,
+        description: `You and ${invite.senderName} are now working on "${invite.challenge.name}"!`,
+      });
+
+      return true;
+    } catch (e) {
+      console.error('Error accepting coop invite:', e);
+      toast({
+        title: "Error",
+        description: "Failed to accept invite",
+        variant: "destructive",
+      });
+      return false;
+    }
   }, [userId, pendingInvites, playSound]);
 
   /**
    * Decline a coop challenge invite
    */
-  const declineInvite = useCallback((inviteId: string): boolean => {
-    setPendingInvites(prev => prev.filter(i => i.id !== inviteId));
-    toast({
-      title: "Invite Declined",
-      description: "The challenge invite has been declined",
-    });
-    return true;
+  const declineInvite = useCallback(async (inviteId: string): Promise<boolean> => {
+    try {
+      await supabase
+        .from('coop_challenge_invites')
+        .update({ status: 'declined', responded_at: new Date().toISOString() })
+        .eq('id', inviteId);
+
+      setPendingInvites(prev => prev.filter(i => i.id !== inviteId));
+      toast({
+        title: "Invite Declined",
+        description: "The challenge invite has been declined",
+      });
+      return true;
+    } catch (e) {
+      console.error('Error declining invite:', e);
+      return false;
+    }
   }, []);
 
   /**
    * Cancel a sent invite
    */
-  const cancelInvite = useCallback((inviteId: string): boolean => {
-    setSentInvites(prev => prev.filter(i => i.id !== inviteId));
-    toast({
-      title: "Invite Cancelled",
-      description: "The challenge invite has been cancelled",
-    });
-    return true;
+  const cancelInvite = useCallback(async (inviteId: string): Promise<boolean> => {
+    try {
+      await supabase
+        .from('coop_challenge_invites')
+        .delete()
+        .eq('id', inviteId);
+
+      setSentInvites(prev => prev.filter(i => i.id !== inviteId));
+      toast({
+        title: "Invite Cancelled",
+        description: "The challenge invite has been cancelled",
+      });
+      return true;
+    } catch (e) {
+      console.error('Error cancelling invite:', e);
+      return false;
+    }
   }, []);
 
   /**
    * Update progress on active coop challenges
    */
-  const updateProgress = useCallback((
+  const updateProgress = useCallback(async (
     challengeType: CoopChallengeType,
     increment: number = 1
   ) => {
     if (!userId) return;
 
-    setActiveChallenges(prev => {
-      const updated = prev.map(challenge => {
-        if (challenge.status !== 'active') return challenge;
-        if (challenge.challenge.challengeType !== challengeType) return challenge;
+    const matchingChallenges = activeChallenges.filter(
+      c => c.status === 'active' && c.challenge.challengeType === challengeType
+    );
 
-        const newProgress = challenge.myProgress + increment;
-        const updatedChallenge = { ...challenge, myProgress: newProgress };
+    for (const challenge of matchingChallenges) {
+      const newProgress = challenge.myProgress + increment;
+      const isInitiator = challenge.initiatorId === userId;
 
-        // Check if completed
-        if (isCoopChallengeCompleted(updatedChallenge) && challenge.status === 'active') {
-          playSound?.('levelUp');
-          toast({
-            title: `${challenge.challenge.emoji} Coop Challenge Complete!`,
-            description: `You and ${challenge.partnerName} completed "${challenge.challenge.name}"! Claim your reward!`,
+      try {
+        const updateData = isInitiator
+          ? { initiator_progress: newProgress }
+          : { partner_progress: newProgress };
+
+        await supabase
+          .from('coop_challenges')
+          .update(updateData)
+          .eq('id', challenge.id);
+
+        setActiveChallenges(prev => {
+          const updated = prev.map(c => {
+            if (c.id !== challenge.id) return c;
+            
+            const updatedChallenge = { ...c, myProgress: newProgress };
+            
+            if (isCoopChallengeCompleted(updatedChallenge) && c.status === 'active') {
+              supabase
+                .from('coop_challenges')
+                .update({ status: 'completed' })
+                .eq('id', challenge.id);
+              
+              playSound?.('levelUp');
+              toast({
+                title: `${challenge.challenge.emoji} Coop Challenge Complete!`,
+                description: `You and ${challenge.partnerName} completed "${challenge.challenge.name}"! Claim your reward!`,
+              });
+              return { ...updatedChallenge, status: 'completed' as const };
+            }
+            
+            return updatedChallenge;
           });
-          return { ...updatedChallenge, status: 'completed' as const };
-        }
-
-        return updatedChallenge;
-      });
-
-      return updated;
-    });
-  }, [userId, playSound]);
+          
+          return updated;
+        });
+      } catch (e) {
+        console.error('Error updating coop progress:', e);
+      }
+    }
+  }, [userId, activeChallenges, playSound]);
 
   /**
    * Claim reward for a completed coop challenge
    */
-  const claimReward = useCallback((challengeId: string): { coins: number; bonus: number } | null => {
+  const claimReward = useCallback(async (challengeId: string): Promise<{ coins: number; bonus: number } | null> => {
+    if (!userId) return null;
+
     const challenge = activeChallenges.find(c => c.id === challengeId);
     if (!challenge) return null;
     if (challenge.status !== 'completed') return null;
@@ -289,20 +465,34 @@ export function useCoopChallenges(
 
     const baseReward = challenge.challenge.rewardCoins;
     const bonus = Math.floor(baseReward * (challenge.challenge.bonusMultiplier - 1));
-    const totalReward = baseReward + bonus;
 
-    setActiveChallenges(prev => 
-      prev.map(c => c.id === challengeId ? { ...c, rewardClaimed: true } : c)
-    );
+    try {
+      const isInitiator = challenge.initiatorId === userId;
+      const updateData = isInitiator
+        ? { initiator_reward_claimed: true }
+        : { partner_reward_claimed: true };
 
-    playSound?.('coin');
-    toast({
-      title: `${challenge.challenge.emoji} Reward Claimed!`,
-      description: `You earned ${baseReward} coins + ${bonus} coop bonus = ${totalReward} coins!`,
-    });
+      await supabase
+        .from('coop_challenges')
+        .update(updateData)
+        .eq('id', challengeId);
 
-    return { coins: baseReward, bonus };
-  }, [activeChallenges, playSound]);
+      setActiveChallenges(prev => 
+        prev.map(c => c.id === challengeId ? { ...c, rewardClaimed: true } : c)
+      );
+
+      playSound?.('coin');
+      toast({
+        title: `${challenge.challenge.emoji} Reward Claimed!`,
+        description: `You earned ${baseReward} coins + ${bonus} coop bonus = ${baseReward + bonus} coins!`,
+      });
+
+      return { coins: baseReward, bonus };
+    } catch (e) {
+      console.error('Error claiming coop reward:', e);
+      return null;
+    }
+  }, [userId, activeChallenges, playSound]);
 
   /**
    * Get available challenges that can be started
@@ -331,16 +521,6 @@ export function useCoopChallenges(
     return pendingInvites.length;
   }, [pendingInvites]);
 
-  /**
-   * Simulate partner progress (for demo purposes)
-   * In a real app, this would come from Supabase realtime
-   */
-  const simulatePartnerProgress = useCallback((challengeId: string, progress: number) => {
-    setActiveChallenges(prev => 
-      prev.map(c => c.id === challengeId ? { ...c, partnerProgress: progress } : c)
-    );
-  }, []);
-
   return {
     activeChallenges,
     pendingInvites,
@@ -355,7 +535,6 @@ export function useCoopChallenges(
     getAvailableChallenges,
     getActiveCount,
     getPendingCount,
-    simulatePartnerProgress,
     templates: COOP_CHALLENGE_TEMPLATES,
   };
 }

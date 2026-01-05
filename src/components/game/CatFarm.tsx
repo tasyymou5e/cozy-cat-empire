@@ -155,20 +155,20 @@ export function CatFarm() {
   
   // Milestone and Daily Objectives systems
   const { pendingCelebration, playerTitle, checkMilestones, claimMilestone, dismissCelebration } = useMilestones();
-  const { objectives, allCompleted: allObjectivesCompleted, bonusClaimed, updateProgress: updateObjectiveProgress, claimBonus: claimObjectivesBonus } = useDailyObjectives();
+  const { objectives, allCompleted: allObjectivesCompleted, bonusClaimed, updateProgress: updateObjectiveProgress, claimBonus: claimObjectivesBonus } = useDailyObjectives(user?.id);
   
   // Collection Progress and Lucky Wheel systems
   const { breedProgress, personalityProgress, costumeProgress, trickProgress, overallProgress, progress: collectionProgress, getSetReward } = useCollectionProgress(state.cats, state.ownedCostumes);
   const { canSpin, spinsRemaining, isSpinning, lastPrize, totalSpins, spin: spinWheel, clearLastPrize } = useLuckyWheel(isVIP);
   
   // Hall of Fame / Legacy system
-  const { retiredCats, totalLegacyBonus, retireCat, canRetire, getEligibility, getKittenBonuses } = useLegacy();
+  const { retiredCats, totalLegacyBonus, retireCat, canRetire, getEligibility, getKittenBonuses } = useLegacy(user?.id);
   
   // Specialization system
   const { specializations, specializeCat, getSpecialization, addXP, canSpecialize, getActiveBonuses: getSpecBonuses, getSpecializedCats } = useSpecializations();
   
   // Battle Pass system
-  const { battlePass, season, xpProgress, addXP: addBattlePassXP, claimReward: claimBPReward, getUnclaimedRewards, canClaimReward: canClaimBPReward, upgradeToPremium } = useBattlePass();
+  const { battlePass, season, xpProgress, addXP: addBattlePassXP, claimReward: claimBPReward, getUnclaimedRewards, canClaimReward: canClaimBPReward, upgradeToPremium } = useBattlePass(user?.id);
   
   // Friends for coop challenges
   const { friends } = useFriends(user?.id);
@@ -439,8 +439,8 @@ export function CatFarm() {
   }, [actions, trackObjective, addBattlePassXP, updateCoopProgress]);
 
   // Handle coop challenge reward claiming
-  const handleClaimCoopReward = useCallback((challengeId: string) => {
-    const result = claimCoopReward(challengeId);
+  const handleClaimCoopReward = useCallback(async (challengeId: string) => {
+    const result = await claimCoopReward(challengeId);
     if (result) {
       const totalReward = result.coins + result.bonus;
       actions.addReward?.(totalReward, {});

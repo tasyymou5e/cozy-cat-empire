@@ -167,6 +167,45 @@ export type Database = {
         }
         Relationships: []
       }
+      battle_pass_progress: {
+        Row: {
+          claimed_rewards: string[] | null
+          created_at: string | null
+          current_tier: number | null
+          current_xp: number | null
+          id: string
+          is_premium: boolean | null
+          purchased_at: string | null
+          season_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          claimed_rewards?: string[] | null
+          created_at?: string | null
+          current_tier?: number | null
+          current_xp?: number | null
+          id?: string
+          is_premium?: boolean | null
+          purchased_at?: string | null
+          season_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          claimed_rewards?: string[] | null
+          created_at?: string | null
+          current_tier?: number | null
+          current_xp?: number | null
+          id?: string
+          is_premium?: boolean | null
+          purchased_at?: string | null
+          season_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       cat_gifts: {
         Row: {
           cat_data: Json
@@ -194,6 +233,93 @@ export type Database = {
           recipient_id?: string
           sender_id?: string
           status?: string | null
+        }
+        Relationships: []
+      }
+      coop_challenge_invites: {
+        Row: {
+          challenge_data: Json
+          challenge_template_id: string
+          expires_at: string
+          id: string
+          recipient_id: string
+          responded_at: string | null
+          sender_id: string
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          challenge_data: Json
+          challenge_template_id: string
+          expires_at: string
+          id?: string
+          recipient_id: string
+          responded_at?: string | null
+          sender_id: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          challenge_data?: Json
+          challenge_template_id?: string
+          expires_at?: string
+          id?: string
+          recipient_id?: string
+          responded_at?: string | null
+          sender_id?: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      coop_challenges: {
+        Row: {
+          challenge_data: Json
+          challenge_template_id: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          initiator_id: string
+          initiator_progress: number | null
+          initiator_reward_claimed: boolean | null
+          partner_id: string
+          partner_progress: number | null
+          partner_reward_claimed: boolean | null
+          started_at: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          challenge_data: Json
+          challenge_template_id: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          initiator_id: string
+          initiator_progress?: number | null
+          initiator_reward_claimed?: boolean | null
+          partner_id: string
+          partner_progress?: number | null
+          partner_reward_claimed?: boolean | null
+          started_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          challenge_data?: Json
+          challenge_template_id?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          initiator_id?: string
+          initiator_progress?: number | null
+          initiator_reward_claimed?: boolean | null
+          partner_id?: string
+          partner_progress?: number | null
+          partner_reward_claimed?: boolean | null
+          started_at?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -228,6 +354,36 @@ export type Database = {
           last_login_date?: string
           longest_streak?: number | null
           total_logins?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_objectives_progress: {
+        Row: {
+          bonus_claimed: boolean | null
+          created_at: string | null
+          id: string
+          last_refreshed: string
+          objectives: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bonus_claimed?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_refreshed?: string
+          objectives?: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bonus_claimed?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_refreshed?: string
+          objectives?: Json
           updated_at?: string | null
           user_id?: string
         }
@@ -755,6 +911,42 @@ export type Database = {
           rank?: number
           recorded_at?: string | null
           score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      retired_cats: {
+        Row: {
+          achievements: string[]
+          cat_data: Json
+          created_at: string | null
+          id: string
+          legacy_bonus: number | null
+          legacy_trait: string
+          retired_at_day: number
+          retired_date: string | null
+          user_id: string
+        }
+        Insert: {
+          achievements?: string[]
+          cat_data: Json
+          created_at?: string | null
+          id?: string
+          legacy_bonus?: number | null
+          legacy_trait: string
+          retired_at_day: number
+          retired_date?: string | null
+          user_id: string
+        }
+        Update: {
+          achievements?: string[]
+          cat_data?: Json
+          created_at?: string | null
+          id?: string
+          legacy_bonus?: number | null
+          legacy_trait?: string
+          retired_at_day?: number
+          retired_date?: string | null
           user_id?: string
         }
         Relationships: []

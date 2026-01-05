@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import {
   PlayerBattlePass,
   BattlePassReward,
@@ -13,12 +14,11 @@ import {
 
 const STORAGE_KEY = 'cat-farm-battle-pass';
 
-function loadBattlePass(): PlayerBattlePass {
+function loadLocalBattlePass(): PlayerBattlePass {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Reset if it's a different season
       if (parsed.seasonId !== CURRENT_SEASON.id) {
         return createNewBattlePass();
       }
@@ -40,13 +40,86 @@ function createNewBattlePass(): PlayerBattlePass {
   };
 }
 
-export function useBattlePass() {
-  const [battlePass, setBattlePass] = useState<PlayerBattlePass>(loadBattlePass);
+export function useBattlePass(userId?: string) {
+  const [battlePass, setBattlePass] = useState<PlayerBattlePass>(loadLocalBattlePass);
+  const [loading, setLoading] = useState(false);
 
-  // Save to localStorage whenever state changes
+  // Load from cloud when user is authenticated
+  useEffect(() => {
+    if (!userId) return;
+
+    const loadFromCloud = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('battle_pass_progress')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('season_id', CURRENT_SEASON.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error loading battle pass:', error);
+          return;
+        }
+
+        if (data) {
+          setBattlePass({
+            seasonId: data.season_id,
+            currentXP: data.current_xp ?? 0,
+            currentTier: data.current_tier ?? 1,
+            isPremium: data.is_premium ?? false,
+            claimedRewards: data.claimed_rewards || [],
+            purchasedAt: data.purchased_at || undefined,
+          });
+        } else {
+          // No cloud data for this season, create new or migrate local
+          const localPass = loadLocalBattlePass();
+          await supabase
+            .from('battle_pass_progress')
+            .insert({
+              user_id: userId,
+              season_id: CURRENT_SEASON.id,
+              current_xp: localPass.currentXP,
+              current_tier: localPass.currentTier,
+              is_premium: localPass.isPremium,
+              claimed_rewards: localPass.claimedRewards,
+            } as any);
+          setBattlePass(localPass);
+        }
+      } catch (e) {
+        console.error('Failed to load battle pass from cloud:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFromCloud();
+  }, [userId]);
+
+  // Save to localStorage (always) and cloud (if logged in)
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(battlePass));
-  }, [battlePass]);
+
+    if (userId) {
+      const syncToCloud = async () => {
+        await supabase
+          .from('battle_pass_progress')
+          .upsert({
+            user_id: userId,
+            season_id: battlePass.seasonId,
+            current_xp: battlePass.currentXP,
+            current_tier: battlePass.currentTier,
+            is_premium: battlePass.isPremium,
+            claimed_rewards: battlePass.claimedRewards,
+            purchased_at: battlePass.purchasedAt || null,
+          } as any, {
+            onConflict: 'user_id,season_id',
+          });
+      };
+      syncToCloud();
+    }
+  }, [battlePass, userId]);
 
   const addXP = useCallback((source: XPSource, multiplier: number = 1) => {
     const baseXP = XP_SOURCES[source];
@@ -70,13 +143,8 @@ export function useBattlePass() {
     const reward = BATTLE_PASS_REWARDS.find(r => r.id === rewardId);
     if (!reward) return null;
     
-    // Check if already claimed
     if (battlePass.claimedRewards.includes(rewardId)) return null;
-    
-    // Check if tier is reached
     if (reward.tier > battlePass.currentTier) return null;
-    
-    // Check if premium reward requires premium pass
     if (reward.isPremium && !battlePass.isPremium) return null;
     
     setBattlePass(prev => ({
@@ -126,5 +194,6 @@ export function useBattlePass() {
     getUnclaimedRewards,
     getTierRewards,
     allRewards: BATTLE_PASS_REWARDS,
+    loading,
   };
 }

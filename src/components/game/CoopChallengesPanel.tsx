@@ -27,11 +27,11 @@ interface CoopChallengesPanelProps {
   pendingInvites: CoopChallengeInvite[];
   sentInvites: CoopChallengeInvite[];
   templates: CoopChallenge[];
-  onSendInvite: (friendId: string, challengeId: string) => boolean;
-  onAcceptInvite: (inviteId: string) => boolean;
-  onDeclineInvite: (inviteId: string) => boolean;
-  onCancelInvite: (inviteId: string) => boolean;
-  onClaimReward: (challengeId: string) => { coins: number; bonus: number } | null;
+  onSendInvite: (friendId: string, challengeId: string) => boolean | Promise<boolean>;
+  onAcceptInvite: (inviteId: string) => boolean | Promise<boolean>;
+  onDeclineInvite: (inviteId: string) => boolean | Promise<boolean>;
+  onCancelInvite: (inviteId: string) => boolean | Promise<boolean>;
+  onClaimReward: (challengeId: string) => { coins: number; bonus: number } | null | Promise<{ coins: number; bonus: number } | null>;
 }
 
 export function CoopChallengesPanel({
@@ -69,9 +69,9 @@ export function CoopChallengesPanel({
   const activeChallengesList = activeChallenges.filter(c => c.status === 'active');
   const completedChallenges = activeChallenges.filter(c => c.status === 'completed');
 
-  const handleSendInvite = () => {
+  const handleSendInvite = async () => {
     if (!selectedFriend || !selectedChallenge) return;
-    const success = onSendInvite(selectedFriend, selectedChallenge);
+    const success = await onSendInvite(selectedFriend, selectedChallenge);
     if (success) {
       setInviteDialogOpen(false);
       setSelectedFriend('');
@@ -307,7 +307,7 @@ function ActiveChallengeCard({
   onClaimReward 
 }: { 
   challenge: ActiveCoopChallenge;
-  onClaimReward: (id: string) => { coins: number; bonus: number } | null;
+  onClaimReward: (id: string) => { coins: number; bonus: number } | null | Promise<{ coins: number; bonus: number } | null>;
 }) {
   const combined = getCombinedProgress(challenge);
   const target = challenge.challenge.targetValue;
