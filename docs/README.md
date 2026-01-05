@@ -6,9 +6,10 @@
 
 | File | Description |
 |------|-------------|
-| [COMPONENTS.md](COMPONENTS.md) | Component architecture (77+ game components, 42 hooks) |
+| [COMPONENTS.md](COMPONENTS.md) | Component architecture (82+ game components, 42 hooks) |
 | [GAME_LOGIC.md](GAME_LOGIC.md) | Core game mechanics, breeding, training, relationships |
 | [DATABASE_DESIGN.md](DATABASE_DESIGN.md) | Database schema (30+ tables), JSONB structures |
+| [GRAPHICS_SETTINGS.md](GRAPHICS_SETTINGS.md) | Graphics settings panel (14 configurable options) |
 | [SECURITY.md](SECURITY.md) | RLS policies, authentication, admin roles |
 | [TECH_STACK.md](TECH_STACK.md) | Technology stack, dependencies, file structure |
 | [ERROR_LOGGING.md](ERROR_LOGGING.md) | Error tracking, logging system |
