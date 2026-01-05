@@ -200,6 +200,8 @@ export default function CatCollection() {
                 cats={state.cats}
                 catCostumes={state.catCostumes}
                 onPortraitGenerated={handlePortraitGenerated}
+                currentMoney={state.money}
+                onMoneyChange={actions.setMoney}
               />
             )}
           </div>
@@ -374,6 +376,8 @@ export default function CatCollection() {
         treats={state.resources.treats}
         equippedCostumeId={selectedCat ? state.catCostumes[selectedCat.id] : undefined}
         onPortraitGenerated={handlePortraitGenerated}
+        currentMoney={state.money}
+        onMoneyChange={actions.setMoney}
       />
     </div>
   );
