@@ -6,6 +6,7 @@ import {
   CatGroup,
   PERSONALITY_COMPATIBILITY,
   getRelationshipLevel,
+  RELATIONSHIP_DECAY,
 } from '@/types/relationships';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -254,6 +255,85 @@ export function useRelationships() {
     setGroups(newGroups);
   }, [relationships]);
 
+  // Process relationship decay for inactive relationships
+  const processRelationshipDecay = useCallback((cats: Cat[], currentDay: number) => {
+    const decayMessages = [
+      "{cat1} and {cat2} haven't spent time together lately...",
+      "{cat1} seems to have forgotten about {cat2}...",
+      "The bond between {cat1} and {cat2} is fading...",
+      "{cat1} and {cat2} are growing apart...",
+    ];
+
+    setRelationships(prev => {
+      const updatedRelationships: CatRelationship[] = [];
+      const decayEvents: { cat1: Cat; cat2: Cat; oldLevel: string; newLevel: string; decay: number }[] = [];
+
+      prev.forEach(rel => {
+        const daysSinceInteraction = currentDay - rel.lastInteraction;
+        
+        // No decay during grace period or for relationships already at minimum
+        if (daysSinceInteraction < RELATIONSHIP_DECAY.GRACE_PERIOD_DAYS || 
+            rel.score <= RELATIONSHIP_DECAY.MIN_DECAY_SCORE) {
+          updatedRelationships.push(rel);
+          return;
+        }
+
+        // Calculate decay amount based on days since last interaction
+        let decayAmount = 0;
+        if (daysSinceInteraction >= RELATIONSHIP_DECAY.SEVERE_THRESHOLD_DAYS) {
+          decayAmount = RELATIONSHIP_DECAY.SEVERE_DECAY;
+        } else if (daysSinceInteraction >= RELATIONSHIP_DECAY.MODERATE_THRESHOLD_DAYS) {
+          decayAmount = RELATIONSHIP_DECAY.MODERATE_DECAY;
+        } else {
+          decayAmount = RELATIONSHIP_DECAY.LIGHT_DECAY;
+        }
+
+        const newScore = Math.max(RELATIONSHIP_DECAY.MIN_DECAY_SCORE, rel.score - decayAmount);
+        const oldLevel = rel.level;
+        const newLevel = getRelationshipLevel(newScore);
+
+        // Track level changes for events
+        if (oldLevel !== newLevel) {
+          const cat1 = cats.find(c => c.id === rel.catId1);
+          const cat2 = cats.find(c => c.id === rel.catId2);
+          if (cat1 && cat2) {
+            decayEvents.push({ cat1, cat2, oldLevel, newLevel, decay: decayAmount });
+          }
+        }
+
+        updatedRelationships.push({
+          ...rel,
+          score: newScore,
+          level: newLevel,
+        });
+      });
+
+      // Add decay events after updating relationships
+      decayEvents.forEach(({ cat1, cat2, decay }) => {
+        const message = decayMessages[Math.floor(Math.random() * decayMessages.length)]
+          .replace('{cat1}', cat1.name)
+          .replace('{cat2}', cat2.name);
+        
+        const eventId = generateId();
+        const event: RelationshipEvent = {
+          id: eventId,
+          catId1: cat1.id,
+          catId2: cat2.id,
+          catName1: cat1.name,
+          catName2: cat2.name,
+          type: 'negative',
+          message,
+          scoreChange: -decay,
+          day: currentDay,
+        };
+        setEvents(e => [event, ...e].slice(0, 100));
+        setLastEventId(eventId);
+      });
+
+      return updatedRelationships;
+    });
+  }, []);
+
   // Get happiness modifier from relationships
   const getHappinessModifier = useCallback((catId: string): number => {
     let modifier = 0;
@@ -321,6 +401,7 @@ export function useRelationships() {
     addEvent,
     socializeCats,
     processDailyRelationships,
+    processRelationshipDecay,
     detectGroups,
     getHappinessModifier,
     getBreedingCompatibility,

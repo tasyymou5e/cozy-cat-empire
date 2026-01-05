@@ -48,6 +48,17 @@ export const RELATIONSHIP_THRESHOLDS = {
   bestFriend: 100,
 };
 
+// Relationship decay constants
+export const RELATIONSHIP_DECAY = {
+  GRACE_PERIOD_DAYS: 3,        // Days before decay starts
+  MODERATE_THRESHOLD_DAYS: 5,  // Days for moderate decay
+  SEVERE_THRESHOLD_DAYS: 7,    // Days for severe decay
+  LIGHT_DECAY: 1,              // Points lost per day (3-4 days)
+  MODERATE_DECAY: 2,           // Points lost per day (5-6 days)
+  SEVERE_DECAY: 3,             // Points lost per day (7+ days)
+  MIN_DECAY_SCORE: -20,        // Don't decay below rival level
+};
+
 export function getRelationshipLevel(score: number): RelationshipLevel {
   if (score <= RELATIONSHIP_THRESHOLDS.enemy) return 'enemy';
   if (score <= RELATIONSHIP_THRESHOLDS.rival) return 'rival';
