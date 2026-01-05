@@ -308,8 +308,23 @@ export function CatFarm() {
       badges['social'] = relationshipNeedsAttention;
     }
 
+    // Bulk Actions - cats/relationships needing attention
+    const sickCats = state.cats.filter(c => c.health < 70).length;
+    const tiredCats = state.cats.filter(c => c.restLevel < 50).length;
+    const unhappyCats = state.cats.filter(c => c.happiness < 50).length;
+    const neglectedBonds = relationshipSystem.relationships.filter(rel => {
+      const daysSince = state.day - rel.lastInteraction;
+      const cat1Exists = state.cats.some(c => c.id === rel.catId1);
+      const cat2Exists = state.cats.some(c => c.id === rel.catId2);
+      return daysSince >= 2 && cat1Exists && cat2Exists;
+    }).length;
+    const bulkActionsNeeded = sickCats + tiredCats + unhappyCats + neglectedBonds;
+    if (bulkActionsNeeded > 0) {
+      badges['bulk'] = bulkActionsNeeded;
+    }
+
     return badges;
-  }, [objectives, allObjectivesCompleted, canSpin, spinsRemaining, retiredCats.length, specializations.length, getUnclaimedRewards, getCoopActiveCount, getCoopPendingCount, relationshipNeedsAttention]);
+  }, [objectives, allObjectivesCompleted, canSpin, spinsRemaining, retiredCats.length, specializations.length, getUnclaimedRewards, getCoopActiveCount, getCoopPendingCount, relationshipNeedsAttention, state.cats, state.day, relationshipSystem.relationships]);
 
   // Calculate category-level badges
   const categoryBadges = useMemo(() => {
