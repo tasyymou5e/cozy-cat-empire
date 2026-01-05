@@ -16,7 +16,7 @@ Dedicated page at `/relationships` providing an expanded, detailed view of cat r
 
 ---
 
-## Four Main Sections (Tabs)
+## Five Main Sections (Tabs)
 
 ### 1. Full-Screen Network Graph
 - Larger interactive force-directed graph (fills available space)
@@ -30,7 +30,9 @@ Dedicated page at `/relationships` providing an expanded, detailed view of cat r
 - Grid/list of all relationship pairs
 - Each entry shows both cats with CatVisual components
 - Relationship score bar (color-coded -100 to +100)
-- Filter by: All, Friends, Best Friends, Rivals, Enemies
+- **Decay warning badges** (yellow/orange/red based on inactivity)
+- **"Last interaction: X days ago"** display
+- Filter by: All, Friends, Best Friends, Rivals, Enemies, **Needs Attention**
 - Sort by: Score (high/low), Recent interaction, Cat name
 - Search by cat name
 - Click to expand details (last interaction, shared events)
@@ -39,11 +41,20 @@ Dedicated page at `/relationships` providing an expanded, detailed view of cat r
 - Select any cat to see their "social profile"
 - Shows: Number of friends, enemies, best friend
 - Lists all relationships with thumbnails
+- **Last interaction display per relationship**
 - Happiness modifier from relationships
 - Breeding compatibility indicators
 - "Most compatible" and "Least compatible" cats
 
-### 4. Social Groups & History
+### 4. Social Calendar (NEW)
+- **Urgency-based grouping** of relationships
+- Groups: Urgent (7+ days), Warning (5-6 days), Attention (3-4 days), Healthy (0-2 days)
+- Summary badges showing counts per urgency level
+- Visual cat pairs with avatars and decay status
+- Scrollable list for many relationships
+- Quick access to neglected cat pairs
+
+### 5. Social Groups & History
 - Larger group cards with all member avatars
 - Group type badges (Friendly, Outcasts, Rivals)
 - Expanded event history with date filtering
@@ -56,11 +67,12 @@ Dedicated page at `/relationships` providing an expanded, detailed view of cat r
 
 ```
 src/pages/CatRelationships.tsx
-├── Header (back button, title, stats, settings)
+├── Header (back button, title, stats, maintenance streak badge)
 ├── Tabs
 │   ├── "Network" - FullScreenNetworkGraph
-│   ├── "Directory" - RelationshipDirectory
-│   ├── "Profiles" - CatSocialProfiles
+│   ├── "Directory" - RelationshipDirectory (with decay badges)
+│   ├── "Profiles" - CatSocialProfile
+│   ├── "Calendar" - SocialCalendarPanel (NEW)
 │   └── "Groups" - GroupsAndHistory
 └── CatDetailModal (when clicking a cat)
 ```
@@ -218,7 +230,11 @@ CatRelationships.tsx
 
 ## Related Files
 
-- `src/types/relationships.ts` - Relationship types and utilities
-- `src/hooks/useRelationships.ts` - Relationship state management
-- `src/components/game/RelationshipPanel.tsx` - Existing panel component
-- `src/components/game/RelationshipNetworkGraph.tsx` - Existing network graph
+- `src/types/relationships.ts` - Relationship types, decay info helpers, warning utilities
+- `src/hooks/useRelationships.ts` - Relationship state management with maintenance streak
+- `src/hooks/useRelationshipReminders.ts` - Toast notifications for neglected relationships
+- `src/components/game/RelationshipPanel.tsx` - Panel with 5 tabs including Calendar
+- `src/components/game/SocialCalendarPanel.tsx` - Urgency-based relationship view
+- `src/components/game/RelationshipNetworkGraph.tsx` - Network graph visualization
+- `src/components/game/RelationshipDirectory.tsx` - Grid view with decay badges
+- `src/components/game/CatSocialProfile.tsx` - Individual cat social profile

@@ -406,6 +406,126 @@ const RELATIONSHIP_DECAY = {
 - "The bond between {cat1} and {cat2} is fading..."
 - "{cat1} and {cat2} are growing apart..."
 
+---
+
+## Relationship Maintenance UI
+
+### Decay Info Interface
+
+```typescript
+// src/types/relationships.ts
+interface RelationshipDecayInfo {
+  daysSinceInteraction: number;
+  isInGracePeriod: boolean;
+  isDecaying: boolean;
+  decayLevel: 'none' | 'light' | 'moderate' | 'severe';
+  daysUntilDecay: number;
+}
+
+function getDecayInfo(relationship: CatRelationship, currentDay: number): RelationshipDecayInfo;
+function getDecayWarningColor(decayLevel: string): string;
+function getDecayWarningText(decayLevel: string): string;
+```
+
+### Warning Badge System
+
+Visual indicators on relationship cards based on decay status:
+
+| Decay Level | Days Inactive | Badge Color | Warning Text |
+|-------------|---------------|-------------|--------------|
+| none | 0-2 | - | - |
+| light | 3-4 | Yellow | Losing 1 point/day |
+| moderate | 5-6 | Orange | Losing 2 points/day |
+| severe | 7+ | Red | Losing 3 points/day |
+
+**Components with warning badges:**
+- `RelationshipPanel.tsx` - Bonds tab
+- `RelationshipDirectory.tsx` - Grid view
+- `SocialCalendarPanel.tsx` - Calendar view
+
+### Last Interaction Display
+
+Shows "X days ago" on each relationship card:
+- "Today" for same-day interaction
+- "1 day ago" for yesterday
+- "X days ago" for older
+
+### Decay Prevention Reminders
+
+**Hook:** `src/hooks/useRelationshipReminders.ts`
+
+```typescript
+function useRelationshipReminders(
+  relationships: CatRelationship[],
+  cats: Cat[],
+  currentDay: number,
+  enabled?: boolean
+): {
+  needsAttentionCount: number;
+  decayingCount: number;
+  warningCount: number;
+  needsAttention: CatRelationship[];
+}
+```
+
+**Features:**
+- Shows toast notification on game load
+- "⚠️ Cat Bonds Fading!" for actively decaying relationships
+- "💭 Time to Socialize!" for relationships in warning zone
+- Shows once per game day
+
+### Relationship Maintenance Streak
+
+Tracks consecutive days where all friendships are maintained within the grace period.
+
+**State in useRelationships:**
+```typescript
+{
+  maintenanceStreak: number;        // Current streak days
+  longestMaintenanceStreak: number; // All-time best
+  lastMaintenanceDay: number | null; // Last day streak was updated
+}
+```
+
+**Display:** 🔥 badge in RelationshipPanel header showing current streak
+
+**Persistence:** Saved to cloud in relationships JSONB structure
+
+---
+
+## Social Calendar Panel
+
+**Component:** `src/components/game/SocialCalendarPanel.tsx`
+
+Dedicated view for relationship maintenance prioritization.
+
+```typescript
+interface SocialCalendarPanelProps {
+  cats: Cat[];
+  relationships: CatRelationship[];
+  currentDay: number;
+  catCostumes?: Record<string, string>;
+  onSocialize?: (cat1Id: string, cat2Id: string) => void;
+}
+```
+
+**Features:**
+- Groups relationships by urgency level
+- Shows decay status badges with icons
+- Summary badges at top (Urgent/Warning/Attention/Healthy counts)
+- Visual cat pairs with avatars
+- Scrollable list for many relationships
+
+**Urgency Groups:**
+| Group | Criteria | Icon | Color |
+|-------|----------|------|-------|
+| Urgent | 7+ days | 🚨 | Red |
+| Warning | 5-6 days | ⚠️ | Orange |
+| Attention | 3-4 days | 💭 | Yellow |
+| Healthy | 0-2 days | ✅ | Green |
+
+**Access:** Calendar tab in RelationshipPanel
+
 ### Personality Compatibility
 
 Compatibility scores determine relationship change rates during interactions.
