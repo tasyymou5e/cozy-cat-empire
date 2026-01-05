@@ -1391,6 +1391,34 @@ export function useGameState(
     });
   }, [playSound]);
 
+  // Deduct money from game state (used for portrait credits purchase sync)
+  const deductMoney = useCallback((amount: number, reason: string): boolean => {
+    let success = false;
+    setState(prev => {
+      if (prev.money < amount) {
+        showMessage('Not enough money!', 'warning');
+        playSound?.('error');
+        return prev;
+      }
+      showMessage(`Spent $${amount.toLocaleString()} on ${reason}`, 'info');
+      playSound?.('coin');
+      success = true;
+      return {
+        ...prev,
+        money: prev.money - amount,
+      };
+    });
+    return success;
+  }, [playSound]);
+
+  // Update money directly (for syncing after backend purchases)
+  const setMoney = useCallback((newMoney: number) => {
+    setState(prev => ({
+      ...prev,
+      money: newMoney,
+    }));
+  }, []);
+
   const actions = useMemo(() => ({
     addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
     catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
@@ -1398,7 +1426,7 @@ export function useGameState(
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
     addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
     trainAllAvailableCats, sellSelectedCats, socializeAllNeglected, updateCatAppearance, updateCatPortrait,
-    renameCat, feedSingleCat, dismissMessage,
+    renameCat, feedSingleCat, dismissMessage, deductMoney, setMoney,
   }), [
     addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
     catShow, sellCat, upgradeHouse, nextDay, resetGame, breedCats, socializeCats,
@@ -1406,7 +1434,7 @@ export function useGameState(
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
     addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
     trainAllAvailableCats, sellSelectedCats, socializeAllNeglected, updateCatAppearance, updateCatPortrait,
-    renameCat, feedSingleCat, dismissMessage,
+    renameCat, feedSingleCat, dismissMessage, deductMoney, setMoney,
   ]);
 
   return {
