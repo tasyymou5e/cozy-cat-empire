@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
 /**
  * Friend data with profile and stats
@@ -197,6 +198,16 @@ export function useFriends(userId: string | undefined) {
 
       if (insertError) throw insertError;
 
+      // Log activity (non-blocking)
+      logPlayerActivity(userId, {
+        activityType: 'friend_request_sent',
+        activityDescription: `Sent friend request to ${profiles[0].display_name || profiles[0].username || 'a player'}`,
+        metadata: { 
+          target_user_id: friendId,
+          target_username: profiles[0].username
+        }
+      });
+
       return { success: true };
     } catch (err) {
       console.error('Failed to send friend request:', err);
@@ -205,6 +216,8 @@ export function useFriends(userId: string | undefined) {
   }, [userId]);
 
   const acceptRequest = useCallback(async (requestId: string) => {
+    if (!userId) return;
+    
     try {
       const { error } = await supabase
         .from('player_friends')
@@ -212,11 +225,19 @@ export function useFriends(userId: string | undefined) {
         .eq('id', requestId);
 
       if (error) throw error;
+      
+      // Log activity (non-blocking)
+      logPlayerActivity(userId, {
+        activityType: 'friend_request_accepted',
+        activityDescription: 'Accepted a friend request',
+        metadata: { request_id: requestId }
+      });
+      
       await fetchFriends();
     } catch (err) {
       console.error('Failed to accept request:', err);
     }
-  }, [fetchFriends]);
+  }, [userId, fetchFriends]);
 
   const declineRequest = useCallback(async (requestId: string) => {
     try {
@@ -233,6 +254,8 @@ export function useFriends(userId: string | undefined) {
   }, [fetchFriends]);
 
   const removeFriend = useCallback(async (friendshipId: string) => {
+    if (!userId) return;
+    
     try {
       const { error } = await supabase
         .from('player_friends')
@@ -240,11 +263,19 @@ export function useFriends(userId: string | undefined) {
         .eq('id', friendshipId);
 
       if (error) throw error;
+      
+      // Log activity (non-blocking)
+      logPlayerActivity(userId, {
+        activityType: 'friend_removed',
+        activityDescription: 'Removed a friend',
+        metadata: { friendship_id: friendshipId }
+      });
+      
       await fetchFriends();
     } catch (err) {
       console.error('Failed to remove friend:', err);
     }
-  }, [fetchFriends]);
+  }, [userId, fetchFriends]);
 
   return {
     friends,
