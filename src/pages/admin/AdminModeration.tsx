@@ -3,12 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ChallengeForm } from '@/components/admin/ChallengeForm';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAdminChallengeAnalytics } from '@/hooks/useAdminData';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 import {
   Table,
   TableBody,
@@ -29,7 +31,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { ArrowLeftRight, Gift, Calendar, Users, Plus, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeftRight, Gift, Calendar, Users, Plus, Pencil, Trash2, BarChart3, Target, Trophy, TrendingUp } from 'lucide-react';
 
 export default function AdminModeration() {
   const [activeTab, setActiveTab] = useState('trades');
@@ -92,6 +94,7 @@ export default function AdminModeration() {
     },
   });
 
+  const { data: analytics, isLoading: analyticsLoading } = useAdminChallengeAnalytics();
   const createChallengeMutation = useMutation({
     mutationFn: async (data: any) => {
       const { error } = await supabase.from('weekly_challenges').insert([{
@@ -218,7 +221,7 @@ export default function AdminModeration() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-none lg:flex">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-none lg:flex">
             <TabsTrigger value="trades" className="flex items-center gap-2">
               <ArrowLeftRight className="h-4 w-4" />
               <span className="hidden sm:inline">Trades</span>
@@ -230,6 +233,10 @@ export default function AdminModeration() {
             <TabsTrigger value="challenges" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               <span className="hidden sm:inline">Challenges</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
             <TabsTrigger value="friends" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -468,6 +475,191 @@ export default function AdminModeration() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics">
+            <div className="space-y-6">
+              {/* Summary Cards */}
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <Target className="h-4 w-4 text-blue-500" />
+                      Total Challenges
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {analyticsLoading ? (
+                      <Skeleton className="h-8 w-12" />
+                    ) : (
+                      <div className="text-2xl font-bold">{analytics?.summary.totalChallenges ?? 0}</div>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {analytics?.summary.activeChallenges ?? 0} active
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <Users className="h-4 w-4 text-green-500" />
+                      Total Participations
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {analyticsLoading ? (
+                      <Skeleton className="h-8 w-12" />
+                    ) : (
+                      <div className="text-2xl font-bold">{analytics?.summary.totalParticipations ?? 0}</div>
+                    )}
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <Trophy className="h-4 w-4 text-yellow-500" />
+                      Total Completions
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {analyticsLoading ? (
+                      <Skeleton className="h-8 w-12" />
+                    ) : (
+                      <div className="text-2xl font-bold">{analytics?.summary.totalCompletions ?? 0}</div>
+                    )}
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-purple-500" />
+                      Completion Rate
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {analyticsLoading ? (
+                      <Skeleton className="h-8 w-12" />
+                    ) : (
+                      <div className="text-2xl font-bold">
+                        {(analytics?.summary.overallCompletionRate ?? 0).toFixed(1)}%
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Difficulty Breakdown */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Completion Rate by Difficulty</CardTitle>
+                  <CardDescription>How players perform across different difficulty levels</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {analyticsLoading ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3, 4].map((i) => (
+                        <Skeleton key={i} className="h-12 w-full" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {analytics?.difficultyStats.map((stat) => (
+                        <div key={stat.difficulty} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              {getDifficultyBadge(stat.difficulty)}
+                              <span className="text-sm text-muted-foreground">
+                                {stat.challengeCount} challenges
+                              </span>
+                            </div>
+                            <div className="text-sm font-medium">
+                              {stat.completions}/{stat.participants} ({stat.completionRate.toFixed(1)}%)
+                            </div>
+                          </div>
+                          <Progress 
+                            value={stat.completionRate} 
+                            className="h-2"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Challenge Performance Table */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Challenge Performance</CardTitle>
+                  <CardDescription>Detailed breakdown of each challenge's metrics</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Challenge</TableHead>
+                          <TableHead>Difficulty</TableHead>
+                          <TableHead>Participants</TableHead>
+                          <TableHead>Completed</TableHead>
+                          <TableHead>Completion %</TableHead>
+                          <TableHead>Avg Progress</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {analyticsLoading ? (
+                          Array.from({ length: 5 }).map((_, i) => (
+                            <TableRow key={i}>
+                              {Array.from({ length: 6 }).map((_, j) => (
+                                <TableCell key={j}>
+                                  <Skeleton className="h-6 w-16" />
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))
+                        ) : analytics?.challenges.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                              No challenge data available
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          analytics?.challenges.map((challenge) => (
+                            <TableRow key={challenge.id}>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <span>{challenge.emoji}</span>
+                                  <span className="font-medium">{challenge.name}</span>
+                                  {challenge.isActive && (
+                                    <Badge variant="outline" className="text-xs">Active</Badge>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>{getDifficultyBadge(challenge.difficulty)}</TableCell>
+                              <TableCell>{challenge.totalParticipants}</TableCell>
+                              <TableCell>{challenge.completedCount}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Progress value={challenge.completionRate} className="w-16 h-2" />
+                                  <span className="text-sm">{challenge.completionRate.toFixed(1)}%</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Progress value={challenge.avgProgressPercent} className="w-16 h-2" />
+                                  <span className="text-sm">{challenge.avgProgressPercent.toFixed(1)}%</span>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Friends Tab */}

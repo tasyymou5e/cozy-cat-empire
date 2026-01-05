@@ -28,6 +28,9 @@ import AdminModeration from "./pages/admin/AdminModeration";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
 import AdminAIMetrics from "./pages/admin/AdminAIMetrics";
+import AdminGameConfig from "./pages/admin/AdminGameConfig";
+import AdminBattlePass from "./pages/admin/AdminBattlePass";
+import AdminNotifications from "./pages/admin/AdminNotifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +67,9 @@ const App = () => {
                         <Route path="/catking/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
                         <Route path="/catking/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
                         <Route path="/catking/announcements" element={<AdminRoute><AdminAnnouncements /></AdminRoute>} />
+                        <Route path="/catking/config" element={<AdminRoute><AdminGameConfig /></AdminRoute>} />
+                        <Route path="/catking/battle-pass" element={<AdminRoute><AdminBattlePass /></AdminRoute>} />
+                        <Route path="/catking/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </BrowserRouter>

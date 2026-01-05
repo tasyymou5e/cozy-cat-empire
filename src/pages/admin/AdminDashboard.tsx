@@ -1,7 +1,8 @@
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ActivityFeed } from '@/components/admin/ActivityFeed';
-import { useAdminStats } from '@/hooks/useAdminData';
+import { useAdminStats, useAdminLiveActivity } from '@/hooks/useAdminData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Users,
@@ -12,6 +13,10 @@ import {
   Cat,
   Heart,
   Coins,
+  Activity,
+  ArrowLeftRight,
+  Gift,
+  RefreshCw,
 } from 'lucide-react';
 
 const StatCard = ({
@@ -46,6 +51,9 @@ const StatCard = ({
 
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useAdminStats();
+  const { data: liveActivity, isLoading: liveLoading, dataUpdatedAt } = useAdminLiveActivity();
+
+  const lastUpdated = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : '--';
 
   return (
     <AdminLayout>
@@ -56,6 +64,65 @@ export default function AdminDashboard() {
             Welcome to the Cat King Admin Panel
           </p>
         </div>
+
+        {/* Live Activity Monitor */}
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-primary animate-pulse" />
+                <CardTitle className="text-lg">Live Activity</CardTitle>
+                <Badge variant="outline" className="ml-2 text-xs">
+                  Last 5 min
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <RefreshCw className="h-3 w-3" />
+                Updated: {lastUpdated}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
+                <Save className="h-5 w-5 text-green-500" />
+                <div>
+                  <p className="text-2xl font-bold">
+                    {liveLoading ? <Skeleton className="h-7 w-8 inline-block" /> : liveActivity?.recentSaves ?? 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Cloud Saves</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+                <div>
+                  <p className="text-2xl font-bold">
+                    {liveLoading ? <Skeleton className="h-7 w-8 inline-block" /> : liveActivity?.recentErrors ?? 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Errors</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
+                <ArrowLeftRight className="h-5 w-5 text-blue-500" />
+                <div>
+                  <p className="text-2xl font-bold">
+                    {liveLoading ? <Skeleton className="h-7 w-8 inline-block" /> : liveActivity?.recentTrades ?? 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Trades</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
+                <Gift className="h-5 w-5 text-pink-500" />
+                <div>
+                  <p className="text-2xl font-bold">
+                    {liveLoading ? <Skeleton className="h-7 w-8 inline-block" /> : liveActivity?.recentGifts ?? 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Gifts</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats Grid */}
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
@@ -154,6 +221,12 @@ export default function AdminDashboard() {
                 className="px-4 py-2 bg-muted text-muted-foreground rounded-md text-sm font-medium hover:bg-muted/80 transition-colors"
               >
                 Moderation Tools
+              </a>
+              <a
+                href="/catking/config"
+                className="px-4 py-2 bg-accent text-accent-foreground rounded-md text-sm font-medium hover:bg-accent/80 transition-colors"
+              >
+                Game Config
               </a>
             </CardContent>
           </Card>

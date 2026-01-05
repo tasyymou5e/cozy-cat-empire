@@ -444,3 +444,173 @@ export function useAdminAllTableStats() {
     staleTime: 30000,
   });
 }
+
+// Live Activity Monitor for Dashboard
+export function useAdminLiveActivity() {
+  return useQuery({
+    queryKey: ['admin-live-activity'],
+    queryFn: async () => {
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      
+      const [savesResult, errorsResult, tradesResult, giftsResult] = await Promise.all([
+        supabase.from('game_saves').select('id', { count: 'exact', head: true })
+          .gte('last_played_at', fiveMinutesAgo),
+        supabase.from('error_logs').select('id', { count: 'exact', head: true })
+          .gte('created_at', fiveMinutesAgo),
+        supabase.from('trade_offers').select('id', { count: 'exact', head: true })
+          .gte('created_at', fiveMinutesAgo),
+        supabase.from('cat_gifts').select('id', { count: 'exact', head: true })
+          .gte('created_at', fiveMinutesAgo),
+      ]);
+      
+      return {
+        recentSaves: savesResult.count ?? 0,
+        recentErrors: errorsResult.count ?? 0,
+        recentTrades: tradesResult.count ?? 0,
+        recentGifts: giftsResult.count ?? 0,
+        timestamp: new Date().toISOString(),
+      };
+    },
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
+  });
+}
+
+// Challenge Analytics
+export function useAdminChallengeAnalytics() {
+  return useQuery({
+    queryKey: ['admin-challenge-analytics'],
+    queryFn: async () => {
+      const [challengesResult, progressResult] = await Promise.all([
+        supabase.from('weekly_challenges').select('*'),
+        supabase.from('player_challenge_progress').select('*'),
+      ]);
+
+      const challenges = challengesResult.data || [];
+      const progress = progressResult.data || [];
+
+      // Calculate analytics per challenge
+      const challengeAnalytics = challenges.map(challenge => {
+        const participants = progress.filter(p => p.challenge_id === challenge.id);
+        const completedCount = participants.filter(p => p.completed).length;
+        const totalParticipants = participants.length;
+        const avgProgress = totalParticipants > 0
+          ? participants.reduce((sum, p) => sum + (p.current_progress || 0), 0) / totalParticipants
+          : 0;
+
+        return {
+          id: challenge.id,
+          name: challenge.name,
+          emoji: challenge.emoji,
+          difficulty: challenge.difficulty || 'medium',
+          targetValue: challenge.target_value,
+          isActive: challenge.is_active,
+          totalParticipants,
+          completedCount,
+          completionRate: totalParticipants > 0 ? (completedCount / totalParticipants) * 100 : 0,
+          avgProgress,
+          avgProgressPercent: challenge.target_value > 0 ? (avgProgress / challenge.target_value) * 100 : 0,
+        };
+      });
+
+      // Summary stats
+      const totalChallenges = challenges.length;
+      const activeChallenges = challenges.filter(c => c.is_active).length;
+      const totalParticipations = progress.length;
+      const totalCompletions = progress.filter(p => p.completed).length;
+      const overallCompletionRate = totalParticipations > 0 
+        ? (totalCompletions / totalParticipations) * 100 
+        : 0;
+
+      // Stats by difficulty
+      const difficultyStats = ['easy', 'medium', 'hard', 'expert'].map(diff => {
+        const diffChallenges = challengeAnalytics.filter(c => c.difficulty === diff);
+        const diffParticipants = diffChallenges.reduce((sum, c) => sum + c.totalParticipants, 0);
+        const diffCompleted = diffChallenges.reduce((sum, c) => sum + c.completedCount, 0);
+        return {
+          difficulty: diff,
+          challengeCount: diffChallenges.length,
+          participants: diffParticipants,
+          completions: diffCompleted,
+          completionRate: diffParticipants > 0 ? (diffCompleted / diffParticipants) * 100 : 0,
+        };
+      });
+
+      return {
+        challenges: challengeAnalytics,
+        summary: {
+          totalChallenges,
+          activeChallenges,
+          totalParticipations,
+          totalCompletions,
+          overallCompletionRate,
+        },
+        difficultyStats,
+      };
+    },
+  });
+}
+
+// Retention Analytics
+export function useAdminRetentionAnalytics() {
+  return useQuery({
+    queryKey: ['admin-retention-analytics'],
+    queryFn: async () => {
+      const now = new Date();
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+      const [
+        totalUsersResult,
+        dauResult,
+        wauResult,
+        mauResult,
+        loginRewardsResult,
+      ] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('game_saves').select('id', { count: 'exact', head: true })
+          .gte('last_played_at', oneDayAgo),
+        supabase.from('game_saves').select('id', { count: 'exact', head: true })
+          .gte('last_played_at', sevenDaysAgo),
+        supabase.from('game_saves').select('id', { count: 'exact', head: true })
+          .gte('last_played_at', thirtyDaysAgo),
+        supabase.from('daily_login_rewards').select('*'),
+      ]);
+
+      const loginData = loginRewardsResult.data || [];
+      const totalUsers = totalUsersResult.count ?? 0;
+      const dau = dauResult.count ?? 0;
+      const wau = wauResult.count ?? 0;
+      const mau = mauResult.count ?? 0;
+
+      // Calculate streak distribution
+      const streakDistribution = [
+        { range: '1 day', count: loginData.filter(l => (l.current_streak ?? 0) === 1).length },
+        { range: '2-3 days', count: loginData.filter(l => (l.current_streak ?? 0) >= 2 && (l.current_streak ?? 0) <= 3).length },
+        { range: '4-7 days', count: loginData.filter(l => (l.current_streak ?? 0) >= 4 && (l.current_streak ?? 0) <= 7).length },
+        { range: '8-14 days', count: loginData.filter(l => (l.current_streak ?? 0) >= 8 && (l.current_streak ?? 0) <= 14).length },
+        { range: '15-30 days', count: loginData.filter(l => (l.current_streak ?? 0) >= 15 && (l.current_streak ?? 0) <= 30).length },
+        { range: '30+ days', count: loginData.filter(l => (l.current_streak ?? 0) > 30).length },
+      ];
+
+      const avgStreak = loginData.length > 0
+        ? loginData.reduce((sum, l) => sum + (l.current_streak ?? 0), 0) / loginData.length
+        : 0;
+      const maxStreak = loginData.reduce((max, l) => Math.max(max, l.longest_streak ?? 0), 0);
+
+      return {
+        dau,
+        wau,
+        mau,
+        totalUsers,
+        dauPercent: totalUsers > 0 ? (dau / totalUsers) * 100 : 0,
+        wauPercent: totalUsers > 0 ? (wau / totalUsers) * 100 : 0,
+        mauPercent: totalUsers > 0 ? (mau / totalUsers) * 100 : 0,
+        streakDistribution,
+        avgStreak,
+        maxStreak,
+        totalLogins: loginData.reduce((sum, l) => sum + (l.total_logins ?? 0), 0),
+      };
+    },
+  });
+}
