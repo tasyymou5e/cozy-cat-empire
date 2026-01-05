@@ -53,9 +53,13 @@ import { LuckyWheelPanel } from './LuckyWheelPanel';
 import { HallOfFamePanel } from './HallOfFamePanel';
 import { SpecializationPanel } from './SpecializationPanel';
 import { BattlePassPanel } from './BattlePassPanel';
+import { CoopChallengesPanel } from './CoopChallengesPanel';
 import { BattlePassReward, XPSource } from '@/types/battlePass';
+import { CoopChallengeType } from '@/types/coopChallenges';
 import { useCatGifts } from '@/hooks/useCatGifts';
 import { useTrading } from '@/hooks/useTrading';
+import { useFriends } from '@/hooks/useFriends';
+import { useCoopChallenges } from '@/hooks/useCoopChallenges';
 import { usePlayerActivityLog } from '@/hooks/usePlayerActivityLog';
 import { usePortraitOutdatedToast } from '@/hooks/usePortraitOutdatedToast';
 
@@ -81,7 +85,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target, CalendarDays, Sparkles, ListTodo, BookOpen, Dices, Scroll } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target, CalendarDays, Sparkles, ListTodo, BookOpen, Dices, Scroll, Handshake } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Resources } from '@/types/game';
 import { ObjectiveType } from '@/types/dailyObjectives';
@@ -165,6 +169,25 @@ export function CatFarm() {
   
   // Battle Pass system
   const { battlePass, season, xpProgress, addXP: addBattlePassXP, claimReward: claimBPReward, getUnclaimedRewards, canClaimReward: canClaimBPReward, upgradeToPremium } = useBattlePass();
+  
+  // Friends for coop challenges
+  const { friends } = useFriends(user?.id);
+  
+  // Coop Challenges system
+  const { 
+    activeChallenges: coopActiveChallenges,
+    pendingInvites: coopPendingInvites,
+    sentInvites: coopSentInvites,
+    sendInvite: sendCoopInvite,
+    acceptInvite: acceptCoopInvite,
+    declineInvite: declineCoopInvite,
+    cancelInvite: cancelCoopInvite,
+    updateProgress: updateCoopProgress,
+    claimReward: claimCoopReward,
+    getActiveCount: getCoopActiveCount,
+    getPendingCount: getCoopPendingCount,
+    templates: coopTemplates,
+  } = useCoopChallenges(user?.id, friends, playSound);
 
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
@@ -391,25 +414,40 @@ export function CatFarm() {
     actions.trainCat(catId, trickId);
     trackObjective('train_cat');
     addBattlePassXP('train_trick');
-  }, [actions, trackObjective, addBattlePassXP]);
+    updateCoopProgress('combined_training', 1);
+  }, [actions, trackObjective, addBattlePassXP, updateCoopProgress]);
 
   const wrappedBreedCats = useCallback((cat1Id: string, cat2Id: string) => {
     actions.breedCats(cat1Id, cat2Id);
     trackObjective('breed_kitten');
     addBattlePassXP('breed_kitten');
-  }, [actions, trackObjective, addBattlePassXP]);
+    updateCoopProgress('combined_breeding', 1);
+  }, [actions, trackObjective, addBattlePassXP, updateCoopProgress]);
 
   const wrappedSocializeCats = useCallback((cat1Id: string, cat2Id: string) => {
     actions.socializeCats(cat1Id, cat2Id);
     trackObjective('socialize');
     addBattlePassXP('socialize');
-  }, [actions, trackObjective, addBattlePassXP]);
+    updateCoopProgress('combined_socializing', 1);
+  }, [actions, trackObjective, addBattlePassXP, updateCoopProgress]);
 
   const wrappedCatShow = useCallback((tier?: string) => {
     actions.catShow(tier as any);
     trackObjective('win_show');
     addBattlePassXP('win_show');
-  }, [actions, trackObjective, addBattlePassXP]);
+    updateCoopProgress('combined_show_wins', 1);
+  }, [actions, trackObjective, addBattlePassXP, updateCoopProgress]);
+
+  // Handle coop challenge reward claiming
+  const handleClaimCoopReward = useCallback((challengeId: string) => {
+    const result = claimCoopReward(challengeId);
+    if (result) {
+      const totalReward = result.coins + result.bonus;
+      actions.addReward?.(totalReward, {});
+      fireConfetti();
+    }
+    return result;
+  }, [claimCoopReward, actions, fireConfetti]);
 
   // Load cloud save on login
   useEffect(() => {
@@ -897,6 +935,7 @@ export function CatFarm() {
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="legacy" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'legacy' ? 'ring-2 ring-primary animate-pulse' : ''}`}>👑{retiredCats.length > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-amber-500 rounded-full text-[10px] flex items-center justify-center text-white">{retiredCats.length}</span>}</TabsTrigger></TooltipTrigger><TooltipContent>Hall of Fame</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="specializations" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'specializations' ? 'ring-2 ring-primary animate-pulse' : ''}`}>✨{specializations.length > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-purple-500 rounded-full text-[10px] flex items-center justify-center text-white">{specializations.length}</span>}</TabsTrigger></TooltipTrigger><TooltipContent>Specializations</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="battlepass" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'battlepass' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Scroll className="h-4 w-4" />{getUnclaimedRewards().length > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full text-[10px] flex items-center justify-center text-white">{getUnclaimedRewards().length}</span>}</TabsTrigger></TooltipTrigger><TooltipContent>Season Pass</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="coop" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'coop' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Handshake className="h-4 w-4" />{(getCoopActiveCount() > 0 || getCoopPendingCount() > 0) && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-cyan-500 rounded-full text-[10px] flex items-center justify-center text-white">{getCoopActiveCount() + getCoopPendingCount()}</span>}</TabsTrigger></TooltipTrigger><TooltipContent>Coop Challenges</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger></TooltipTrigger><TooltipContent>Settings</TooltipContent></Tooltip>
             </TabsList>
           </TooltipProvider>
@@ -1101,6 +1140,21 @@ export function CatFarm() {
                 state={state}
                 onClaimReward={handleClaimBPReward}
                 onUpgradePremium={handleUpgradePremium}
+              />
+            </TabsContent>
+            <TabsContent value="coop" className="mt-0">
+              <CoopChallengesPanel
+                userId={user?.id}
+                friends={friends}
+                activeChallenges={coopActiveChallenges}
+                pendingInvites={coopPendingInvites}
+                sentInvites={coopSentInvites}
+                templates={coopTemplates}
+                onSendInvite={sendCoopInvite}
+                onAcceptInvite={acceptCoopInvite}
+                onDeclineInvite={declineCoopInvite}
+                onCancelInvite={cancelCoopInvite}
+                onClaimReward={handleClaimCoopReward}
               />
             </TabsContent>
             <TabsContent value="more" className="mt-0 space-y-4">
