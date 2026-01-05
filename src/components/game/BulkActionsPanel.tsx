@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Cat, BREEDS } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Heart, Smile, Moon, Sparkles, Trash2, CheckSquare, Square, Zap } from 'lucide-react';
+import { Heart, Smile, Moon, Sparkles, Trash2, CheckSquare, Square, Zap, HeartHandshake } from 'lucide-react';
 import { CatVisual } from './CatVisual';
 
 /**
@@ -32,6 +32,8 @@ interface BulkActionsProps {
   onTrainAll: () => void;
   /** Callback to sell selected cats */
   onSellSelected: (catIds: string[]) => void;
+  /** Callback to socialize all neglected relationships */
+  onSocializeAll?: () => void;
   /** Map of cat IDs to equipped costume IDs */
   catCostumes?: Record<string, string>;
 }
@@ -69,6 +71,7 @@ export function BulkActionsPanel({
   onComfortAll, 
   onTrainAll, 
   onSellSelected,
+  onSocializeAll,
   catCostumes
 }: BulkActionsProps) {
   const [selectMode, setSelectMode] = useState(false);
@@ -82,15 +85,28 @@ export function BulkActionsPanel({
     c.lastTrainingDay < day && 
     c.tricksLearned.length < 5
   );
+  
+  // Calculate neglected relationships (2+ days since last interaction)
+  const neglectedRelationships = useMemo(() => {
+    return relationships.filter(rel => {
+      const daysSinceInteraction = day - rel.lastInteraction;
+      // Only count if both cats still exist
+      const cat1Exists = cats.some(c => c.id === rel.catId1);
+      const cat2Exists = cats.some(c => c.id === rel.catId2);
+      return daysSinceInteraction >= 2 && cat1Exists && cat2Exists;
+    });
+  }, [relationships, day, cats]);
 
   const medicineCost = sickCats.length;
   const trainCost = trainableCats.length;
+  const socializeCost = neglectedRelationships.length * 2;
   const canHealAll = sickCats.length > 0 && resources.medicine >= medicineCost;
   const canRestAll = tiredCats.length > 0;
   const canComfortAll = unhappyCats.length > 0;
   const canTrainAll = trainableCats.length > 0 && 
     resources.treats >= trainCost && 
     resources.toys >= trainCost;
+  const canSocializeAll = neglectedRelationships.length > 0 && resources.treats >= socializeCost;
 
   const toggleSelect = (catId: string) => {
     setSelectedCats(prev => 
@@ -144,7 +160,12 @@ export function BulkActionsPanel({
               🎯 {trainableCats.length} trainable
             </Badge>
           )}
-          {cats.length > 0 && sickCats.length === 0 && tiredCats.length === 0 && unhappyCats.length === 0 && (
+          {neglectedRelationships.length > 0 && (
+            <Badge variant="outline" className="gap-1 border-pink-500 text-pink-600">
+              💔 {neglectedRelationships.length} neglected bonds
+            </Badge>
+          )}
+          {cats.length > 0 && sickCats.length === 0 && tiredCats.length === 0 && unhappyCats.length === 0 && neglectedRelationships.length === 0 && (
             <Badge variant="outline" className="gap-1 border-green-500 text-green-600">
               ✨ All cats are happy & healthy!
             </Badge>
@@ -205,6 +226,22 @@ export function BulkActionsPanel({
             {trainableCats.length > 0 && (
               <span className="text-xs text-muted-foreground">
                 🍬{trainCost} 🎾{trainCost}
+              </span>
+            )}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onSocializeAll}
+            disabled={!canSocializeAll}
+            className="flex-col h-auto py-3 gap-1 col-span-2"
+          >
+            <HeartHandshake className="h-4 w-4 text-pink-500" />
+            <span className="text-xs font-medium">Socialize All Neglected</span>
+            {neglectedRelationships.length > 0 && (
+              <span className="text-xs text-muted-foreground">
+                🍬 {socializeCost} treats • {neglectedRelationships.length} pairs
               </span>
             )}
           </Button>

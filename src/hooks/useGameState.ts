@@ -1256,6 +1256,51 @@ export function useGameState(
     });
   }, [playSound, onChallengeProgress]);
 
+  // Bulk socialize neglected relationships
+  const socializeAllNeglected = useCallback(() => {
+    setState(prev => {
+      // Find relationships that haven't been interacted with in 2+ days
+      const neglectedPairs: Array<{ cat1: Cat; cat2: Cat }> = [];
+      
+      for (const rel of relationshipSystem.relationships) {
+        const daysSinceInteraction = prev.day - rel.lastInteraction;
+        if (daysSinceInteraction >= 2) {
+          const cat1 = prev.cats.find(c => c.id === rel.catId1);
+          const cat2 = prev.cats.find(c => c.id === rel.catId2);
+          if (cat1 && cat2) {
+            neglectedPairs.push({ cat1, cat2 });
+          }
+        }
+      }
+      
+      if (neglectedPairs.length === 0) {
+        showMessage("All relationships are healthy! No socialization needed. 💚", 'info');
+        return prev;
+      }
+      
+      const treatCost = neglectedPairs.length * 2;
+      if (prev.resources.treats < treatCost) {
+        showMessage(`Need ${treatCost} treats to socialize all neglected pairs!`, 'warning');
+        playSound?.('error');
+        return prev;
+      }
+      
+      // Socialize each pair
+      for (const pair of neglectedPairs) {
+        relationshipSystem.socializeCats(pair.cat1, pair.cat2, prev.day);
+      }
+      
+      showMessage(`Socialized ${neglectedPairs.length} cat pairs! Relationships improved! 🤝`, 'success');
+      playSound?.('friendship');
+      onChallengeProgress?.('socialize', neglectedPairs.length);
+      
+      return {
+        ...prev,
+        resources: { ...prev.resources, treats: prev.resources.treats - treatCost },
+      };
+    });
+  }, [relationshipSystem, playSound, onChallengeProgress]);
+
   // Bulk sell selected cats
   const sellSelectedCats = useCallback((catIds: string[]) => {
     if (catIds.length === 0) return;
@@ -1352,7 +1397,7 @@ export function useGameState(
     doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
     addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
-    trainAllAvailableCats, sellSelectedCats, updateCatAppearance, updateCatPortrait,
+    trainAllAvailableCats, sellSelectedCats, socializeAllNeglected, updateCatAppearance, updateCatPortrait,
     renameCat, feedSingleCat, dismissMessage,
   }), [
     addCat, buyFromMarket, doChore, buyResource, feedCats, useToys, useMedicine,
@@ -1360,7 +1405,7 @@ export function useGameState(
     doGroupActivity, trainCat, restCat, saveGame, loadGame, hasSaveGame, getSaveDay,
     comfortCat, buyCostume, equipCostume, processDailyEvent, clearDailyEvent, loadFromData,
     addReceivedCat, addReward, healAllSickCats, restAllTiredCats, comfortAllUnhappyCats,
-    trainAllAvailableCats, sellSelectedCats, updateCatAppearance, updateCatPortrait,
+    trainAllAvailableCats, sellSelectedCats, socializeAllNeglected, updateCatAppearance, updateCatPortrait,
     renameCat, feedSingleCat, dismissMessage,
   ]);
 

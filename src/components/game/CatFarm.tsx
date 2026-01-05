@@ -1136,6 +1136,7 @@ export function CatFarm() {
                 onComfortAll={actions.comfortAllUnhappyCats}
                 onTrainAll={actions.trainAllAvailableCats}
                 onSellSelected={actions.sellSelectedCats}
+                onSocializeAll={actions.socializeAllNeglected}
                 catCostumes={state.catCostumes}
               />
             </TabsContent>
