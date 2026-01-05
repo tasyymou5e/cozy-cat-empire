@@ -171,15 +171,24 @@ export function useErrorLogger() {
 
     // Click error handler (wrap all clicks)
     const handleClickError = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      const targetInfo = target.tagName + (target.id ? `#${target.id}` : '') + (target.className ? `.${target.className.split(' ')[0]}` : '');
+      const target = event.target as Element;
+      // Handle both regular className (string) and SVGAnimatedString
+      let className = '';
+      if (target.className) {
+        if (typeof target.className === 'string') {
+          className = target.className;
+        } else if ('baseVal' in target.className) {
+          className = (target.className as SVGAnimatedString).baseVal || '';
+        }
+      }
+      const targetInfo = target.tagName + (target.id ? `#${target.id}` : '') + (className ? `.${className.split(' ')[0]}` : '');
       
       // Store click info for potential error correlation
       (window as unknown as Record<string, unknown>).__lastClick = {
         target: targetInfo,
         timestamp: Date.now(),
-        x: event.clientX,
-        y: event.clientY
+        x: (event as MouseEvent).clientX,
+        y: (event as MouseEvent).clientY
       };
     };
 

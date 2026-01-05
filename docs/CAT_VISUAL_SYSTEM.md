@@ -74,6 +74,7 @@ Central configuration for all visual settings:
 | `vectorEngine` | 'paperjs' \| 'simple' | Rendering engine |
 | `avatarBreedFeatures` | boolean | Breed-specific shapes |
 | `costumeDisplayMode` | 'vector' \| 'emoji' \| 'auto' | Costume rendering |
+| `enableCostumeAnimations` | boolean | Animated costume effects |
 
 ### Tier Visuals
 
@@ -102,10 +103,56 @@ Defines breed-specific visual characteristics:
 **Breeds:** Siamese, Persian, Maine Coon, British Shorthair, Ragdoll, Bengal, Tabby, Stray
 
 ### Costume Vectors (`src/lib/costumeVectors.ts`)
-SVG path definitions for costume overlays:
+SVG path definitions for costume overlays with animation support:
+
+**Standard Costumes:**
 - Crown, Wizard Hat, Party Hat, Top Hat
-- Bow Tie, Sunglasses
+- Bow Tie, Sunglasses, Necklace, Scarf
+- Sweater, Tuxedo
 - Superhero Cape, Pirate Hat
+- Angel Wings, Dragon, Astronaut, Unicorn
+
+**VIP Costumes:**
+- VIP Bronze Collar, VIP Silver Cape, VIP Gold Crown
+
+**Animation Properties:**
+```typescript
+interface VectorCostume {
+  // ... base properties
+  animation?: {
+    type: 'sparkle' | 'glow' | 'flow' | 'pulse' | 'shimmer' | 'rainbow';
+    className?: string;
+    glowColor?: string;
+  };
+  particles?: {
+    type: 'sparkles' | 'stars' | 'hearts' | 'magic';
+    count: number;
+    color?: string;
+  };
+}
+```
+
+### Animated Costume SVG (`src/components/game/AnimatedCostumeSVG.tsx`)
+Renders animated costume overlays with CSS effects:
+
+**Animation Types:**
+| Type | CSS Class | Description |
+|------|-----------|-------------|
+| glow-gold | animate-costume-glow-gold | Golden pulsing glow |
+| glow-vip | animate-costume-glow-vip | Rainbow VIP glow |
+| glow-fire | animate-costume-glow-fire | Fiery dragon glow |
+| flow | animate-costume-flow | Flowing cape effect |
+| flutter | animate-costume-flutter | Wing flutter effect |
+| rainbow | animate-costume-rainbow | Rainbow color shift |
+| sparkle | animate-costume-sparkle | Twinkling stars |
+| shimmer-bronze | animate-costume-shimmer-bronze | Bronze shimmer |
+| shimmer-silver | animate-costume-shimmer-silver | Silver shimmer |
+
+**Particle Effects:**
+- sparkles: 4-point star particles
+- stars: 5-point twinkling stars
+- hearts: Pink heart particles
+- magic: Swirling dot particles
 
 ### Avatar Cache (`src/lib/avatarCache.ts`)
 Caching system for generated avatars:
