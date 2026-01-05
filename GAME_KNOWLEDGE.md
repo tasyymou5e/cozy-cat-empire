@@ -152,6 +152,42 @@ interface CatAppearance {
 - Cat show wins → Big celebration burst
 - Challenge completions → Challenge burst
 
+### 8. Graphics Settings System
+
+**Files:**
+- `src/config/graphics.ts` - Default configuration and tier visuals
+- `src/hooks/useGraphicsSettings.ts` - Runtime settings hook with localStorage persistence
+- `src/components/game/GraphicsSettingsPanel.tsx` - Settings UI component
+
+**14 Configurable Options:**
+
+| Category | Settings |
+|----------|----------|
+| Performance | Avatar Quality (low/medium/high), Enable Animations, Force Reduced Motion |
+| Effects | Costume Animations, Particle Effects, Tier Glows, Sparkle Effects, Card Flip Animation |
+| Display | Card Border Style (tier/simple/none), Prefer AI Portraits, Show Costume on Portrait, Costume Rendering (auto/vector/emoji) |
+| Hidden | Vector Engine (paperjs/simple), Avatar Breed Features |
+
+**Key Features:**
+- localStorage persistence with version tracking (`cat-farm-graphics-settings`)
+- Respects `prefers-reduced-motion` system accessibility preference
+- `effectiveAnimations` computed value for easy consumption in components
+- Reset to defaults button
+- Performance presets: Maximum Quality, Balanced, Performance Mode
+
+**Hook API:**
+```typescript
+const { settings, updateSetting, resetToDefaults, isReducedMotion, effectiveAnimations } = useGraphicsSettings();
+```
+
+**Performance Impact Estimates:**
+- Disabling animations: ~15% CPU savings during idle
+- Low avatar quality: ~40% rendering cost reduction per tier step
+- Disabling particles: ~8% GPU savings
+- Disabling tier glows: ~5% GPU savings
+
+See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full details on all 14 settings.
+
 ### 8. Costume System (`src/types/costumes.ts`, `src/lib/costumeVectors.ts`)
 
 **Categories:**
