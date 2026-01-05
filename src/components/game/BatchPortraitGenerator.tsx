@@ -21,16 +21,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Sparkles, Loader2, CheckCircle2, XCircle, Coins, AlertTriangle } from 'lucide-react';
+import { Sparkles, Loader2, CheckCircle2, XCircle, Coins, AlertTriangle, ShoppingCart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { getCostumeById } from '@/types/costumes';
 import { isPortraitOutdated, computeAppearanceHash, PORTRAIT_CREDIT_COST } from '@/lib/portraitUtils';
+import { usePortraitCredits } from '@/hooks/usePortraitCredits';
+import { PortraitPurchaseDialog } from './PortraitPurchaseDialog';
 import { cn } from '@/lib/utils';
 
 interface BatchPortraitGeneratorProps {
   cats: Cat[];
   catCostumes: Record<string, string>;
   onPortraitGenerated: (catId: string, portraitUrl: string, hash: string) => void;
+  currentMoney?: number;
+  onMoneyChange?: (newMoney: number) => void;
 }
 
 interface GenerationResult {
@@ -44,13 +48,18 @@ export function BatchPortraitGenerator({
   cats,
   catCostumes,
   onPortraitGenerated,
+  currentMoney = 0,
+  onMoneyChange,
 }: BatchPortraitGeneratorProps) {
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0, catName: '' });
   const [results, setResults] = useState<GenerationResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const abortRef = useRef(false);
+
+  const { credits, packageConfig, isPurchasing, purchaseCredits, refetch: refetchCredits } = usePortraitCredits();
 
   // Find cats that need portraits (no portrait OR outdated)
   const catsNeedingPortrait = cats.filter(cat => {
@@ -59,7 +68,9 @@ export function BatchPortraitGenerator({
     return isPortraitOutdated(cat, costumeId);
   });
 
-  const totalCost = catsNeedingPortrait.length * PORTRAIT_CREDIT_COST;
+  const creditsRemaining = credits?.creditsRemaining || 0;
+  const hasEnoughCredits = creditsRemaining >= catsNeedingPortrait.length;
+  const catsCanGenerate = Math.min(catsNeedingPortrait.length, creditsRemaining);
 
   const generateBatch = useCallback(async () => {
     setShowConfirm(false);
@@ -67,13 +78,15 @@ export function BatchPortraitGenerator({
     setResults([]);
     abortRef.current = false;
 
-    const total = catsNeedingPortrait.length;
+    // Only generate for cats we have credits for
+    const catsToGenerate = catsNeedingPortrait.slice(0, creditsRemaining);
+    const total = catsToGenerate.length;
     setProgress({ current: 0, total, catName: '' });
 
-    for (let i = 0; i < catsNeedingPortrait.length; i++) {
+    for (let i = 0; i < catsToGenerate.length; i++) {
       if (abortRef.current) break;
 
-      const cat = catsNeedingPortrait[i];
+      const cat = catsToGenerate[i];
       const costumeId = catCostumes[cat.id];
       const costume = costumeId ? getCostumeById(costumeId) : undefined;
 
@@ -99,7 +112,19 @@ export function BatchPortraitGenerator({
         });
 
         if (error) throw new Error(error.message);
-        if (data?.error) throw new Error(data.error);
+        if (data?.error) {
+          // Handle insufficient credits
+          if (data.error === 'insufficient_credits') {
+            setResults(prev => [...prev, {
+              catId: cat.id,
+              catName: cat.name,
+              success: false,
+              error: 'No credits remaining',
+            }]);
+            break;
+          }
+          throw new Error(data.error);
+        }
 
         if (data?.portraitUrl) {
           const hash = computeAppearanceHash(cat, costumeId);
@@ -122,7 +147,7 @@ export function BatchPortraitGenerator({
       }
 
       // Add delay between requests to avoid rate limits
-      if (i < catsNeedingPortrait.length - 1 && !abortRef.current) {
+      if (i < catsToGenerate.length - 1 && !abortRef.current) {
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
@@ -130,10 +155,21 @@ export function BatchPortraitGenerator({
     setProgress({ current: total, total, catName: '' });
     setIsGenerating(false);
     setShowResults(true);
-  }, [catsNeedingPortrait, catCostumes, onPortraitGenerated]);
+    refetchCredits();
+  }, [catsNeedingPortrait, creditsRemaining, catCostumes, onPortraitGenerated, refetchCredits]);
 
   const handleCancel = () => {
     abortRef.current = true;
+  };
+
+  const handlePurchaseConfirm = async () => {
+    const result = await purchaseCredits();
+    if (result.success) {
+      setShowPurchaseDialog(false);
+      if (result.newMoneyBalance !== undefined && onMoneyChange) {
+        onMoneyChange(result.newMoneyBalance);
+      }
+    }
   };
 
   if (catsNeedingPortrait.length === 0) return null;
@@ -143,18 +179,35 @@ export function BatchPortraitGenerator({
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setShowConfirm(true)}
-        className="gap-2"
-      >
-        <Sparkles className="h-4 w-4" />
-        Generate Portraits
-        <Badge variant="secondary" className="ml-1">
-          {catsNeedingPortrait.length}
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => creditsRemaining > 0 ? setShowConfirm(true) : setShowPurchaseDialog(true)}
+          className="gap-2"
+        >
+          <Sparkles className="h-4 w-4" />
+          Generate Portraits
+          <Badge variant="secondary" className="ml-1">
+            {catsNeedingPortrait.length}
+          </Badge>
+        </Button>
+        
+        {/* Credits indicator */}
+        <Badge 
+          variant={creditsRemaining > 0 ? "secondary" : "outline"}
+          className={cn(
+            "gap-1 cursor-pointer",
+            creditsRemaining > 0 
+              ? "bg-primary/10 text-primary" 
+              : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+          )}
+          onClick={() => setShowPurchaseDialog(true)}
+        >
+          <Sparkles className="h-3 w-3" />
+          {creditsRemaining} credits
         </Badge>
-      </Button>
+      </div>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
@@ -166,12 +219,33 @@ export function BatchPortraitGenerator({
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3">
+                {!hasEnoughCredits && (
+                  <div className="flex items-center gap-2 p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-700 dark:text-orange-300">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    <span className="text-sm">
+                      You only have {creditsRemaining} credits. {catsNeedingPortrait.length - creditsRemaining} cats will be skipped.
+                    </span>
+                  </div>
+                )}
                 <p>
-                  This will generate AI portraits for {catsNeedingPortrait.length} cat{catsNeedingPortrait.length !== 1 ? 's' : ''}.
+                  This will generate AI portraits for <strong>{catsCanGenerate}</strong> cat{catsCanGenerate !== 1 ? 's' : ''}.
                 </p>
-                <div className="flex items-center gap-2 text-sm bg-muted/50 rounded-lg p-3">
-                  <Coins className="h-4 w-4 text-yellow-500" />
-                  <span>Estimated cost: <strong>~{totalCost} credit{totalCost !== 1 ? 's' : ''}</strong></span>
+                <div className="space-y-2 text-sm bg-muted/50 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      Credits needed:
+                    </span>
+                    <strong>{catsCanGenerate}</strong>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Your credits:</span>
+                    <strong className="text-primary">{creditsRemaining}</strong>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>After generation:</span>
+                    <strong>{creditsRemaining - catsCanGenerate}</strong>
+                  </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Portraits are generated one at a time to ensure quality. This may take a few minutes.
@@ -179,10 +253,23 @@ export function BatchPortraitGenerator({
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            {!hasEnoughCredits && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowConfirm(false);
+                  setShowPurchaseDialog(true);
+                }}
+                className="gap-2"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Buy Credits
+              </Button>
+            )}
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={generateBatch}>
-              Generate All
+            <AlertDialogAction onClick={generateBatch} disabled={creditsRemaining < 1}>
+              Generate {catsCanGenerate}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -265,6 +352,17 @@ export function BatchPortraitGenerator({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Purchase Dialog */}
+      <PortraitPurchaseDialog
+        open={showPurchaseDialog}
+        onOpenChange={setShowPurchaseDialog}
+        packageCost={packageConfig.cost}
+        packageSize={packageConfig.portraits}
+        currentMoney={currentMoney}
+        isPurchasing={isPurchasing}
+        onConfirm={handlePurchaseConfirm}
+      />
     </>
   );
 }

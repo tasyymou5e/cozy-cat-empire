@@ -3,12 +3,14 @@ import { Cat } from '@/types/game';
 import { CatVisual } from './CatVisual';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Loader2, RefreshCw, AlertCircle, AlertTriangle, Star, Crown, Trophy, Coins } from 'lucide-react';
+import { Sparkles, Loader2, RefreshCw, AlertCircle, AlertTriangle, Star, Crown, Trophy, Coins, ShoppingCart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { getGradeTier, getGradeStars } from '@/types/grading';
 import { getCostumeById } from '@/types/costumes';
 import { isPortraitOutdated, computeAppearanceHash, PORTRAIT_CREDIT_COST } from '@/lib/portraitUtils';
+import { usePortraitCredits } from '@/hooks/usePortraitCredits';
+import { PortraitPurchaseDialog } from './PortraitPurchaseDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,22 +41,40 @@ interface CatPortraitProps {
   cat: Cat;
   equippedCostumeId?: string;
   onPortraitGenerated?: (catId: string, portraitUrl: string, hash: string) => void;
+  currentMoney?: number;
+  onMoneyChange?: (newMoney: number) => void;
 }
 
 type PortraitState = 'idle' | 'generating' | 'complete' | 'error';
 
-export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: CatPortraitProps) {
+export function CatPortrait({ 
+  cat, 
+  equippedCostumeId, 
+  onPortraitGenerated,
+  currentMoney = 0,
+  onMoneyChange,
+}: CatPortraitProps) {
   const [state, setState] = useState<PortraitState>(cat.portraitUrl ? 'complete' : 'idle');
   const [error, setError] = useState<string | null>(null);
   const [localPortraitUrl, setLocalPortraitUrl] = useState<string | undefined>(cat.portraitUrl);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
+
+  const { credits, packageConfig, isLoading: creditsLoading, isPurchasing, purchaseCredits, refetch: refetchCredits } = usePortraitCredits();
 
   // Check if portrait is outdated using appearance hash
   const isOutdated = useMemo(() => {
     return isPortraitOutdated(cat, equippedCostumeId);
   }, [cat, equippedCostumeId]);
 
+  const hasCredits = (credits?.creditsRemaining || 0) >= PORTRAIT_CREDIT_COST;
+
   const generatePortrait = async () => {
+    if (!hasCredits) {
+      setShowPurchaseDialog(true);
+      return;
+    }
+
     setState('generating');
     setError(null);
 
@@ -85,6 +105,12 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
       }
 
       if (data?.error) {
+        // Handle insufficient credits error
+        if (data.error === 'insufficient_credits') {
+          setShowPurchaseDialog(true);
+          setState('idle');
+          return;
+        }
         throw new Error(data.error);
       }
 
@@ -93,13 +119,43 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
         setState('complete');
         const hash = computeAppearanceHash(cat, equippedCostumeId);
         onPortraitGenerated?.(cat.id, data.portraitUrl, hash);
+        // Refetch credits after successful generation
+        refetchCredits();
       } else {
         throw new Error('No portrait URL received');
       }
     } catch (err) {
       console.error('Portrait generation error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to generate portrait');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate portrait';
+      
+      // Check for insufficient credits in error message
+      if (errorMessage.includes('insufficient_credits') || errorMessage.includes('portrait credits')) {
+        setShowPurchaseDialog(true);
+        setState('idle');
+        return;
+      }
+      
+      setError(errorMessage);
       setState('error');
+    }
+  };
+
+  const handlePurchaseConfirm = async () => {
+    const result = await purchaseCredits();
+    if (result.success) {
+      setShowPurchaseDialog(false);
+      // Update money in parent component if callback provided
+      if (result.newMoneyBalance !== undefined && onMoneyChange) {
+        onMoneyChange(result.newMoneyBalance);
+      }
+    }
+  };
+
+  const handleGenerateClick = () => {
+    if (hasCredits) {
+      setShowConfirmDialog(true);
+    } else {
+      setShowPurchaseDialog(true);
     }
   };
 
@@ -126,6 +182,25 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
 
   return (
     <div className="relative flex flex-col items-center gap-3">
+      {/* Credits Badge */}
+      {!creditsLoading && (
+        <div className="absolute -top-2 -right-2 z-30">
+          <Badge 
+            variant={hasCredits ? "secondary" : "outline"} 
+            className={cn(
+              "text-xs gap-1 cursor-pointer transition-colors",
+              hasCredits 
+                ? "bg-primary/10 text-primary hover:bg-primary/20" 
+                : "bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-300"
+            )}
+            onClick={() => setShowPurchaseDialog(true)}
+          >
+            <Sparkles className="h-3 w-3" />
+            {credits?.creditsRemaining || 0}
+          </Badge>
+        </div>
+      )}
+
       {/* Portrait Container */}
       <div className={cn(
         "relative w-48 h-48 rounded-2xl overflow-hidden",
@@ -234,25 +309,37 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
       {/* Action Buttons */}
       {state === 'idle' && !portraitUrl && (
         <div className="flex flex-col items-center gap-1">
-          <Button
-            onClick={() => setShowConfirmDialog(true)}
-            variant="outline"
-            size="sm"
-            className="gap-2 bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20"
-          >
-            <Sparkles className="w-4 h-4" />
-            Generate Portrait
-            <Badge variant="secondary" className="ml-1 gap-1 text-xs">
-              <Coins className="w-3 h-3" />
-              ~{PORTRAIT_CREDIT_COST}
-            </Badge>
-          </Button>
+          {hasCredits ? (
+            <Button
+              onClick={handleGenerateClick}
+              variant="outline"
+              size="sm"
+              className="gap-2 bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20"
+            >
+              <Sparkles className="w-4 h-4" />
+              Generate Portrait
+            </Button>
+          ) : (
+            <Button
+              onClick={() => setShowPurchaseDialog(true)}
+              variant="outline"
+              size="sm"
+              className="gap-2 bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 text-amber-700 dark:text-amber-300"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Buy {packageConfig.portraits} Portraits
+              <Badge variant="secondary" className="ml-1 gap-1 text-xs">
+                <Coins className="w-3 h-3" />
+                ${packageConfig.cost.toLocaleString()}
+              </Badge>
+            </Button>
+          )}
         </div>
       )}
 
       {state === 'error' && (
         <Button
-          onClick={() => setShowConfirmDialog(true)}
+          onClick={handleGenerateClick}
           variant="outline"
           size="sm"
           className="gap-2"
@@ -267,7 +354,7 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
           {isOutdated ? (
             <>
               <Button
-                onClick={() => setShowConfirmDialog(true)}
+                onClick={handleGenerateClick}
                 variant="secondary"
                 size="sm"
                 className="gap-2 bg-orange-100 hover:bg-orange-200 text-orange-700 dark:bg-orange-900/20 dark:hover:bg-orange-900/40 dark:text-orange-300"
@@ -281,7 +368,7 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
             </>
           ) : (
             <Button
-              onClick={() => setShowConfirmDialog(true)}
+              onClick={handleGenerateClick}
               variant="ghost"
               size="sm"
               className="gap-2 text-muted-foreground hover:text-foreground"
@@ -306,12 +393,20 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
                 <p>
                   Create a unique AI-generated portrait for <strong>{cat.name}</strong>.
                 </p>
-                <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                  <Coins className="w-5 h-5 text-amber-500" />
-                  <span className="font-medium">Estimated cost:</span>
-                  <Badge variant="secondary" className="ml-auto">
-                    ~{PORTRAIT_CREDIT_COST} credit
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    <span className="font-medium">Cost:</span>
+                  </div>
+                  <Badge variant="secondary">
+                    {PORTRAIT_CREDIT_COST} credit
                   </Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <span className="text-muted-foreground">Your credits:</span>
+                  <span className="font-bold text-primary">
+                    {credits?.creditsRemaining || 0}
+                  </span>
                 </div>
                 {isOutdated && (
                   <p className="text-sm text-orange-600 dark:text-orange-400">
@@ -333,6 +428,17 @@ export function CatPortrait({ cat, equippedCostumeId, onPortraitGenerated }: Cat
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Purchase Dialog */}
+      <PortraitPurchaseDialog
+        open={showPurchaseDialog}
+        onOpenChange={setShowPurchaseDialog}
+        packageCost={packageConfig.cost}
+        packageSize={packageConfig.portraits}
+        currentMoney={currentMoney}
+        isPurchasing={isPurchasing}
+        onConfirm={handlePurchaseConfirm}
+      />
     </div>
   );
 }

@@ -954,6 +954,54 @@ export type Database = {
           },
         ]
       }
+      player_portrait_credits: {
+        Row: {
+          created_at: string | null
+          credits_remaining: number
+          id: string
+          last_purchase_at: string | null
+          total_purchased: number
+          total_used: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          credits_remaining?: number
+          id?: string
+          last_purchase_at?: string | null
+          total_purchased?: number
+          total_used?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          credits_remaining?: number
+          id?: string
+          last_purchase_at?: string | null
+          total_purchased?: number
+          total_used?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_portrait_credits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_portrait_credits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_stats: {
         Row: {
           achievements_unlocked: number | null
