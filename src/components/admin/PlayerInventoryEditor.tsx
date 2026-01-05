@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdminActivityLog } from '@/hooks/useAdminActivityLog';
 import { useToast } from '@/hooks/use-toast';
@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import type { Json } from '@/integrations/supabase/types';
 import {
   AlertDialog,
@@ -20,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Coins, Package, Save, AlertTriangle, RotateCcw } from 'lucide-react';
+import { Coins, Package, Save, AlertTriangle, RotateCcw, Sparkles, Plus, Minus } from 'lucide-react';
 
 interface PlayerInventoryEditorProps {
   userId: string;
@@ -33,6 +34,15 @@ interface Resources {
   medicine: number;
   toys: number;
   treats: number;
+}
+
+interface PortraitCredits {
+  id: string;
+  user_id: string;
+  credits_remaining: number;
+  total_purchased: number;
+  total_used: number;
+  last_purchase_at: string | null;
 }
 
 export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInventoryEditorProps) {
@@ -51,10 +61,40 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
   const [isSaving, setIsSaving] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  
+  // Portrait credits state
+  const [portraitCredits, setPortraitCredits] = useState(0);
+  const [creditsChange, setCreditsChange] = useState(0);
+  const [creditsDialogOpen, setCreditsDialogOpen] = useState(false);
 
   const { logActivity } = useAdminActivityLog();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch portrait credits for this user
+  const { data: creditsData, refetch: refetchCredits } = useQuery({
+    queryKey: ['admin-portrait-credits', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('player_portrait_credits')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      return data as PortraitCredits | null;
+    },
+  });
+
+  useEffect(() => {
+    if (creditsData) {
+      setPortraitCredits(creditsData.credits_remaining);
+    } else {
+      setPortraitCredits(0);
+    }
+  }, [creditsData]);
 
   const hasChanges = money !== currentMoney || 
     resources.food !== (currentResources.food || 0) ||
@@ -114,6 +154,89 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
       toast({
         title: 'Error',
         description: error.message || 'Failed to update inventory',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCreditsChange = async () => {
+    if (!reason.trim()) {
+      toast({
+        title: 'Reason Required',
+        description: 'Please provide a reason for modifying portrait credits.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (creditsChange === 0) {
+      toast({
+        title: 'No Change',
+        description: 'Please specify a credit amount to add or remove.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const newCredits = Math.max(0, portraitCredits + creditsChange);
+      
+      if (creditsData) {
+        // Update existing record
+        const updates: Partial<PortraitCredits> = {
+          credits_remaining: newCredits,
+          ...(creditsChange > 0 && { total_purchased: creditsData.total_purchased + creditsChange }),
+        };
+
+        const { error } = await supabase
+          .from('player_portrait_credits')
+          .update(updates)
+          .eq('user_id', userId);
+
+        if (error) throw error;
+      } else {
+        // Create new record
+        const { error } = await supabase
+          .from('player_portrait_credits')
+          .insert({
+            user_id: userId,
+            credits_remaining: newCredits,
+            total_purchased: creditsChange > 0 ? creditsChange : 0,
+            total_used: 0,
+          });
+
+        if (error) throw error;
+      }
+
+      await logActivity({
+        actionType: 'portrait_credits_modify',
+        actionDescription: `${creditsChange > 0 ? 'Granted' : 'Removed'} ${Math.abs(creditsChange)} portrait credits: ${reason}`,
+        targetUserId: userId,
+        targetTable: 'player_portrait_credits',
+        metadata: {
+          reason,
+          change: creditsChange,
+          previousCredits: portraitCredits,
+          newCredits,
+        },
+      });
+
+      toast({
+        title: 'Portrait Credits Updated',
+        description: `${creditsChange > 0 ? 'Added' : 'Removed'} ${Math.abs(creditsChange)} credits. New balance: ${newCredits}`,
+      });
+
+      setCreditsChange(0);
+      setReason('');
+      setCreditsDialogOpen(false);
+      refetchCredits();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update portrait credits',
         variant: 'destructive',
       });
     } finally {
@@ -253,6 +376,55 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
         </CardContent>
       </Card>
 
+      {/* Portrait Credits Editor */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Portrait Credits
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-2xl font-bold">{portraitCredits}</p>
+              <p className="text-xs text-muted-foreground">
+                Total purchased: {creditsData?.total_purchased || 0} | Used: {creditsData?.total_used || 0}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setCreditsChange(3);
+                  setCreditsDialogOpen(true);
+                }}
+                className="gap-1"
+              >
+                <Plus className="h-3 w-3" />
+                Grant
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setCreditsChange(-1);
+                  setCreditsDialogOpen(true);
+                }}
+                className="gap-1"
+                disabled={portraitCredits === 0}
+              >
+                <Minus className="h-3 w-3" />
+                Remove
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
       {/* Reason Input */}
       <div className="space-y-2">
         <Label htmlFor="reason">Reason for Changes *</Label>
@@ -321,6 +493,68 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleSave} disabled={isSaving}>
               {isSaving ? 'Saving...' : 'Confirm Changes'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Portrait Credits Dialog */}
+      <AlertDialog open={creditsDialogOpen} onOpenChange={setCreditsDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              {creditsChange > 0 ? 'Grant' : 'Remove'} Portrait Credits
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {creditsChange > 0 
+                ? 'Grant additional portrait credits to this player.'
+                : 'Remove portrait credits from this player.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="flex items-center gap-4">
+              <Label>Credits to {creditsChange > 0 ? 'add' : 'remove'}:</Label>
+              <Input
+                type="number"
+                value={Math.abs(creditsChange)}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setCreditsChange(creditsChange > 0 ? val : -val);
+                }}
+                className="w-24"
+                min={1}
+              />
+            </div>
+            <div className="text-sm space-y-1 bg-muted p-3 rounded-lg">
+              <div className="flex justify-between">
+                <span>Current balance:</span>
+                <span className="font-medium">{portraitCredits}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>After change:</span>
+                <span className="font-bold text-primary">
+                  {Math.max(0, portraitCredits + creditsChange)}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Reason *</Label>
+              <Textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Enter reason for credit modification"
+                className="h-16"
+              />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCreditsChange(0)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleCreditsChange} 
+              disabled={isSaving || !reason.trim()}
+            >
+              {isSaving ? 'Saving...' : `${creditsChange > 0 ? 'Grant' : 'Remove'} Credits`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
