@@ -10,11 +10,23 @@ import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardDescription, GlassCardContent } from '@/components/ui/GlassCard';
 import { LoadingCat } from '@/components/ui/LoadingCat';
 import { FloatingDecorations } from '@/components/ui/FloatingDecorations';
-import { Mail, Lock, PawPrint } from 'lucide-react';
+import { Mail, Lock, PawPrint, User, Shuffle, Loader2 } from 'lucide-react';
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: 'Invalid email address' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+});
+
+const signupSchema = z.object({
+  email: z.string().trim().email({ message: 'Invalid email address' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  displayName: z.string()
+    .trim()
+    .min(3, { message: 'Display name must be at least 3 characters' })
+    .max(30, { message: 'Display name must be 30 characters or less' })
+    .regex(/^[a-zA-Z0-9\s_-]+$/, { 
+      message: 'Only letters, numbers, spaces, underscores, and hyphens allowed' 
+    }),
 });
 
 const emailSchema = z.object({
@@ -31,6 +43,8 @@ const passwordUpdateSchema = z.object({
 
 type AuthMode = 'login' | 'signup' | 'forgot-password' | 'update-password';
 
+const AVATAR_OPTIONS = ['😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🐱'];
+
 export default function Auth() {
   const navigate = useNavigate();
   const { user, signIn, signUp, loading } = useAuth();
@@ -38,6 +52,11 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [avatarEmoji, setAvatarEmoji] = useState('😺');
+  const [nameSuggestions, setNameSuggestions] = useState<string[]>([]);
+  const [isCheckingName, setIsCheckingName] = useState(false);
+  const [nameError, setNameError] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -143,6 +162,85 @@ export default function Auth() {
     }
   }, [user, loading, navigate, mode, isRecoveryFlow]);
 
+  // Check display name availability
+  const checkDisplayNameAvailability = async (name: string): Promise<boolean> => {
+    const sanitized = name.trim();
+    if (sanitized.length < 3) return false;
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('display_name')
+      .ilike('display_name', sanitized)
+      .limit(1);
+    
+    return !error && (!data || data.length === 0);
+  };
+
+  // Generate name suggestions
+  const generateNameSuggestions = (baseName: string): string[] => {
+    const suggestions: string[] = [];
+    const clean = baseName.replace(/[^a-zA-Z0-9]/g, '');
+    
+    if (clean.length < 2) return suggestions;
+    
+    // Add random numbers
+    suggestions.push(`${clean}${Math.floor(Math.random() * 999)}`);
+    suggestions.push(`${clean}_${Math.floor(Math.random() * 99)}`);
+    
+    // Add cat-themed suffixes
+    const suffixes = ['Cat', 'Meow', 'Paws', 'Kitty', 'Whiskers', 'Furry'];
+    suggestions.push(`${clean}${suffixes[Math.floor(Math.random() * suffixes.length)]}`);
+    
+    // Add prefixes
+    const prefixes = ['Sir', 'Lady', 'Captain', 'Chief', 'Master'];
+    suggestions.push(`${prefixes[Math.floor(Math.random() * prefixes.length)]}${clean}`);
+    
+    // Year-based
+    suggestions.push(`${clean}${new Date().getFullYear()}`);
+    
+    return suggestions.slice(0, 5);
+  };
+
+  // Check name on blur
+  const handleNameBlur = async () => {
+    if (mode !== 'signup' || !displayName.trim()) return;
+    
+    // Validate format first
+    const formatResult = signupSchema.shape.displayName.safeParse(displayName);
+    if (!formatResult.success) {
+      setNameError(formatResult.error.errors[0].message);
+      setNameSuggestions([]);
+      return;
+    }
+    
+    setIsCheckingName(true);
+    setNameError('');
+    setNameSuggestions([]);
+    
+    const isAvailable = await checkDisplayNameAvailability(displayName);
+    
+    if (!isAvailable) {
+      setNameError('This name is already taken');
+      setNameSuggestions(generateNameSuggestions(displayName));
+    }
+    
+    setIsCheckingName(false);
+  };
+
+  // Regenerate suggestions
+  const handleRegenerateSuggestions = () => {
+    if (displayName.trim()) {
+      setNameSuggestions(generateNameSuggestions(displayName));
+    }
+  };
+
+  // Select a suggestion
+  const handleSelectSuggestion = (suggestion: string) => {
+    setDisplayName(suggestion);
+    setNameError('');
+    setNameSuggestions([]);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -210,16 +308,16 @@ export default function Auth() {
       return;
     }
 
-    const result = authSchema.safeParse({ email, password });
-    if (!result.success) {
-      setError(result.error.errors[0].message);
-      return;
-    }
+    // Login mode
+    if (mode === 'login') {
+      const result = authSchema.safeParse({ email, password });
+      if (!result.success) {
+        setError(result.error.errors[0].message);
+        return;
+      }
 
-    setIsSubmitting(true);
-
-    try {
-      if (mode === 'login') {
+      setIsSubmitting(true);
+      try {
         const { error } = await signIn(email, password);
         if (error) {
           if (error.message.includes('Invalid login credentials')) {
@@ -228,18 +326,46 @@ export default function Auth() {
             setError(error.message);
           }
         }
-      } else {
-        const { error } = await signUp(email, password);
-        if (error) {
-          if (error.message.includes('already registered')) {
-            setError('This email is already registered. Please log in instead.');
-          } else {
-            setError(error.message);
-          }
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // Signup mode - validate with signup schema
+    const result = signupSchema.safeParse({ email, password, displayName });
+    if (!result.success) {
+      setError(result.error.errors[0].message);
+      return;
+    }
+
+    // Check name availability before signup
+    setIsSubmitting(true);
+    const isAvailable = await checkDisplayNameAvailability(displayName);
+    
+    if (!isAvailable) {
+      setNameError('This name is already taken');
+      setNameSuggestions(generateNameSuggestions(displayName));
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const { error } = await signUp(email, password, {
+        display_name: displayName.trim(),
+        avatar_emoji: avatarEmoji,
+      });
+      if (error) {
+        if (error.message.includes('already registered')) {
+          setError('This email is already registered. Please log in instead.');
         } else {
-          setSuccess('Account created! You can now log in.');
-          setMode('login');
+          setError(error.message);
         }
+      } else {
+        setSuccess('Account created! You can now log in.');
+        setMode('login');
+        setDisplayName('');
+        setAvatarEmoji('😺');
       }
     } finally {
       setIsSubmitting(false);
@@ -251,6 +377,8 @@ export default function Auth() {
     setError('');
     setSuccess('');
     setConfirmPassword('');
+    setNameError('');
+    setNameSuggestions([]);
   };
 
   if (loading || isProcessingRecovery) {
@@ -264,7 +392,7 @@ export default function Auth() {
   const getTitle = () => {
     switch (mode) {
       case 'login': return 'Welcome back to your cozy cat kingdom!';
-      case 'signup': return 'Join thousands of cat lovers building their empire!';
+      case 'signup': return 'Create your cat empire profile!';
       case 'forgot-password': return "Don't worry, we'll help you get back in";
       case 'update-password': return 'Almost there! Set your new password';
     }
@@ -300,6 +428,103 @@ export default function Auth() {
             </GlassCardHeader>
             <GlassCardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Avatar Selection - Signup Only */}
+                {mode === 'signup' && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      Choose your avatar
+                    </Label>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {AVATAR_OPTIONS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          type="button"
+                          onClick={() => setAvatarEmoji(emoji)}
+                          className={`text-2xl p-2 rounded-lg transition-all hover:scale-110 ${
+                            avatarEmoji === emoji
+                              ? 'bg-primary/20 ring-2 ring-primary scale-110'
+                              : 'bg-muted hover:bg-muted/80'
+                          }`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Display Name - Signup Only */}
+                {mode === 'signup' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="displayName" className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-primary" />
+                      Display Name *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="displayName"
+                        type="text"
+                        placeholder="CatLover42"
+                        value={displayName}
+                        onChange={(e) => {
+                          setDisplayName(e.target.value);
+                          setNameError('');
+                          setNameSuggestions([]);
+                        }}
+                        onBlur={handleNameBlur}
+                        disabled={isSubmitting}
+                        required
+                        maxLength={30}
+                        className={`bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20 ${
+                          nameError ? 'border-destructive' : ''
+                        }`}
+                      />
+                      {isCheckingName && (
+                        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Shown on leaderboards (3-30 chars, letters, numbers, spaces, _ -)
+                    </p>
+                    
+                    {/* Name Error */}
+                    {nameError && (
+                      <p className="text-sm text-destructive flex items-center gap-1">
+                        <span>😿</span> {nameError}
+                      </p>
+                    )}
+                    
+                    {/* Name Suggestions */}
+                    {nameSuggestions.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Try one of these:</span>
+                          <button
+                            type="button"
+                            onClick={handleRegenerateSuggestions}
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
+                          >
+                            <Shuffle className="h-3 w-3" />
+                            More
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {nameSuggestions.map((suggestion) => (
+                            <button
+                              key={suggestion}
+                              type="button"
+                              onClick={() => handleSelectSuggestion(suggestion)}
+                              className="px-3 py-1 text-sm bg-primary/10 hover:bg-primary/20 rounded-full border border-primary/20 transition-colors"
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {mode !== 'update-password' && (
                   <div className="space-y-2">
                     <Label htmlFor="email" className="flex items-center gap-2">
@@ -374,7 +599,7 @@ export default function Auth() {
                 <Button 
                   type="submit" 
                   className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/20" 
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || (mode === 'signup' && !!nameError)}
                 >
                   <PawPrint className="h-4 w-4 mr-2" />
                   {isSubmitting
@@ -382,7 +607,7 @@ export default function Auth() {
                     : mode === 'login'
                     ? 'Log In'
                     : mode === 'signup'
-                    ? 'Sign Up'
+                    ? 'Create Account'
                     : mode === 'update-password'
                     ? 'Update Password'
                     : 'Send Reset Email'}

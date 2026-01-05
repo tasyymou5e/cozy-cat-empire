@@ -666,21 +666,21 @@ VALUES ('cat-portraits', 'cat-portraits', true);
 ## Database Functions
 
 ### handle_new_user()
-Automatically creates profile for new auth users.
+Automatically creates profile for new auth users. Captures display name and avatar from signup metadata.
 
 ```sql
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
+SECURITY DEFINER SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, display_name, username)
+  INSERT INTO public.profiles (id, email, display_name, avatar_emoji, username)
   VALUES (
     NEW.id, 
     NEW.email,
     NEW.raw_user_meta_data ->> 'display_name',
+    COALESCE(NEW.raw_user_meta_data ->> 'avatar_emoji', '😺'),
     NEW.raw_user_meta_data ->> 'username'
   );
   RETURN NEW;
@@ -693,6 +693,10 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW
   EXECUTE FUNCTION handle_new_user();
 ```
+
+**Signup Metadata:**
+During signup, the frontend passes `display_name` and `avatar_emoji` in `options.data`, which Supabase stores in `raw_user_meta_data`. The trigger reads these values and populates the profiles table.
+
 
 ### update_updated_at_column()
 Auto-update timestamp on row changes.

@@ -255,13 +255,31 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 
 ## Social & Multiplayer Systems
 
-### 13. Authentication (`src/contexts/AuthContext.tsx`)
+### 13. Authentication (`src/contexts/AuthContext.tsx`, `src/pages/Auth.tsx`)
 
 **Features:**
 - Email/password authentication via Supabase
 - Session management
 - Auto-confirm email signups
 - Password reset functionality
+- **Forced Profile Setup During Signup:**
+  - Display name (required, 3-30 chars, alphanumeric + spaces/underscores/hyphens)
+  - Avatar emoji selection (10 cat-themed options)
+  - Unique display name validation with suggestions if taken
+  - Data passed to Supabase via `options.data` metadata
+
+**Signup Flow:**
+1. User enters avatar emoji + display name + email + password
+2. Client validates format (Zod schema)
+3. Client checks display name availability via Supabase query
+4. If taken, 5 alternative suggestions shown (cat-themed suffixes, random numbers, etc.)
+5. On submit, `signUp()` passes metadata to Supabase
+6. Database trigger `handle_new_user()` captures metadata and creates profile
+
+**ProfileSetupDialog** (`src/components/game/ProfileSetupDialog.tsx`):
+- Shows for legacy users (signed up before profile requirement) with NULL display_name
+- Non-dismissable modal - must complete profile to continue
+- Same validation and suggestion logic as signup form
 
 ### 14. Cloud Saves (`src/hooks/useCloudSave.ts`)
 
@@ -292,7 +310,7 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 **Features:**
 - Edit display name and avatar emoji
 - View personal stats
-- Profile setup dialog for new users
+- Profile setup dialog for legacy users
 
 ### 18. Cat Gifting (`src/hooks/useCatGifts.ts`, `src/components/game/CatGiftingPanel.tsx`)
 
@@ -516,7 +534,7 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 
 ---
 
-## Edge Functions (7 total)
+## Edge Functions (8 total)
 
 - **process-leaderboard-rewards**: Process periodic leaderboard rewards
 - **generate-weekly-challenges**: Generate new weekly challenges
@@ -525,6 +543,11 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 - **send-password-reset**: Password reset email
 - **admin-delete-user**: Admin user deletion
 - **cleanup-error-logs**: Daily cleanup of error logs older than 30 days
+- **validate-display-name**: Server-side display name validation and availability check
+  - Validates format (3-30 chars, alphanumeric + spaces/underscores/hyphens)
+  - Checks case-insensitive uniqueness
+  - Returns suggestions if name is taken
+  - XSS prevention via regex
 
 ---
 
