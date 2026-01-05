@@ -12,8 +12,9 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
-import { Cat, Coins, Trophy, Gift, ArrowLeftRight, AlertTriangle, Package } from 'lucide-react';
+import { Cat, Coins, Trophy, Gift, ArrowLeftRight, AlertTriangle, Package, UserCog } from 'lucide-react';
 import { PlayerInventoryEditor } from './PlayerInventoryEditor';
+import { ProfileEditor } from './ProfileEditor';
 
 interface UserDetailModalProps {
   userId: string | null;
@@ -143,9 +144,15 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
           </div>
         ) : (
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="inventory">Inventory</TabsTrigger>
+              <TabsTrigger value="profile" className="flex items-center gap-1">
+                Profile
+                {!user?.display_name && (
+                  <Badge variant="destructive" className="h-4 w-4 p-0 text-[10px] rounded-full">!</Badge>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="cats">Cats</TabsTrigger>
               <TabsTrigger value="trades">Trades</TabsTrigger>
               <TabsTrigger value="gifts">Gifts</TabsTrigger>
@@ -261,6 +268,34 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
                     <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p>No game save found for this user</p>
                   </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="profile" className="space-y-4">
+                {user && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <UserCog className="h-4 w-4" />
+                        Edit User Profile
+                        {!user.display_name && (
+                          <Badge variant="destructive">Missing Display Name</Badge>
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ProfileEditor
+                        userId={userId!}
+                        currentDisplayName={user.display_name}
+                        currentAvatarEmoji={user.avatar_emoji}
+                        currentUsername={user.username}
+                        onSave={() => {
+                          queryClient.invalidateQueries({ queryKey: ['admin-user-detail', userId] });
+                          queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+                        }}
+                      />
+                    </CardContent>
+                  </Card>
                 )}
               </TabsContent>
 

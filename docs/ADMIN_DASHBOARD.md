@@ -30,9 +30,11 @@ Quick action buttons for navigation to other admin sections.
 
 - Searchable/filterable user table
 - View user details: avatar, display name, username, join date, cats owned, show wins
+- **Warning badge** for users with missing display names
 - **User Detail Modal**: Click eye icon to view comprehensive user data:
   - Overview: Money, cats, wins, kittens bred, account info
   - **Inventory**: Edit player money, resources, and reset game state (with audit logging)
+  - **Profile**: Edit display name, avatar, and username with validation and availability check
   - Cats: Full cat list with grades
   - Trades: Recent trade history
   - Gifts: Recent gift history
@@ -51,7 +53,26 @@ Quick action buttons for navigation to other admin sections.
 - **Delete**: Bulk deletion with confirmation
 - **Send Notification**: Bulk push notification to selected users
 
-### 3. Statistics (`/catking/stats`)
+### 3. Profile Repair Tool (`/catking/profiles`)
+
+Repair user profiles with missing or invalid data:
+- **Statistics Dashboard**: Count of NULL display names, missing usernames, default avatars
+- **Users Needing Repair Table**: List all users with missing display names
+- **Auto-Generate Names**: Generate display names from email prefixes with random suffixes
+- **Bulk Apply**: Apply generated names to multiple users at once
+- **Individual Edit**: Edit any user's profile with validation
+- **Audit Logging**: All profile repairs logged with reason
+
+#### ProfileEditor Component
+Reusable component for profile editing:
+- Avatar emoji picker (10 options)
+- Display name input with real-time validation (3-30 chars, alphanumeric + `_- `)
+- Case-insensitive availability checking
+- Name suggestions if taken
+- Username field (optional)
+- Reason field (required for audit trail)
+
+### 4. Statistics (`/catking/stats`)
 
 Game analytics with three tabs:
 
