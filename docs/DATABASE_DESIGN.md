@@ -787,6 +787,11 @@ CREATE INDEX idx_gallery_favorite ON gallery_photos(user_id, is_favorite);
 -- Error logs
 CREATE INDEX idx_error_logs_created ON error_logs(created_at DESC);
 CREATE INDEX idx_error_logs_type ON error_logs(error_type);
+
+-- Username uniqueness (case-insensitive)
+CREATE UNIQUE INDEX profiles_username_unique_idx 
+ON public.profiles (LOWER(username)) 
+WHERE username IS NOT NULL AND username != '';
 ```
 
 ---

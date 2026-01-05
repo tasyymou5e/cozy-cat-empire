@@ -534,7 +534,7 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 
 ---
 
-## Edge Functions (8 total)
+## Edge Functions (9 total)
 
 - **process-leaderboard-rewards**: Process periodic leaderboard rewards
 - **generate-weekly-challenges**: Generate new weekly challenges
@@ -543,10 +543,13 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 - **send-password-reset**: Password reset email
 - **admin-delete-user**: Admin user deletion
 - **cleanup-error-logs**: Daily cleanup of error logs older than 30 days
-- **validate-display-name**: Server-side display name validation and availability check
-  - Validates format (3-30 chars, alphanumeric + spaces/underscores/hyphens)
-  - Checks case-insensitive uniqueness
-  - Returns suggestions if name is taken
+- **manage-portrait-credits**: Portrait credit management
+- **validate-display-name**: Server-side display name and username validation
+  - Validates display name format (3-30 chars, alphanumeric + spaces/underscores/hyphens)
+  - Validates username format (3-20 chars, starts with letter, alphanumeric + underscores)
+  - **Profanity filter** with leetspeak detection and bypass prevention
+  - Checks case-insensitive uniqueness for both display names and usernames
+  - Returns suggestions if name/username is taken
   - XSS prevention via regex
 
 ---

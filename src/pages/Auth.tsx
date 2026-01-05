@@ -10,7 +10,7 @@ import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardDescription, GlassCardContent } from '@/components/ui/GlassCard';
 import { LoadingCat } from '@/components/ui/LoadingCat';
 import { FloatingDecorations } from '@/components/ui/FloatingDecorations';
-import { Mail, Lock, PawPrint, User, Shuffle, Loader2 } from 'lucide-react';
+import { Mail, Lock, PawPrint, User, AtSign, Shuffle, Loader2, Check, AlertCircle } from 'lucide-react';
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: 'Invalid email address' }),
@@ -26,6 +26,13 @@ const signupSchema = z.object({
     .max(30, { message: 'Display name must be 30 characters or less' })
     .regex(/^[a-zA-Z0-9\s_-]+$/, { 
       message: 'Only letters, numbers, spaces, underscores, and hyphens allowed' 
+    }),
+  username: z.string()
+    .trim()
+    .min(3, { message: 'Username must be at least 3 characters' })
+    .max(20, { message: 'Username must be 20 characters or less' })
+    .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, { 
+      message: 'Username must start with a letter and contain only letters, numbers, and underscores' 
     }),
 });
 
@@ -53,10 +60,21 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
   const [avatarEmoji, setAvatarEmoji] = useState('😺');
+  
+  // Display name validation state
   const [nameSuggestions, setNameSuggestions] = useState<string[]>([]);
   const [isCheckingName, setIsCheckingName] = useState(false);
   const [nameError, setNameError] = useState('');
+  const [nameAvailable, setNameAvailable] = useState<boolean | null>(null);
+  
+  // Username validation state
+  const [usernameSuggestions, setUsernameSuggestions] = useState<string[]>([]);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -162,53 +180,21 @@ export default function Auth() {
     }
   }, [user, loading, navigate, mode, isRecoveryFlow]);
 
-  // Check display name availability
-  const checkDisplayNameAvailability = async (name: string): Promise<boolean> => {
+  // Validate display name with edge function (includes profanity check)
+  const validateDisplayName = async (name: string) => {
     const sanitized = name.trim();
-    if (sanitized.length < 3) return false;
+    if (sanitized.length < 3) {
+      setNameError('Display name must be at least 3 characters');
+      setNameAvailable(null);
+      setNameSuggestions([]);
+      return;
+    }
     
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('display_name')
-      .ilike('display_name', sanitized)
-      .limit(1);
-    
-    return !error && (!data || data.length === 0);
-  };
-
-  // Generate name suggestions
-  const generateNameSuggestions = (baseName: string): string[] => {
-    const suggestions: string[] = [];
-    const clean = baseName.replace(/[^a-zA-Z0-9]/g, '');
-    
-    if (clean.length < 2) return suggestions;
-    
-    // Add random numbers
-    suggestions.push(`${clean}${Math.floor(Math.random() * 999)}`);
-    suggestions.push(`${clean}_${Math.floor(Math.random() * 99)}`);
-    
-    // Add cat-themed suffixes
-    const suffixes = ['Cat', 'Meow', 'Paws', 'Kitty', 'Whiskers', 'Furry'];
-    suggestions.push(`${clean}${suffixes[Math.floor(Math.random() * suffixes.length)]}`);
-    
-    // Add prefixes
-    const prefixes = ['Sir', 'Lady', 'Captain', 'Chief', 'Master'];
-    suggestions.push(`${prefixes[Math.floor(Math.random() * prefixes.length)]}${clean}`);
-    
-    // Year-based
-    suggestions.push(`${clean}${new Date().getFullYear()}`);
-    
-    return suggestions.slice(0, 5);
-  };
-
-  // Check name on blur
-  const handleNameBlur = async () => {
-    if (mode !== 'signup' || !displayName.trim()) return;
-    
-    // Validate format first
-    const formatResult = signupSchema.shape.displayName.safeParse(displayName);
+    // Client-side format validation first
+    const formatResult = signupSchema.shape.displayName.safeParse(sanitized);
     if (!formatResult.success) {
       setNameError(formatResult.error.errors[0].message);
+      setNameAvailable(null);
       setNameSuggestions([]);
       return;
     }
@@ -217,28 +203,190 @@ export default function Auth() {
     setNameError('');
     setNameSuggestions([]);
     
-    const isAvailable = await checkDisplayNameAvailability(displayName);
-    
-    if (!isAvailable) {
-      setNameError('This name is already taken');
-      setNameSuggestions(generateNameSuggestions(displayName));
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-display-name', {
+        body: { displayName: sanitized, action: 'validate' }
+      });
+      
+      if (error) throw error;
+      
+      if (data.profanityViolation) {
+        setNameError('Display name contains inappropriate content');
+        setNameAvailable(false);
+        setNameSuggestions([]);
+      } else if (!data.available) {
+        setNameError('This name is already taken');
+        setNameAvailable(false);
+        setNameSuggestions(data.suggestions || []);
+      } else if (!data.valid) {
+        setNameError(data.error || 'Invalid display name');
+        setNameAvailable(null);
+      } else {
+        setNameAvailable(true);
+      }
+    } catch (err) {
+      console.error('Failed to validate display name:', err);
+      // Fallback to local check
+      const { data } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .ilike('display_name', sanitized)
+        .limit(1);
+      
+      const isAvailable = !data || data.length === 0;
+      setNameAvailable(isAvailable);
+      if (!isAvailable) {
+        setNameError('This name is already taken');
+        setNameSuggestions(generateNameSuggestions(sanitized));
+      }
+    } finally {
+      setIsCheckingName(false);
+    }
+  };
+
+  // Validate username with edge function (includes profanity check)
+  const validateUsername = async (name: string) => {
+    const sanitized = name.trim().toLowerCase();
+    if (sanitized.length < 3) {
+      setUsernameError('Username must be at least 3 characters');
+      setUsernameAvailable(null);
+      setUsernameSuggestions([]);
+      return;
     }
     
-    setIsCheckingName(false);
+    // Client-side format validation first
+    const formatResult = signupSchema.shape.username.safeParse(sanitized);
+    if (!formatResult.success) {
+      setUsernameError(formatResult.error.errors[0].message);
+      setUsernameAvailable(null);
+      setUsernameSuggestions([]);
+      return;
+    }
+    
+    setIsCheckingUsername(true);
+    setUsernameError('');
+    setUsernameSuggestions([]);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-display-name', {
+        body: { username: sanitized, action: 'validate_username' }
+      });
+      
+      if (error) throw error;
+      
+      if (data.profanityViolation) {
+        setUsernameError('Username contains inappropriate content');
+        setUsernameAvailable(false);
+        setUsernameSuggestions([]);
+      } else if (!data.available) {
+        setUsernameError('This username is already taken');
+        setUsernameAvailable(false);
+        setUsernameSuggestions(data.suggestions || []);
+      } else if (!data.valid) {
+        setUsernameError(data.error || 'Invalid username');
+        setUsernameAvailable(null);
+      } else {
+        setUsernameAvailable(true);
+      }
+    } catch (err) {
+      console.error('Failed to validate username:', err);
+      // Fallback to local check
+      const { data } = await supabase
+        .from('profiles')
+        .select('username')
+        .ilike('username', sanitized)
+        .limit(1);
+      
+      const isAvailable = !data || data.length === 0;
+      setUsernameAvailable(isAvailable);
+      if (!isAvailable) {
+        setUsernameError('This username is already taken');
+        setUsernameSuggestions(generateUsernameSuggestions(sanitized));
+      }
+    } finally {
+      setIsCheckingUsername(false);
+    }
+  };
+
+  // Generate name suggestions (fallback)
+  const generateNameSuggestions = (baseName: string): string[] => {
+    const suggestions: string[] = [];
+    const clean = baseName.replace(/[^a-zA-Z0-9]/g, '');
+    
+    if (clean.length < 2) return suggestions;
+    
+    suggestions.push(`${clean}${Math.floor(Math.random() * 999)}`);
+    suggestions.push(`${clean}_${Math.floor(Math.random() * 99)}`);
+    
+    const suffixes = ['Cat', 'Meow', 'Paws', 'Kitty', 'Whiskers', 'Furry'];
+    suggestions.push(`${clean}${suffixes[Math.floor(Math.random() * suffixes.length)]}`);
+    
+    const prefixes = ['Sir', 'Lady', 'Captain', 'Chief', 'Master'];
+    suggestions.push(`${prefixes[Math.floor(Math.random() * prefixes.length)]}${clean}`);
+    
+    suggestions.push(`${clean}${new Date().getFullYear()}`);
+    
+    return suggestions.slice(0, 5);
+  };
+
+  // Generate username suggestions (fallback)
+  const generateUsernameSuggestions = (baseName: string): string[] => {
+    const suggestions: string[] = [];
+    const clean = baseName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    
+    if (clean.length < 2) return suggestions;
+    
+    const base = /^[a-zA-Z]/.test(clean) ? clean : `cat${clean}`;
+    
+    suggestions.push(`${base}${Math.floor(Math.random() * 999)}`);
+    suggestions.push(`${base}_${Math.floor(Math.random() * 99)}`);
+    suggestions.push(`${base}_cat`);
+    suggestions.push(`meow_${base}`);
+    suggestions.push(`${base}${new Date().getFullYear()}`);
+    
+    return suggestions.slice(0, 5);
+  };
+
+  // Check name on blur
+  const handleNameBlur = () => {
+    if (mode !== 'signup' || !displayName.trim()) return;
+    validateDisplayName(displayName);
+  };
+
+  // Check username on blur
+  const handleUsernameBlur = () => {
+    if (mode !== 'signup' || !username.trim()) return;
+    validateUsername(username);
   };
 
   // Regenerate suggestions
-  const handleRegenerateSuggestions = () => {
+  const handleRegenerateNameSuggestions = () => {
     if (displayName.trim()) {
       setNameSuggestions(generateNameSuggestions(displayName));
     }
   };
 
+  const handleRegenerateUsernameSuggestions = () => {
+    if (username.trim()) {
+      setUsernameSuggestions(generateUsernameSuggestions(username));
+    }
+  };
+
   // Select a suggestion
-  const handleSelectSuggestion = (suggestion: string) => {
+  const handleSelectNameSuggestion = (suggestion: string) => {
     setDisplayName(suggestion);
     setNameError('');
     setNameSuggestions([]);
+    setNameAvailable(null);
+    validateDisplayName(suggestion);
+  };
+
+  const handleSelectUsernameSuggestion = (suggestion: string) => {
+    setUsername(suggestion);
+    setUsernameError('');
+    setUsernameSuggestions([]);
+    setUsernameAvailable(null);
+    validateUsername(suggestion);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -333,27 +481,69 @@ export default function Auth() {
     }
 
     // Signup mode - validate with signup schema
-    const result = signupSchema.safeParse({ email, password, displayName });
+    const result = signupSchema.safeParse({ 
+      email, 
+      password, 
+      displayName,
+      username: username.toLowerCase() 
+    });
     if (!result.success) {
       setError(result.error.errors[0].message);
       return;
     }
 
-    // Check name availability before signup
-    setIsSubmitting(true);
-    const isAvailable = await checkDisplayNameAvailability(displayName);
-    
-    if (!isAvailable) {
-      setNameError('This name is already taken');
-      setNameSuggestions(generateNameSuggestions(displayName));
-      setIsSubmitting(false);
+    // Check if name validation failed
+    if (nameAvailable === false || usernameAvailable === false) {
+      setError('Please fix the validation errors before continuing.');
       return;
     }
 
+    setIsSubmitting(true);
+    
     try {
+      // Final validation via edge function
+      const { data: nameCheck } = await supabase.functions.invoke('validate-display-name', {
+        body: { displayName: displayName.trim(), action: 'validate' }
+      });
+      
+      if (nameCheck?.profanityViolation) {
+        setNameError('Display name contains inappropriate content');
+        setNameAvailable(false);
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (!nameCheck?.available) {
+        setNameError('This name is already taken');
+        setNameSuggestions(nameCheck?.suggestions || generateNameSuggestions(displayName));
+        setNameAvailable(false);
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const { data: usernameCheck } = await supabase.functions.invoke('validate-display-name', {
+        body: { username: username.trim().toLowerCase(), action: 'validate_username' }
+      });
+      
+      if (usernameCheck?.profanityViolation) {
+        setUsernameError('Username contains inappropriate content');
+        setUsernameAvailable(false);
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (!usernameCheck?.available) {
+        setUsernameError('This username is already taken');
+        setUsernameSuggestions(usernameCheck?.suggestions || generateUsernameSuggestions(username));
+        setUsernameAvailable(false);
+        setIsSubmitting(false);
+        return;
+      }
+
       const { error } = await signUp(email, password, {
         display_name: displayName.trim(),
         avatar_emoji: avatarEmoji,
+        username: username.trim().toLowerCase(),
       });
       if (error) {
         if (error.message.includes('already registered')) {
@@ -365,7 +555,10 @@ export default function Auth() {
         setSuccess('Account created! You can now log in.');
         setMode('login');
         setDisplayName('');
+        setUsername('');
         setAvatarEmoji('😺');
+        setNameAvailable(null);
+        setUsernameAvailable(null);
       }
     } finally {
       setIsSubmitting(false);
@@ -379,6 +572,10 @@ export default function Auth() {
     setConfirmPassword('');
     setNameError('');
     setNameSuggestions([]);
+    setNameAvailable(null);
+    setUsernameError('');
+    setUsernameSuggestions([]);
+    setUsernameAvailable(null);
   };
 
   if (loading || isProcessingRecovery) {
@@ -397,6 +594,8 @@ export default function Auth() {
       case 'update-password': return 'Almost there! Set your new password';
     }
   };
+
+  const hasSignupErrors = nameError || usernameError || nameAvailable === false || usernameAvailable === false;
 
   return (
     <AnimatedBackground variant="cozy" className="flex items-center justify-center p-4">
@@ -470,18 +669,21 @@ export default function Auth() {
                           setDisplayName(e.target.value);
                           setNameError('');
                           setNameSuggestions([]);
+                          setNameAvailable(null);
                         }}
                         onBlur={handleNameBlur}
                         disabled={isSubmitting}
                         required
                         maxLength={30}
-                        className={`bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20 ${
-                          nameError ? 'border-destructive' : ''
+                        className={`bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20 pr-10 ${
+                          nameError ? 'border-destructive' : nameAvailable === true ? 'border-green-500' : ''
                         }`}
                       />
-                      {isCheckingName && (
-                        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-                      )}
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {isCheckingName && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                        {nameAvailable === true && <Check className="h-4 w-4 text-green-500" />}
+                        {nameAvailable === false && <AlertCircle className="h-4 w-4 text-destructive" />}
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Shown on leaderboards (3-30 chars, letters, numbers, spaces, _ -)
@@ -501,7 +703,7 @@ export default function Auth() {
                           <span className="text-xs text-muted-foreground">Try one of these:</span>
                           <button
                             type="button"
-                            onClick={handleRegenerateSuggestions}
+                            onClick={handleRegenerateNameSuggestions}
                             className="text-xs text-primary hover:underline flex items-center gap-1"
                           >
                             <Shuffle className="h-3 w-3" />
@@ -513,10 +715,90 @@ export default function Auth() {
                             <button
                               key={suggestion}
                               type="button"
-                              onClick={() => handleSelectSuggestion(suggestion)}
+                              onClick={() => handleSelectNameSuggestion(suggestion)}
                               className="px-3 py-1 text-sm bg-primary/10 hover:bg-primary/20 rounded-full border border-primary/20 transition-colors"
                             >
                               {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Username - Signup Only */}
+                {mode === 'signup' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="username" className="flex items-center gap-2">
+                      <AtSign className="h-4 w-4 text-primary" />
+                      Username *
+                    </Label>
+                    <div className="relative">
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        @
+                      </div>
+                      <Input
+                        id="username"
+                        type="text"
+                        placeholder="coolcat"
+                        value={username}
+                        onChange={(e) => {
+                          // Only allow valid characters
+                          const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                          setUsername(value);
+                          setUsernameError('');
+                          setUsernameSuggestions([]);
+                          setUsernameAvailable(null);
+                        }}
+                        onBlur={handleUsernameBlur}
+                        disabled={isSubmitting}
+                        required
+                        maxLength={20}
+                        className={`bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20 pl-8 pr-10 ${
+                          usernameError ? 'border-destructive' : usernameAvailable === true ? 'border-green-500' : ''
+                        }`}
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {isCheckingUsername && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                        {usernameAvailable === true && <Check className="h-4 w-4 text-green-500" />}
+                        {usernameAvailable === false && <AlertCircle className="h-4 w-4 text-destructive" />}
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      For @mentions (3-20 chars, starts with letter, a-z, 0-9, _)
+                    </p>
+                    
+                    {/* Username Error */}
+                    {usernameError && (
+                      <p className="text-sm text-destructive flex items-center gap-1">
+                        <span>😿</span> {usernameError}
+                      </p>
+                    )}
+                    
+                    {/* Username Suggestions */}
+                    {usernameSuggestions.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Try one of these:</span>
+                          <button
+                            type="button"
+                            onClick={handleRegenerateUsernameSuggestions}
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
+                          >
+                            <Shuffle className="h-3 w-3" />
+                            More
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {usernameSuggestions.map((suggestion) => (
+                            <button
+                              key={suggestion}
+                              type="button"
+                              onClick={() => handleSelectUsernameSuggestion(suggestion)}
+                              className="px-3 py-1 text-sm bg-primary/10 hover:bg-primary/20 rounded-full border border-primary/20 transition-colors"
+                            >
+                              @{suggestion}
                             </button>
                           ))}
                         </div>
@@ -599,7 +881,7 @@ export default function Auth() {
                 <Button 
                   type="submit" 
                   className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/20" 
-                  disabled={isSubmitting || (mode === 'signup' && !!nameError)}
+                  disabled={isSubmitting || (mode === 'signup' && !!hasSignupErrors)}
                 >
                   <PawPrint className="h-4 w-4 mr-2" />
                   {isSubmitting
