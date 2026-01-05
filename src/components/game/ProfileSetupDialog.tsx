@@ -11,11 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles, Shuffle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const AVATAR_OPTIONS = ['😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🐱'];
-const SKIP_KEY = 'profile_setup_skipped';
 
 interface ProfileSetupDialogProps {
   userId: string | undefined;
@@ -27,28 +27,138 @@ export function ProfileSetupDialog({ userId }: ProfileSetupDialogProps) {
   const [displayName, setDisplayName] = useState('');
   const [avatarEmoji, setAvatarEmoji] = useState('😺');
   const [saving, setSaving] = useState(false);
+  const [nameSuggestions, setNameSuggestions] = useState<string[]>([]);
+  const [isCheckingName, setIsCheckingName] = useState(false);
+  const [nameError, setNameError] = useState('');
 
   useEffect(() => {
     if (loading || !userId) return;
     
-    // Check if user needs setup (no display_name) and hasn't skipped before
-    const hasSkipped = localStorage.getItem(SKIP_KEY) === userId;
+    // Only show for legacy users who don't have a display_name
+    // New users set their profile during signup
     const needsSetup = !profile?.display_name;
     
-    if (needsSetup && !hasSkipped) {
+    if (needsSetup) {
       setOpen(true);
       setAvatarEmoji(profile?.avatar_emoji || '😺');
     }
   }, [profile, loading, userId]);
 
+  // Check display name availability
+  const checkDisplayNameAvailability = async (name: string): Promise<boolean> => {
+    const sanitized = name.trim();
+    if (sanitized.length < 3) return false;
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('display_name')
+      .ilike('display_name', sanitized)
+      .limit(1);
+    
+    return !error && (!data || data.length === 0);
+  };
+
+  // Generate name suggestions
+  const generateNameSuggestions = (baseName: string): string[] => {
+    const suggestions: string[] = [];
+    const clean = baseName.replace(/[^a-zA-Z0-9]/g, '');
+    
+    if (clean.length < 2) return suggestions;
+    
+    suggestions.push(`${clean}${Math.floor(Math.random() * 999)}`);
+    suggestions.push(`${clean}_${Math.floor(Math.random() * 99)}`);
+    
+    const suffixes = ['Cat', 'Meow', 'Paws', 'Kitty', 'Whiskers', 'Furry'];
+    suggestions.push(`${clean}${suffixes[Math.floor(Math.random() * suffixes.length)]}`);
+    
+    const prefixes = ['Sir', 'Lady', 'Captain', 'Chief', 'Master'];
+    suggestions.push(`${prefixes[Math.floor(Math.random() * prefixes.length)]}${clean}`);
+    
+    suggestions.push(`${clean}${new Date().getFullYear()}`);
+    
+    return suggestions.slice(0, 5);
+  };
+
+  // Check name on blur
+  const handleNameBlur = async () => {
+    if (!displayName.trim()) return;
+    
+    // Validate format
+    const sanitized = displayName.trim();
+    if (sanitized.length < 3) {
+      setNameError('Display name must be at least 3 characters');
+      setNameSuggestions([]);
+      return;
+    }
+    if (sanitized.length > 30) {
+      setNameError('Display name must be 30 characters or less');
+      setNameSuggestions([]);
+      return;
+    }
+    if (!/^[a-zA-Z0-9\s_-]+$/.test(sanitized)) {
+      setNameError('Only letters, numbers, spaces, underscores, and hyphens allowed');
+      setNameSuggestions([]);
+      return;
+    }
+    
+    setIsCheckingName(true);
+    setNameError('');
+    setNameSuggestions([]);
+    
+    const isAvailable = await checkDisplayNameAvailability(displayName);
+    
+    if (!isAvailable) {
+      setNameError('This name is already taken');
+      setNameSuggestions(generateNameSuggestions(displayName));
+    }
+    
+    setIsCheckingName(false);
+  };
+
+  // Regenerate suggestions
+  const handleRegenerateSuggestions = () => {
+    if (displayName.trim()) {
+      setNameSuggestions(generateNameSuggestions(displayName));
+    }
+  };
+
+  // Select a suggestion
+  const handleSelectSuggestion = (suggestion: string) => {
+    setDisplayName(suggestion);
+    setNameError('');
+    setNameSuggestions([]);
+  };
+
   const handleSave = async () => {
-    if (!displayName.trim()) {
+    const sanitized = displayName.trim();
+    
+    if (!sanitized) {
       toast.error('Please enter a display name');
+      return;
+    }
+    
+    if (sanitized.length < 3 || sanitized.length > 30) {
+      toast.error('Display name must be 3-30 characters');
+      return;
+    }
+    
+    if (!/^[a-zA-Z0-9\s_-]+$/.test(sanitized)) {
+      toast.error('Invalid characters in display name');
       return;
     }
 
     setSaving(true);
-    const result = await updateProfile(displayName.trim(), avatarEmoji);
+    
+    // Check availability before saving
+    const isAvailable = await checkDisplayNameAvailability(sanitized);
+    if (!isAvailable) {
+      setNameError('This name is already taken');
+      setNameSuggestions(generateNameSuggestions(displayName));
+      setSaving(false);
+      return;
+    }
+    
+    const result = await updateProfile(sanitized, avatarEmoji);
     setSaving(false);
 
     if (result.success) {
@@ -59,23 +169,17 @@ export function ProfileSetupDialog({ userId }: ProfileSetupDialogProps) {
     }
   };
 
-  const handleSkip = () => {
-    if (userId) {
-      localStorage.setItem(SKIP_KEY, userId);
-    }
-    setOpen(false);
-  };
-
+  // Make dialog non-dismissable for legacy users who need to set up profile
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={() => {/* Cannot close without saving */}}>
+      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Sparkles className="h-5 w-5 text-primary" />
-            Welcome to Cat Farm!
+            Complete Your Profile
           </DialogTitle>
           <DialogDescription>
-            Let's set up your profile so other players can recognize you.
+            Please set up your profile to continue playing. This is required for leaderboards and social features.
           </DialogDescription>
         </DialogHeader>
 
@@ -87,6 +191,7 @@ export function ProfileSetupDialog({ userId }: ProfileSetupDialogProps) {
               {AVATAR_OPTIONS.map((emoji) => (
                 <button
                   key={emoji}
+                  type="button"
                   onClick={() => setAvatarEmoji(emoji)}
                   className={`text-3xl p-2 rounded-lg transition-all hover:scale-110 ${
                     avatarEmoji === emoji
@@ -102,26 +207,79 @@ export function ProfileSetupDialog({ userId }: ProfileSetupDialogProps) {
 
           {/* Display Name Input */}
           <div className="space-y-2">
-            <Label htmlFor="displayName">Display Name</Label>
-            <Input
-              id="displayName"
-              placeholder="Enter your display name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              maxLength={30}
-            />
+            <Label htmlFor="dialogDisplayName">Display Name *</Label>
+            <div className="relative">
+              <Input
+                id="dialogDisplayName"
+                placeholder="Enter your display name"
+                value={displayName}
+                onChange={(e) => {
+                  setDisplayName(e.target.value);
+                  setNameError('');
+                  setNameSuggestions([]);
+                }}
+                onBlur={handleNameBlur}
+                maxLength={30}
+                className={nameError ? 'border-destructive' : ''}
+              />
+              {isCheckingName && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
-              This is how other players will see you on the leaderboard.
+              3-30 characters. Letters, numbers, spaces, underscores, hyphens only.
             </p>
+            
+            {/* Name Error */}
+            {nameError && (
+              <p className="text-sm text-destructive flex items-center gap-1">
+                <span>😿</span> {nameError}
+              </p>
+            )}
+            
+            {/* Name Suggestions */}
+            {nameSuggestions.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Try one of these:</span>
+                  <button
+                    type="button"
+                    onClick={handleRegenerateSuggestions}
+                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                  >
+                    <Shuffle className="h-3 w-3" />
+                    More
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {nameSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => handleSelectSuggestion(suggestion)}
+                      className="px-3 py-1 text-sm bg-primary/10 hover:bg-primary/20 rounded-full border border-primary/20 transition-colors"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        <DialogFooter className="flex gap-2 sm:gap-0">
-          <Button variant="ghost" onClick={handleSkip}>
-            Skip for now
-          </Button>
-          <Button onClick={handleSave} disabled={saving || !displayName.trim()}>
-            {saving ? 'Saving...' : (
+        <DialogFooter>
+          <Button 
+            onClick={handleSave} 
+            disabled={saving || !displayName.trim() || !!nameError}
+            className="w-full"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
               <>
                 <Check className="h-4 w-4 mr-1" />
                 Save Profile
