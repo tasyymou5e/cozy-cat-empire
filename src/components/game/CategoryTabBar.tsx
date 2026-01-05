@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'; // Used in category buttons
-import { TabsTrigger } from '@/components/ui/tabs';
+import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Users, User, Gift, ArrowLeftRight, Target, ListTodo, Dices, BookOpen, Scroll, Handshake } from 'lucide-react';
@@ -210,7 +210,7 @@ export function CategoryTabBar({ activeTab, onTabChange, highlightedTab, badges 
       </TooltipProvider>
 
       {/* Sub-tabs for current category */}
-      <div className="flex justify-center gap-1 p-1 bg-muted/50 rounded-lg overflow-x-auto scrollbar-hide">
+      <TabsList className="flex justify-center gap-1 p-1 bg-muted/50 rounded-lg overflow-x-auto scrollbar-hide h-auto w-auto">
         {currentCategory.tabs.map((tab) => {
           const isHighlighted = tab.id === highlightedTab;
           const badgeCount = badges[tab.id] || 0;
@@ -242,7 +242,7 @@ export function CategoryTabBar({ activeTab, onTabChange, highlightedTab, badges 
             </TabsTrigger>
           );
         })}
-      </div>
+      </TabsList>
     </div>
   );
 }
