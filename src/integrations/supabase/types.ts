@@ -56,6 +56,96 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notifications: {
+        Row: {
+          body: string
+          delivery_count: number | null
+          id: string
+          sent_at: string | null
+          sent_by: string | null
+          status: string | null
+          target: string | null
+          target_user_ids: string[] | null
+          title: string
+        }
+        Insert: {
+          body: string
+          delivery_count?: number | null
+          id?: string
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: string | null
+          target?: string | null
+          target_user_ids?: string[] | null
+          title: string
+        }
+        Update: {
+          body?: string
+          delivery_count?: number | null
+          id?: string
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: string | null
+          target?: string | null
+          target_user_ids?: string[] | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notifications_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_notifications_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_rate_limits: {
+        Row: {
+          action_count: number | null
+          action_type: string
+          admin_user_id: string
+          id: string
+          window_start: string | null
+        }
+        Insert: {
+          action_count?: number | null
+          action_type: string
+          admin_user_id: string
+          id?: string
+          window_start?: string | null
+        }
+        Update: {
+          action_count?: number | null
+          action_type?: string
+          admin_user_id?: string
+          id?: string
+          window_start?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_rate_limits_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_rate_limits_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_usage_log: {
         Row: {
           created_at: string | null
@@ -205,6 +295,63 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      battle_pass_seasons: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          ends_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          premium_price: number | null
+          season_id: string
+          starts_at: string
+          tiers: Json
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          ends_at: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          premium_price?: number | null
+          season_id: string
+          starts_at: string
+          tiers?: Json
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          premium_price?: number | null
+          season_id?: string
+          starts_at?: string
+          tiers?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_pass_seasons_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battle_pass_seasons_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cat_gifts: {
         Row: {
@@ -484,6 +631,48 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      game_config: {
+        Row: {
+          category: string | null
+          description: string | null
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          category?: string | null
+          description?: string | null
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          category?: string | null
+          description?: string | null
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       game_saves: {
         Row: {

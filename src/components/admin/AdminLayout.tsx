@@ -15,6 +15,9 @@ import {
   Menu,
   Megaphone,
   Sparkles,
+  Sliders,
+  Bell,
+  Star,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -26,6 +29,9 @@ const ADMIN_NAV_ITEMS = [
   { id: 'errors', label: 'Error Logs', icon: AlertTriangle, path: '/catking/errors' },
   { id: 'moderation', label: 'Moderation', icon: Shield, path: '/catking/moderation' },
   { id: 'announcements', label: 'Announcements', icon: Megaphone, path: '/catking/announcements' },
+  { id: 'battle-pass', label: 'Battle Pass', icon: Star, path: '/catking/battle-pass' },
+  { id: 'notifications', label: 'Notifications', icon: Bell, path: '/catking/notifications' },
+  { id: 'config', label: 'Game Config', icon: Sliders, path: '/catking/config' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/catking/settings' },
 ];
 
