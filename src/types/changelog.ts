@@ -13,15 +13,54 @@ export interface ChangelogEntry {
   category: 'major' | 'feature' | 'improvement';
 }
 
-export const CURRENT_VERSION = "1.6.0";
+export const CURRENT_VERSION = "2.0.0";
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: "1.6.0",
+    version: "2.0.0",
+    date: "January 2026",
+    title: "Gamification Mega Update",
+    emoji: "🎮",
+    category: 'major',
+    highlights: [
+      { emoji: "🎯", title: "Daily Objectives", description: "Complete 3 rotating daily goals for bonus rewards" },
+      { emoji: "🎰", title: "Lucky Wheel", description: "Spin daily for coins, resources, and rare prizes" },
+      { emoji: "👑", title: "Hall of Fame", description: "Retire legendary cats for permanent bonuses" },
+      { emoji: "✨", title: "Cat Specializations", description: "Choose Show Star, Social Butterfly, or Dynasty Builder path at Grade 12" },
+      { emoji: "📜", title: "Seasonal Battle Pass", description: "Free & premium reward tracks with XP progression" },
+      { emoji: "🤝", title: "Coop Challenges", description: "Team up with friends for shared goals and bonus rewards" },
+    ]
+  },
+  {
+    version: "1.9.0",
+    date: "January 2026",
+    title: "Milestones & Collections",
+    emoji: "🏆",
+    category: 'feature',
+    highlights: [
+      { emoji: "🎉", title: "Milestone Celebrations", description: "Unlock titles and rewards for major achievements" },
+      { emoji: "📚", title: "Collection Progress", description: "Track completion across breeds, personalities, costumes, and tricks" },
+      { emoji: "🎁", title: "Set Rewards", description: "Complete collection sets for exclusive bonuses" },
+    ]
+  },
+  {
+    version: "1.8.0",
+    date: "January 2026",
+    title: "VIP & Daily Rewards",
+    emoji: "⭐",
+    category: 'feature',
+    highlights: [
+      { emoji: "🔥", title: "Login Streaks", description: "Daily login rewards with VIP tier progression" },
+      { emoji: "💎", title: "VIP Perks", description: "Bronze, Silver, and Gold tiers with exclusive costumes" },
+      { emoji: "🎡", title: "Extra Wheel Spins", description: "VIP players get 2 free spins daily" },
+    ]
+  },
+  {
+    version: "1.7.0",
     date: "January 2026",
     title: "AI Portraits & Glow Effects",
     emoji: "🎨",
-    category: 'major',
+    category: 'feature',
     highlights: [
       { emoji: "🖼️", title: "AI Cat Portraits", description: "Generate unique portraits that show your cat's appearance and costume" },
       { emoji: "✨", title: "Tier-Based Glow Effects", description: "Rare cats now glow! Ultra rare gets rainbow, very rare gets golden" },
@@ -29,7 +68,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     ]
   },
   {
-    version: "1.5.0",
+    version: "1.6.0",
     date: "December 2025",
     title: "Social Features Update",
     emoji: "🤝",
@@ -41,7 +80,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     ]
   },
   {
-    version: "1.4.0",
+    version: "1.5.0",
     date: "November 2025",
     title: "Weekly Challenges",
     emoji: "🎯",
@@ -53,7 +92,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     ]
   },
   {
-    version: "1.3.0",
+    version: "1.4.0",
     date: "October 2025",
     title: "Photo Booth & Gallery",
     emoji: "📸",
@@ -65,7 +104,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     ]
   },
   {
-    version: "1.2.0",
+    version: "1.3.0",
     date: "September 2025",
     title: "Costumes & Shows",
     emoji: "👗",
