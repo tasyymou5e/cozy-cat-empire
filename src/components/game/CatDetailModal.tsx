@@ -30,6 +30,8 @@ interface CatDetailModalProps {
   treats: number;
   equippedCostumeId?: string;
   onPortraitGenerated?: (catId: string, portraitUrl: string, hash?: string) => void;
+  currentMoney?: number;
+  onMoneyChange?: (newMoney: number) => void;
 }
 
 const catEmojis: Record<string, string> = {
@@ -48,7 +50,8 @@ const personalityDescriptions: Record<string, string> = {
 
 export function CatDetailModal({ 
   cat, relationships, allCats, open, onClose, 
-  onComfort, onHeal, onSell, onRest, onTrain, onRename, treats, equippedCostumeId, onPortraitGenerated
+  onComfort, onHeal, onSell, onRest, onTrain, onRename, treats, equippedCostumeId, onPortraitGenerated,
+  currentMoney = 0, onMoneyChange
 }: CatDetailModalProps) {
   const [activeTab, setActiveTab] = useState('stats');
   const [isRenaming, setIsRenaming] = useState(false);
@@ -137,6 +140,8 @@ export function CatDetailModal({
             cat={cat} 
             equippedCostumeId={equippedCostumeId}
             onPortraitGenerated={onPortraitGenerated}
+            currentMoney={currentMoney}
+            onMoneyChange={onMoneyChange}
           />
         </div>
 
