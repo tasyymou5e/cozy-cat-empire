@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Cat } from '@/types/game';
 import { 
   LegacyCat, 
@@ -6,14 +7,13 @@ import {
   checkRetirementEligibility, 
   determineLegacyTrait, 
   calculateLegacyBonus,
-  RETIREMENT_REQUIREMENTS,
 } from '@/types/legacy';
 
 interface UseLegacyReturn {
   retiredCats: LegacyCat[];
-  totalLegacyBonus: number; // Total passive bonus from all retired cats
+  totalLegacyBonus: number;
   activeLegacyTraits: LegacyTrait[];
-  retireCat: (cat: Cat, gameDay: number) => LegacyCat | null;
+  retireCat: (cat: Cat, gameDay: number) => Promise<LegacyCat | null>;
   canRetire: (cat: Cat) => boolean;
   getEligibility: (cat: Cat) => ReturnType<typeof checkRetirementEligibility>;
   getKittenBonuses: () => {
@@ -22,15 +22,72 @@ interface UseLegacyReturn {
     trainingBonus: number;
     relationshipBonus: number;
   };
+  loading: boolean;
 }
 
 const STORAGE_KEY = 'cat-farm-hall-of-fame';
 
-export function useLegacy(): UseLegacyReturn {
+export function useLegacy(userId?: string): UseLegacyReturn {
   const [retiredCats, setRetiredCats] = useState<LegacyCat[]>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
   });
+  const [loading, setLoading] = useState(false);
+
+  // Load from cloud when user is authenticated
+  useEffect(() => {
+    if (!userId) return;
+
+    const loadFromCloud = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('retired_cats')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error loading retired cats:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const legacyCats: LegacyCat[] = data.map(row => ({
+            id: row.id,
+            cat: row.cat_data as unknown as Cat,
+            retiredAt: row.retired_at_day,
+            retiredDate: row.retired_date ?? new Date().toISOString(),
+            achievements: row.achievements as LegacyCat['achievements'],
+            legacyBonus: Number(row.legacy_bonus),
+            legacyTrait: row.legacy_trait as LegacyTrait,
+          }));
+          setRetiredCats(legacyCats);
+        } else if (retiredCats.length > 0) {
+          // Migrate local data to cloud
+          for (const legacy of retiredCats) {
+            await supabase
+              .from('retired_cats')
+              .insert({
+                user_id: userId,
+                cat_data: JSON.parse(JSON.stringify(legacy.cat)),
+                retired_at_day: legacy.retiredAt,
+                retired_date: legacy.retiredDate,
+                achievements: legacy.achievements,
+                legacy_bonus: legacy.legacyBonus,
+                legacy_trait: legacy.legacyTrait,
+              } as any);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load retired cats from cloud:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFromCloud();
+  }, [userId]);
 
   // Persist to localStorage
   useEffect(() => {
@@ -49,9 +106,7 @@ export function useLegacy(): UseLegacyReturn {
 
   // Check if cat can be retired
   const canRetire = useCallback((cat: Cat): boolean => {
-    // Can't retire if already in hall of fame
     if (retiredCats.some(l => l.cat.id === cat.id)) return false;
-    
     const eligibility = checkRetirementEligibility(cat);
     return eligibility.isEligible;
   }, [retiredCats]);
@@ -62,14 +117,13 @@ export function useLegacy(): UseLegacyReturn {
   }, []);
 
   // Retire a cat
-  const retireCat = useCallback((cat: Cat, gameDay: number): LegacyCat | null => {
+  const retireCat = useCallback(async (cat: Cat, gameDay: number): Promise<LegacyCat | null> => {
     if (!canRetire(cat)) return null;
 
     const eligibility = checkRetirementEligibility(cat);
     const legacyTrait = determineLegacyTrait(eligibility);
     const legacyBonus = calculateLegacyBonus(eligibility);
 
-    // Determine achievements
     const achievements: LegacyCat['achievements'] = [];
     if (eligibility.meetsShowWins) achievements.push('show_champion');
     if (eligibility.meetsGrade) achievements.push('perfect_grade');
@@ -87,9 +141,36 @@ export function useLegacy(): UseLegacyReturn {
       legacyTrait,
     };
 
+    // Save to cloud if logged in
+    if (userId) {
+      try {
+        const { data, error } = await supabase
+          .from('retired_cats')
+          .insert({
+            user_id: userId,
+            cat_data: JSON.parse(JSON.stringify(legacyCat.cat)),
+            retired_at_day: legacyCat.retiredAt,
+            retired_date: legacyCat.retiredDate,
+            achievements: legacyCat.achievements,
+            legacy_bonus: legacyCat.legacyBonus,
+            legacy_trait: legacyCat.legacyTrait,
+          } as any)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error saving retired cat to cloud:', error);
+        } else if (data) {
+          legacyCat.id = data.id;
+        }
+      } catch (e) {
+        console.error('Failed to save retired cat to cloud:', e);
+      }
+    }
+
     setRetiredCats(prev => [...prev, legacyCat]);
     return legacyCat;
-  }, [canRetire]);
+  }, [canRetire, userId]);
 
   // Calculate kitten bonuses based on legacy traits
   const getKittenBonuses = useCallback(() => {
@@ -132,5 +213,6 @@ export function useLegacy(): UseLegacyReturn {
     canRetire,
     getEligibility,
     getKittenBonuses,
+    loading,
   };
 }
