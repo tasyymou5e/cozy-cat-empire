@@ -6,16 +6,21 @@ import {
   CatGroup, 
   RelationshipEvent, 
   getRelationshipEmoji, 
-  getRelationshipColor 
+  getRelationshipColor,
+  getDecayInfo,
+  getDecayWarningColor,
+  getDecayWarningText,
 } from '@/types/relationships';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { CatVisual } from './CatVisual';
 import { RelationshipNetworkGraph } from './RelationshipNetworkGraph';
-import { ExternalLink } from 'lucide-react';
+import { SocialCalendarPanel } from './SocialCalendarPanel';
+import { ExternalLink, AlertTriangle, Flame } from 'lucide-react';
 
 interface RelationshipPanelProps {
   cats: Cat[];
@@ -23,17 +28,33 @@ interface RelationshipPanelProps {
   groups: CatGroup[];
   events: RelationshipEvent[];
   catCostumes?: Record<string, string>;
+  currentDay?: number;
+  maintenanceStreak?: number;
+  needsAttentionCount?: number;
 }
 
-export function RelationshipPanel({ cats, relationships, groups, events, catCostumes }: RelationshipPanelProps) {
+export function RelationshipPanel({ 
+  cats, 
+  relationships, 
+  groups, 
+  events, 
+  catCostumes,
+  currentDay = 1,
+  maintenanceStreak = 0,
+  needsAttentionCount = 0,
+}: RelationshipPanelProps) {
   const navigate = useNavigate();
-  const [filter, setFilter] = useState<'all' | 'friends' | 'rivals'>('all');
+  const [filter, setFilter] = useState<'all' | 'friends' | 'rivals' | 'needs-attention'>('all');
 
   const getCatName = (catId: string) => cats.find(c => c.id === catId)?.name || 'Unknown';
 
   const filteredRelationships = relationships.filter(r => {
     if (filter === 'friends') return r.score >= 20;
     if (filter === 'rivals') return r.score <= -20;
+    if (filter === 'needs-attention') {
+      const decayInfo = getDecayInfo(r, currentDay);
+      return decayInfo.daysSinceInteraction >= 2;
+    }
     return true;
   }).sort((a, b) => b.score - a.score);
 
@@ -57,26 +78,39 @@ export function RelationshipPanel({ cats, relationships, groups, events, catCost
             View Full
           </Button>
         </div>
-        <div className="flex gap-2 text-xs">
-          <Badge variant="secondary" className="bg-green-100 text-green-700">
+        <div className="flex flex-wrap gap-2 text-xs">
+          <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400">
             💚 {friendCount} Friends
           </Badge>
-          <Badge variant="secondary" className="bg-red-100 text-red-700">
+          <Badge variant="secondary" className="bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400">
             😾 {rivalCount} Rivals
           </Badge>
+          {maintenanceStreak > 0 && (
+            <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400 gap-1">
+              <Flame className="h-3 w-3" />
+              {maintenanceStreak} day streak
+            </Badge>
+          )}
+          {needsAttentionCount > 0 && (
+            <Badge variant="destructive" className="gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              {needsAttentionCount} need attention
+            </Badge>
+          )}
         </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="relationships" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-3">
+          <TabsList className="grid w-full grid-cols-5 mb-3">
             <TabsTrigger value="relationships" className="text-xs">Bonds</TabsTrigger>
+            <TabsTrigger value="calendar" className="text-xs">Calendar</TabsTrigger>
             <TabsTrigger value="network" className="text-xs">Network</TabsTrigger>
             <TabsTrigger value="groups" className="text-xs">Groups</TabsTrigger>
             <TabsTrigger value="history" className="text-xs">History</TabsTrigger>
           </TabsList>
 
           <TabsContent value="relationships" className="mt-0">
-            <div className="flex gap-1 mb-3">
+            <div className="flex flex-wrap gap-1 mb-3">
               <Badge 
                 variant={filter === 'all' ? 'default' : 'outline'} 
                 className="cursor-pointer text-xs"
@@ -98,52 +132,108 @@ export function RelationshipPanel({ cats, relationships, groups, events, catCost
               >
                 Rivals
               </Badge>
+              <Badge 
+                variant={filter === 'needs-attention' ? 'default' : 'outline'} 
+                className="cursor-pointer text-xs gap-1"
+                onClick={() => setFilter('needs-attention')}
+              >
+                <AlertTriangle className="h-3 w-3" />
+                Needs Attention
+              </Badge>
             </div>
 
             <ScrollArea className="h-48">
               {filteredRelationships.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No relationships yet. Cats will bond over time!
+                  {filter === 'needs-attention' 
+                    ? 'All relationships are healthy! 🎉' 
+                    : 'No relationships yet. Cats will bond over time!'}
                 </p>
               ) : (
-                <div className="space-y-2">
-                  {filteredRelationships.map(rel => (
-                    <div 
-                      key={`${rel.catId1}-${rel.catId2}`}
-                      className={`relationship-card p-2 rounded-lg border ${
-                        rel.score >= 60 ? 'bg-pink-50 border-pink-200' :
-                        rel.score >= 20 ? 'bg-green-50 border-green-200' :
-                        rel.score <= -60 ? 'bg-red-50 border-red-200' :
-                        rel.score <= -20 ? 'bg-orange-50 border-orange-200' :
-                        'bg-secondary/30 border-border'
-                      }`}
-                    >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {cats.find(c => c.id === rel.catId1) && (
-                              <CatVisual cat={cats.find(c => c.id === rel.catId1)!} size="xs" equippedCostumeId={catCostumes?.[rel.catId1]} />
-                            )}
-                            <span className="font-medium text-sm">{getCatName(rel.catId1)}</span>
-                            <span className={getRelationshipColor(rel.level)}>
-                              {getRelationshipEmoji(rel.level)}
-                            </span>
-                            <span className="font-medium text-sm">{getCatName(rel.catId2)}</span>
-                            {cats.find(c => c.id === rel.catId2) && (
-                              <CatVisual cat={cats.find(c => c.id === rel.catId2)!} size="xs" equippedCostumeId={catCostumes?.[rel.catId2]} />
-                            )}
+                <TooltipProvider>
+                  <div className="space-y-2">
+                    {filteredRelationships.map(rel => {
+                      const decayInfo = getDecayInfo(rel, currentDay);
+                      const showWarning = decayInfo.daysSinceInteraction >= 2;
+                      
+                      return (
+                        <div 
+                          key={`${rel.catId1}-${rel.catId2}`}
+                          className={`relationship-card p-2 rounded-lg border ${
+                            rel.score >= 60 ? 'bg-pink-50 border-pink-200 dark:bg-pink-950/20 dark:border-pink-800' :
+                            rel.score >= 20 ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800' :
+                            rel.score <= -60 ? 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800' :
+                            rel.score <= -20 ? 'bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800' :
+                            'bg-secondary/30 border-border'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              {cats.find(c => c.id === rel.catId1) && (
+                                <CatVisual cat={cats.find(c => c.id === rel.catId1)!} size="xs" equippedCostumeId={catCostumes?.[rel.catId1]} />
+                              )}
+                              <span className="font-medium text-sm truncate">{getCatName(rel.catId1)}</span>
+                              <span className={getRelationshipColor(rel.level)}>
+                                {getRelationshipEmoji(rel.level)}
+                              </span>
+                              <span className="font-medium text-sm truncate">{getCatName(rel.catId2)}</span>
+                              {cats.find(c => c.id === rel.catId2) && (
+                                <CatVisual cat={cats.find(c => c.id === rel.catId2)!} size="xs" equippedCostumeId={catCostumes?.[rel.catId2]} />
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {/* Warning Badge */}
+                              {showWarning && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Badge 
+                                      variant="outline" 
+                                      className={`text-xs gap-0.5 ${getDecayWarningColor(decayInfo.decayLevel)}`}
+                                    >
+                                      <AlertTriangle className="h-3 w-3" />
+                                      {decayInfo.daysSinceInteraction}d
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Last interaction: {decayInfo.daysSinceInteraction} days ago</p>
+                                    {decayInfo.isDecaying && (
+                                      <p className="text-red-400">{getDecayWarningText(decayInfo.decayLevel)}</p>
+                                    )}
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                              <Badge variant="outline" className={`text-xs ${getRelationshipColor(rel.level)}`}>
+                                {rel.score > 0 ? '+' : ''}{rel.score}
+                              </Badge>
+                            </div>
                           </div>
-                        <Badge variant="outline" className={`text-xs ${getRelationshipColor(rel.level)}`}>
-                          {rel.score > 0 ? '+' : ''}{rel.score}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1 capitalize">
-                        {rel.level === 'bestFriend' ? 'Best Friends' : rel.level}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                          {/* Last Interaction Display */}
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-xs text-muted-foreground capitalize">
+                              {rel.level === 'bestFriend' ? 'Best Friends' : rel.level}
+                            </p>
+                            <span className="text-xs text-muted-foreground">
+                              {decayInfo.daysSinceInteraction === 0 
+                                ? 'Played today' 
+                                : `${decayInfo.daysSinceInteraction} day${decayInfo.daysSinceInteraction > 1 ? 's' : ''} ago`}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </TooltipProvider>
               )}
             </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="calendar" className="mt-0">
+            <SocialCalendarPanel
+              cats={cats}
+              relationships={relationships}
+              currentDay={currentDay}
+              catCostumes={catCostumes}
+            />
           </TabsContent>
 
           <TabsContent value="network" className="mt-0">
@@ -167,9 +257,9 @@ export function RelationshipPanel({ cats, relationships, groups, events, catCost
                       <div 
                         key={group.id}
                         className={`p-3 rounded-lg border ${
-                          group.type === 'friendly' ? 'bg-green-50 border-green-200' :
-                          group.type === 'outcasts' ? 'bg-gray-50 border-gray-200' :
-                          'bg-orange-50 border-orange-200'
+                          group.type === 'friendly' ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800' :
+                          group.type === 'outcasts' ? 'bg-gray-50 border-gray-200 dark:bg-gray-950/20 dark:border-gray-700' :
+                          'bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-2">
@@ -213,8 +303,8 @@ export function RelationshipPanel({ cats, relationships, groups, events, catCost
                     <div 
                       key={event.id}
                       className={`p-2 rounded-lg text-sm ${
-                        event.type === 'positive' ? 'bg-green-50 border border-green-200' :
-                        event.type === 'negative' ? 'bg-red-50 border border-red-200' :
+                        event.type === 'positive' ? 'bg-green-50 border border-green-200 dark:bg-green-950/20 dark:border-green-800' :
+                        event.type === 'negative' ? 'bg-red-50 border border-red-200 dark:bg-red-950/20 dark:border-red-800' :
                         'bg-secondary/30 border border-border'
                       }`}
                     >

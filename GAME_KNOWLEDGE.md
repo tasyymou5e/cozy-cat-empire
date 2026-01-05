@@ -97,6 +97,11 @@ interface CatAppearance {
 - Groups form automatically among friends
 - Happiness modifiers based on relationships
 - **Relationship Decay System** - relationships deteriorate over time without interaction
+- **Warning Badges** - ⚠️ icons show relationships needing attention (2+ days inactive)
+- **Last Interaction Display** - shows "X days ago" on relationship cards
+- **Decay Prevention Reminder** - toast notifications when relationships are fading
+- **Maintenance Streak** - tracks consecutive days all friendships are maintained
+- **Social Calendar** - dedicated view grouping relationships by urgency
 
 **Relationship Decay Rules:**
 | Days Since Interaction | Decay Amount | Effect |

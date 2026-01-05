@@ -7,6 +7,7 @@ import {
   PERSONALITY_COMPATIBILITY,
   getRelationshipLevel,
   RELATIONSHIP_DECAY,
+  getDecayInfo,
 } from '@/types/relationships';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -16,36 +17,18 @@ const generateId = () => Math.random().toString(36).substr(2, 9);
  * 
  * Manages social relationships between cats including friendships, rivalries,
  * group detection, compatibility checks, and daily relationship events.
- * 
- * @returns Object containing:
- * - `relationships` - Array of all cat relationships
- * - `events` - Recent relationship events (last 100)
- * - `groups` - Detected social groups/cliques
- * - `lastEventId` - ID of most recent event for animation triggers
- * - `getRelationship` - Get relationship between two cats
- * - `updateRelationship` - Update/create relationship score
- * - `addEvent` - Add a relationship event
- * - `socializeCats` - Manually socialize two cats
- * - `processDailyRelationships` - Process random daily interactions
- * - `detectGroups` - Detect friend groups using graph analysis
- * - `getHappinessModifier` - Get happiness bonus/penalty from relationships
- * - `getBreedingCompatibility` - Check breeding compatibility
- * - `removeCatRelationships` - Clean up when cat is removed
- * - `loadRelationships` - Load from save data
- * - `getRelationshipSaveData` - Get data for saving
- * 
- * @example
- * ```tsx
- * const relationshipSystem = useRelationships();
- * relationshipSystem.socializeCats(cat1, cat2, day);
- * const compat = relationshipSystem.getBreedingCompatibility(cat1.id, cat2.id);
- * ```
+ * Now includes maintenance streak tracking for relationship upkeep.
  */
 export function useRelationships() {
   const [relationships, setRelationships] = useState<CatRelationship[]>([]);
   const [events, setEvents] = useState<RelationshipEvent[]>([]);
   const [groups, setGroups] = useState<CatGroup[]>([]);
   const [lastEventId, setLastEventId] = useState<string | null>(null);
+  
+  // Maintenance streak state
+  const [maintenanceStreak, setMaintenanceStreak] = useState(0);
+  const [longestMaintenanceStreak, setLongestMaintenanceStreak] = useState(0);
+  const [lastMaintenanceDay, setLastMaintenanceDay] = useState<number | null>(null);
 
   // Get relationship between two cats
   const getRelationship = useCallback((catId1: string, catId2: string): CatRelationship | null => {
@@ -334,6 +317,37 @@ export function useRelationships() {
     });
   }, []);
 
+  // Check and update maintenance streak
+  const checkMaintenanceStreak = useCallback((currentDay: number) => {
+    const friendships = relationships.filter(r => r.score >= 20);
+    if (friendships.length === 0) return;
+    
+    // All friendships must have been interacted with in last 3 days
+    const allMaintained = friendships.every(r => {
+      const decayInfo = getDecayInfo(r, currentDay);
+      return decayInfo.daysSinceInteraction < RELATIONSHIP_DECAY.GRACE_PERIOD_DAYS;
+    });
+    
+    if (allMaintained) {
+      if (lastMaintenanceDay === currentDay - 1) {
+        // Consecutive day
+        const newStreak = maintenanceStreak + 1;
+        setMaintenanceStreak(newStreak);
+        setLongestMaintenanceStreak(prev => Math.max(prev, newStreak));
+      } else if (lastMaintenanceDay !== currentDay) {
+        // First day or streak broken and restarted
+        setMaintenanceStreak(1);
+        setLongestMaintenanceStreak(prev => Math.max(prev, 1));
+      }
+      setLastMaintenanceDay(currentDay);
+    } else {
+      // Streak broken
+      if (maintenanceStreak > 0) {
+        setMaintenanceStreak(0);
+      }
+    }
+  }, [relationships, maintenanceStreak, lastMaintenanceDay]);
+
   // Get happiness modifier from relationships
   const getHappinessModifier = useCallback((catId: string): number => {
     let modifier = 0;
@@ -380,28 +394,40 @@ export function useRelationships() {
   const loadRelationships = useCallback((data: {
     relationships: CatRelationship[];
     events: RelationshipEvent[];
+    maintenanceStreak?: number;
+    longestMaintenanceStreak?: number;
+    lastMaintenanceDay?: number | null;
   }) => {
     setRelationships(data.relationships || []);
     setEvents(data.events || []);
+    setMaintenanceStreak(data.maintenanceStreak || 0);
+    setLongestMaintenanceStreak(data.longestMaintenanceStreak || 0);
+    setLastMaintenanceDay(data.lastMaintenanceDay ?? null);
   }, []);
 
   // Get save data
   const getRelationshipSaveData = useCallback(() => ({
     relationships,
     events,
-  }), [relationships, events]);
+    maintenanceStreak,
+    longestMaintenanceStreak,
+    lastMaintenanceDay,
+  }), [relationships, events, maintenanceStreak, longestMaintenanceStreak, lastMaintenanceDay]);
 
   return {
     relationships,
     events,
     groups,
     lastEventId,
+    maintenanceStreak,
+    longestMaintenanceStreak,
     getRelationship,
     updateRelationship,
     addEvent,
     socializeCats,
     processDailyRelationships,
     processRelationshipDecay,
+    checkMaintenanceStreak,
     detectGroups,
     getHappinessModifier,
     getBreedingCompatibility,
