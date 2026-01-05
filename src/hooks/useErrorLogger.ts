@@ -17,6 +17,31 @@ interface ErrorLogData {
 /** Singleton to prevent duplicate logging across re-renders */
 let isInitialized = false;
 
+/** Rate limiting configuration */
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const MAX_ERRORS_PER_WINDOW = 10; // Max 10 errors per minute
+const errorTimestamps: number[] = [];
+
+/**
+ * Check if error logging is rate limited
+ * Prevents spam attacks by limiting errors logged per time window
+ */
+function isRateLimited(): boolean {
+  const now = Date.now();
+  // Remove timestamps outside the window
+  while (errorTimestamps.length > 0 && errorTimestamps[0] < now - RATE_LIMIT_WINDOW_MS) {
+    errorTimestamps.shift();
+  }
+  // Check if we've exceeded the limit
+  if (errorTimestamps.length >= MAX_ERRORS_PER_WINDOW) {
+    console.warn('[ErrorLogger] Rate limit exceeded, skipping log');
+    return true;
+  }
+  // Add current timestamp
+  errorTimestamps.push(now);
+  return false;
+}
+
 /**
  * Hook for comprehensive error logging and tracking
  *
@@ -48,6 +73,11 @@ export function useErrorLogger() {
   const { user } = useAuth();
 
   const logError = useCallback(async (data: ErrorLogData) => {
+    // Check rate limit first
+    if (isRateLimited()) {
+      return;
+    }
+
     try {
       const logEntry = {
         user_id: user?.id || null,
@@ -230,6 +260,11 @@ export function useErrorLogger() {
  * ```
  */
 export async function logErrorToDatabase(data: ErrorLogData & { user_id?: string }) {
+  // Check rate limit first
+  if (isRateLimited()) {
+    return;
+  }
+
   try {
     const logEntry = {
       user_id: data.user_id || null,
