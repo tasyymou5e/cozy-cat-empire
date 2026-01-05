@@ -18,6 +18,7 @@ import { useCollectionProgress } from '@/hooks/useCollectionProgress';
 import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 import { useLegacy } from '@/hooks/useLegacy';
 import { useSpecializations } from '@/hooks/useSpecializations';
+import { useBattlePass } from '@/hooks/useBattlePass';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -51,6 +52,8 @@ import { CollectionProgressPanel } from './CollectionProgressPanel';
 import { LuckyWheelPanel } from './LuckyWheelPanel';
 import { HallOfFamePanel } from './HallOfFamePanel';
 import { SpecializationPanel } from './SpecializationPanel';
+import { BattlePassPanel } from './BattlePassPanel';
+import { BattlePassReward, XPSource } from '@/types/battlePass';
 import { useCatGifts } from '@/hooks/useCatGifts';
 import { useTrading } from '@/hooks/useTrading';
 import { usePlayerActivityLog } from '@/hooks/usePlayerActivityLog';
@@ -78,7 +81,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target, CalendarDays, Sparkles, ListTodo, BookOpen, Dices } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target, CalendarDays, Sparkles, ListTodo, BookOpen, Dices, Scroll } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Resources } from '@/types/game';
 import { ObjectiveType } from '@/types/dailyObjectives';
@@ -159,6 +162,9 @@ export function CatFarm() {
   
   // Specialization system
   const { specializations, specializeCat, getSpecialization, addXP, canSpecialize, getActiveBonuses: getSpecBonuses, getSpecializedCats } = useSpecializations();
+  
+  // Battle Pass system
+  const { battlePass, season, xpProgress, addXP: addBattlePassXP, claimReward: claimBPReward, getUnclaimedRewards, canClaimReward: canClaimBPReward, upgradeToPremium } = useBattlePass();
 
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
@@ -316,7 +322,40 @@ export function CatFarm() {
     updateObjectiveProgress(type, amount);
   }, [updateObjectiveProgress]);
 
-  // Wrapped action handlers that track objectives
+  // Handle claiming battle pass rewards
+  const handleClaimBPReward = useCallback((reward: BattlePassReward) => {
+    const coins = typeof reward.value === 'number' && reward.type === 'coins' ? reward.value : 0;
+    const resources: Partial<Resources> = {};
+    
+    if (reward.type === 'treats' && typeof reward.value === 'number') {
+      resources.treats = reward.value;
+    } else if (reward.type === 'toys' && typeof reward.value === 'number') {
+      resources.toys = reward.value;
+    }
+    
+    if (coins > 0 || Object.keys(resources).length > 0) {
+      actions.addReward?.(coins, resources as Resources);
+    }
+    
+    // Handle costume rewards
+    if (reward.type === 'costume' && typeof reward.value === 'string') {
+      if (!state.ownedCostumes.includes(reward.value)) {
+        actions.buyCostume?.(reward.value);
+      }
+    }
+    
+    playSound?.('coin');
+    fireConfetti();
+  }, [actions, state.ownedCostumes, playSound, fireConfetti]);
+
+  // Handle upgrading to premium pass
+  const handleUpgradePremium = useCallback(() => {
+    actions.addReward?.(-500, {}); // Deduct 500 coins
+    playSound?.('success');
+    fireConfetti();
+  }, [actions, playSound, fireConfetti]);
+
+  // Wrapped action handlers that track objectives AND battle pass XP
   const wrappedFeedCats = useCallback(() => {
     actions.feedCats();
     trackObjective('feed_cats');
@@ -325,7 +364,8 @@ export function CatFarm() {
   const wrappedDoChore = useCallback((choreId: string, baseReward: number) => {
     actions.doChore(choreId, baseReward);
     trackObjective('complete_chore');
-  }, [actions, trackObjective]);
+    addBattlePassXP('complete_chore');
+  }, [actions, trackObjective, addBattlePassXP]);
 
   const wrappedBuyResource = useCallback((resource: string, cost: number) => {
     actions.buyResource(resource as keyof typeof state.resources, cost);
@@ -350,22 +390,26 @@ export function CatFarm() {
   const wrappedTrainCat = useCallback((catId: string, trickId: any) => {
     actions.trainCat(catId, trickId);
     trackObjective('train_cat');
-  }, [actions, trackObjective]);
+    addBattlePassXP('train_trick');
+  }, [actions, trackObjective, addBattlePassXP]);
 
   const wrappedBreedCats = useCallback((cat1Id: string, cat2Id: string) => {
     actions.breedCats(cat1Id, cat2Id);
     trackObjective('breed_kitten');
-  }, [actions, trackObjective]);
+    addBattlePassXP('breed_kitten');
+  }, [actions, trackObjective, addBattlePassXP]);
 
   const wrappedSocializeCats = useCallback((cat1Id: string, cat2Id: string) => {
     actions.socializeCats(cat1Id, cat2Id);
     trackObjective('socialize');
-  }, [actions, trackObjective]);
+    addBattlePassXP('socialize');
+  }, [actions, trackObjective, addBattlePassXP]);
 
   const wrappedCatShow = useCallback((tier?: string) => {
     actions.catShow(tier as any);
     trackObjective('win_show');
-  }, [actions, trackObjective]);
+    addBattlePassXP('win_show');
+  }, [actions, trackObjective, addBattlePassXP]);
 
   // Load cloud save on login
   useEffect(() => {
@@ -852,6 +896,7 @@ export function CatFarm() {
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="collection" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'collection' ? 'ring-2 ring-primary animate-pulse' : ''}`}><BookOpen className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Collection</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="legacy" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'legacy' ? 'ring-2 ring-primary animate-pulse' : ''}`}>👑{retiredCats.length > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-amber-500 rounded-full text-[10px] flex items-center justify-center text-white">{retiredCats.length}</span>}</TabsTrigger></TooltipTrigger><TooltipContent>Hall of Fame</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="specializations" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'specializations' ? 'ring-2 ring-primary animate-pulse' : ''}`}>✨{specializations.length > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-purple-500 rounded-full text-[10px] flex items-center justify-center text-white">{specializations.length}</span>}</TabsTrigger></TooltipTrigger><TooltipContent>Specializations</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="battlepass" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'battlepass' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Scroll className="h-4 w-4" />{getUnclaimedRewards().length > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full text-[10px] flex items-center justify-center text-white">{getUnclaimedRewards().length}</span>}</TabsTrigger></TooltipTrigger><TooltipContent>Season Pass</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger></TooltipTrigger><TooltipContent>Settings</TooltipContent></Tooltip>
             </TabsList>
           </TooltipProvider>
@@ -1049,6 +1094,13 @@ export function CatFarm() {
                 canSpecialize={canSpecialize}
                 getSpecialization={getSpecialization}
                 getActiveBonuses={getSpecBonuses}
+              />
+            </TabsContent>
+            <TabsContent value="battlepass" className="mt-0">
+              <BattlePassPanel
+                state={state}
+                onClaimReward={handleClaimBPReward}
+                onUpgradePremium={handleUpgradePremium}
               />
             </TabsContent>
             <TabsContent value="more" className="mt-0 space-y-4">
