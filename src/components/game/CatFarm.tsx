@@ -14,6 +14,8 @@ import { usePlayerProfile } from '@/hooks/usePlayerProfile';
 import { useDailyLoginRewards } from '@/hooks/useDailyLoginRewards';
 import { useMilestones } from '@/hooks/useMilestones';
 import { useDailyObjectives } from '@/hooks/useDailyObjectives';
+import { useCollectionProgress } from '@/hooks/useCollectionProgress';
+import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -43,6 +45,8 @@ import { GiftReceivedDialog } from './GiftReceivedDialog';
 import { TradeReceivedDialog } from './TradeReceivedDialog';
 import { MilestonePopup } from './MilestonePopup';
 import { DailyObjectivesPanel } from './DailyObjectivesPanel';
+import { CollectionProgressPanel } from './CollectionProgressPanel';
+import { LuckyWheelPanel } from './LuckyWheelPanel';
 import { useCatGifts } from '@/hooks/useCatGifts';
 import { useTrading } from '@/hooks/useTrading';
 import { usePlayerActivityLog } from '@/hooks/usePlayerActivityLog';
@@ -70,7 +74,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target, CalendarDays, Sparkles, ListTodo } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target, CalendarDays, Sparkles, ListTodo, BookOpen, Dices } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Resources } from '@/types/game';
 import { ObjectiveType } from '@/types/dailyObjectives';
@@ -142,6 +146,10 @@ export function CatFarm() {
   const { pendingCelebration, playerTitle, checkMilestones, claimMilestone, dismissCelebration } = useMilestones();
   const { objectives, allCompleted: allObjectivesCompleted, bonusClaimed, updateProgress: updateObjectiveProgress, claimBonus: claimObjectivesBonus } = useDailyObjectives();
   
+  // Collection Progress and Lucky Wheel systems
+  const { breedProgress, personalityProgress, costumeProgress, trickProgress, overallProgress, progress: collectionProgress, getSetReward } = useCollectionProgress(state.cats, state.ownedCostumes);
+  const { canSpin, spinsRemaining, isSpinning, lastPrize, totalSpins, spin: spinWheel, clearLastPrize } = useLuckyWheel(isVIP);
+
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
   const [musicOn, setMusicOn] = useState(false);
@@ -259,6 +267,27 @@ export function CatFarm() {
       fireConfetti();
     }
   };
+
+  // Handle claiming lucky wheel prize
+  const handleClaimWheelPrize = useCallback((prize: typeof lastPrize) => {
+    if (!prize) return;
+    
+    const { reward } = prize;
+    const coins = reward.coins || 0;
+    const resources: Partial<Resources> = {};
+    
+    if (reward.food) resources.food = reward.food;
+    if (reward.medicine) resources.medicine = reward.medicine;
+    if (reward.toys) resources.toys = reward.toys;
+    if (reward.treats) resources.treats = reward.treats;
+    
+    actions.addReward?.(coins, resources as Resources);
+    playSound?.('coin');
+    
+    if (['rare', 'ultra_rare', 'legendary'].includes(prize.rarity)) {
+      fireConfetti();
+    }
+  }, [actions, playSound, fireConfetti]);
 
   // Wrapper for actions that update objectives
   const trackObjective = useCallback((type: ObjectiveType, amount: number = 1) => {
@@ -797,6 +826,8 @@ export function CatFarm() {
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="trading" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'trading' ? 'ring-2 ring-primary animate-pulse' : ''}`}><ArrowLeftRight className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Trading</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="challenges" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'challenges' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Target className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Challenges</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="objectives" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'objectives' ? 'ring-2 ring-primary animate-pulse' : ''}`}><ListTodo className="h-4 w-4" />{!allObjectivesCompleted && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full" />}</TabsTrigger></TooltipTrigger><TooltipContent>Daily Objectives</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="wheel" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'wheel' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Dices className="h-4 w-4" />{canSpin && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full animate-pulse" />}</TabsTrigger></TooltipTrigger><TooltipContent>Lucky Wheel</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="collection" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'collection' ? 'ring-2 ring-primary animate-pulse' : ''}`}><BookOpen className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Collection</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger></TooltipTrigger><TooltipContent>Settings</TooltipContent></Tooltip>
             </TabsList>
           </TooltipProvider>
@@ -945,6 +976,30 @@ export function CatFarm() {
                 allCompleted={allObjectivesCompleted}
                 bonusClaimed={bonusClaimed}
                 onClaimBonus={handleClaimObjectivesBonus}
+              />
+            </TabsContent>
+            <TabsContent value="wheel" className="mt-0">
+              <LuckyWheelPanel
+                canSpin={canSpin}
+                spinsRemaining={spinsRemaining}
+                isSpinning={isSpinning}
+                lastPrize={lastPrize}
+                totalSpins={totalSpins}
+                isVIP={isVIP}
+                onSpin={spinWheel}
+                onClaimPrize={handleClaimWheelPrize}
+                onClearPrize={clearLastPrize}
+              />
+            </TabsContent>
+            <TabsContent value="collection" className="mt-0">
+              <CollectionProgressPanel
+                breedProgress={breedProgress}
+                personalityProgress={personalityProgress}
+                costumeProgress={costumeProgress}
+                trickProgress={trickProgress}
+                overallProgress={overallProgress}
+                completedSets={collectionProgress.completedSets}
+                getSetReward={getSetReward}
               />
             </TabsContent>
             <TabsContent value="more" className="mt-0 space-y-4">
