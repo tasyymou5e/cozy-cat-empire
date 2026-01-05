@@ -12,6 +12,8 @@ import { useGlobalLeaderboard } from '@/hooks/useGlobalLeaderboard';
 import { useWeeklyChallenges } from '@/hooks/useWeeklyChallenges';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
 import { useDailyLoginRewards } from '@/hooks/useDailyLoginRewards';
+import { useMilestones } from '@/hooks/useMilestones';
+import { useDailyObjectives } from '@/hooks/useDailyObjectives';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -39,6 +41,8 @@ import { DailyRewardsPanel } from './DailyRewardsPanel';
 import { BulkActionsPanel } from './BulkActionsPanel';
 import { GiftReceivedDialog } from './GiftReceivedDialog';
 import { TradeReceivedDialog } from './TradeReceivedDialog';
+import { MilestonePopup } from './MilestonePopup';
+import { DailyObjectivesPanel } from './DailyObjectivesPanel';
 import { useCatGifts } from '@/hooks/useCatGifts';
 import { useTrading } from '@/hooks/useTrading';
 import { usePlayerActivityLog } from '@/hooks/usePlayerActivityLog';
@@ -66,9 +70,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target, CalendarDays, Sparkles } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, Settings2, LayoutGrid, Keyboard, LogIn, LogOut, User, Cloud, CloudOff, Globe, Users, Gift, ArrowLeftRight, Sun, Moon, BarChart3, Target, CalendarDays, Sparkles, ListTodo } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Resources } from '@/types/game';
+import { ObjectiveType } from '@/types/dailyObjectives';
 
 const MOOD_LABELS = {
   morning: '🌅 Morning',
@@ -132,6 +137,11 @@ export function CatFarm() {
   const { newGiftAlert, clearNewGift, acceptGift: acceptCatGift, declineGift: declineCatGift } = useCatGifts(user?.id);
   const { newTradeAlert, clearNewTrade, acceptTrade: acceptTradeOffer, declineTrade: declineTradeOffer } = useTrading(user?.id);
   const { showOutdatedToast } = usePortraitOutdatedToast();
+  
+  // Milestone and Daily Objectives systems
+  const { pendingCelebration, playerTitle, checkMilestones, claimMilestone, dismissCelebration } = useMilestones();
+  const { objectives, allCompleted: allObjectivesCompleted, bonusClaimed, updateProgress: updateObjectiveProgress, claimBonus: claimObjectivesBonus } = useDailyObjectives();
+  
   const [sideTab, setSideTab] = useState('actions');
   const [soundOn, setSoundOn] = useState(true);
   const [musicOn, setMusicOn] = useState(false);
@@ -215,6 +225,96 @@ export function CatFarm() {
       }
     }
   };
+
+  // Check milestones when stats change
+  useEffect(() => {
+    const milestone = checkMilestones({
+      totalMoneyEarned: state.totalMoneyEarned,
+      totalShowWins: state.totalShowWins,
+      catsOwned: state.cats.length,
+      day: state.day,
+      kittensBred: kittensBreed,
+    });
+    if (milestone) {
+      playSound?.('achievement');
+      vibrateAchievement?.();
+    }
+  }, [state.totalMoneyEarned, state.totalShowWins, state.cats.length, state.day, kittensBreed, checkMilestones, playSound, vibrateAchievement]);
+
+  // Handle claiming milestone reward
+  const handleClaimMilestone = () => {
+    const coins = claimMilestone();
+    if (coins > 0) {
+      actions.addReward?.(coins, {});
+      playSound?.('coin');
+    }
+  };
+
+  // Handle claiming daily objectives bonus
+  const handleClaimObjectivesBonus = () => {
+    const coins = claimObjectivesBonus();
+    if (coins > 0) {
+      actions.addReward?.(coins, {});
+      playSound?.('coin');
+      fireConfetti();
+    }
+  };
+
+  // Wrapper for actions that update objectives
+  const trackObjective = useCallback((type: ObjectiveType, amount: number = 1) => {
+    updateObjectiveProgress(type, amount);
+  }, [updateObjectiveProgress]);
+
+  // Wrapped action handlers that track objectives
+  const wrappedFeedCats = useCallback(() => {
+    actions.feedCats();
+    trackObjective('feed_cats');
+  }, [actions, trackObjective]);
+
+  const wrappedDoChore = useCallback((choreId: string, baseReward: number) => {
+    actions.doChore(choreId, baseReward);
+    trackObjective('complete_chore');
+  }, [actions, trackObjective]);
+
+  const wrappedBuyResource = useCallback((resource: string, cost: number) => {
+    actions.buyResource(resource as keyof typeof state.resources, cost);
+    trackObjective('buy_resource');
+  }, [actions, trackObjective]);
+
+  const wrappedUseMedicine = useCallback((catId: string) => {
+    actions.useMedicine(catId);
+    trackObjective('heal_cat');
+  }, [actions, trackObjective]);
+
+  const wrappedComfortCat = useCallback((catId: string) => {
+    actions.comfortCat(catId);
+    trackObjective('comfort_cat');
+  }, [actions, trackObjective]);
+
+  const wrappedSellCat = useCallback((catId: string) => {
+    actions.sellCat(catId);
+    trackObjective('sell_cat');
+  }, [actions, trackObjective]);
+
+  const wrappedTrainCat = useCallback((catId: string, trickId: any) => {
+    actions.trainCat(catId, trickId);
+    trackObjective('train_cat');
+  }, [actions, trackObjective]);
+
+  const wrappedBreedCats = useCallback((cat1Id: string, cat2Id: string) => {
+    actions.breedCats(cat1Id, cat2Id);
+    trackObjective('breed_kitten');
+  }, [actions, trackObjective]);
+
+  const wrappedSocializeCats = useCallback((cat1Id: string, cat2Id: string) => {
+    actions.socializeCats(cat1Id, cat2Id);
+    trackObjective('socialize');
+  }, [actions, trackObjective]);
+
+  const wrappedCatShow = useCallback((tier?: string) => {
+    actions.catShow(tier as any);
+    trackObjective('win_show');
+  }, [actions, trackObjective]);
 
   // Load cloud save on login
   useEffect(() => {
@@ -439,13 +539,20 @@ export function CatFarm() {
           const cat = state.cats.find(c => c.id === catId);
           if (cat) playSound('click');
         }}
-        onFeed={(catId) => actions.feedSingleCat?.(catId)}
-        onComfort={(catId) => actions.comfortCat(catId)}
-        onHeal={(catId) => actions.useMedicine(catId)}
+        onFeed={(catId) => { actions.feedSingleCat?.(catId); trackObjective('feed_cats'); }}
+        onComfort={(catId) => wrappedComfortCat(catId)}
+        onHeal={(catId) => wrappedUseMedicine(catId)}
         hasFood={state.resources.food > 0}
         hasMedicine={state.resources.medicine > 0}
       />
       <DailyEventToast event={currentDailyEvent} onDismiss={actions.clearDailyEvent} />
+      
+      {/* Milestone Celebration Popup */}
+      <MilestonePopup
+        milestone={pendingCelebration}
+        onClaim={handleClaimMilestone}
+        onDismiss={dismissCelebration}
+      />
       
       {/* Gift Received Popup */}
       <GiftReceivedDialog
@@ -666,7 +773,7 @@ export function CatFarm() {
         </div>
       </header>
 
-      <StatusBar state={state} onUpgrade={actions.upgradeHouse} onCatShow={actions.catShow} relationships={relationshipSystem.relationships} />
+      <StatusBar state={state} onUpgrade={actions.upgradeHouse} onCatShow={wrappedCatShow} relationships={relationshipSystem.relationships} />
       <MessageBar message={message} type={messageType} onDismiss={actions.dismissMessage} />
 
       <Tabs value={sideTab} onValueChange={setSideTab} className="flex-1 flex flex-col">
@@ -689,6 +796,7 @@ export function CatFarm() {
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="gifts" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'gifts' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Gift className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Gifts</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="trading" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'trading' ? 'ring-2 ring-primary animate-pulse' : ''}`}><ArrowLeftRight className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Trading</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="challenges" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'challenges' ? 'ring-2 ring-primary animate-pulse' : ''}`}><Target className="h-4 w-4" /></TabsTrigger></TooltipTrigger><TooltipContent>Challenges</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><TabsTrigger value="objectives" className={`flex-shrink-0 min-w-10 min-h-10 text-base relative ${highlightedTab === 'objectives' ? 'ring-2 ring-primary animate-pulse' : ''}`}><ListTodo className="h-4 w-4" />{!allObjectivesCompleted && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full" />}</TabsTrigger></TooltipTrigger><TooltipContent>Daily Objectives</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><TabsTrigger value="more" className={`flex-shrink-0 min-w-10 min-h-10 text-base ${highlightedTab === 'more' ? 'ring-2 ring-primary animate-pulse' : ''}`}>⚙️</TabsTrigger></TooltipTrigger><TooltipContent>Settings</TooltipContent></Tooltip>
             </TabsList>
           </TooltipProvider>
@@ -714,9 +822,9 @@ export function CatFarm() {
                           key={cat.id} 
                           cat={cat} 
                           equippedCostumeId={state.catCostumes[cat.id]}
-                          onSell={actions.sellCat} 
-                          onHeal={actions.useMedicine}
-                          onComfort={actions.comfortCat}
+                          onSell={wrappedSellCat} 
+                          onHeal={wrappedUseMedicine}
+                          onComfort={wrappedComfortCat}
                           onRename={actions.renameCat}
                           relationships={relationshipSystem.relationships} 
                           allCats={state.cats}
@@ -731,10 +839,10 @@ export function CatFarm() {
             <TabsContent value="actions" className="mt-0">
               <ActionPanel onAddCat={actions.addCat} onNextDay={actions.nextDay} money={state.money} space={state.space} catCount={state.cats.length} />
             </TabsContent>
-            <TabsContent value="chores" className="mt-0"><ChorePanel onDoChore={actions.doChore} /></TabsContent>
+            <TabsContent value="chores" className="mt-0"><ChorePanel onDoChore={wrappedDoChore} /></TabsContent>
             <TabsContent value="supplies" className="mt-0">
               <ResourcePanel resources={state.resources} money={state.money} catCount={state.cats.length}
-                onBuyResource={actions.buyResource} onFeedCats={actions.feedCats} onUseToys={actions.useToys} />
+                onBuyResource={wrappedBuyResource} onFeedCats={wrappedFeedCats} onUseToys={actions.useToys} />
             </TabsContent>
             <TabsContent value="market" className="mt-0">
               <MarketPanel listings={state.marketListings} money={state.money} hasSpace={state.cats.length < state.space} onBuy={actions.buyFromMarket} />
@@ -752,11 +860,11 @@ export function CatFarm() {
             </TabsContent>
             <TabsContent value="breeding" className="mt-0">
               <BreedingPanel cats={state.cats} cooldown={state.breedingCooldown} hasSpace={state.cats.length < state.space}
-                onBreed={actions.breedCats} getBreedingCompatibility={relationshipSystem.getBreedingCompatibility} catCostumes={state.catCostumes} />
+                onBreed={wrappedBreedCats} getBreedingCompatibility={relationshipSystem.getBreedingCompatibility} catCostumes={state.catCostumes} />
             </TabsContent>
             <TabsContent value="training" className="mt-0">
               <TrainingPanel cats={state.cats} treats={state.resources.treats} toys={state.resources.toys}
-                day={state.day} onTrain={actions.trainCat} onRest={actions.restCat} catCostumes={state.catCostumes} />
+                day={state.day} onTrain={wrappedTrainCat} onRest={actions.restCat} catCostumes={state.catCostumes} />
             </TabsContent>
             <TabsContent value="bulk" className="mt-0">
               <BulkActionsPanel 
@@ -774,9 +882,9 @@ export function CatFarm() {
             </TabsContent>
             <TabsContent value="social" className="mt-0 space-y-4">
               <SocializePanel cats={state.cats} treats={state.resources.treats}
-                getRelationship={relationshipSystem.getRelationship} onSocialize={actions.socializeCats} catCostumes={state.catCostumes} />
+                getRelationship={relationshipSystem.getRelationship} onSocialize={wrappedSocializeCats} catCostumes={state.catCostumes} />
               <MatchmakingPanel cats={state.cats} relationships={relationshipSystem.relationships}
-                onSocialize={actions.socializeCats} treats={state.resources.treats} catCostumes={state.catCostumes} />
+                onSocialize={wrappedSocializeCats} treats={state.resources.treats} catCostumes={state.catCostumes} />
               <GroupActivitiesPanel cats={state.cats} groups={relationshipSystem.groups}
                 treats={state.resources.treats} toys={state.resources.toys} onGroupActivity={actions.doGroupActivity} catCostumes={state.catCostumes} />
               <RelationshipPanel cats={state.cats} relationships={relationshipSystem.relationships}
@@ -829,6 +937,14 @@ export function CatFarm() {
                 totalChallengesCompleted={totalChallengesCompleted}
                 currentStreak={currentStreak}
                 longestStreak={longestStreak}
+              />
+            </TabsContent>
+            <TabsContent value="objectives" className="mt-0">
+              <DailyObjectivesPanel
+                objectives={objectives}
+                allCompleted={allObjectivesCompleted}
+                bonusClaimed={bonusClaimed}
+                onClaimBonus={handleClaimObjectivesBonus}
               />
             </TabsContent>
             <TabsContent value="more" className="mt-0 space-y-4">
