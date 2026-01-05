@@ -47,7 +47,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Search, ChevronLeft, ChevronRight, Shield, User as UserIcon, Trash2, Eye, Ban, CheckCircle } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Shield, User as UserIcon, Trash2, Eye, Ban, CheckCircle, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -541,9 +541,16 @@ export default function AdminUsers() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span className="text-2xl">{user.avatar_emoji || '😺'}</span>
-                            <span className="font-medium">
-                              {getDisplayName(user)}
-                            </span>
+                            <div className="flex items-center gap-1">
+                              <span className="font-medium">
+                                {getDisplayName(user)}
+                              </span>
+                              {!user.display_name && (
+                                <Badge variant="destructive" className="h-5 px-1.5 text-[10px]" title="Missing display name">
+                                  <AlertTriangle className="h-3 w-3" />
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell className="text-muted-foreground">

@@ -31,6 +31,7 @@ import AdminAIMetrics from "./pages/admin/AdminAIMetrics";
 import AdminGameConfig from "./pages/admin/AdminGameConfig";
 import AdminBattlePass from "./pages/admin/AdminBattlePass";
 import AdminNotifications from "./pages/admin/AdminNotifications";
+import AdminProfileRepair from "./pages/admin/AdminProfileRepair";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ const App = () => {
                         <Route path="/catking" element={<AdminAuth />} />
                         <Route path="/catking/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
                         <Route path="/catking/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+                        <Route path="/catking/profiles" element={<AdminRoute><AdminProfileRepair /></AdminRoute>} />
                         <Route path="/catking/stats" element={<AdminRoute><AdminStatistics /></AdminRoute>} />
                         <Route path="/catking/ai-metrics" element={<AdminRoute><AdminAIMetrics /></AdminRoute>} />
                         <Route path="/catking/errors" element={<AdminRoute><AdminErrorLogs /></AdminRoute>} />
