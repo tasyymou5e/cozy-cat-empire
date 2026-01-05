@@ -1,18 +1,22 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Cat } from '@/types/game';
 import { 
   CatRelationship, 
   CatGroup, 
-  RelationshipEvent,
-  getRelationshipEmoji,
-  getRelationshipColor,
+  RelationshipEvent, 
+  getRelationshipEmoji, 
+  getRelationshipColor 
 } from '@/types/relationships';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { RelationshipNetworkGraph } from './RelationshipNetworkGraph';
 import { CatVisual } from './CatVisual';
+import { RelationshipNetworkGraph } from './RelationshipNetworkGraph';
+import { ExternalLink } from 'lucide-react';
+
 interface RelationshipPanelProps {
   cats: Cat[];
   relationships: CatRelationship[];
@@ -22,6 +26,7 @@ interface RelationshipPanelProps {
 }
 
 export function RelationshipPanel({ cats, relationships, groups, events, catCostumes }: RelationshipPanelProps) {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<'all' | 'friends' | 'rivals'>('all');
 
   const getCatName = (catId: string) => cats.find(c => c.id === catId)?.name || 'Unknown';
@@ -38,9 +43,20 @@ export function RelationshipPanel({ cats, relationships, groups, events, catCost
   return (
     <Card className="border-accent/30">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2">
-          💗 Cat Relationships
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            💗 Cat Relationships
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/relationships')}
+            className="text-xs gap-1 h-7"
+          >
+            <ExternalLink className="h-3 w-3" />
+            View Full
+          </Button>
+        </div>
         <div className="flex gap-2 text-xs">
           <Badge variant="secondary" className="bg-green-100 text-green-700">
             💚 {friendCount} Friends

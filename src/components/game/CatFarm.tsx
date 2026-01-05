@@ -1004,7 +1004,7 @@ export function CatFarm() {
             </TabsContent>
             <TabsContent value="breeding" className="mt-0">
               <BreedingPanel cats={state.cats} cooldown={state.breedingCooldown} hasSpace={state.cats.length < state.space}
-                onBreed={wrappedBreedCats} getBreedingCompatibility={relationshipSystem.getBreedingCompatibility} catCostumes={state.catCostumes} />
+                onBreed={wrappedBreedCats} getBreedingCompatibility={relationshipSystem.getBreedingCompatibility} catCostumes={state.catCostumes} relationships={relationshipSystem.relationships} />
             </TabsContent>
             <TabsContent value="training" className="mt-0">
               <TrainingPanel cats={state.cats} treats={state.resources.treats} toys={state.resources.toys}
