@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
-import { Cat, Coins, Trophy, Gift, ArrowLeftRight, AlertTriangle } from 'lucide-react';
+import { Cat, Coins, Trophy, Gift, ArrowLeftRight, AlertTriangle, Package } from 'lucide-react';
+import { PlayerInventoryEditor } from './PlayerInventoryEditor';
 
 interface UserDetailModalProps {
   userId: string | null;
@@ -20,6 +21,7 @@ interface UserDetailModalProps {
 }
 
 export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
+  const queryClient = useQueryClient();
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['admin-user-detail', userId],
     queryFn: async () => {
@@ -141,8 +143,9 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
           </div>
         ) : (
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="inventory">Inventory</TabsTrigger>
               <TabsTrigger value="cats">Cats</TabsTrigger>
               <TabsTrigger value="trades">Trades</TabsTrigger>
               <TabsTrigger value="gifts">Gifts</TabsTrigger>
@@ -241,6 +244,23 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
                       </div>
                     </CardContent>
                   </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="inventory" className="space-y-4">
+                {gameState ? (
+                  <PlayerInventoryEditor
+                    userId={userId!}
+                    gameState={gameState}
+                    onUpdate={() => {
+                      queryClient.invalidateQueries({ queryKey: ['admin-user-game', userId] });
+                    }}
+                  />
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No game save found for this user</p>
+                  </div>
                 )}
               </TabsContent>
 

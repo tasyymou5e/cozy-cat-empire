@@ -221,6 +221,39 @@ export default function AdminUsers() {
     queryClient.invalidateQueries({ queryKey: ['admin-users'] });
   };
 
+  const handleBulkNotify = async (title: string, body: string) => {
+    const userIds = Array.from(selectedUsers);
+    
+    try {
+      // Insert notification record
+      const { error: notifError } = await supabase
+        .from('admin_notifications')
+        .insert({
+          title,
+          body,
+          target: 'specific',
+          target_user_ids: userIds,
+          status: 'sent',
+        });
+
+      if (notifError) throw notifError;
+
+      await logActivity({
+        actionType: 'bulk_notification',
+        actionDescription: `Sent notification to ${userIds.length} users: ${title}`,
+        metadata: { userIds, title, body },
+      });
+
+      toast({
+        title: 'Notification Sent',
+        description: `Notification sent to ${userIds.length} user(s)`,
+      });
+      setSelectedUsers(new Set());
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+
   const handleRoleChange = async () => {
     if (!selectedUser || !newRole) return;
 
@@ -626,11 +659,13 @@ export default function AdminUsers() {
       {/* Bulk Actions Bar */}
       <BulkActionsBar
         selectedCount={selectedUsers.size}
+        selectedUserIds={Array.from(selectedUsers)}
         onClear={() => setSelectedUsers(new Set())}
         onBulkRoleChange={handleBulkRoleChange}
         onBulkSuspend={handleBulkSuspend}
         onBulkUnsuspend={handleBulkUnsuspend}
         onBulkDelete={handleBulkDelete}
+        onBulkNotify={handleBulkNotify}
       />
 
       {/* Role Dialog */}
