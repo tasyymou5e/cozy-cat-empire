@@ -84,7 +84,7 @@ export function useBattlePass(userId?: string) {
               current_tier: localPass.currentTier,
               is_premium: localPass.isPremium,
               claimed_rewards: localPass.claimedRewards,
-            } as any);
+            });
           setBattlePass(localPass);
         }
       } catch (e) {
@@ -113,7 +113,7 @@ export function useBattlePass(userId?: string) {
             is_premium: battlePass.isPremium,
             claimed_rewards: battlePass.claimedRewards,
             purchased_at: battlePass.purchasedAt || null,
-          } as any, {
+          }, {
             onConflict: 'user_id,season_id',
           });
       };

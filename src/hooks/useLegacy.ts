@@ -76,7 +76,7 @@ export function useLegacy(userId?: string): UseLegacyReturn {
                 achievements: legacy.achievements,
                 legacy_bonus: legacy.legacyBonus,
                 legacy_trait: legacy.legacyTrait,
-              } as any);
+              });
           }
         }
       } catch (e) {
@@ -154,7 +154,7 @@ export function useLegacy(userId?: string): UseLegacyReturn {
             achievements: legacyCat.achievements,
             legacy_bonus: legacyCat.legacyBonus,
             legacy_trait: legacyCat.legacyTrait,
-          } as any)
+          })
           .select()
           .single();
 
