@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Trash2, Heart, Camera, Image as ImageIcon, Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -110,12 +111,7 @@ export default function CatGallery() {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Link to="/collection">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <h1 className="text-lg font-bold">🖼️ Photo Gallery</h1>
+            <Breadcrumbs items={[{ label: 'Photo Gallery' }]} />
             <span className="text-sm text-muted-foreground">
               {photoCount} / {MAX_GALLERY_PHOTOS}
             </span>

@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePlayerStats } from '@/hooks/usePlayerStats';
 import { useLeaderboardRewards } from '@/hooks/useLeaderboardRewards';
 import { useLeaderboardHistory } from '@/hooks/useLeaderboardHistory';
+import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { StatsOverviewCards } from '@/components/stats/StatsOverviewCards';
 import { LeaderboardRankings } from '@/components/stats/LeaderboardRankings';
 import { RewardsHistory } from '@/components/stats/RewardsHistory';
@@ -56,12 +57,7 @@ export default function Stats() {
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-            </Link>
+            <Breadcrumbs items={[{ label: 'My Stats' }]} />
             <div className="flex items-center gap-3">
               <span className="text-3xl">{stats?.avatar_emoji || '😺'}</span>
               <div>

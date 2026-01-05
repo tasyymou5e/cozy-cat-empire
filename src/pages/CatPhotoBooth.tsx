@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Cat as CatIcon, Image as ImageIcon } from 'lucide-react';
+import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGameState } from '@/hooks/useGameState';
@@ -113,14 +114,10 @@ const CatPhotoBooth: React.FC = () => {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => navigate('/collection')}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <h1 className="text-lg font-bold">📸 Photo Booth</h1>
+            <Breadcrumbs items={[
+              { label: 'Photo Booth' },
+              { label: selectedCat?.name || 'Select Cat' }
+            ]} />
           </div>
           
           <div className="flex items-center gap-2">

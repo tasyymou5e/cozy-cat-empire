@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { ArrowLeft, Volume2, VolumeX, Sun, Moon, Settings2 } from 'lucide-react';
+import { Volume2, VolumeX, Sun, Moon, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { GlobalLeaderboardPanel } from '@/components/game/GlobalLeaderboardPanel';
+import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 
@@ -26,13 +26,7 @@ export default function Leaderboard() {
       <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="container flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-4">
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Farm
-              </Button>
-            </Link>
-            <h1 className="text-xl font-bold">🏆 Global Leaderboard</h1>
+            <Breadcrumbs items={[{ label: 'Global Leaderboard' }]} />
           </div>
           
           <Popover>

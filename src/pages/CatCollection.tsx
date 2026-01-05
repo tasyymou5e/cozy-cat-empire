@@ -6,6 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
 import { UnifiedCatCard } from '@/components/game/UnifiedCatCard';
+import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { CatDetailModal } from '@/components/game/CatDetailModal';
 import { BatchPortraitGenerator } from '@/components/game/BatchPortraitGenerator';
 import { Button } from '@/components/ui/button';
@@ -158,13 +159,7 @@ export default function CatCollection() {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-4">
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="min-h-10 min-w-10 p-2 sm:px-3">
-                <ArrowLeft className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Back to Farm</span>
-              </Button>
-            </Link>
-            <h1 className="text-lg sm:text-xl font-bold">🎴 Cat Collection</h1>
+            <Breadcrumbs items={[{ label: 'Collection' }]} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="min-h-10 min-w-10">
