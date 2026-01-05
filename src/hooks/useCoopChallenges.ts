@@ -246,7 +246,7 @@ export function useCoopChallenges(
           sender_id: userId,
           recipient_id: friendId,
           expires_at: expiresAt,
-        } as any)
+        })
         .select()
         .single();
 
@@ -302,7 +302,7 @@ export function useCoopChallenges(
           initiator_id: invite.senderId,
           partner_id: userId,
           expires_at: expiresAt.toISOString(),
-        } as any)
+        })
         .select()
         .single();
 

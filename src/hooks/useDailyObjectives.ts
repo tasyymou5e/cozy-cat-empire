@@ -99,7 +99,7 @@ export function useDailyObjectives(userId?: string): UseDailyObjectivesReturn {
               objectives: JSON.parse(JSON.stringify(localState.objectives)),
               last_refreshed: localState.lastRefreshed,
               bonus_claimed: localState.bonusClaimed,
-            } as any);
+            });
           setState(localState);
         }
       } catch (e) {
@@ -125,7 +125,7 @@ export function useDailyObjectives(userId?: string): UseDailyObjectivesReturn {
             objectives: JSON.parse(JSON.stringify(state.objectives)),
             last_refreshed: state.lastRefreshed,
             bonus_claimed: state.bonusClaimed,
-          } as any, {
+          }, {
             onConflict: 'user_id',
           });
       };
