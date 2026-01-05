@@ -123,6 +123,11 @@ export function FriendsPanel({ userId }: FriendsPanelProps) {
                       <div className="font-medium truncate">
                         {friend.display_name || 'Anonymous'}
                       </div>
+                      {friend.username && (
+                        <div className="text-xs text-muted-foreground">
+                          @{friend.username}
+                        </div>
+                      )}
                       {friend.stats && (
                         <div className="flex gap-3 text-xs text-muted-foreground mt-1">
                           <span className="flex items-center gap-1">
@@ -172,6 +177,11 @@ export function FriendsPanel({ userId }: FriendsPanelProps) {
                       <div className="font-medium truncate">
                         {request.display_name || 'Anonymous'}
                       </div>
+                      {request.username && (
+                        <div className="text-xs text-muted-foreground">
+                          @{request.username}
+                        </div>
+                      )}
                       <div className="text-xs text-muted-foreground">
                         wants to be your friend
                       </div>
@@ -207,11 +217,11 @@ export function FriendsPanel({ userId }: FriendsPanelProps) {
           <TabsContent value="add" className="mt-0">
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground">
-                Enter a player's display name to send a friend request.
+                Enter a player's display name or @username to send a friend request.
               </div>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Player name..."
+                  placeholder="Display name or @username..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendRequest()}
@@ -225,7 +235,7 @@ export function FriendsPanel({ userId }: FriendsPanelProps) {
                 </Button>
               </div>
               <div className="text-xs text-muted-foreground">
-                Tip: Set your display name in your profile so friends can find you!
+                Tip: Set your display name and @username in your profile so friends can find you!
               </div>
             </div>
           </TabsContent>

@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
 
 export interface LogActivityParams {
-  activityType: 'login' | 'logout' | 'trade_created' | 'trade_completed' | 'gift_sent' | 'gift_received' | 'cat_bred' | 'show_win' | 'challenge_completed' | 'purchase';
+  activityType: 'login' | 'logout' | 'trade_created' | 'trade_completed' | 'gift_sent' | 'gift_received' | 'cat_bred' | 'show_win' | 'challenge_completed' | 'purchase' | 'friend_request_sent' | 'friend_request_accepted' | 'friend_removed';
   activityDescription: string;
   metadata?: Json;
 }

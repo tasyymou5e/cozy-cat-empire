@@ -428,7 +428,7 @@ interface TradeData {
 
 ## @Mention System
 
-**Status:** Planned Feature
+**Status:** Planned Feature (components not yet created)
 
 Allows users to tag friends in chat and trading messages using @username syntax.
 
