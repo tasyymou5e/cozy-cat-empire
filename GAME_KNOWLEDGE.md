@@ -134,14 +134,33 @@ interface CatAppearance {
 - Cat show wins → Big celebration burst
 - Challenge completions → Challenge burst
 
-### 8. Costume System (`src/types/costumes.ts`, `src/components/game/CostumeShopPanel.tsx`)
+### 8. Costume System (`src/types/costumes.ts`, `src/lib/costumeVectors.ts`)
 
 **Categories:**
 - Hats (8 costumes): Party Hat, Crown, Wizard Hat, etc.
 - Outfits (4 costumes): Tuxedo, Princess Dress, etc.
-- Accessories (4 costumes): Bow Tie, Glasses, etc.
-- Special (4 costumes): Astronaut Suit, Superhero Cape, etc.
-- VIP Exclusive (3 costumes): Streak-locked items
+- Accessories (4 costumes): Bow Tie, Glasses, Necklace, Scarf
+- Special (4 costumes): Astronaut, Superhero Cape, Dragon, Unicorn, Angel Wings
+- VIP Exclusive (3 costumes): Bronze Collar, Silver Cape, Gold Crown
+
+**Animated Costume Effects:**
+| Costume | Animation | Effect |
+|---------|-----------|--------|
+| Crown | glow-gold | Golden pulsing glow |
+| Wizard Hat | sparkle + particles | Twinkling stars |
+| Superhero Cape | flow | Flowing cape movement |
+| Angel Wings | flutter + sparkles | Wing flutter + sparkle particles |
+| Dragon | glow-fire | Fiery red/orange glow |
+| Unicorn | rainbow + magic | Rainbow color shift + magic particles |
+| VIP Bronze Collar | shimmer-bronze | Bronze shimmer effect |
+| VIP Silver Cape | flow + sparkles | Flowing + silver sparkle particles |
+| VIP Gold Crown | glow-vip + sparkles | Rainbow VIP glow + gold sparkles |
+
+**Features:**
+- 19 costumes with full vector SVG definitions
+- Animated effects for legendary/VIP items
+- Particle systems (sparkles, stars, hearts, magic)
+- Respects reduced motion preferences
 
 ### 9. Show Events (`src/types/showEvents.ts`)
 
@@ -279,6 +298,8 @@ interface CatAppearance {
 - **CatAvatar.tsx**: Cat avatar with costume support
 - **CatVisual.tsx**: Unified cat visual display
 - **CatPortrait.tsx**: AI portrait generation with confirmation dialogs
+- **PaperCatAvatar.tsx**: High-quality vector avatars with Paper.js
+- **AnimatedCostumeSVG.tsx**: Animated costume overlays (glows, particles)
 - **UnifiedCatCard.tsx**: Alternative cat card implementation
 - **GradeBadge.tsx**: Visual grade display
 - **CatCardSkeleton.tsx**: Loading skeleton for cat cards
@@ -337,6 +358,7 @@ interface CatAppearance {
 - **CatActivityPopups.tsx**: Activity popup notifications
 - **CatCardReaction.tsx**: Cat reaction animations
 - **ChallengeProgressAnimation.tsx**: Challenge completion effects
+- **AnimatedCostumeSVG.tsx**: Animated costume effects (glow, flow, sparkle)
 
 ### Tutorial & Help:
 - **TutorialSystem.tsx**: 16-step new player tutorial with category badges

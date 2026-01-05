@@ -99,6 +99,31 @@ Cat avatar display with costume support.
 - `size?: 'sm' | 'md' | 'lg' | 'xl'`
 - `showPose?: boolean`
 
+### PaperCatAvatar.tsx
+High-quality vector cat avatar using Paper.js with animated costume support.
+
+**Props:**
+- `cat: Cat`
+- `equippedCostumeId?: string`
+- `size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'`
+- `showCostume?: boolean`
+- `animated?: boolean`
+- `className?: string`
+
+### AnimatedCostumeSVG.tsx
+Renders costume overlays with animated effects (glows, sparkles, flowing).
+
+**Props:**
+- `costume: VectorCostume`
+- `size: 'xs' | 'sm' | 'md' | 'lg' | 'xl'`
+- `isAnimated?: boolean`
+- `className?: string`
+
+**Features:**
+- CSS animation classes for glow, flow, shimmer, rainbow effects
+- Particle system for sparkles, stars, hearts, magic particles
+- Respects `prefers-reduced-motion` and graphics config
+
 ### CatVisual.tsx
 Unified cat visual component for consistent display.
 
