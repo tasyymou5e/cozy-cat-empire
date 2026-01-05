@@ -366,6 +366,97 @@ ORDER BY created_at DESC;
 
 ---
 
+## Rate Limiting
+
+Prevents spam attacks by limiting error logs per time window.
+
+### Configuration
+```typescript
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const MAX_ERRORS_PER_WINDOW = 10;   // Max 10 errors per minute
+```
+
+### Behavior
+| Scenario | Result |
+|----------|--------|
+| Normal usage (few errors) | All errors logged |
+| Spam attack (100+ errors/sec) | Only first 10 per minute logged |
+| Error storm clears | Logging resumes after 1 minute |
+
+### Implementation
+```typescript
+function isRateLimited(): boolean {
+  const now = Date.now();
+  // Remove timestamps outside the window
+  while (errorTimestamps.length > 0 && errorTimestamps[0] < now - RATE_LIMIT_WINDOW_MS) {
+    errorTimestamps.shift();
+  }
+  // Check if we've exceeded the limit
+  if (errorTimestamps.length >= MAX_ERRORS_PER_WINDOW) {
+    console.warn('[ErrorLogger] Rate limit exceeded, skipping log');
+    return true;
+  }
+  errorTimestamps.push(now);
+  return false;
+}
+```
+
+---
+
+## Automatic Cleanup
+
+Old error logs are automatically deleted to manage storage.
+
+### Configuration
+- **Retention Period**: 30 days
+- **Schedule**: Daily at 3:00 AM UTC
+- **Method**: Edge function called via pg_cron
+
+### Edge Function: cleanup-error-logs
+**Location:** `supabase/functions/cleanup-error-logs/index.ts`
+
+```typescript
+// Delete error logs older than 30 days
+const thirtyDaysAgo = new Date();
+thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+const { data, error } = await supabase
+  .from('error_logs')
+  .delete()
+  .lt('created_at', thirtyDaysAgo.toISOString())
+  .select('id');
+```
+
+**Returns:**
+```json
+{
+  "success": true,
+  "deleted_count": 42,
+  "cutoff_date": "2025-12-06T00:00:00.000Z",
+  "timestamp": "2026-01-05T03:00:00.000Z"
+}
+```
+
+### Database Setup (pg_cron)
+```sql
+-- Required extensions
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+CREATE EXTENSION IF NOT EXISTS pg_net;
+
+-- Daily cleanup at 3 AM UTC
+SELECT cron.schedule(
+  'cleanup-error-logs-daily',
+  '0 3 * * *',
+  $$ SELECT net.http_post(
+    url := 'https://<project>.supabase.co/functions/v1/cleanup-error-logs',
+    headers := '{"Content-Type": "application/json", "Authorization": "Bearer <anon_key>"}'::jsonb,
+    body := '{}'::jsonb
+  ) AS request_id; $$
+);
+```
+
+---
+
 ## RLS Policies
 
 ```sql
@@ -379,7 +470,7 @@ CREATE POLICY "Users can view their own errors"
 ON public.error_logs FOR SELECT
 USING (auth.uid() = user_id);
 
--- No UPDATE or DELETE allowed
+-- No UPDATE or DELETE allowed (cleanup via edge function with service role)
 ```
 
 ---

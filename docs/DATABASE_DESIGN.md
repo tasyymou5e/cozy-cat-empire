@@ -787,6 +787,35 @@ CREATE INDEX idx_error_logs_type ON error_logs(error_type);
 
 ---
 
+## Scheduled Jobs (pg_cron)
+
+### Extensions Required
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+CREATE EXTENSION IF NOT EXISTS pg_net;
+```
+
+### Active Scheduled Jobs
+
+| Job Name | Schedule | Function | Purpose |
+|----------|----------|----------|---------|
+| `cleanup-error-logs-daily` | `0 3 * * *` (3 AM UTC daily) | cleanup-error-logs | Delete error logs older than 30 days |
+
+### Job Configuration
+```sql
+SELECT cron.schedule(
+  'cleanup-error-logs-daily',
+  '0 3 * * *',
+  $$ SELECT net.http_post(
+    url := 'https://<project>.supabase.co/functions/v1/cleanup-error-logs',
+    headers := '{"Content-Type": "application/json", "Authorization": "Bearer <anon_key>"}'::jsonb,
+    body := '{}'::jsonb
+  ) AS request_id; $$
+);
+```
+
+---
+
 ## Row-Level Security (RLS)
 
 All tables have RLS enabled. See [SECURITY.md](./SECURITY.md) for detailed policy definitions.
@@ -801,6 +830,6 @@ All tables have RLS enabled. See [SECURITY.md](./SECURITY.md) for detailed polic
 | cat_gifts | ❌ | ✅ | Sender/recipient access |
 | trade_offers | ❌ | ✅ | Sender/recipient access |
 | gallery_photos | ❌ | ✅ | Owner access only |
-| error_logs | ❌ | ✅ | Owner access only |
+| error_logs | ❌ | ✅ | Owner access only, auto-cleanup after 30 days |
 | player_activity_log | ❌ | ✅ | Owner access only |
 | admin_* tables | ❌ | Admin only | Admin access only |

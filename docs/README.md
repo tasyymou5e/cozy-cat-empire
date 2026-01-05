@@ -64,7 +64,7 @@
 | `photo-gallery` | Photo booth images |
 | `cat-portraits` | AI-generated cat portraits |
 
-### Edge Functions (6)
+### Edge Functions (7)
 
 | Function | Purpose |
 |----------|---------|
@@ -74,6 +74,7 @@
 | `send-push-notification` | Push notification delivery |
 | `send-password-reset` | Password reset emails |
 | `admin-delete-user` | Admin user deletion |
+| `cleanup-error-logs` | Daily cleanup of error logs (30-day retention) |
 
 ---
 
@@ -83,7 +84,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                     Frontend (React)                         │
 ├─────────────────────────────────────────────────────────────┤
-│  Pages (12+8 admin) → Components (77+) → Hooks (42)         │
+│  Pages (12+8 admin) → Components (82+) → Hooks (42)         │
 │  Contexts (3) → Types (15+) → Utils                          │
 └─────────────────────────────────────────────────────────────┘
                               │
