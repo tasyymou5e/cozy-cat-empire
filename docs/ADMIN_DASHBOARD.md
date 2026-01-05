@@ -78,7 +78,16 @@ Create and manage announcements visible to all players:
 - Toggle active status
 - Announcements appear as banners in the main game
 
-### 7. Settings (`/catking/settings`)
+### 7. AI Metrics (`/catking/ai-metrics`)
+
+Monitor AI usage across the platform:
+- Total AI requests and success rate
+- Token usage and costs
+- Function-specific breakdown
+- Error tracking for AI operations
+- Usage trends over time
+
+### 8. Settings (`/catking/settings`)
 
 Administrative settings:
 - **Activity Log**: All admin actions recorded
@@ -145,7 +154,7 @@ All admin routes wrapped with `AdminRoute` component that:
 ### AdminLayout
 Responsive navigation wrapper with:
 - Crown branding
-- Navigation menu (Dashboard, Users, Statistics, Errors, Moderation, Settings)
+- Navigation menu (Dashboard, Users, Statistics, Errors, Moderation, AI Metrics, Announcements, Settings)
 - Mobile hamburger menu
 - User email display
 - Logout button
@@ -172,6 +181,11 @@ Collection of data fetching hooks:
 - `useAdminAuthLogs()` - Authentication attempt history
 - `useAdminActivityLogs()` - Admin activity history
 
+### useAdminAIData
+AI usage monitoring:
+- `useAIUsageStats()` - Aggregate AI metrics
+- `useAIUsageLogs()` - Individual AI request logs
+
 ## Scalability
 
 ### Adding Navigation Items
@@ -194,13 +208,17 @@ src/
 │   ├── AdminLayout.tsx      # Navigation wrapper
 │   ├── AdminRoute.tsx       # Route protection
 │   ├── UserDetailModal.tsx  # User detail view modal
+│   ├── ActivityFeed.tsx     # Activity feed display
+│   ├── BulkActionsBar.tsx   # Bulk user actions
+│   ├── ChallengeForm.tsx    # Challenge creation form
 │   └── ExportButton.tsx     # CSV export utility
 ├── components/game/
 │   └── AnnouncementBanner.tsx # Player-facing announcement display
 ├── hooks/
 │   ├── useAdminAuth.ts      # Admin role check
 │   ├── useAdminActivityLog.ts # Activity logging
-│   └── useAdminData.ts      # Data fetching hooks
+│   ├── useAdminData.ts      # Data fetching hooks
+│   └── useAdminAIData.ts    # AI usage metrics
 ├── pages/admin/
 │   ├── AdminDashboard.tsx   # Main dashboard
 │   ├── AdminUsers.tsx       # User management
@@ -208,6 +226,7 @@ src/
 │   ├── AdminErrorLogs.tsx   # Error monitoring
 │   ├── AdminModeration.tsx  # Moderation tools
 │   ├── AdminAnnouncements.tsx # Announcements management
+│   ├── AdminAIMetrics.tsx   # AI usage monitoring
 │   └── AdminSettings.tsx    # Admin settings
 └── pages/
     └── AdminAuth.tsx        # Admin login page

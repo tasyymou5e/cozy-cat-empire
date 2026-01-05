@@ -115,7 +115,10 @@ CREATE TABLE public.game_saves (
 ```typescript
 {
   relationships: CatRelationship[],
-  events: RelationshipEvent[]
+  events: RelationshipEvent[],
+  maintenanceStreak: number,          // Current consecutive days maintained
+  longestMaintenanceStreak: number,   // All-time best streak
+  lastMaintenanceDay: number | null   // Last day streak was updated
 }
 ```
 

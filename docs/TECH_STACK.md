@@ -175,7 +175,7 @@ export default defineConfig({
 ```
 src/
 ├── components/
-│   ├── game/           # 63+ game components
+│   ├── game/           # 77+ game components
 │   │   ├── CatFarm.tsx         # Main game orchestrator
 │   │   ├── CatCard.tsx         # Cat display + inline rename
 │   │   ├── CatVisual.tsx       # Unified cat visual
@@ -185,6 +185,15 @@ src/
 │   │   ├── DraggableSticker.tsx
 │   │   ├── TutorialSystem.tsx  # 16-step tutorial
 │   │   ├── WhatsNewPopup.tsx   # Changelog popup
+│   │   ├── SocialCalendarPanel.tsx  # Relationship maintenance view
+│   │   ├── MilestonePopup.tsx  # Milestone celebrations
+│   │   ├── HallOfFamePanel.tsx # Retired cats gallery
+│   │   ├── LuckyWheelPanel.tsx # Daily spin wheel
+│   │   ├── BattlePassPanel.tsx # Seasonal battle pass
+│   │   ├── CoopChallengesPanel.tsx # Friend challenges
+│   │   ├── DailyObjectivesPanel.tsx # Daily objectives
+│   │   ├── SpecializationPanel.tsx # Cat specializations
+│   │   ├── CollectionProgressPanel.tsx # Collection tracking
 │   │   ├── *Skeleton.tsx       # Loading skeletons
 │   │   └── ...
 │   ├── ui/             # 40+ shadcn/ui primitives
@@ -192,9 +201,10 @@ src/
 │   ├── admin/          # 7 admin dashboard components
 │   ├── ErrorBoundary.tsx
 │   └── ErrorLoggerProvider.tsx
-├── hooks/              # 32 custom hooks
+├── hooks/              # 42 custom hooks
 │   ├── useGameState.ts      # Core game logic + bulk actions
-│   ├── useRelationships.ts  # Cat relationships
+│   ├── useRelationships.ts  # Cat relationships + maintenance streak
+│   ├── useRelationshipReminders.ts # Decay reminder toasts
 │   ├── useSoundEffects.ts   # Audio system
 │   ├── useCloudSave.ts      # Cloud persistence
 │   ├── useFriends.ts        # Social features
@@ -210,6 +220,14 @@ src/
 │   ├── useChallengeAchievements.ts # Challenge linking
 │   ├── usePlayerStats.ts   # Player statistics
 │   ├── usePlayerActivityLog.ts # Activity logging
+│   ├── useMilestones.ts    # Milestone celebrations
+│   ├── useLegacy.ts        # Cat retirement system
+│   ├── useCollectionProgress.ts # Collection tracking
+│   ├── useSpecializations.ts # Cat specializations
+│   ├── useLuckyWheel.ts    # Lucky wheel spins
+│   ├── useCoopChallenges.ts # Co-op challenges
+│   ├── useBattlePass.ts    # Battle pass progress
+│   ├── useDailyObjectives.ts # Daily objectives
 │   ├── useAdminAuth.ts     # Admin authentication
 │   ├── useAdminData.ts     # Admin data queries
 │   ├── useAdminActivityLog.ts # Admin activity logging

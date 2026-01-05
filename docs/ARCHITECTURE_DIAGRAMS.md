@@ -72,7 +72,7 @@ graph TD
     CatFarm --> NotificationCenter[NotificationCenter]
     CatFarm --> AnnouncementBanner[AnnouncementBanner]
     
-    subgraph Panels["Game Panels (16 tabs)"]
+    subgraph Panels["Game Panels (20+ tabs)"]
         ActionPanel[ActionPanel]
         ChorePanel[ChorePanel]
         ResourcePanel[ResourcePanel]
@@ -89,9 +89,23 @@ graph TD
         TradingPanel[TradingPanel]
         BulkActionsPanel[BulkActionsPanel]
         SaveLoadPanel[SaveLoadPanel]
+        DailyObjectivesPanel[DailyObjectivesPanel]
+        WeeklyChallengesPanel[WeeklyChallengesPanel]
+        BattlePassPanel[BattlePassPanel]
+        LuckyWheelPanel[LuckyWheelPanel]
+        HallOfFamePanel[HallOfFamePanel]
+        CoopChallengesPanel[CoopChallengesPanel]
     end
     
     CatFarm --> Panels
+    
+    subgraph Relationship["Relationship Components"]
+        SocialCalendarPanel[SocialCalendarPanel]
+        RelationshipNetworkGraph[RelationshipNetworkGraph]
+        RelationshipDirectory[RelationshipDirectory]
+    end
+    
+    RelationshipPanel --> Relationship
     
     subgraph CatDisplay["Cat Display"]
         CatCard[CatCard]
@@ -113,6 +127,7 @@ graph LR
     subgraph CoreGame["Core Game Hooks"]
         useGameState[useGameState]
         useRelationships[useRelationships]
+        useRelationshipReminders[useRelationshipReminders]
         useSoundEffects[useSoundEffects]
         useConfetti[useConfetti]
         useKeyboardShortcuts[useKeyboardShortcuts]
@@ -141,6 +156,17 @@ graph LR
         useDailyLoginRewards[useDailyLoginRewards]
         useWeeklyChallenges[useWeeklyChallenges]
         useChallengeAchievements[useChallengeAchievements]
+        useMilestones[useMilestones]
+        useBattlePass[useBattlePass]
+        useLuckyWheel[useLuckyWheel]
+        useCoopChallenges[useCoopChallenges]
+        useDailyObjectives[useDailyObjectives]
+    end
+    
+    subgraph Gamification["Gamification Hooks"]
+        useLegacy[useLegacy]
+        useCollectionProgress[useCollectionProgress]
+        useSpecializations[useSpecializations]
     end
     
     subgraph Admin["Admin Hooks"]
@@ -155,6 +181,7 @@ graph LR
         useHaptics[useHaptics]
         useInfiniteScroll[useInfiniteScroll]
         usePlayerActivityLog[usePlayerActivityLog]
+        useGraphicsSettings[useGraphicsSettings]
     end
 ```
 

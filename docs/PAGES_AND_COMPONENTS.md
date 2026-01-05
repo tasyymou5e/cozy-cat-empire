@@ -127,8 +127,12 @@ This document provides a comprehensive overview of all pages and components in t
 
 | Component | Description |
 |-----------|-------------|
-| `RelationshipPanel.tsx` | Cat relationships overview |
+| `RelationshipPanel.tsx` | Cat relationships overview with 5 tabs (Bonds, Calendar, Network, Groups, History) |
 | `RelationshipNetworkGraph.tsx` | Visual relationship graph |
+| `RelationshipDirectory.tsx` | Grid view of relationship pairs with filtering |
+| `CatSocialProfile.tsx` | Individual cat social profile view |
+| `FullScreenNetworkGraph.tsx` | Enhanced full-page network visualization |
+| `SocialCalendarPanel.tsx` | Relationship maintenance urgency view |
 | `RelationshipAnimations.tsx` | Relationship interaction animations |
 | `RelationshipParticles.tsx` | Particle effects for relationships |
 
@@ -288,7 +292,8 @@ Standard shadcn/ui components available:
 | Hook | Description |
 |------|-------------|
 | `useGameState` | Core game state management |
-| `useRelationships` | Cat relationship system |
+| `useRelationships` | Cat relationship system with decay and maintenance streak |
+| `useRelationshipReminders` | Toast notifications for neglected relationships |
 | `usePhotoGallery` | Photo gallery management |
 | `useCatGifts` | Cat gifting functionality |
 | `useTrading` | Trading system |
@@ -298,6 +303,14 @@ Standard shadcn/ui components available:
 | `useDailyLoginRewards` | Daily login rewards |
 | `useCloudSave` | Cloud save/load |
 | `useCloudGallery` | Cloud photo storage |
+| `useMilestones` | Milestone celebration tracking |
+| `useLegacy` | Cat retirement/Hall of Fame |
+| `useCollectionProgress` | Collection completion tracking |
+| `useSpecializations` | Cat specialization paths |
+| `useLuckyWheel` | Lucky wheel spin system |
+| `useCoopChallenges` | Cooperative friend challenges |
+| `useBattlePass` | Seasonal battle pass |
+| `useDailyObjectives` | Daily objectives tracking |
 
 ### Leaderboard Hooks
 
@@ -342,14 +355,22 @@ Standard shadcn/ui components available:
 |------|-------------|
 | `types/game.ts` | Core game types (Cat, GameState, etc.) |
 | `types/catAppearance.ts` | Cat appearance customization |
-| `types/relationships.ts` | Relationship types |
+| `types/relationships.ts` | Relationship types, decay info, warning helpers |
 | `types/challenges.ts` | Challenge definitions |
 | `types/dailyRewards.ts` | Daily reward tiers |
 | `types/dailyEvents.ts` | Daily event types |
+| `types/dailyObjectives.ts` | Daily objectives system |
 | `types/showEvents.ts` | Cat show events |
 | `types/costumes.ts` | Costume definitions |
 | `types/gallery.ts` | Photo gallery types |
 | `types/photoBooth.ts` | Photo booth options |
 | `types/grading.ts` | Cat grading system |
 | `types/changelog.ts` | Changelog entries |
+| `types/milestones.ts` | Milestone celebration system |
+| `types/legacy.ts` | Cat legacy/retirement system |
+| `types/collections.ts` | Collection progress tracking |
+| `types/specializations.ts` | Cat specialization paths |
+| `types/luckyWheel.ts` | Lucky wheel prizes |
+| `types/coopChallenges.ts` | Cooperative challenges |
+| `types/battlePass.ts` | Battle pass tiers and rewards |
 | `lib/portraitUtils.ts` | Portrait hash and outdated detection utilities |

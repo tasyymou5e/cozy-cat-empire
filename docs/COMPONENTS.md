@@ -1,7 +1,7 @@
 # Cat Farm - Component Architecture
 
 ## Overview
-Cat Farm uses a modular component architecture with 63+ game components, 32 custom hooks, 40+ UI primitives from shadcn/ui, and supporting components for error handling and navigation.
+Cat Farm uses a modular component architecture with 77+ game components, 42 custom hooks, 40+ UI primitives from shadcn/ui, and supporting components for error handling and navigation.
 
 ---
 
@@ -310,15 +310,58 @@ Group bonding activities.
 - Treat sharing
 
 ### RelationshipPanel.tsx
-View all cat relationships.
+View all cat relationships with maintenance features.
+
+**Props:**
+```typescript
+interface RelationshipPanelProps {
+  cats: Cat[];
+  relationships: CatRelationship[];
+  groups: CatGroup[];
+  events: RelationshipEvent[];
+  catCostumes?: Record<string, string>;
+  currentDay?: number;
+  maintenanceStreak?: number;
+  needsAttentionCount?: number;
+}
+```
+
+**Tabs (5):**
+- Bonds - Filtered relationship list with warning badges
+- Calendar - SocialCalendarPanel integration
+- Network - RelationshipNetworkGraph
+- Groups - Social group cards
+- History - Event timeline
 
 **Displays:**
-- Relationship matrix
-- Friend/enemy counts
-- Social groups/cliques
+- Maintenance streak badge (🔥)
+- Needs attention count badge
+- Friend/rival count badges
+- Decay warning badges on each relationship
+- Last interaction display
 
 ### RelationshipNetworkGraph.tsx
 Visual network graph of cat relationships.
+
+### SocialCalendarPanel.tsx
+Dedicated view for relationship maintenance prioritization.
+
+**Props:**
+```typescript
+interface SocialCalendarPanelProps {
+  cats: Cat[];
+  relationships: CatRelationship[];
+  currentDay: number;
+  catCostumes?: Record<string, string>;
+  onSocialize?: (cat1Id: string, cat2Id: string) => void;
+}
+```
+
+**Features:**
+- Groups relationships by urgency (Urgent/Warning/Attention/Healthy)
+- Shows decay status with color-coded badges
+- Visual cat pairs with avatars
+- Summary badges at top
 
 ---
 
