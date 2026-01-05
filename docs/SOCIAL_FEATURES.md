@@ -7,7 +7,7 @@
 
 ## Overview
 
-Cat Farm includes extensive social features enabling player-to-player interaction and cat-to-cat relationships. This document covers friends systems, trading, gifting, notifications, player profiles, and cat relationship mechanics.
+Cat Farm includes extensive social features enabling player-to-player interaction and cat-to-cat relationships. This document covers friends systems, trading, gifting, notifications, player profiles, content validation, and cat relationship mechanics.
 
 ---
 
@@ -16,17 +16,21 @@ Cat Farm includes extensive social features enabling player-to-player interactio
 1. [Player Social Systems](#player-social-systems)
    - [Friends System](#friends-system)
    - [Player Profiles](#player-profiles)
+   - [Username System](#username-system)
+   - [Content Validation](#content-validation)
    - [Notifications](#notifications)
 2. [Cat Gifting System](#cat-gifting-system)
 3. [Player Trading System](#player-trading-system)
-4. [Cat Relationship System](#cat-relationship-system)
+4. [@Mention System](#mention-system)
+5. [Cat Relationship System](#cat-relationship-system)
    - [Relationship Levels](#relationship-levels)
    - [Personality Compatibility](#personality-compatibility)
    - [Social Groups](#social-groups)
    - [Relationship Events](#relationship-events)
-5. [UI Components](#ui-components)
-6. [Database Tables](#database-tables)
-7. [Real-Time Updates](#real-time-updates)
+6. [UI Components](#ui-components)
+7. [Database Tables](#database-tables)
+8. [Real-Time Updates](#real-time-updates)
+9. [Activity Logging](#activity-logging)
 
 ---
 
@@ -45,6 +49,7 @@ interface Friend {
   id: string;                    // Friendship record ID
   friend_id: string;             // Friend's user ID
   display_name: string | null;   // Friend's display name
+  username: string | null;       // Friend's @username
   avatar_emoji: string;          // Friend's avatar emoji
   status: 'pending' | 'accepted' | 'blocked';
   created_at: string;
@@ -59,6 +64,7 @@ interface FriendRequest {
   id: string;                    // Request record ID
   user_id: string;               // Sender's user ID
   display_name: string | null;   // Sender's display name
+  username: string | null;       // Sender's @username
   avatar_emoji: string;          // Sender's avatar emoji
   created_at: string;
 }
@@ -84,8 +90,11 @@ interface FriendRequest {
 ```tsx
 const { friends, pendingRequests, sendFriendRequest, acceptRequest } = useFriends(userId);
 
-// Send a friend request by display name
+// Send a friend request by display name OR @username
 const result = await sendFriendRequest('PlayerName');
+// OR
+const result = await sendFriendRequest('cool_cat42');
+
 if (result.success) {
   toast.success('Friend request sent!');
 }
@@ -95,7 +104,7 @@ await acceptRequest(requestId);
 ```
 
 #### Key Features
-- Search friends by display name (case-insensitive)
+- Search friends by display name OR @username (case-insensitive)
 - Prevents self-friending
 - Prevents duplicate friend requests
 - Both parties can view and manage friendship
@@ -107,7 +116,7 @@ await acceptRequest(requestId);
 
 **Hook:** `src/hooks/usePlayerProfile.ts`
 
-Manages the current player's profile data including display name and avatar.
+Manages the current player's profile data including display name, avatar, and username.
 
 #### Interface
 
@@ -116,6 +125,7 @@ interface PlayerProfile {
   id: string;
   display_name: string | null;
   avatar_emoji: string;
+  username: string | null;
 }
 ```
 
@@ -126,7 +136,7 @@ interface PlayerProfile {
   profile: PlayerProfile | null;
   loading: boolean;
   fetchProfile: () => Promise<void>;
-  updateProfile: (displayName: string, avatarEmoji: string) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (displayName: string, avatarEmoji: string, username?: string) => Promise<{ success: boolean; error?: string }>;
 }
 ```
 
@@ -138,6 +148,92 @@ const AVATAR_OPTIONS = [
   '😺', '😸', '😻', '😽', '🐱', '🐈', '🐈‍⬛', '😼', 
   '🙀', '😿', '😾', '🦁', '🐯', '🐆', '🐅', '🎀'
 ];
+```
+
+---
+
+### Username System
+
+Unique @usernames for social mentions and friend discovery.
+
+#### Validation Rules
+
+| Rule | Value | Description |
+|------|-------|-------------|
+| Minimum length | 3 | Short usernames reserved |
+| Maximum length | 20 | Fits in UI elements |
+| Allowed characters | `a-z`, `0-9`, `_` | Simple, clean format |
+| Must start with | Letter | Prevents confusion |
+| Case sensitivity | Insensitive | `CoolCat` = `coolcat` |
+| Uniqueness | Required | Unique index enforced |
+
+#### Database Constraint
+
+```sql
+CREATE UNIQUE INDEX profiles_username_unique_idx 
+ON public.profiles (LOWER(username)) 
+WHERE username IS NOT NULL;
+```
+
+#### Usage
+- Friend search by @username
+- @mentions in messages
+- Unique player identification
+
+---
+
+### Content Validation
+
+**Edge Function:** `supabase/functions/validate-display-name/index.ts`
+
+Validates display names and usernames for inappropriate content during signup and profile editing.
+
+#### Profanity Filter Features
+
+| Feature | Description |
+|---------|-------------|
+| Word list | 100+ common profane words in multiple languages |
+| Leetspeak detection | Catches `@$$`, `sh1t`, `f*ck`, `pr0n`, etc. |
+| Character normalization | Strips spaces, underscores, repeated chars |
+| False positive whitelist | Prevents blocking words like "assessment" |
+| Multi-language | Basic English, Spanish, Portuguese support |
+
+#### Normalization Pipeline
+
+1. Convert to lowercase
+2. Replace leetspeak characters (`0`→`o`, `@`→`a`, `$`→`s`, etc.)
+3. Remove repeated characters (`fuuuck`→`fuck`)
+4. Strip spaces and underscores between letters
+
+#### Validation Response
+
+```typescript
+interface ValidationResult {
+  valid: boolean;
+  available: boolean;
+  error?: string;
+  profanityViolation?: boolean;
+  suggestions?: string[];
+}
+```
+
+#### Example Usage
+
+```typescript
+// Validate display name
+const response = await fetch('/functions/v1/validate-display-name', {
+  method: 'POST',
+  body: JSON.stringify({ displayName: 'CoolPlayer' })
+});
+
+// Validate username
+const response = await fetch('/functions/v1/validate-display-name', {
+  method: 'POST',
+  body: JSON.stringify({ 
+    username: 'cool_cat42',
+    action: 'validate_username'
+  })
+});
 ```
 
 ---
@@ -228,7 +324,7 @@ interface CatGift {
 1. **Sending a Gift:**
    - Select a cat from your collection
    - Choose a friend as recipient
-   - Optionally add a message
+   - Optionally add a message (supports @mentions)
    - Cat is removed from sender's collection when gift is sent
    - Logs activity to `player_activity_log`
 
@@ -312,7 +408,7 @@ interface TradeData {
    - Select friend as recipient
    - Choose cats to offer (multi-select)
    - Set money to offer and request
-   - Add optional message
+   - Add optional message (supports @mentions)
    - Offered cats and money are removed immediately from sender
 
 2. **Receiving a Trade:**
@@ -327,6 +423,97 @@ interface TradeData {
 
 4. **Trade Expiration:**
    - Trades expire 7 days after creation (database default)
+
+---
+
+## @Mention System
+
+**Status:** Planned Feature
+
+Allows users to tag friends in chat and trading messages using @username syntax.
+
+### MentionTextarea Component
+
+**Location:** `src/components/game/MentionTextarea.tsx` (planned)
+
+**Props:**
+```typescript
+interface MentionTextareaProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  rows?: number;
+  friends: Friend[];
+  disabled?: boolean;
+  className?: string;
+}
+```
+
+### Features
+| Feature | Description |
+|---------|-------------|
+| `@` trigger | Autocomplete activates when `@` is typed |
+| Fuzzy search | Matches username and display_name |
+| Keyboard nav | Arrow keys + Enter to select |
+| Visual mentions | `@username` highlighted in text |
+| Friends priority | Only shows friends (can expand later) |
+| Escape to close | ESC key closes dropdown |
+
+### Keyboard Navigation
+
+| Key | Action |
+|-----|--------|
+| `@` | Open autocomplete |
+| `↑/↓` | Navigate suggestions |
+| `Enter` | Select suggestion |
+| `Escape` | Close dropdown |
+| `Tab` | Select first/highlighted |
+
+### Integration Points
+- `TradingPanel.tsx` - Trade messages
+- `CatGiftingPanel.tsx` - Gift messages
+
+### MentionBadge Component
+
+**Location:** `src/components/game/MentionBadge.tsx` (planned)
+
+Renders @mentions as styled badges in displayed messages:
+
+```typescript
+interface MentionBadgeProps {
+  username: string;
+  displayName?: string;
+  avatarEmoji?: string;
+}
+```
+
+### Mention Resolution
+
+When displaying messages, resolve @mentions:
+
+```typescript
+// Parse message text and convert @username to MentionBadge
+function renderMessageWithMentions(message: string, friends: Friend[]): React.ReactNode {
+  return message.replace(
+    /@(\w+)/g,
+    (match, username) => {
+      const friend = friends.find(f => f.username === username);
+      return friend 
+        ? `<MentionBadge username="${username}" displayName="${friend.display_name}" />`
+        : match;
+    }
+  );
+}
+```
+
+### Security Considerations
+
+| Concern | Solution |
+|---------|----------|
+| XSS via mention | Only allow valid username chars `[a-z0-9_]` |
+| Spam mentions | Rate limit mentions per message (max 5) |
+| Privacy | Only show friends in autocomplete |
+| Username scraping | Search limited to authenticated users |
 
 ---
 
@@ -489,7 +676,16 @@ Tracks consecutive days where all friendships are maintained within the grace pe
 
 **Display:** 🔥 badge in RelationshipPanel header showing current streak
 
-**Persistence:** Saved to cloud in relationships JSONB structure
+**Persistence:** Saved to cloud in relationships JSONB structure:
+```typescript
+{
+  relationships: CatRelationship[],
+  events: RelationshipEvent[],
+  maintenanceStreak: number,
+  longestMaintenanceStreak: number,
+  lastMaintenanceDay: number | null
+}
+```
 
 ---
 
@@ -638,7 +834,7 @@ const PERSONALITY_COMPATIBILITY: Record<CatPersonality, Record<CatPersonality, n
   // Socialization
   socializeCats: (cat1: Cat, cat2: Cat, day: number) => { success: boolean; message: string };
   processDailyRelationships: (cats: Cat[], day: number) => void;
-  processRelationshipDecay: (cats: Cat[], day: number) => void;  // NEW: Handle decay
+  processRelationshipDecay: (cats: Cat[], day: number) => void;  // Handle decay
   
   // Analysis
   detectGroups: (cats: Cat[]) => void;
@@ -747,9 +943,11 @@ Relationships affect cat happiness:
 | Component | Location | Purpose |
 |-----------|----------|---------|
 | `FriendsPanel` | `src/components/game/FriendsPanel.tsx` | Friends list, requests, add friends |
-| `PlayerProfilePanel` | `src/components/game/PlayerProfilePanel.tsx` | Edit display name and avatar |
+| `PlayerProfilePanel` | `src/components/game/PlayerProfilePanel.tsx` | Edit display name, avatar, username |
 | `NotificationCenter` | `src/components/game/NotificationCenter.tsx` | Notification dropdown in header |
 | `NotificationSettings` | `src/components/game/NotificationSettings.tsx` | Push notification preferences |
+| `MentionTextarea` | `src/components/game/MentionTextarea.tsx` | @mention autocomplete textarea (planned) |
+| `MentionBadge` | `src/components/game/MentionBadge.tsx` | Styled @mention display (planned) |
 
 ### Trading & Gifting Components
 
@@ -766,6 +964,8 @@ Relationships affect cat happiness:
 |-----------|----------|---------|
 | `RelationshipPanel` | `src/components/game/RelationshipPanel.tsx` | View all relationships, groups, history |
 | `RelationshipNetworkGraph` | `src/components/game/RelationshipNetworkGraph.tsx` | Interactive force-directed graph |
+| `RelationshipDirectory` | `src/components/game/RelationshipDirectory.tsx` | Grid view of relationships |
+| `SocialCalendarPanel` | `src/components/game/SocialCalendarPanel.tsx` | Relationship decay management |
 | `SocializePanel` | `src/components/game/SocializePanel.tsx` | Manual cat socialization |
 | `MatchmakingPanel` | `src/components/game/MatchmakingPanel.tsx` | AI-suggested cat pairings |
 | `GroupActivitiesPanel` | `src/components/game/GroupActivitiesPanel.tsx` | Group bonding activities |
@@ -782,9 +982,9 @@ interface FriendsPanelProps {
 ```
 
 **Tabs:**
-1. **Friends** - List of accepted friends with stats
+1. **Friends** - List of accepted friends with stats and @usernames
 2. **Requests** - Pending incoming requests with accept/decline
-3. **Add** - Search and send friend requests
+3. **Add** - Search by display name or @username and send friend requests
 
 #### TradingPanel
 
@@ -796,11 +996,12 @@ interface TradingPanelProps {
   money: number;
   resources: Resources;
   onTradeComplete: (removeCats: string[], addCats: Cat[], moneyChange: number, resourceChanges: Partial<Resources>) => void;
+  catCostumes?: Record<string, string>;
 }
 ```
 
 **Tabs:**
-1. **Create** - Select friend, cats, money to offer/request
+1. **Create** - Select friend, cats, money to offer/request (supports @mentions in message)
 2. **Incoming** - Pending trades with accept/decline
 3. **Outgoing** - Sent trades with cancel option
 
@@ -813,11 +1014,12 @@ interface CatGiftingPanelProps {
   cats: Cat[];
   onGiftSent: (catId: string) => void;
   onGiftReceived: (cat: Cat) => void;
+  catCostumes?: Record<string, string>;
 }
 ```
 
 **Tabs:**
-1. **Send** - Select cat and recipient
+1. **Send** - Select cat and recipient (supports @mentions in message)
 2. **Received** - Pending gifts with accept/decline
 3. **Sent** - Gift history with statuses
 
@@ -878,6 +1080,11 @@ CREATE TABLE public.profiles (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Unique username index (case-insensitive)
+CREATE UNIQUE INDEX profiles_username_unique_idx 
+ON public.profiles (LOWER(username)) 
+WHERE username IS NOT NULL;
 ```
 
 ### player_friends
@@ -960,6 +1167,8 @@ SELECT id, display_name, avatar_emoji, created_at
 FROM public.profiles;
 ```
 
+**Note:** This view intentionally excludes `username` for privacy. Use the `profiles` table directly when username access is needed (with proper RLS).
+
 ---
 
 ## Real-Time Updates
@@ -1010,6 +1219,33 @@ Real-time events trigger toast notifications:
 
 Social actions are logged to `player_activity_log`:
 
+### Friend Activity Logging
+
+```typescript
+// Friend request sent
+logPlayerActivity(userId, {
+  activityType: 'friend_request_sent',
+  activityDescription: `Sent friend request to ${displayName}`,
+  metadata: { target_user_id: friendId, target_username: username }
+});
+
+// Friend request accepted
+logPlayerActivity(userId, {
+  activityType: 'friend_request_accepted',
+  activityDescription: `Accepted friend request from ${displayName}`,
+  metadata: { friend_user_id: senderId, friend_username: username }
+});
+
+// Friend removed
+logPlayerActivity(userId, {
+  activityType: 'friend_removed',
+  activityDescription: `Removed ${displayName} from friends`,
+  metadata: { removed_user_id: friendId, removed_username: username }
+});
+```
+
+### Gift Activity Logging
+
 ```typescript
 // Gift sent
 logPlayerActivity(userId, {
@@ -1024,7 +1260,11 @@ logPlayerActivity(userId, {
   activityDescription: `Received ${gift.cat_data.name} as a gift`,
   metadata: { cat_name: gift.cat_data.name, cat_breed: gift.cat_data.breed, sender_id: gift.sender_id }
 });
+```
 
+### Trade Activity Logging
+
+```typescript
 // Trade created
 logPlayerActivity(userId, {
   activityType: 'trade_created',
@@ -1047,53 +1287,67 @@ logPlayerActivity(userId, {
 ```
 src/
 ├── hooks/
-│   ├── useFriends.ts           # Friend management
-│   ├── usePlayerProfile.ts     # Profile management
+│   ├── useFriends.ts           # Friend management (with username support)
+│   ├── usePlayerProfile.ts     # Profile management (with username)
 │   ├── useNotifications.ts     # In-app notifications
 │   ├── useCatGifts.ts          # Cat gifting
 │   ├── useTrading.ts           # Player trading
 │   ├── useRelationships.ts     # Cat relationships
+│   ├── useRelationshipReminders.ts # Decay reminders
 │   └── usePlayerActivityLog.ts # Activity logging
 ├── components/game/
 │   ├── FriendsPanel.tsx        # Friends UI
 │   ├── PlayerProfilePanel.tsx  # Profile UI
 │   ├── NotificationCenter.tsx  # Notification dropdown
-│   ├── NotificationSettings.tsx# Push settings
-│   ├── CatGiftingPanel.tsx     # Gifting UI
-│   ├── GiftReceivedDialog.tsx  # Gift popup
+│   ├── NotificationSettings.tsx# Push notification preferences
 │   ├── TradingPanel.tsx        # Trading UI
-│   ├── TradeReceivedDialog.tsx # Trade popup
-│   ├── RelationshipPanel.tsx   # Relationships UI
-│   ├── RelationshipNetworkGraph.tsx # Network visualization
+│   ├── TradeReceivedDialog.tsx # Incoming trade popup
+│   ├── CatGiftingPanel.tsx     # Gifting UI
+│   ├── GiftReceivedDialog.tsx  # Incoming gift popup
+│   ├── RelationshipPanel.tsx   # Relationship overview
+│   ├── RelationshipNetworkGraph.tsx # Force-directed graph
+│   ├── RelationshipDirectory.tsx    # Grid view
+│   ├── SocialCalendarPanel.tsx      # Calendar view
 │   ├── SocializePanel.tsx      # Manual socialization
-│   ├── MatchmakingPanel.tsx    # AI suggestions
-│   └── GroupActivitiesPanel.tsx# Group activities
-└── types/
-    └── relationships.ts        # Relationship types
+│   ├── MatchmakingPanel.tsx    # AI pairings
+│   └── GroupActivitiesPanel.tsx# Group bonding
+├── types/
+│   └── relationships.ts        # Relationship types
+└── supabase/functions/
+    └── validate-display-name/  # Content validation edge function
 ```
 
 ---
 
 ## Integration with Game State
 
-Cat relationships are saved with cloud saves:
+Cat relationship data is saved and loaded with the cloud save system:
 
 ```typescript
 // In useCloudSave.ts
 const saveData = {
   game_state: gameState,
-  kittens_bred: kittenCount,
-  relationships: relationshipSystem.getRelationshipSaveData()
+  kittens_bred: kittensBred,
+  relationships: {
+    relationships: relationshipSystem.relationships,
+    events: relationshipSystem.events,
+    maintenanceStreak: relationshipSystem.maintenanceStreak,
+    longestMaintenanceStreak: relationshipSystem.longestMaintenanceStreak,
+    lastMaintenanceDay: relationshipSystem.lastMaintenanceDay
+  }
 };
 
 // Loading
 relationshipSystem.loadRelationships(savedData.relationships);
 ```
 
-The relationship save data structure:
-```typescript
-{
-  relationships: CatRelationship[],
-  events: RelationshipEvent[]
-}
-```
+---
+
+## Future Enhancements
+
+1. **@Mention Notifications** - Notify users when mentioned in messages
+2. **Global @Mention Search** - Search all users, not just friends
+3. **Cat Mentions** - @cat_name to mention specific cats
+4. **Mention History** - Recently mentioned users at top of autocomplete
+5. **Rich Previews** - Hover on mention to see profile card
+6. **Username Change Cooldown** - Limit username changes to prevent abuse
