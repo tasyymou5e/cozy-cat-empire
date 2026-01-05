@@ -211,6 +211,7 @@ export function CatFarm() {
   const [lastCloudSave, setLastCloudSave] = useState<string | null>(null);
   const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
+  const [quickSocializePair, setQuickSocializePair] = useState<{cat1Id: string, cat2Id: string} | null>(null);
 
   // Play sound when receiving gift
   useEffect(() => {
@@ -439,6 +440,17 @@ export function CatFarm() {
     addBattlePassXP('socialize');
     updateCoopProgress('combined_socializing', 1);
   }, [actions, trackObjective, addBattlePassXP, updateCoopProgress]);
+
+  // Quick Socialize - navigate to social tab with pre-selected cats
+  const handleQuickSocialize = useCallback((cat1Id: string, cat2Id: string) => {
+    setQuickSocializePair({ cat1Id, cat2Id });
+    setSideTab('social');
+    playSound?.('click');
+  }, [playSound]);
+
+  const clearQuickSocializePair = useCallback(() => {
+    setQuickSocializePair(null);
+  }, []);
 
   const wrappedCatShow = useCallback((tier?: string) => {
     actions.catShow(tier as any);
@@ -1035,7 +1047,8 @@ export function CatFarm() {
             </TabsContent>
             <TabsContent value="social" className="mt-0 space-y-4">
               <SocializePanel cats={state.cats} treats={state.resources.treats}
-                getRelationship={relationshipSystem.getRelationship} onSocialize={wrappedSocializeCats} catCostumes={state.catCostumes} />
+                getRelationship={relationshipSystem.getRelationship} onSocialize={wrappedSocializeCats} catCostumes={state.catCostumes}
+                initialCat1Id={quickSocializePair?.cat1Id} initialCat2Id={quickSocializePair?.cat2Id} onClearSelection={clearQuickSocializePair} />
               <MatchmakingPanel cats={state.cats} relationships={relationshipSystem.relationships}
                 onSocialize={wrappedSocializeCats} treats={state.resources.treats} catCostumes={state.catCostumes} />
               <GroupActivitiesPanel cats={state.cats} groups={relationshipSystem.groups}
@@ -1043,7 +1056,7 @@ export function CatFarm() {
               <RelationshipPanel cats={state.cats} relationships={relationshipSystem.relationships}
                 groups={relationshipSystem.groups} events={relationshipSystem.events} catCostumes={state.catCostumes}
                 currentDay={state.day} maintenanceStreak={relationshipSystem.maintenanceStreak} 
-                needsAttentionCount={relationshipNeedsAttention} />
+                needsAttentionCount={relationshipNeedsAttention} onQuickSocialize={handleQuickSocialize} />
             </TabsContent>
             <TabsContent value="leaderboard" className="mt-0">
               <LeaderboardPanel cats={state.cats} relationships={relationshipSystem.relationships} catCostumes={state.catCostumes} />

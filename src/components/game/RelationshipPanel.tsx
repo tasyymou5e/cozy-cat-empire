@@ -31,6 +31,8 @@ interface RelationshipPanelProps {
   currentDay?: number;
   maintenanceStreak?: number;
   needsAttentionCount?: number;
+  /** Callback to navigate to Socialize panel with pre-selected cats */
+  onQuickSocialize?: (cat1Id: string, cat2Id: string) => void;
 }
 
 export function RelationshipPanel({ 
@@ -42,6 +44,7 @@ export function RelationshipPanel({
   currentDay = 1,
   maintenanceStreak = 0,
   needsAttentionCount = 0,
+  onQuickSocialize,
 }: RelationshipPanelProps) {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<'all' | 'friends' | 'rivals' | 'needs-attention'>('all');
@@ -233,6 +236,7 @@ export function RelationshipPanel({
               relationships={relationships}
               currentDay={currentDay}
               catCostumes={catCostumes}
+              onQuickSocialize={onQuickSocialize}
             />
           </TabsContent>
 
