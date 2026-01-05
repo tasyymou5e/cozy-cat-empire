@@ -423,6 +423,115 @@
   @apply -translate-y-1 shadow-lg;
 }
 
+/* === COSTUME ANIMATION EFFECTS === */
+
+/* Golden glow for crowns and legendary items */
+@keyframes costume-glow-gold {
+  0%, 100% { filter: drop-shadow(0 0 3px #FFD700); }
+  50% { filter: drop-shadow(0 0 10px #FFD700) drop-shadow(0 0 18px #FFA500); }
+}
+
+.animate-costume-glow-gold {
+  animation: costume-glow-gold 2s ease-in-out infinite;
+}
+
+/* VIP rainbow glow */
+@keyframes costume-glow-vip {
+  0% { filter: drop-shadow(0 0 5px #C0C0C0) drop-shadow(0 0 10px #FFD700); }
+  33% { filter: drop-shadow(0 0 8px #FFD700) drop-shadow(0 0 15px #FF69B4); }
+  66% { filter: drop-shadow(0 0 8px #FF69B4) drop-shadow(0 0 15px #9B59B6); }
+  100% { filter: drop-shadow(0 0 5px #C0C0C0) drop-shadow(0 0 10px #FFD700); }
+}
+
+.animate-costume-glow-vip {
+  animation: costume-glow-vip 3s ease-in-out infinite;
+}
+
+/* Fiery glow for dragon */
+@keyframes costume-glow-fire {
+  0%, 100% { filter: drop-shadow(0 0 4px #FF4500); }
+  50% { filter: drop-shadow(0 0 12px #FF4500) drop-shadow(0 0 20px #FF6347); }
+}
+
+.animate-costume-glow-fire {
+  animation: costume-glow-fire 1.5s ease-in-out infinite;
+}
+
+/* Flowing cape animation */
+@keyframes costume-flow {
+  0%, 100% { transform: skewX(0deg) translateX(0); }
+  25% { transform: skewX(1.5deg) translateX(1px); }
+  75% { transform: skewX(-1.5deg) translateX(-1px); }
+}
+
+.animate-costume-flow {
+  animation: costume-flow 3s ease-in-out infinite;
+}
+
+/* Rainbow color shift for unicorn */
+@keyframes costume-rainbow {
+  0% { filter: drop-shadow(0 0 6px #FF6B6B); }
+  20% { filter: drop-shadow(0 0 6px #FFE66D); }
+  40% { filter: drop-shadow(0 0 6px #4ECDC4); }
+  60% { filter: drop-shadow(0 0 6px #45B7D1); }
+  80% { filter: drop-shadow(0 0 6px #9B59B6); }
+  100% { filter: drop-shadow(0 0 6px #FF6B6B); }
+}
+
+.animate-costume-rainbow {
+  animation: costume-rainbow 4s linear infinite;
+}
+
+/* Wing flutter animation */
+@keyframes costume-flutter {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(1.03); }
+}
+
+.animate-costume-flutter {
+  animation: costume-flutter 2s ease-in-out infinite;
+}
+
+/* Sparkle for wizard stars */
+@keyframes costume-sparkle {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; filter: drop-shadow(0 0 4px #FFD700); }
+}
+
+.animate-costume-sparkle {
+  animation: costume-sparkle 1.2s ease-in-out infinite;
+}
+
+/* Bronze shimmer */
+@keyframes costume-shimmer-bronze {
+  0%, 100% { filter: drop-shadow(0 0 2px #CD7F32); }
+  50% { filter: drop-shadow(0 0 6px #CD7F32) drop-shadow(0 0 10px #B8860B); }
+}
+
+.animate-costume-shimmer-bronze {
+  animation: costume-shimmer-bronze 2.5s ease-in-out infinite;
+}
+
+/* Silver shimmer */
+@keyframes costume-shimmer-silver {
+  0%, 100% { filter: drop-shadow(0 0 3px #C0C0C0); }
+  50% { filter: drop-shadow(0 0 8px #C0C0C0) drop-shadow(0 0 12px #E8E8E8); }
+}
+
+.animate-costume-shimmer-silver {
+  animation: costume-shimmer-silver 2s ease-in-out infinite;
+}
+
+/* Costume particle sparkle */
+@keyframes particle-sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.animate-particle-sparkle {
+  animation: particle-sparkle 1.5s ease-in-out infinite;
+}
+
 /* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {
   .animated-gradient-bg,
@@ -431,7 +540,17 @@
   .animate-rainbow-glow,
   .animate-golden-glow,
   .animate-purple-glow,
-  .animate-sparkle {
+  .animate-sparkle,
+  .animate-costume-glow-gold,
+  .animate-costume-glow-vip,
+  .animate-costume-glow-fire,
+  .animate-costume-flow,
+  .animate-costume-rainbow,
+  .animate-costume-flutter,
+  .animate-costume-sparkle,
+  .animate-costume-shimmer-bronze,
+  .animate-costume-shimmer-silver,
+  .animate-particle-sparkle {
     animation: none;
   }
   
@@ -447,5 +566,10 @@
   
   .animate-purple-glow {
     box-shadow: 0 0 15px 4px rgba(168,85,247,0.4);
+  }
+  
+  .animate-costume-glow-gold,
+  .animate-costume-glow-vip {
+    filter: drop-shadow(0 0 6px #FFD700);
   }
 }

@@ -11,6 +11,7 @@ import { Cat } from '@/types/game';
 import { generateCatAvatarUrl } from '@/lib/catVectorGenerator';
 import { generateFullAvatarHash, getCachedAvatar, setCachedAvatar } from '@/lib/avatarCache';
 import { CatAvatar } from './CatAvatar';
+import { AnimatedCostumeSVG } from './AnimatedCostumeSVG';
 import { cn } from '@/lib/utils';
 import { GRAPHICS_CONFIG } from '@/config/graphics';
 import { COSTUME_VECTORS } from '@/lib/costumeVectors';
@@ -139,31 +140,12 @@ export function PaperCatAvatar({
       {showCostume && costume && !isLoading && (
         <div className="absolute inset-0 pointer-events-none">
           {vectorCostume ? (
-            // Vector costume (SVG)
-            <svg
-              viewBox="-30 -50 60 60"
-              className="absolute w-full h-full"
-              style={{
-                transform: `scale(${vectorCostume.scales[size] || vectorCostume.scales.md || 1})`,
-              }}
-            >
-              <g transform={`translate(${vectorCostume.anchor.x}, ${vectorCostume.anchor.y})`}>
-                <path
-                  d={vectorCostume.path}
-                  fill={vectorCostume.fill}
-                  stroke={vectorCostume.stroke}
-                  strokeWidth={vectorCostume.strokeWidth}
-                />
-                {vectorCostume.decorations?.map((dec, i) => (
-                  <path
-                    key={i}
-                    d={dec.path}
-                    fill={dec.fill}
-                    stroke={dec.stroke}
-                  />
-                ))}
-              </g>
-            </svg>
+            // Animated vector costume (SVG)
+            <AnimatedCostumeSVG
+              costume={vectorCostume}
+              size={size}
+              isAnimated={animated && GRAPHICS_CONFIG.enableCostumeAnimations}
+            />
           ) : (
             // Emoji fallback
             <span

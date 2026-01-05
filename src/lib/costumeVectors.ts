@@ -31,6 +31,21 @@ export interface VectorCostume {
   anchor: { x: number; y: number };
   /** Scale factor per avatar size */
   scales: Record<string, number>;
+  /** Animation effects for this costume */
+  animation?: {
+    /** Type of animation */
+    type: 'sparkle' | 'glow' | 'flow' | 'pulse' | 'shimmer' | 'rainbow';
+    /** CSS class to apply */
+    className?: string;
+    /** Glow color for glow animations */
+    glowColor?: string;
+  };
+  /** Particle effects around the costume */
+  particles?: {
+    type: 'sparkles' | 'stars' | 'hearts' | 'magic';
+    count: number;
+    color?: string;
+  };
 }
 
 /**
@@ -49,6 +64,7 @@ const crownVector: VectorCostume = {
   ],
   anchor: { x: 0, y: -35 },
   scales: { xs: 0.4, sm: 0.5, md: 0.65, lg: 0.8, xl: 1.0 },
+  animation: { type: 'glow', className: 'glow-gold' },
 };
 
 /**
@@ -67,6 +83,8 @@ const wizardHatVector: VectorCostume = {
   ],
   anchor: { x: 0, y: -30 },
   scales: { xs: 0.35, sm: 0.45, md: 0.6, lg: 0.75, xl: 0.9 },
+  animation: { type: 'sparkle', className: 'sparkle' },
+  particles: { type: 'stars', count: 3, color: '#FFD700' },
 };
 
 /**
@@ -150,6 +168,7 @@ const superheroVector: VectorCostume = {
   ],
   anchor: { x: 0, y: 10 },
   scales: { xs: 0.3, sm: 0.4, md: 0.55, lg: 0.7, xl: 0.85 },
+  animation: { type: 'flow', className: 'flow' },
 };
 
 /**
@@ -263,6 +282,8 @@ const angelWingsVector: VectorCostume = {
   ],
   anchor: { x: 0, y: 5 },
   scales: { xs: 0.3, sm: 0.4, md: 0.55, lg: 0.7, xl: 0.85 },
+  animation: { type: 'flow', className: 'flutter' },
+  particles: { type: 'sparkles', count: 4, color: '#FFFFFF' },
 };
 
 /**
@@ -285,6 +306,7 @@ const dragonVector: VectorCostume = {
   ],
   anchor: { x: 0, y: -25 },
   scales: { xs: 0.35, sm: 0.45, md: 0.6, lg: 0.75, xl: 0.9 },
+  animation: { type: 'glow', className: 'glow-fire' },
 };
 
 /**
@@ -327,6 +349,8 @@ const unicornVector: VectorCostume = {
   ],
   anchor: { x: 0, y: -35 },
   scales: { xs: 0.35, sm: 0.45, md: 0.6, lg: 0.75, xl: 0.9 },
+  animation: { type: 'rainbow', className: 'rainbow' },
+  particles: { type: 'magic', count: 5, color: '#FF69B4' },
 };
 
 /**
@@ -345,6 +369,7 @@ const vipBronzeCollarVector: VectorCostume = {
   ],
   anchor: { x: 0, y: 15 },
   scales: { xs: 0.3, sm: 0.4, md: 0.55, lg: 0.7, xl: 0.85 },
+  animation: { type: 'shimmer', className: 'shimmer-bronze' },
 };
 
 /**
@@ -365,6 +390,8 @@ const vipSilverCapeVector: VectorCostume = {
   ],
   anchor: { x: 0, y: 12 },
   scales: { xs: 0.3, sm: 0.4, md: 0.55, lg: 0.7, xl: 0.85 },
+  animation: { type: 'flow', className: 'flow' },
+  particles: { type: 'sparkles', count: 3, color: '#C0C0C0' },
 };
 
 /**
@@ -388,6 +415,8 @@ const vipGoldCrownVector: VectorCostume = {
   ],
   anchor: { x: 0, y: -35 },
   scales: { xs: 0.4, sm: 0.5, md: 0.65, lg: 0.8, xl: 1.0 },
+  animation: { type: 'glow', className: 'glow-vip' },
+  particles: { type: 'sparkles', count: 5, color: '#FFD700' },
 };
 
 /**
