@@ -151,7 +151,7 @@ export function useGameState(
   }, []);
 
   // Check achievements
-  const checkAchievements = useCallback((newState: GameState, extraKittens = 0): GameState => {
+  const checkAchievements = useCallback((newState: GameState, extraKittens = 0, wasBestFriendBreed = false): GameState => {
     const stats = {
       cats: newState.cats.length,
       showWins: newState.totalShowWins,
@@ -159,6 +159,7 @@ export function useGameState(
       house: newState.houseSize === 'house' || newState.houseSize === 'mansion' || newState.houseSize === 'farm',
       farm: newState.houseSize === 'farm',
       acres: newState.acres,
+      bestFriendBreed: wasBestFriendBreed,
     };
 
     let newUnlocks: string[] = [];
@@ -178,6 +179,7 @@ export function useGameState(
         case 'homeowner': achieved = stats.house; break;
         case 'farmer': achieved = stats.farm; break;
         case 'land_baron': achieved = stats.acres >= a.target; break;
+        case 'perfect_match': achieved = stats.bestFriendBreed; break;
       }
 
       if (achieved) {
@@ -752,9 +754,19 @@ export function useGameState(
 
       relationshipSystem.addEvent(parent1, parent2, 'positive', `${parent1.name} and ${parent2.name} had a kitten together`, 15, prev.day);
 
+      // Check if this is a best friend breeding for Perfect Match achievement
+      const relationship = relationshipSystem.getRelationship(cat1Id, cat2Id);
+      const isBestFriendBreed = relationship && relationship.level === 'bestFriend';
+
       setKittensBreed(k => k + 1);
-      const bonusMsg = compatibility.bonus > 0 ? ` (${compatibility.message})` : '';
-      showMessage(`🎉 ${parent1.name} and ${parent2.name} had a kitten: ${name}!${bonusMsg}`, 'success');
+      
+      if (isBestFriendBreed) {
+        showMessage(`💕 Perfect Match! ${parent1.name} and ${parent2.name} (best friends) had a kitten: ${name}!`, 'success');
+        playSound?.('achievement');
+      } else {
+        const bonusMsg = compatibility.bonus > 0 ? ` (${compatibility.message})` : '';
+        showMessage(`🎉 ${parent1.name} and ${parent2.name} had a kitten: ${name}!${bonusMsg}`, 'success');
+      }
       playSound?.('meow');
       playSound?.('success');
       onChallengeProgress?.('breed_kittens', 1);
@@ -767,12 +779,13 @@ export function useGameState(
           kitten_name: name,
           kitten_breed: breed,
           parent1: parent1.name,
-          parent2: parent2.name
+          parent2: parent2.name,
+          wasBestFriendBreed: isBestFriendBreed
         }
       });
 
       const newState = { ...prev, cats: [...prev.cats, kitten], breedingCooldown: 5 };
-      return checkAchievements(newState, 1);
+      return checkAchievements(newState, 1, isBestFriendBreed);
     });
   }, [checkAchievements, relationshipSystem, playSound, onChallengeProgress, logActivity]);
 
