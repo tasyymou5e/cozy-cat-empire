@@ -634,6 +634,7 @@ export function useGameState(
         });
 
       relationshipSystem.processDailyRelationships(updatedCats, prev.day + 1);
+      relationshipSystem.processRelationshipDecay(updatedCats, prev.day + 1);
       relationshipSystem.detectGroups(updatedCats);
 
       const newMarket = prev.day % 3 === 0 ? generateMarketListings() : prev.marketListings;
