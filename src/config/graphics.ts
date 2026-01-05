@@ -96,6 +96,11 @@ export const GRAPHICS_CONFIG = {
    * Respect prefers-reduced-motion for accessibility
    */
   enableReducedMotion: false,
+
+  /**
+   * Enable animated effects on costumes (sparkles, glows, flowing capes, etc.)
+   */
+  enableCostumeAnimations: true,
 } as const;
 
 /**
