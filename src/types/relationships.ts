@@ -86,3 +86,54 @@ export function getRelationshipColor(level: RelationshipLevel): string {
     case 'bestFriend': return 'text-pink-500';
   }
 }
+
+// === Phase 1: Decay Warning Helpers ===
+
+export interface RelationshipDecayInfo {
+  daysSinceInteraction: number;
+  isInGracePeriod: boolean;
+  isDecaying: boolean;
+  decayLevel: 'none' | 'light' | 'moderate' | 'severe';
+  daysUntilDecay: number;
+}
+
+export function getDecayInfo(relationship: CatRelationship, currentDay: number): RelationshipDecayInfo {
+  const daysSinceInteraction = currentDay - relationship.lastInteraction;
+  const isInGracePeriod = daysSinceInteraction < RELATIONSHIP_DECAY.GRACE_PERIOD_DAYS;
+  const daysUntilDecay = Math.max(0, RELATIONSHIP_DECAY.GRACE_PERIOD_DAYS - daysSinceInteraction);
+  
+  let decayLevel: 'none' | 'light' | 'moderate' | 'severe' = 'none';
+  if (daysSinceInteraction >= RELATIONSHIP_DECAY.SEVERE_THRESHOLD_DAYS) {
+    decayLevel = 'severe';
+  } else if (daysSinceInteraction >= RELATIONSHIP_DECAY.MODERATE_THRESHOLD_DAYS) {
+    decayLevel = 'moderate';
+  } else if (daysSinceInteraction >= RELATIONSHIP_DECAY.GRACE_PERIOD_DAYS) {
+    decayLevel = 'light';
+  }
+  
+  return {
+    daysSinceInteraction,
+    isInGracePeriod,
+    isDecaying: decayLevel !== 'none',
+    decayLevel,
+    daysUntilDecay,
+  };
+}
+
+export function getDecayWarningColor(decayLevel: 'none' | 'light' | 'moderate' | 'severe'): string {
+  switch (decayLevel) {
+    case 'severe': return 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400';
+    case 'moderate': return 'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400';
+    case 'light': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-400';
+    default: return '';
+  }
+}
+
+export function getDecayWarningText(decayLevel: 'none' | 'light' | 'moderate' | 'severe'): string {
+  switch (decayLevel) {
+    case 'severe': return 'Losing 3 points/day';
+    case 'moderate': return 'Losing 2 points/day';
+    case 'light': return 'Losing 1 point/day';
+    default: return '';
+  }
+}

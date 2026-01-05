@@ -312,6 +312,28 @@ RELATIONSHIP_DECAY = {
 - "The bond between {cat1} and {cat2} is fading..."
 - "{cat1} and {cat2} are growing apart..."
 
+### Relationship Maintenance UI
+
+**Warning Badges:**
+- ⚠️ icon appears on relationships 2+ days inactive
+- Color-coded: yellow (3-4d), orange (5-6d), red (7+d)
+- Tooltip shows days since last interaction and decay rate
+
+**Maintenance Streak:**
+- Tracks consecutive days all friendships stay healthy (within grace period)
+- Displayed as 🔥 badge in RelationshipPanel header
+- Resets when any friendship enters decay
+
+**Social Calendar (`SocialCalendarPanel.tsx`):**
+- Groups relationships by urgency: Urgent (7+d), Warning (5-6d), Attention (3-4d), Healthy (0-2d)
+- Shows summary badges with counts per category
+- New tab in RelationshipPanel
+
+**Decay Prevention Reminder (`useRelationshipReminders.ts`):**
+- Toast notification on game load if relationships need attention
+- Shows "Cat Bonds Fading!" for actively decaying relationships
+- Shows "Time to Socialize!" for warning-level relationships
+
 ### Relationship Events
 **Positive Events:**
 - Playing together: +3-8 points

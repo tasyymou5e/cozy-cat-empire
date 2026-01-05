@@ -62,6 +62,7 @@ import { useFriends } from '@/hooks/useFriends';
 import { useCoopChallenges } from '@/hooks/useCoopChallenges';
 import { usePlayerActivityLog } from '@/hooks/usePlayerActivityLog';
 import { usePortraitOutdatedToast } from '@/hooks/usePortraitOutdatedToast';
+import { useRelationshipReminders } from '@/hooks/useRelationshipReminders';
 
 import { FriendsPanel } from './FriendsPanel';
 import { PlayerProfilePanel } from './PlayerProfilePanel';
@@ -152,6 +153,14 @@ export function CatFarm() {
   const { newGiftAlert, clearNewGift, acceptGift: acceptCatGift, declineGift: declineCatGift } = useCatGifts(user?.id);
   const { newTradeAlert, clearNewTrade, acceptTrade: acceptTradeOffer, declineTrade: declineTradeOffer } = useTrading(user?.id);
   const { showOutdatedToast } = usePortraitOutdatedToast();
+  
+  // Relationship reminders system
+  const { needsAttentionCount: relationshipNeedsAttention } = useRelationshipReminders(
+    relationshipSystem.relationships,
+    state.cats,
+    state.day,
+    true
+  );
   
   // Milestone and Daily Objectives systems
   const { pendingCelebration, playerTitle, checkMilestones, claimMilestone, dismissCelebration } = useMilestones();
@@ -1032,7 +1041,9 @@ export function CatFarm() {
               <GroupActivitiesPanel cats={state.cats} groups={relationshipSystem.groups}
                 treats={state.resources.treats} toys={state.resources.toys} onGroupActivity={actions.doGroupActivity} catCostumes={state.catCostumes} />
               <RelationshipPanel cats={state.cats} relationships={relationshipSystem.relationships}
-                groups={relationshipSystem.groups} events={relationshipSystem.events} catCostumes={state.catCostumes} />
+                groups={relationshipSystem.groups} events={relationshipSystem.events} catCostumes={state.catCostumes}
+                currentDay={state.day} maintenanceStreak={relationshipSystem.maintenanceStreak} 
+                needsAttentionCount={relationshipNeedsAttention} />
             </TabsContent>
             <TabsContent value="leaderboard" className="mt-0">
               <LeaderboardPanel cats={state.cats} relationships={relationshipSystem.relationships} catCostumes={state.catCostumes} />

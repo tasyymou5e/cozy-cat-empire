@@ -230,6 +230,7 @@ export default function CatRelationships() {
                 relationships={relationshipSystem.relationships}
                 catCostumes={state.catCostumes}
                 events={relationshipSystem.events}
+                currentDay={state.day}
                 onCatClick={(catId) => {
                   const cat = state.cats.find(c => c.id === catId);
                   if (cat) setDetailCat(cat);
@@ -291,6 +292,7 @@ export default function CatRelationships() {
                       allCats={state.cats}
                       relationships={relationshipSystem.relationships}
                       catCostumes={state.catCostumes}
+                      currentDay={state.day}
                       onCatClick={(catId) => {
                         const cat = state.cats.find(c => c.id === catId);
                         if (cat) setDetailCat(cat);
