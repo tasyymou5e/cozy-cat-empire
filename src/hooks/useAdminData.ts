@@ -278,3 +278,169 @@ export function useAdminActivityLogs(page = 1, pageSize = 20) {
     staleTime: 10000,
   });
 }
+
+// New: Player Activity Log hook for Phase 1.3
+interface UseAdminPlayerActivityParams {
+  activityType?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export function useAdminPlayerActivityLogs({ 
+  activityType, 
+  page = 1, 
+  pageSize = 20 
+}: UseAdminPlayerActivityParams = {}) {
+  return useQuery({
+    queryKey: ['admin-player-activity', activityType, page, pageSize],
+    queryFn: async () => {
+      let query = supabase
+        .from('player_activity_log')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range((page - 1) * pageSize, page * pageSize - 1);
+
+      if (activityType) {
+        query = query.eq('activity_type', activityType);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      // Get count with same filters
+      let countQuery = supabase
+        .from('player_activity_log')
+        .select('id', { count: 'exact', head: true });
+
+      if (activityType) {
+        countQuery = countQuery.eq('activity_type', activityType);
+      }
+
+      const { count } = await countQuery;
+
+      return {
+        logs: data || [],
+        totalCount: count || 0,
+        totalPages: Math.ceil((count || 0) / pageSize),
+      };
+    },
+    staleTime: 10000,
+  });
+}
+
+// New: Storage Bucket Stats hook for Phase 1.2
+export function useAdminStorageStats() {
+  return useQuery({
+    queryKey: ['admin-storage-stats'],
+    queryFn: async () => {
+      const buckets = ['photo-gallery', 'cat-portraits'] as const;
+      
+      const stats = await Promise.all(
+        buckets.map(async (bucket) => {
+          try {
+            const { data, error } = await supabase.storage
+              .from(bucket)
+              .list('', { limit: 1000 });
+            
+            if (error) throw error;
+            return { 
+              bucket, 
+              count: data?.length ?? 0, 
+              status: 'ok' as const 
+            };
+          } catch {
+            return { 
+              bucket, 
+              count: 0, 
+              status: 'error' as const 
+            };
+          }
+        })
+      );
+      
+      return stats;
+    },
+    staleTime: 60000, // Cache for 1 minute
+  });
+}
+
+// New: All Database Tables Stats for Phase 1.1
+export function useAdminAllTableStats() {
+  return useQuery({
+    queryKey: ['admin-all-table-stats'],
+    queryFn: async () => {
+      // Define all tables grouped by category
+      const tableGroups = {
+        core: ['profiles', 'game_saves', 'player_stats', 'user_roles'],
+        social: ['player_friends', 'cat_gifts', 'trade_offers', 'push_subscriptions'],
+        challenges: [
+          'weekly_challenges', 
+          'player_challenge_progress', 
+          'player_challenge_stats',
+          'coop_challenges', 
+          'coop_challenge_invites', 
+          'daily_objectives_progress'
+        ],
+        progression: [
+          'daily_login_rewards', 
+          'battle_pass_progress', 
+          'gallery_photos', 
+          'retired_cats'
+        ],
+        leaderboards: [
+          'leaderboard_rewards', 
+          'leaderboard_snapshots', 
+          'rank_history', 
+          'rewards_processing_log'
+        ],
+        logging: [
+          'error_logs', 
+          'admin_activity_log', 
+          'auth_attempts_log', 
+          'player_activity_log', 
+          'ai_usage_log'
+        ],
+        content: ['announcements'],
+      };
+
+      // Flatten for querying
+      const allTables = Object.entries(tableGroups).flatMap(([category, tables]) =>
+        tables.map((table) => ({ table, category }))
+      );
+
+      // Query all tables in parallel
+      const results = await Promise.all(
+        allTables.map(async ({ table, category }) => {
+          try {
+            const { count, error } = await supabase
+              .from(table as any)
+              .select('*', { count: 'exact', head: true });
+            
+            return { 
+              table, 
+              category, 
+              count: error ? null : (count ?? 0),
+              status: error ? 'error' : 'ok'
+            };
+          } catch {
+            return { table, category, count: null, status: 'error' };
+          }
+        })
+      );
+
+      // Group results by category for display
+      const grouped = Object.keys(tableGroups).reduce((acc, category) => {
+        acc[category] = results.filter((r) => r.category === category);
+        return acc;
+      }, {} as Record<string, typeof results>);
+
+      return {
+        grouped,
+        all: results,
+        totalTables: results.length,
+        totalRows: results.reduce((sum, r) => sum + (r.count ?? 0), 0),
+      };
+    },
+    staleTime: 30000,
+  });
+}
