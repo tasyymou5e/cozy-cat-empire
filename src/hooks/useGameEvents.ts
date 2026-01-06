@@ -15,14 +15,18 @@ import { Resources } from '@/types/game';
 interface UseGameEventsConfig {
   actions: {
     feedCats: () => void;
+    feedSingleCat: (catId: string) => void;
     doChore: (choreId: string, baseReward: number) => void;
     buyResource: (resource: keyof Resources, cost: number) => void;
     useMedicine: (catId: string) => void;
+    useToys: () => void;
     comfortCat: (catId: string) => void;
     sellCat: (catId: string) => void;
     trainCat: (catId: string, trickId: string) => void;
+    restCat: (catId: string) => void;
     breedCats: (cat1Id: string, cat2Id: string) => void;
     socializeCats: (cat1Id: string, cat2Id: string) => void;
+    doGroupActivity: (groupId: string, activityType: 'play' | 'treat' | 'nap') => void;
     catShow: (tier?: string) => void;
   };
   trackObjective: (type: ObjectiveType, amount?: number) => void;
@@ -59,6 +63,11 @@ export function useGameEvents(config: UseGameEventsConfig) {
       case 'FEED_CATS':
         actions.feedCats();
         break;
+      case 'FEED_SINGLE_CAT': {
+        const p = payload as GameActionPayloads['FEED_SINGLE_CAT'];
+        actions.feedSingleCat(p.catId);
+        break;
+      }
       case 'DO_CHORE': {
         const p = payload as GameActionPayloads['DO_CHORE'];
         actions.doChore(p.choreId, p.baseReward);
@@ -74,6 +83,9 @@ export function useGameEvents(config: UseGameEventsConfig) {
         actions.useMedicine(p.catId);
         break;
       }
+      case 'USE_TOYS':
+        actions.useToys();
+        break;
       case 'COMFORT_CAT': {
         const p = payload as GameActionPayloads['COMFORT_CAT'];
         actions.comfortCat(p.catId);
@@ -89,6 +101,11 @@ export function useGameEvents(config: UseGameEventsConfig) {
         actions.trainCat(p.catId, p.trickId);
         break;
       }
+      case 'REST_CAT': {
+        const p = payload as GameActionPayloads['REST_CAT'];
+        actions.restCat(p.catId);
+        break;
+      }
       case 'BREED_CATS': {
         const p = payload as GameActionPayloads['BREED_CATS'];
         actions.breedCats(p.cat1Id, p.cat2Id);
@@ -97,6 +114,11 @@ export function useGameEvents(config: UseGameEventsConfig) {
       case 'SOCIALIZE_CATS': {
         const p = payload as GameActionPayloads['SOCIALIZE_CATS'];
         actions.socializeCats(p.cat1Id, p.cat2Id);
+        break;
+      }
+      case 'GROUP_ACTIVITY': {
+        const p = payload as GameActionPayloads['GROUP_ACTIVITY'];
+        actions.doGroupActivity(p.groupId, p.activityType);
         break;
       }
       case 'CAT_SHOW': {
