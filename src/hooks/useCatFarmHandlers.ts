@@ -457,9 +457,8 @@ export function useCatFarmHandlers({ farmState }: HandlerDependencies) {
     handleClaimCoopReward,
     handleRetireCat,
     
-    // Game event dispatcher
+    // Game event dispatcher (centralized action handler)
     dispatchAction,
-    trackObjective,
     
     // Social handlers
     handleQuickSocialize,

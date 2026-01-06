@@ -120,7 +120,6 @@ export function CatFarm() {
     handleClaimCoopReward,
     handleRetireCat,
     dispatchAction,
-    trackObjective,
     handleQuickSocialize,
     clearQuickSocializePair,
     handleCloudSave,
@@ -149,7 +148,7 @@ export function CatFarm() {
         lastEventId={relationshipSystem.lastEventId}
         cats={state.cats}
         onCatClick={() => farmState.sound.playSound('click')}
-        onFeed={(catId) => { actions.feedSingleCat?.(catId); trackObjective('feed_cats'); }}
+        onFeed={(catId) => dispatchAction('FEED_SINGLE_CAT', { catId })}
         onComfort={(catId) => dispatchAction('COMFORT_CAT', { catId })}
         onHeal={(catId) => dispatchAction('USE_MEDICINE', { catId })}
         hasFood={state.resources.food > 0}
@@ -291,8 +290,10 @@ export function CatFarm() {
             </TabsContent>
             <TabsContent value="supplies" className="mt-0">
               <PanelErrorBoundary panelName="ResourcePanel">
-                <ResourcePanel resources={state.resources} money={state.money} catCount={state.cats.length}
-                  onBuyResource={(resource, cost) => dispatchAction('BUY_RESOURCE', { resource: resource as keyof Resources, cost })} onFeedCats={() => dispatchAction('FEED_CATS')} onUseToys={actions.useToys} />
+              <ResourcePanel resources={state.resources} money={state.money} catCount={state.cats.length}
+                  onBuyResource={(resource, cost) => dispatchAction('BUY_RESOURCE', { resource: resource as keyof Resources, cost })} 
+                  onFeedCats={() => dispatchAction('FEED_CATS')} 
+                  onUseToys={() => dispatchAction('USE_TOYS')} />
               </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="market" className="mt-0">
@@ -322,7 +323,10 @@ export function CatFarm() {
             <TabsContent value="training" className="mt-0">
               <PanelErrorBoundary panelName="TrainingPanel">
                 <TrainingPanel cats={state.cats} treats={state.resources.treats} toys={state.resources.toys}
-                  day={state.day} onTrain={(catId, trickId) => dispatchAction('TRAIN_CAT', { catId, trickId })} onRest={actions.restCat} catCostumes={state.catCostumes} />
+                  day={state.day} 
+                  onTrain={(catId, trickId) => dispatchAction('TRAIN_CAT', { catId, trickId })} 
+                  onRest={(catId) => dispatchAction('REST_CAT', { catId })} 
+                  catCostumes={state.catCostumes} />
               </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="bulk" className="mt-0">
@@ -350,7 +354,9 @@ export function CatFarm() {
                 <MatchmakingPanel cats={state.cats} relationships={relationshipSystem.relationships}
                   onSocialize={(cat1Id, cat2Id) => dispatchAction('SOCIALIZE_CATS', { cat1Id, cat2Id })} treats={state.resources.treats} catCostumes={state.catCostumes} />
                 <GroupActivitiesPanel cats={state.cats} groups={relationshipSystem.groups}
-                  treats={state.resources.treats} toys={state.resources.toys} onGroupActivity={actions.doGroupActivity} catCostumes={state.catCostumes} />
+                  treats={state.resources.treats} toys={state.resources.toys} 
+                  onGroupActivity={(groupId, activityType) => dispatchAction('GROUP_ACTIVITY', { groupId, activityType })} 
+                  catCostumes={state.catCostumes} />
                 <RelationshipPanel cats={state.cats} relationships={relationshipSystem.relationships}
                   groups={relationshipSystem.groups} events={relationshipSystem.events} catCostumes={state.catCostumes}
                   currentDay={state.day} maintenanceStreak={relationshipSystem.maintenanceStreak} 
@@ -377,7 +383,7 @@ export function CatFarm() {
                 <CatGiftingPanel 
                   userId={auth.user?.id} 
                   cats={state.cats}
-                  onGiftSent={(catId) => actions.sellCat(catId)}
+                  onGiftSent={(catId) => dispatchAction('SELL_CAT', { catId })}
                   onGiftReceived={(cat) => actions.addReceivedCat?.(cat)}
                   catCostumes={state.catCostumes}
                 />
@@ -391,7 +397,7 @@ export function CatFarm() {
                   money={state.money}
                   resources={state.resources}
                   onTradeComplete={(removeCats, addCats, moneyChange, resourceChanges) => {
-                    removeCats.forEach(catId => actions.sellCat(catId));
+                    removeCats.forEach(catId => dispatchAction('SELL_CAT', { catId }));
                     addCats.forEach(cat => actions.addReceivedCat?.(cat));
                   }}
                   catCostumes={state.catCostumes}

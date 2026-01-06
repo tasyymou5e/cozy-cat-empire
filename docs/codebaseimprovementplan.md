@@ -15,15 +15,15 @@ This plan addresses architectural issues identified in the audit, prioritized by
 - `src/hooks/useGameEvents.ts` - Central event dispatcher with dispatchAction function
 
 **Result:**
-- Replaced 10 wrapped action handlers in CatFarm.tsx
-- Reduced CatFarm.tsx by ~45 lines
-- Centralized side effects (objectives, battle pass XP, coop progress)
-- All actions now use `dispatchAction('ACTION_NAME', payload)` pattern
+- All action handlers now go through centralized `dispatchAction`
+- Automatic side effects (objectives, battle pass XP, coop progress)
+- All actions use `dispatchAction('ACTION_NAME', payload)` pattern
 
-**Actions Migrated:**
-- FEED_CATS, DO_CHORE, BUY_RESOURCE, USE_MEDICINE
-- COMFORT_CAT, SELL_CAT, TRAIN_CAT, BREED_CATS
-- SOCIALIZE_CATS, CAT_SHOW
+**Actions Migrated (14 total):**
+- FEED_CATS, FEED_SINGLE_CAT, DO_CHORE, BUY_RESOURCE
+- USE_MEDICINE, USE_TOYS, COMFORT_CAT, SELL_CAT
+- TRAIN_CAT, REST_CAT, BREED_CATS, SOCIALIZE_CATS
+- GROUP_ACTIVITY, CAT_SHOW
 
 
 ---
