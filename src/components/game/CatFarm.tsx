@@ -19,6 +19,7 @@ import { useLuckyWheel } from '@/hooks/useLuckyWheel';
 import { useLegacy } from '@/hooks/useLegacy';
 import { useSpecializations } from '@/hooks/useSpecializations';
 import { useBattlePass } from '@/hooks/useBattlePass';
+import { useBadgeCounts } from '@/hooks/useBadgeCounts';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -268,109 +269,25 @@ export function CatFarm() {
     });
   }, [sideTab]);
 
-  // Calculate badge counts for tabs
-  const tabBadges = useMemo(() => {
-    const badges: Record<string, number> = {};
-    
-    // Objectives - incomplete count
-    if (objectives && !allObjectivesCompleted) {
-      badges['objectives'] = objectives.filter(o => !o.completed).length;
-    }
-    
-    // Lucky Wheel - spins available
-    if (canSpin && spinsRemaining > 0) {
-      badges['wheel'] = spinsRemaining;
-    }
-    
-    // Hall of Fame / Legacy
-    if (retiredCats.length > 0) {
-      badges['legacy'] = retiredCats.length;
-    }
-    
-    // Specializations
-    if (specializations.length > 0) {
-      badges['specializations'] = specializations.length;
-    }
-    
-    // Battle Pass unclaimed rewards
-    const unclaimedBP = getUnclaimedRewards().length;
-    if (unclaimedBP > 0) {
-      badges['battlepass'] = unclaimedBP;
-    }
-    
-    // Coop challenges
-    const coopCount = getCoopActiveCount() + getCoopPendingCount();
-    if (coopCount > 0) {
-      badges['coop'] = coopCount;
-    }
-    
-    // Social - relationships needing attention
-    if (relationshipNeedsAttention > 0) {
-      badges['social'] = relationshipNeedsAttention;
-    }
-
-    // Bulk Actions - cats/relationships needing attention
-    const sickCats = state.cats.filter(c => c.health < 70).length;
-    const tiredCats = state.cats.filter(c => c.restLevel < 50).length;
-    const unhappyCats = state.cats.filter(c => c.happiness < 50).length;
-    const neglectedBonds = relationshipSystem.relationships.filter(rel => {
-      const daysSince = state.day - rel.lastInteraction;
-      const cat1Exists = state.cats.some(c => c.id === rel.catId1);
-      const cat2Exists = state.cats.some(c => c.id === rel.catId2);
-      return daysSince >= 2 && cat1Exists && cat2Exists;
-    }).length;
-    const bulkActionsNeeded = sickCats + tiredCats + unhappyCats + neglectedBonds;
-    if (bulkActionsNeeded > 0) {
-      badges['bulk'] = bulkActionsNeeded;
-    }
-
-    // Phase 6: Additional badges
-    // Gifts - pending gifts count (received gifts with pending status)
-    const pendingGiftsCount = receivedGifts?.filter(g => g.status === 'pending').length || 0;
-    if (pendingGiftsCount > 0) {
-      badges['gifts'] = pendingGiftsCount;
-    }
-
-    // Trading - pending trades count (incoming trades with pending status)
-    const pendingTradesCount = incomingTrades?.filter(t => t.status === 'pending').length || 0;
-    if (pendingTradesCount > 0) {
-      badges['trading'] = pendingTradesCount;
-    }
-
-    // Friends - friend requests count
-    if (pendingRequests && pendingRequests.length > 0) {
-      badges['friends'] = pendingRequests.length;
-    }
-
-    // Challenges - claimable rewards (completed but not claimed)
-    const claimableChallenges = challenges?.filter(c => c.progress?.completed && !c.progress?.reward_claimed).length || 0;
-    if (claimableChallenges > 0) {
-      badges['challenges'] = claimableChallenges;
-    }
-
-    // Breeding - cooldown ready indicator
-    if (state.breedingCooldown === 0 && state.cats.length >= 2) {
-      badges['breeding'] = 1;
-    }
-
-    return badges;
-  }, [objectives, allObjectivesCompleted, canSpin, spinsRemaining, retiredCats.length, specializations.length, getUnclaimedRewards, getCoopActiveCount, getCoopPendingCount, relationshipNeedsAttention, state.cats, state.day, relationshipSystem.relationships, receivedGifts, incomingTrades, pendingRequests, challenges, state.breedingCooldown]);
-
-  // Calculate category-level badges
-  const categoryBadges = useMemo(() => {
-    const farmBadges = (tabBadges['actions'] || 0) + (tabBadges['chores'] || 0) + (tabBadges['supplies'] || 0) + (tabBadges['market'] || 0) + (tabBadges['bulk'] || 0);
-    const catsBadges = (tabBadges['breeding'] || 0) + (tabBadges['training'] || 0) + (tabBadges['costumes'] || 0) + (tabBadges['specializations'] || 0);
-    const socialBadges = (tabBadges['social'] || 0) + (tabBadges['friends'] || 0) + (tabBadges['gifts'] || 0) + (tabBadges['trading'] || 0) + (tabBadges['coop'] || 0);
-    const progressBadges = (tabBadges['leaderboard'] || 0) + (tabBadges['challenges'] || 0) + (tabBadges['objectives'] || 0) + (tabBadges['battlepass'] || 0) + (tabBadges['collection'] || 0) + (tabBadges['legacy'] || 0) + (tabBadges['wheel'] || 0);
-    
-    return {
-      farm: farmBadges,
-      cats: catsBadges,
-      social: socialBadges,
-      progress: progressBadges,
-      settings: 0,
-    };
-  }, [tabBadges]);
+  // Calculate badge counts for tabs and categories
+  const { tabBadges, categoryBadges } = useBadgeCounts({
+    state,
+    objectives,
+    allObjectivesCompleted,
+    canSpin,
+    spinsRemaining,
+    retiredCatsCount: retiredCats.length,
+    specializationsCount: specializations.length,
+    getUnclaimedRewards,
+    getCoopActiveCount,
+    getCoopPendingCount,
+    relationshipNeedsAttention,
+    relationships: relationshipSystem.relationships,
+    receivedGifts,
+    incomingTrades,
+    pendingRequests,
+    challenges,
+  });
 
   // Play sound when receiving gift
   useEffect(() => {
