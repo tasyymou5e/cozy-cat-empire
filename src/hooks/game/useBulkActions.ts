@@ -1,22 +1,81 @@
 /**
- * useBulkActions - Bulk operations domain hook
+ * @fileoverview useBulkActions - Bulk operations domain hook
  * 
- * Handles mass operations on multiple cats at once.
+ * Handles mass operations on multiple cats at once:
+ * - Heal all sick cats
+ * - Rest all tired cats
+ * - Comfort all unhappy cats
+ * - Train all available cats
+ * - Sell multiple cats
+ * - Socialize neglected relationships
+ * 
+ * These actions save time when managing large cat populations.
+ * 
+ * @module hooks/game/useBulkActions
  */
 
 import { useCallback } from 'react';
 import { TRICKS } from '@/types/grading';
 import { GameHookDependencies } from './types';
 
+/**
+ * Actions available for bulk cat operations
+ */
 export interface BulkActionsType {
+  /**
+   * Heal all cats with health below 70.
+   * Costs 1 medicine per sick cat.
+   */
   healAllSickCats: () => void;
+  
+  /**
+   * Rest all cats with rest level below 50.
+   * Free action - no resources required.
+   */
   restAllTiredCats: () => void;
+  
+  /**
+   * Comfort all cats with happiness below 50.
+   * Free action - no resources required.
+   */
   comfortAllUnhappyCats: () => void;
+  
+  /**
+   * Train all cats that haven't trained today and have tricks to learn.
+   * Costs 1 treat + 1 toy per cat trained.
+   */
   trainAllAvailableCats: () => void;
+  
+  /**
+   * Sell multiple cats at once.
+   * @param catIds - Array of cat IDs to sell
+   */
   sellSelectedCats: (catIds: string[]) => void;
+  
+  /**
+   * Socialize all cat pairs that haven't interacted in 2+ days.
+   * Costs 2 treats per pair.
+   */
   socializeAllNeglected: () => void;
 }
 
+/**
+ * Hook for bulk cat management operations.
+ * 
+ * @param deps - Shared game hook dependencies
+ * @returns Object containing all bulk action functions
+ * 
+ * @example
+ * ```typescript
+ * const { healAllSickCats, sellSelectedCats } = useBulkActions(deps);
+ * 
+ * // Heal all sick cats at once
+ * healAllSickCats();
+ * 
+ * // Sell multiple cats
+ * sellSelectedCats(['cat-1', 'cat-2', 'cat-3']);
+ * ```
+ */
 export function useBulkActions(deps: GameHookDependencies): BulkActionsType {
   const { setState, showMessage, playSound, relationshipSystem, onChallengeProgress } = deps;
 
@@ -90,6 +149,7 @@ export function useBulkActions(deps: GameHookDependencies): BulkActionsType {
 
   const trainAllAvailableCats = useCallback(() => {
     setState(prev => {
+      // Find cats that can train today and have tricks to learn
       const trainableCats = prev.cats.filter(c => 
         c.lastTrainingDay < prev.day && 
         TRICKS.some(t => !c.tricksLearned.includes(t.id))

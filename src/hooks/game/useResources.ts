@@ -1,16 +1,87 @@
+/**
+ * @fileoverview useResources - Resource management domain hook
+ * 
+ * Handles all resource-related game actions including:
+ * - Buying resources from the shop
+ * - Feeding cats (single and all)
+ * - Using toys for playtime
+ * - Administering medicine
+ * - Adding rewards
+ * 
+ * Resources interact with cat relationships - feeding and playtime
+ * can trigger relationship events between cats.
+ * 
+ * @module hooks/game/useResources
+ */
+
 import { useCallback } from 'react';
 import { GameState, Resources } from '@/types/game';
 import { GameHookDependencies } from './types';
 
+/**
+ * Actions available for resource management
+ */
 export interface ResourceActions {
+  /**
+   * Purchase resources from the shop
+   * @param resource - Type of resource to buy (food, medicine, toys, treats)
+   * @param cost - Cost in coins (buys 5 units)
+   */
   buyResource: (resource: keyof Resources, cost: number) => void;
+  
+  /**
+   * Feed all cats using food resources.
+   * Costs 1 food per cat. May trigger relationship events.
+   */
   feedCats: () => void;
+  
+  /**
+   * Feed a single cat using 1 food.
+   * @param catId - ID of the cat to feed
+   */
   feedSingleCat: (catId: string) => void;
+  
+  /**
+   * Use toys for group playtime.
+   * Costs ceil(cats/3) toys. Improves happiness and may trigger bonding.
+   */
   useToys: () => void;
+  
+  /**
+   * Heal a cat with medicine (restores to 100 health).
+   * @param catId - ID of the cat to heal
+   */
   useMedicine: (catId: string) => void;
+  
+  /**
+   * Add reward coins and optional resources.
+   * Used by daily login rewards, challenges, etc.
+   * @param coins - Amount of coins to add
+   * @param resources - Optional resources to add
+   */
   addReward: (coins: number, resources?: Partial<Resources>) => void;
 }
 
+/**
+ * Hook for managing game resources.
+ * 
+ * @param deps - Shared game hook dependencies
+ * @returns Object containing all resource management actions
+ * 
+ * @example
+ * ```typescript
+ * const { feedCats, useMedicine, buyResource } = useResources(deps);
+ * 
+ * // Feed all cats
+ * feedCats();
+ * 
+ * // Heal a specific cat
+ * useMedicine('cat-123');
+ * 
+ * // Buy more food
+ * buyResource('food', 10);
+ * ```
+ */
 export function useResources(deps: GameHookDependencies): ResourceActions {
   const { setState, showMessage, playSound, relationshipSystem } = deps;
 
@@ -35,6 +106,7 @@ export function useResources(deps: GameHookDependencies): ResourceActions {
     setState(prev => {
       const needed = prev.cats.length;
       if (prev.resources.food < needed) {
+        // Food scarcity can cause rivalry events
         if (prev.cats.length >= 2) {
           const rivals = relationshipSystem.relationships.filter(r => r.score <= -20);
           if (rivals.length > 0 && Math.random() < 0.3) {
@@ -52,6 +124,7 @@ export function useResources(deps: GameHookDependencies): ResourceActions {
         return prev;
       }
       
+      // Random chance for positive relationship event during peaceful mealtime
       if (prev.cats.length >= 2 && Math.random() < 0.2) {
         const shuffled = [...prev.cats].sort(() => Math.random() - 0.5);
         relationshipSystem.addEvent(shuffled[0], shuffled[1], 'positive', `${shuffled[0].name} and ${shuffled[1].name} ate together peacefully`, 2, prev.day);
@@ -104,6 +177,7 @@ export function useResources(deps: GameHookDependencies): ResourceActions {
         return prev;
       }
       
+      // Playtime creates bonding opportunities
       if (prev.cats.length >= 2) {
         const shuffled = [...prev.cats].sort(() => Math.random() - 0.5);
         relationshipSystem.addEvent(shuffled[0], shuffled[1], 'positive', `${shuffled[0].name} and ${shuffled[1].name} played with toys together`, 5, prev.day);

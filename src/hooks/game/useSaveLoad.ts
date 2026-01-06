@@ -1,16 +1,85 @@
+/**
+ * @fileoverview useSaveLoad - Game persistence domain hook
+ * 
+ * Handles saving and loading game state to/from localStorage and cloud.
+ * Provides functionality for:
+ * - Local save/load operations
+ * - Cloud save integration
+ * - Game reset
+ * - Save existence checks
+ * 
+ * @module hooks/game/useSaveLoad
+ */
+
 import { useCallback } from 'react';
 import { GameState } from '@/types/game';
 import { GameHookDependencies, SAVE_KEY, createInitialState, RelationshipSaveData } from './types';
 
+/**
+ * Actions available for save/load operations
+ */
 export interface SaveLoadActions {
+  /**
+   * Save current game state to localStorage.
+   * Includes game state, kittens bred, and relationships.
+   */
   saveGame: () => void;
+  
+  /**
+   * Load game state from localStorage.
+   * Restores game state, kittens bred, and relationships.
+   */
   loadGame: () => void;
+  
+  /**
+   * Check if a saved game exists in localStorage
+   * @returns true if a save exists
+   */
   hasSaveGame: () => boolean;
+  
+  /**
+   * Get the day number from the saved game
+   * @returns Day number or null if no save exists
+   */
   getSaveDay: () => number | null;
+  
+  /**
+   * Reset game to initial state and clear localStorage save
+   */
   resetGame: () => void;
+  
+  /**
+   * Load game from cloud save data.
+   * Used by useCloudSave hook for cloud sync.
+   * @param gameState - Game state to restore
+   * @param kittens - Kittens bred count
+   * @param relationshipData - Optional relationship data
+   */
   loadFromData: (gameState: GameState, kittens: number, relationshipData: RelationshipSaveData | null) => void;
 }
 
+/**
+ * Hook for managing game saves.
+ * 
+ * @param deps - Shared game hook dependencies
+ * @returns Object containing all save/load actions
+ * 
+ * @example
+ * ```typescript
+ * const { saveGame, loadGame, hasSaveGame, resetGame } = useSaveLoad(deps);
+ * 
+ * // Check for existing save
+ * if (hasSaveGame()) {
+ *   loadGame(); // Resume previous game
+ * }
+ * 
+ * // Save progress
+ * saveGame();
+ * 
+ * // Start fresh
+ * resetGame();
+ * ```
+ */
 export function useSaveLoad(deps: GameHookDependencies): SaveLoadActions {
   const { 
     state, 

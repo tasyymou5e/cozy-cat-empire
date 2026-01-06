@@ -1,3 +1,20 @@
+/**
+ * @fileoverview useCatManagement - Cat lifecycle management domain hook
+ * 
+ * Handles all cat-related CRUD operations:
+ * - Adding new cats (by type or from market)
+ * - Selling cats
+ * - Renaming cats
+ * - Comforting unhappy cats
+ * - Receiving cats from gifts/trades
+ * - Managing cat appearance and portraits
+ * - Cat specializations and XP
+ * 
+ * This hook manages the core cat lifecycle from acquisition to sale.
+ * 
+ * @module hooks/game/useCatManagement
+ */
+
 import { useCallback } from 'react';
 import { Cat, CAT_NAMES, BREEDS, PERSONALITIES, CAT_COSTS } from '@/types/game';
 import { CatAppearance } from '@/types/catAppearance';
@@ -6,19 +23,100 @@ import { SpecializationType } from '@/types/specializations';
 import { getMasteryLevel } from '@/types/specializations';
 import { GameHookDependencies, generateId, createDefaultTrickProgress, getRandomBreed } from './types';
 
+/**
+ * Actions available for cat management
+ */
 export interface CatManagementActions {
+  /**
+   * Add a new cat to the player's collection
+   * @param type - 'stray' (free), 'adopted' ($50), or 'pure' ($200)
+   */
   addCat: (type: Cat['type']) => void;
+  
+  /**
+   * Buy a cat from the market
+   * @param listingId - ID of the market listing
+   */
   buyFromMarket: (listingId: string) => void;
+  
+  /**
+   * Sell a cat (removes from collection, adds money)
+   * @param catId - ID of the cat to sell
+   */
   sellCat: (catId: string) => void;
+  
+  /**
+   * Rename a cat (validates uniqueness and length)
+   * @param catId - ID of the cat to rename
+   * @param newName - New name (1-20 characters, unique)
+   * @returns true if successful
+   */
   renameCat: (catId: string, newName: string) => boolean;
+  
+  /**
+   * Comfort an unhappy cat (+30 happiness, +5 health)
+   * @param catId - ID of the cat to comfort
+   */
   comfortCat: (catId: string) => void;
+  
+  /**
+   * Add a cat received from gift or trade
+   * @param cat - Cat object (will get new ID to avoid conflicts)
+   */
   addReceivedCat: (cat: Cat) => void;
+  
+  /**
+   * Update a cat's visual appearance
+   * @param catId - ID of the cat
+   * @param appearance - New appearance configuration
+   */
   updateCatAppearance: (catId: string, appearance: CatAppearance) => void;
+  
+  /**
+   * Update a cat's AI-generated portrait
+   * @param catId - ID of the cat
+   * @param portraitUrl - URL of the portrait
+   * @param hash - Optional appearance hash for change detection
+   */
   updateCatPortrait: (catId: string, portraitUrl: string, hash?: string) => void;
+  
+  /**
+   * Set a specialization on a cat (one-time, permanent)
+   * @param catId - ID of the cat to specialize
+   * @param type - Specialization type
+   */
   setSpecialization: (catId: string, type: SpecializationType) => void;
+  
+  /**
+   * Add XP to a specialized cat
+   * @param catId - ID of the cat
+   * @param amount - XP to add
+   */
   addSpecializationXP: (catId: string, amount: number) => void;
 }
 
+/**
+ * Hook for managing cat lifecycle operations.
+ * 
+ * @param deps - Shared game hook dependencies
+ * @returns Object containing all cat management actions
+ * 
+ * @example
+ * ```typescript
+ * const { addCat, sellCat, renameCat } = useCatManagement(deps);
+ * 
+ * // Add a new stray cat (free)
+ * addCat('stray');
+ * 
+ * // Rename a cat
+ * if (renameCat('cat-123', 'Whiskers')) {
+ *   console.log('Renamed successfully!');
+ * }
+ * 
+ * // Sell a cat
+ * sellCat('cat-456');
+ * ```
+ */
 export function useCatManagement(deps: GameHookDependencies): CatManagementActions {
   const { 
     setState, 
@@ -134,7 +232,7 @@ export function useCatManagement(deps: GameHookDependencies): CatManagementActio
       const cat = prev.cats.find(c => c.id === catId);
       if (!cat) return prev;
       
-      // Check for duplicate names
+      // Check for duplicate names (case-insensitive)
       const isDuplicate = prev.cats.some(c => c.id !== catId && c.name.toLowerCase() === trimmedName.toLowerCase());
       if (isDuplicate) {
         showMessage('Another cat already has this name!', 'warning');
