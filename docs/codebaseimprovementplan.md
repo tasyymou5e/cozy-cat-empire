@@ -120,11 +120,11 @@ export * from './useRelationships';
 
 ---
 
-### Step 2.4: Extract Badge Calculation
+### Step 2.4: Extract Badge Calculation ✅ COMPLETED
 
-**Create:** `src/hooks/useBadgeCounts.ts`
+**Created:** `src/hooks/useBadgeCounts.ts`
 
-Move the 85-line `tabBadges` useMemo from CatFarm.tsx to a dedicated hook that receives the necessary dependencies.
+Extracted the 85-line `tabBadges` and `categoryBadges` useMemo calculations from CatFarm.tsx into a dedicated hook that receives the necessary dependencies.
 
 ---
 
