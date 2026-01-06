@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useGameState } from '@/hooks/game';
 import { useSound } from '@/contexts/SoundContext';
 import { useConfetti } from '@/hooks/useConfetti';
@@ -27,6 +27,7 @@ import { useCoopChallenges } from '@/hooks/useCoopChallenges';
 import { usePlayerActivityLog } from '@/hooks/usePlayerActivityLog';
 import { usePortraitOutdatedToast } from '@/hooks/usePortraitOutdatedToast';
 import { useRelationshipReminders } from '@/hooks/useRelationshipReminders';
+import { useGameMessages } from '@/hooks/useGameMessages';
 import { useTheme } from 'next-themes';
 import { useCatReactions } from '@/contexts/CatReactionContext';
 
@@ -153,6 +154,19 @@ export function CatFarm() {
     totalChallengesCompleted, currentStreak, longestStreak 
   } = useWeeklyChallenges(user?.id, playSound, fireChallengeBurst, { vibrateProgress, vibrateComplete, vibrateAchievement });
   const { state, message, messageType, kittensBreed, currentDailyEvent, relationshipSystem, actions } = useGameState(playSound, updateChallengeProgress, logActivity);
+  
+  // Unified message system - syncs with useGameState messages
+  const { currentMessage, showMessage: queueMessage, dismissMessage: dismissQueuedMessage, queueCount } = useGameMessages();
+  const lastMessageRef = useRef<string>('');
+  
+  // Sync game state messages to the queue system
+  useEffect(() => {
+    if (message && message !== lastMessageRef.current) {
+      lastMessageRef.current = message;
+      queueMessage(message, messageType);
+    }
+  }, [message, messageType, queueMessage]);
+  
   const isMobile = useIsMobile();
   const { cloudSave, cloudLoad, hasCloudSave } = useCloudSave(user?.id);
   const { syncPlayerStats } = useGlobalLeaderboard(user?.id);
@@ -760,7 +774,7 @@ export function CatFarm() {
       />
 
       <StatusBar state={state} onUpgrade={actions.upgradeHouse} onCatShow={(tier) => dispatchAction('CAT_SHOW', { tier })} relationships={relationshipSystem.relationships} />
-      <MessageBar message={message} type={messageType} onDismiss={actions.dismissMessage} />
+      <MessageBar gameMessage={currentMessage} onDismiss={dismissQueuedMessage} queueCount={queueCount} />
 
       <Tabs value={sideTab} onValueChange={setSideTab} className={`flex-1 flex flex-col ${isMobile ? 'pb-16' : ''}`}>
         {/* Category-based Tab navigation - sticky at top (hidden on mobile, shown on desktop) */}

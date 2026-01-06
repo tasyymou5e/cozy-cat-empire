@@ -94,11 +94,13 @@ This plan addresses architectural issues identified in the audit, prioritized by
 - `src/hooks/game/types.ts` - Added `MessageType` export
 - `src/components/game/MessageBar.tsx` - Now supports both legacy props and new `GameMessage` object, added queue indicator
 - `src/hooks/index.ts` - Exports `useGameMessages` and related types
+- `src/components/game/CatFarm.tsx` - Integrated useGameMessages, syncs with useGameState messages
 
-**Key Features:**
-- Priority-based message queue (critical messages interrupt)
-- Queue count badge on MessageBar
-- Maintains backward compatibility with existing code
+**Integration Details:**
+- Messages from useGameState are synced to useGameMessages queue
+- MessageBar now uses `gameMessage` prop with `queueCount` indicator
+- Auto-dismiss handled by useGameMessages hook
+- Priority-based queue (critical messages interrupt)
 - Social notifications (useNotifications) remain separate as designed
 
 ---
