@@ -104,15 +104,14 @@ export function generateRandomName(breed: CatBreed, personality: CatPersonality)
 
 ---
 
-### Step 2.2: Remove Deprecated CatCard Wrapper
+### Step 2.2: Remove Deprecated CatCard Wrapper ✅ COMPLETED
 
-**Delete:** `src/components/game/CatCard.tsx`
+**Deleted:** `src/components/game/CatCard.tsx`
 
-**Update imports in:**
-- `src/components/game/CatFarm.tsx`
-- Any other files importing CatCard
+**Updated imports in:**
+- `src/components/game/CatFarm.tsx` - Now uses `UnifiedCatCard` directly with `variant="card"`
 
-**Replace with:** Direct `UnifiedCatCard` usage
+**Replaced with:** Direct `UnifiedCatCard` usage with explicit props (`showStats`, `showRelationships`, `showActions`)
 
 ---
 

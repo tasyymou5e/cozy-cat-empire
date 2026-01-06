@@ -36,7 +36,7 @@ import { TrainingPanel } from './TrainingPanel';
 import { RelationshipAnimations } from './RelationshipAnimations';
 import { MoodAnimations } from './MoodAnimations';
 import { CatActivityPopups } from './CatActivityPopups';
-import { CatCard } from './CatCard';
+import { UnifiedCatCard } from './UnifiedCatCard';
 import { CatReactionProvider, useCatReactions } from '@/contexts/CatReactionContext';
 import { TutorialSystem } from './TutorialSystem';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
@@ -1121,9 +1121,10 @@ export function CatFarm() {
             ) : (
               <div className="cat-grid">
                 {state.cats.map(cat => (
-                        <CatCard 
+                        <UnifiedCatCard 
                           key={cat.id} 
-                          cat={cat} 
+                          cat={cat}
+                          variant="card"
                           equippedCostumeId={state.catCostumes[cat.id]}
                           onSell={wrappedSellCat} 
                           onHeal={wrappedUseMedicine}
@@ -1132,6 +1133,9 @@ export function CatFarm() {
                           relationships={relationshipSystem.relationships} 
                           allCats={state.cats}
                           reaction={getCatReaction(cat.id)}
+                          showStats
+                          showRelationships
+                          showActions
                         />
                 ))}
               </div>
