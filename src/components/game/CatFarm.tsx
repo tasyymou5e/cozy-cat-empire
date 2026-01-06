@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useGameState } from '@/hooks/game';
-import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useSound } from '@/contexts/SoundContext';
 import { useConfetti } from '@/hooks/useConfetti';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -142,7 +142,7 @@ export function CatFarm() {
     playSound, setEnabled, isEnabled, setVolume, getVolume,
     startMusic, stopMusic, isMusicPlaying, setMusicVolume,
     updateMusicForDay, getCurrentMood, triggerCelebration, triggerTense 
-  } = useSoundEffects();
+  } = useSound();
   const { fireConfetti, fireCelebration, fireStars, fireChallengeBurst } = useConfetti();
   const { vibrateProgress, vibrateComplete, vibrateAchievement } = useHaptics();
   const { user, signOut, loading: authLoading } = useAuth();
