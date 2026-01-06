@@ -8,8 +8,8 @@
 This document captures the comprehensive architecture audit findings for the Cat Farm codebase. The audit identified 20 issues across 4 priority levels, with significant progress made on critical and structural improvements.
 
 **Progress Overview:**
-- ✅ 18 issues resolved
-- ⏳ 2 issues remaining
+- ✅ 19 issues resolved
+- ⏳ 1 issue remaining
 - 🏆 7 architectural strengths identified
 
 ---
@@ -57,7 +57,7 @@ This document captures the comprehensive architecture audit findings for the Cat
 |---|-------|----------|--------|-------|
 | 10 | No barrel export for types | `src/types/` | ✅ COMPLETED | Created `src/types/index.ts` |
 | 11 | Panel data fetching inconsistent | `FriendsPanel`, `PlayerProfilePanel` | ⏳ REMAINING | Some receive props, some use hooks internally |
-| 12 | Missing domain hook tests | `src/hooks/game/__tests__/` | ⏳ REMAINING | Only `useCatManagement` and `useResources` tested |
+| 12 | Missing domain hook tests | `src/hooks/game/__tests__/` | ✅ COMPLETED | All 6 domain hooks now tested |
 | 13 | `CAT_NAMES` duplication | `game.ts` vs `catNames.ts` | ✅ COMPLETED | `catNames.ts` is now source of truth |
 | 14 | No standard error handling | Various hooks | ✅ COMPLETED | Created `src/lib/errorHandling.ts` with standardized utilities |
 | 15 | Admin hooks not grouped | `src/hooks/useAdmin*.ts` | ✅ COMPLETED | Moved to `src/hooks/admin/` |
@@ -133,8 +133,7 @@ src/
 ## Remaining Work
 
 ### Medium Priority
-1. **Add domain hook tests** - `useBreeding`, `useTraining`, `useBulkActions`, `useCatShows` (#12)
-2. **Standardize panel data fetching** - Document or enforce pattern (#11)
+1. **Standardize panel data fetching** - Document or enforce pattern (#11)
 
 ### Low Priority
 3. **Create action type enum** - Replace magic strings in `dispatchAction` (#17)
