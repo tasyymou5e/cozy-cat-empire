@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/game';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useConfetti } from '@/hooks/useConfetti';
@@ -21,6 +20,23 @@ import { useSpecializations } from '@/hooks/useSpecializations';
 import { useBattlePass } from '@/hooks/useBattlePass';
 import { useBadgeCounts } from '@/hooks/useBadgeCounts';
 import { useGameEvents } from '@/hooks/useGameEvents';
+import { useCatGifts } from '@/hooks/useCatGifts';
+import { useTrading } from '@/hooks/useTrading';
+import { useFriends } from '@/hooks/useFriends';
+import { useCoopChallenges } from '@/hooks/useCoopChallenges';
+import { usePlayerActivityLog } from '@/hooks/usePlayerActivityLog';
+import { usePortraitOutdatedToast } from '@/hooks/usePortraitOutdatedToast';
+import { useRelationshipReminders } from '@/hooks/useRelationshipReminders';
+import { useTheme } from 'next-themes';
+import { useCatReactions } from '@/contexts/CatReactionContext';
+
+// Decomposed components
+import { CatFarmHeader } from './CatFarmHeader';
+import { CatFarmDialogs } from './CatFarmDialogs';
+import { CatFarmOverlays } from './CatFarmOverlays';
+import { CatFarmSkeleton } from './CatFarmSkeleton';
+
+// Panel components
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -35,20 +51,8 @@ import { RelationshipPanel } from './RelationshipPanel';
 import { MatchmakingPanel } from './MatchmakingPanel';
 import { GroupActivitiesPanel } from './GroupActivitiesPanel';
 import { TrainingPanel } from './TrainingPanel';
-import { RelationshipAnimations } from './RelationshipAnimations';
-import { MoodAnimations } from './MoodAnimations';
-import { CatActivityPopups } from './CatActivityPopups';
 import { UnifiedCatCard } from './UnifiedCatCard';
-import { CatReactionProvider, useCatReactions } from '@/contexts/CatReactionContext';
-import { TutorialSystem } from './TutorialSystem';
-import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
-import { DailyEventToast } from './DailyEventToast';
 import { LeaderboardPanel } from './LeaderboardPanel';
-import { DailyRewardsPanel } from './DailyRewardsPanel';
-import { BulkActionsPanel } from './BulkActionsPanel';
-import { GiftReceivedDialog } from './GiftReceivedDialog';
-import { TradeReceivedDialog } from './TradeReceivedDialog';
-import { MilestonePopup } from './MilestonePopup';
 import { DailyObjectivesPanel } from './DailyObjectivesPanel';
 import { CollectionProgressPanel } from './CollectionProgressPanel';
 import { LuckyWheelPanel } from './LuckyWheelPanel';
@@ -56,45 +60,23 @@ import { HallOfFamePanel } from './HallOfFamePanel';
 import { SpecializationPanel } from './SpecializationPanel';
 import { BattlePassPanel } from './BattlePassPanel';
 import { CoopChallengesPanel } from './CoopChallengesPanel';
-import { BattlePassReward, XPSource } from '@/types/battlePass';
-import { CoopChallengeType } from '@/types/coopChallenges';
-import { useCatGifts } from '@/hooks/useCatGifts';
-import { useTrading } from '@/hooks/useTrading';
-import { useFriends } from '@/hooks/useFriends';
-import { useCoopChallenges } from '@/hooks/useCoopChallenges';
-import { usePlayerActivityLog } from '@/hooks/usePlayerActivityLog';
-import { usePortraitOutdatedToast } from '@/hooks/usePortraitOutdatedToast';
-import { useRelationshipReminders } from '@/hooks/useRelationshipReminders';
-
+import { BulkActionsPanel } from './BulkActionsPanel';
 import { FriendsPanel } from './FriendsPanel';
 import { PlayerProfilePanel } from './PlayerProfilePanel';
 import { CostumeShopPanel } from './CostumeShopPanel';
 import { CatGiftingPanel } from './CatGiftingPanel';
 import { TradingPanel } from './TradingPanel';
-import { NotificationCenter } from './NotificationCenter';
 import { WeeklyChallengesPanel } from './WeeklyChallengesPanel';
-import { WhatsNewPopup } from './WhatsNewPopup';
 import { GraphicsSettingsPanel } from './GraphicsSettingsPanel';
 import { CategoryTabBar, getCategoryForTab } from './CategoryTabBar';
-import { QuickAccessMenu } from './QuickAccessMenu';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MobileMenuSheet } from './MobileMenuSheet';
-import { CURRENT_VERSION } from '@/types/changelog';
-import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
-import { CatGridSkeleton } from './CatGridSkeleton';
-import { PanelSkeleton } from './PanelSkeleton';
-import { StatusBarSkeleton } from './StatusBarSkeleton';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
-import { Skeleton } from '@/components/ui/skeleton';
+import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { FloatingDecorations } from '@/components/ui/FloatingDecorations';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Slider } from '@/components/ui/slider';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, VolumeX, Music, Music2, Settings2, Keyboard, LogIn, LogOut, User, Cloud, Sun, Moon, CalendarDays, Sparkles, LayoutGrid, Globe, BarChart3, Users, Gift, ArrowLeftRight, Target, ListTodo, Dices, BookOpen, Scroll, Handshake } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { BattlePassReward } from '@/types/battlePass';
+import { CURRENT_VERSION } from '@/types/changelog';
 import { Resources } from '@/types/game';
 import { ObjectiveType } from '@/types/dailyObjectives';
 
@@ -105,6 +87,32 @@ const MOOD_LABELS = {
   night: '🌙 Night',
   celebration: '🎉 Celebration',
   tense: '⚡ Tense',
+};
+
+const TAB_LABELS: Record<string, { label: string; icon: string }> = {
+  actions: { label: 'Actions', icon: '🐾' },
+  chores: { label: 'Chores', icon: '🧹' },
+  supplies: { label: 'Supplies', icon: '📦' },
+  market: { label: 'Market', icon: '🛒' },
+  costumes: { label: 'Costumes', icon: '👗' },
+  breeding: { label: 'Breeding', icon: '💕' },
+  training: { label: 'Training', icon: '💪' },
+  bulk: { label: 'Bulk Actions', icon: '⚡' },
+  social: { label: 'Social', icon: '🤝' },
+  leaderboard: { label: 'Leaderboard', icon: '🏆' },
+  friends: { label: 'Friends', icon: '👥' },
+  profile: { label: 'Profile', icon: '👤' },
+  gifts: { label: 'Gifts', icon: '🎁' },
+  trading: { label: 'Trading', icon: '↔️' },
+  challenges: { label: 'Challenges', icon: '🎯' },
+  objectives: { label: 'Objectives', icon: '📋' },
+  wheel: { label: 'Lucky Wheel', icon: '🎲' },
+  collection: { label: 'Collection', icon: '📚' },
+  legacy: { label: 'Hall of Fame', icon: '👑' },
+  specializations: { label: 'Specializations', icon: '✨' },
+  battlepass: { label: 'Season Pass', icon: '📜' },
+  coop: { label: 'Co-op', icon: '🤝' },
+  more: { label: 'Settings', icon: '⚙️' },
 };
 
 /**
@@ -666,44 +674,7 @@ export function CatFarm() {
 
   // Show skeleton during initial cloud load
   if (authLoading || (user && !hasLoadedCloud)) {
-    return (
-      <AnimatedBackground variant="game" className="min-h-screen">
-        <FloatingDecorations variant="paws" density="low" className="opacity-20" />
-        <header className="game-header">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-8 w-40" />
-            <Skeleton className="h-4 w-48 hidden sm:block" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-10 w-10 rounded" />
-            <Skeleton className="h-10 w-10 rounded" />
-            <Skeleton className="h-10 w-20 rounded" />
-          </div>
-        </header>
-        <StatusBarSkeleton />
-        <div className="flex-1 flex flex-col">
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2">
-            <div className="flex w-full justify-center gap-1 p-1">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="h-10 w-10 rounded-md" />
-              ))}
-            </div>
-          </div>
-          <main className="game-main">
-            <section className="cat-grid-section">
-              <div className="flex items-center justify-between mb-4">
-                <Skeleton className="h-6 w-24" />
-                <Skeleton className="h-4 w-20" />
-              </div>
-              <CatGridSkeleton count={6} />
-            </section>
-            <aside className="action-sidebar">
-              <PanelSkeleton rows={4} />
-            </aside>
-          </main>
-        </div>
-      </AnimatedBackground>
-    );
+    return <CatFarmSkeleton />;
   }
 
   return (
