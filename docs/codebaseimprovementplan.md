@@ -263,11 +263,12 @@ Extracted the 85-line `tabBadges` and `categoryBadges` useMemo calculations from
 | `src/types/catNames.ts` | Name generation data | ✅ Created |
 | `src/lib/relationshipUtils.ts` | Relationship utilities | ✅ Created |
 | `src/components/game/PanelErrorBoundary.tsx` | Error boundary | ✅ Created |
-| `src/hooks/useGameMessages.ts` | Unified messages | ❌ Not started |
+| `src/hooks/useGameMessages.ts` | Unified messages | ✅ Created |
 | `src/hooks/index.ts` | Barrel export | ✅ Created |
-| `src/components/game/CatFarmHeader.tsx` | Header component | ❌ Not started |
-| `src/components/game/CatFarmContent.tsx` | Content component | ❌ Not started |
-| `src/components/game/CatFarmProviders.tsx` | Providers wrapper | ❌ Not started |
+| `src/components/game/CatFarmHeader.tsx` | Header component | ✅ Created |
+| `src/components/game/CatFarmDialogs.tsx` | Dialog component | ✅ Created |
+| `src/components/game/CatFarmOverlays.tsx` | Overlay component | ✅ Created |
+| `src/components/game/CatFarmSkeleton.tsx` | Skeleton component | ✅ Created |
 | `src/components/game/panels/*.tsx` | Category panels | ❌ Not started |
 
 ### Files Deleted
@@ -275,7 +276,7 @@ Extracted the 85-line `tabBadges` and `categoryBadges` useMemo calculations from
 | File | Status |
 |------|--------|
 | `src/components/game/CatCard.tsx` | ✅ Deleted (Phase 2.2) |
-| `src/hooks/useGameState.ts` | 🔜 Ready to delete (Phase 1.2) |
+| `src/hooks/useGameState.ts` | ✅ Deleted (Phase 1.2) |
 
 ### Files Modified
 
@@ -286,7 +287,7 @@ Extracted the 85-line `tabBadges` and `categoryBadges` useMemo calculations from
 | `src/pages/CatCustomization.tsx` | Import from @/hooks/game | ✅ Updated |
 | `src/pages/CatPhotoBooth.tsx` | Import from @/hooks/game | ✅ Updated |
 | `src/pages/CatRelationships.tsx` | Import from @/hooks/game | ✅ Updated |
-| `src/hooks/useSpecializations.ts` | Integrate with cloud save | ❌ Not started |
+| `src/hooks/useSpecializations.ts` | Integrate with cloud save | ✅ Updated |
 | `src/components/game/UnifiedCatCard.tsx` | Use relationship utilities | ✅ Updated |
 
 ---
