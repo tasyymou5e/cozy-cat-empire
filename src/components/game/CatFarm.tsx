@@ -30,13 +30,10 @@ import { useRelationshipReminders } from '@/hooks/useRelationshipReminders';
 import { useTheme } from 'next-themes';
 import { useCatReactions } from '@/contexts/CatReactionContext';
 
-// Decomposed components
-import { CatFarmHeader } from './CatFarmHeader';
-import { CatFarmDialogs } from './CatFarmDialogs';
-import { CatFarmOverlays } from './CatFarmOverlays';
+// Decomposed components (available for future use)
 import { CatFarmSkeleton } from './CatFarmSkeleton';
 
-// Panel components
+// Panel and UI components
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -72,9 +69,34 @@ import { CategoryTabBar, getCategoryForTab } from './CategoryTabBar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MobileMenuSheet } from './MobileMenuSheet';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
+
+// Overlay and Dialog components
+import { TutorialSystem } from './TutorialSystem';
+import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
+import { RelationshipAnimations } from './RelationshipAnimations';
+import { MoodAnimations } from './MoodAnimations';
+import { CatActivityPopups } from './CatActivityPopups';
+import { DailyEventToast } from './DailyEventToast';
+import { MilestonePopup } from './MilestonePopup';
+import { GiftReceivedDialog } from './GiftReceivedDialog';
+import { TradeReceivedDialog } from './TradeReceivedDialog';
+import { DailyRewardsPanel } from './DailyRewardsPanel';
+import { WhatsNewPopup } from './WhatsNewPopup';
+import { QuickAccessMenu } from './QuickAccessMenu';
+import { NotificationCenter } from './NotificationCenter';
+
+// UI primitives
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { FloatingDecorations } from '@/components/ui/FloatingDecorations';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
+import { Link } from 'react-router-dom';
+import { Volume2, VolumeX, Music, Music2, Settings2, Keyboard, LogIn, LogOut, User, Cloud, Sun, Moon, CalendarDays, Sparkles } from 'lucide-react';
+
+// Types
 import { BattlePassReward } from '@/types/battlePass';
 import { CURRENT_VERSION } from '@/types/changelog';
 import { Resources } from '@/types/game';

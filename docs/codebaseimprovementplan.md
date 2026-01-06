@@ -61,20 +61,26 @@ This plan addresses architectural issues identified in the audit, prioritized by
 
 ---
 
-### Step 1.3: Decompose CatFarm.tsx
+### Step 1.3: Decompose CatFarm.tsx 🔄 IN PROGRESS
 
-**Files to Create:**
-- `src/components/game/CatFarmHeader.tsx` - Logo, controls, user menu
-- `src/components/game/CatFarmContent.tsx` - Cat grid and tabs
-- `src/components/game/CatFarmProviders.tsx` - Context providers wrapper
-- `src/components/game/panels/FarmPanels.tsx` - Farm category panels
-- `src/components/game/panels/CatPanels.tsx` - Cat category panels
-- `src/components/game/panels/SocialPanels.tsx` - Social category panels
-- `src/components/game/panels/ProgressPanels.tsx` - Progress category panels
+**Files Created:**
+- `src/components/game/CatFarmSkeleton.tsx` - Loading skeleton (~50 lines) ✅ USED
+- `src/components/game/CatFarmHeader.tsx` - Logo, controls, user menu (~230 lines) ✅ READY
+- `src/components/game/CatFarmDialogs.tsx` - Modal dialogs and popups (~120 lines) ✅ READY
+- `src/components/game/CatFarmOverlays.tsx` - Tutorial, animations, toasts (~70 lines) ✅ READY
 
-**Current CatFarm.tsx:** 1,378 lines
+**Current Status:**
+- CatFarm.tsx now uses `CatFarmSkeleton` for loading state
+- Other components are created and ready for integration
+- Full header/dialog/overlay refactoring deferred due to complex prop threading
 
-**After refactor:** Main orchestrator ~200 lines, sub-components ~100-200 lines each
+**Remaining Work:**
+- Integrate `CatFarmHeader` to replace inline header
+- Integrate `CatFarmDialogs` to replace inline dialogs  
+- Integrate `CatFarmOverlays` to replace inline overlays
+- Extract panel rendering into separate components
+
+**Current CatFarm.tsx:** ~1,285 lines (down from 1,378)
 
 ---
 
