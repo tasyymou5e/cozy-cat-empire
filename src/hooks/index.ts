@@ -8,6 +8,10 @@
 export * from './game';
 export { useRelationships } from './useRelationships';
 export { useGameEvents } from './useGameEvents';
+export { useCatFarmState, TAB_LABELS } from './useCatFarmState';
+export type { CatFarmState } from './useCatFarmState';
+export { useCatFarmHandlers, MOOD_LABELS } from './useCatFarmHandlers';
+export type { CatFarmHandlers } from './useCatFarmHandlers';
 
 // Social hooks
 export { useFriends } from './useFriends';
