@@ -89,18 +89,10 @@ dispatchAction('TRAIN_CAT', { catId, trickId });
 
 ## Phase 2: Code Organization
 
-### Step 2.1: Centralize Name Generation Data
+### Step 2.1: Centralize Name Generation Data ✅ COMPLETED
 
-**Move from:** `src/components/game/UnifiedCatCard.tsx` (lines 68-92)
-**Move to:** `src/types/catNames.ts`
-
-```typescript
-// src/types/catNames.ts
-export const BREED_NAMES: Record<CatBreed, string[]> = {...};
-export const PERSONALITY_NAMES: Record<CatPersonality, string[]> = {...};
-export const UNIVERSAL_NAMES = [...];
-export function generateRandomName(breed: CatBreed, personality: CatPersonality): string;
-```
+**Created:** `src/types/catNames.ts`
+**Exported:** `BREED_NAMES`, `PERSONALITY_NAMES`, `UNIVERSAL_NAMES`, `generateRandomCatName()`, `getAllPossibleNames()`
 
 ---
 
