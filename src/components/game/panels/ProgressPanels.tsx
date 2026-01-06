@@ -51,7 +51,7 @@ interface ProgressPanelsProps {
   onClaimObjectivesBonus: () => void;
   getSetReward: (category: CollectionCategory) => { coins?: number; title?: string; bonus?: string };
   onSpin: () => void;
-  onClaimWheelPrize: (prize: WheelPrize) => void;
+  onClaimWheelPrize: (prize: WheelPrize | null) => void;
   onClearPrize: () => void;
 }
 

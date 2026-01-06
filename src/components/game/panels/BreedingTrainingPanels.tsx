@@ -25,7 +25,7 @@ interface BreedingTrainingPanelsProps {
   };
   onBuyCostume: (costumeId: string) => void;
   onEquipCostume: (catId: string, costumeId: string | null) => void;
-  onPortraitOutdated: () => void;
+  onPortraitOutdated?: (cat: Cat) => void;
 }
 
 /**
