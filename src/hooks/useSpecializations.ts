@@ -23,7 +23,7 @@ interface UseSpecializationsReturn {
     kittenHealthBonus: number;
     breedingSuccessBonus: number;
   };
-  getSpecializedCats: (cats: Cat[]) => Array<Cat & { specialization: CatSpecialization }>;
+  getSpecializedCats: (cats: Cat[]) => Array<Cat & { specializationData: CatSpecialization }>;
 }
 
 const STORAGE_KEY = 'cat-farm-specializations';
@@ -147,7 +147,7 @@ export function useSpecializations(): UseSpecializationsReturn {
       .filter(cat => specializations.some(s => s.catId === cat.id))
       .map(cat => ({
         ...cat,
-        specialization: specializations.find(s => s.catId === cat.id)!,
+        specializationData: specializations.find(s => s.catId === cat.id)!,
       }));
   }, [specializations]);
 
