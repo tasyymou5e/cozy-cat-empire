@@ -8,31 +8,23 @@ This plan addresses architectural issues identified in the audit, prioritized by
 
 ## Phase 1: Critical Architecture Refactoring
 
-### Step 1.1: Create Game Action Middleware/Event Bus
+### Step 1.1: Create Game Action Middleware/Event Bus ✅ COMPLETED
 
-**Files to Create:**
-- `src/hooks/useGameEvents.ts` - Central event dispatcher
+**Files Created:**
+- `src/types/gameEvents.ts` - GameAction types and ACTION_SIDE_EFFECTS mapping
+- `src/hooks/useGameEvents.ts` - Central event dispatcher with dispatchAction function
 
-**Purpose:** Replace the 15+ "wrapped" action handlers in CatFarm with a centralized system that automatically handles:
-- Progress tracking (objectives, battle pass, coop)
-- Sound effects
-- Activity logging
+**Result:**
+- Replaced 10 wrapped action handlers in CatFarm.tsx
+- Reduced CatFarm.tsx by ~45 lines
+- Centralized side effects (objectives, battle pass XP, coop progress)
+- All actions now use `dispatchAction('ACTION_NAME', payload)` pattern
 
-**Implementation:**
-```typescript
-// Instead of:
-const wrappedTrainCat = useCallback((catId, trickId) => {
-  actions.trainCat(catId, trickId);
-  trackObjective('train_cat');
-  addBattlePassXP('train_trick');
-  updateCoopProgress('combined_training', 1);
-}, [...]);
+**Actions Migrated:**
+- FEED_CATS, DO_CHORE, BUY_RESOURCE, USE_MEDICINE
+- COMFORT_CAT, SELL_CAT, TRAIN_CAT, BREED_CATS
+- SOCIALIZE_CATS, CAT_SHOW
 
-// Use event-driven:
-const { dispatchAction } = useGameEvents();
-dispatchAction('TRAIN_CAT', { catId, trickId });
-// Middleware handles all side effects
-```
 
 ---
 

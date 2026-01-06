@@ -20,6 +20,7 @@ import { useLegacy } from '@/hooks/useLegacy';
 import { useSpecializations } from '@/hooks/useSpecializations';
 import { useBattlePass } from '@/hooks/useBattlePass';
 import { useBadgeCounts } from '@/hooks/useBadgeCounts';
+import { useGameEvents } from '@/hooks/useGameEvents';
 import { StatusBar } from './StatusBar';
 import { MessageBar } from './MessageBar';
 import { ActionPanel } from './ActionPanel';
@@ -464,58 +465,13 @@ export function CatFarm() {
     fireConfetti();
   }, [actions, playSound, fireConfetti]);
 
-  // Wrapped action handlers that track objectives AND battle pass XP
-  const wrappedFeedCats = useCallback(() => {
-    actions.feedCats();
-    trackObjective('feed_cats');
-  }, [actions, trackObjective]);
-
-  const wrappedDoChore = useCallback((choreId: string, baseReward: number) => {
-    actions.doChore(choreId, baseReward);
-    trackObjective('complete_chore');
-    addBattlePassXP('complete_chore');
-  }, [actions, trackObjective, addBattlePassXP]);
-
-  const wrappedBuyResource = useCallback((resource: string, cost: number) => {
-    actions.buyResource(resource as keyof typeof state.resources, cost);
-    trackObjective('buy_resource');
-  }, [actions, trackObjective]);
-
-  const wrappedUseMedicine = useCallback((catId: string) => {
-    actions.useMedicine(catId);
-    trackObjective('heal_cat');
-  }, [actions, trackObjective]);
-
-  const wrappedComfortCat = useCallback((catId: string) => {
-    actions.comfortCat(catId);
-    trackObjective('comfort_cat');
-  }, [actions, trackObjective]);
-
-  const wrappedSellCat = useCallback((catId: string) => {
-    actions.sellCat(catId);
-    trackObjective('sell_cat');
-  }, [actions, trackObjective]);
-
-  const wrappedTrainCat = useCallback((catId: string, trickId: any) => {
-    actions.trainCat(catId, trickId);
-    trackObjective('train_cat');
-    addBattlePassXP('train_trick');
-    updateCoopProgress('combined_training', 1);
-  }, [actions, trackObjective, addBattlePassXP, updateCoopProgress]);
-
-  const wrappedBreedCats = useCallback((cat1Id: string, cat2Id: string) => {
-    actions.breedCats(cat1Id, cat2Id);
-    trackObjective('breed_kitten');
-    addBattlePassXP('breed_kitten');
-    updateCoopProgress('combined_breeding', 1);
-  }, [actions, trackObjective, addBattlePassXP, updateCoopProgress]);
-
-  const wrappedSocializeCats = useCallback((cat1Id: string, cat2Id: string) => {
-    actions.socializeCats(cat1Id, cat2Id);
-    trackObjective('socialize');
-    addBattlePassXP('socialize');
-    updateCoopProgress('combined_socializing', 1);
-  }, [actions, trackObjective, addBattlePassXP, updateCoopProgress]);
+  // Centralized game event dispatcher with automatic side effects
+  const { dispatchAction } = useGameEvents({
+    actions,
+    trackObjective,
+    addBattlePassXP,
+    updateCoopProgress,
+  });
 
   // Quick Socialize - navigate to social tab with pre-selected cats
   const handleQuickSocialize = useCallback((cat1Id: string, cat2Id: string) => {
@@ -528,12 +484,6 @@ export function CatFarm() {
     setQuickSocializePair(null);
   }, []);
 
-  const wrappedCatShow = useCallback((tier?: string) => {
-    actions.catShow(tier as any);
-    trackObjective('win_show');
-    addBattlePassXP('win_show');
-    updateCoopProgress('combined_show_wins', 1);
-  }, [actions, trackObjective, addBattlePassXP, updateCoopProgress]);
 
   // Handle coop challenge reward claiming
   const handleClaimCoopReward = useCallback(async (challengeId: string) => {
@@ -770,8 +720,8 @@ export function CatFarm() {
           if (cat) playSound('click');
         }}
         onFeed={(catId) => { actions.feedSingleCat?.(catId); trackObjective('feed_cats'); }}
-        onComfort={(catId) => wrappedComfortCat(catId)}
-        onHeal={(catId) => wrappedUseMedicine(catId)}
+        onComfort={(catId) => dispatchAction('COMFORT_CAT', { catId })}
+        onHeal={(catId) => dispatchAction('USE_MEDICINE', { catId })}
         hasFood={state.resources.food > 0}
         hasMedicine={state.resources.medicine > 0}
       />
@@ -995,7 +945,7 @@ export function CatFarm() {
         </div>
       </header>
 
-      <StatusBar state={state} onUpgrade={actions.upgradeHouse} onCatShow={wrappedCatShow} relationships={relationshipSystem.relationships} />
+      <StatusBar state={state} onUpgrade={actions.upgradeHouse} onCatShow={(tier) => dispatchAction('CAT_SHOW', { tier })} relationships={relationshipSystem.relationships} />
       <MessageBar message={message} type={messageType} onDismiss={actions.dismissMessage} />
 
       <Tabs value={sideTab} onValueChange={setSideTab} className={`flex-1 flex flex-col ${isMobile ? 'pb-16' : ''}`}>
@@ -1044,9 +994,9 @@ export function CatFarm() {
                           cat={cat}
                           variant="card"
                           equippedCostumeId={state.catCostumes[cat.id]}
-                          onSell={wrappedSellCat} 
-                          onHeal={wrappedUseMedicine}
-                          onComfort={wrappedComfortCat}
+                          onSell={(catId) => dispatchAction('SELL_CAT', { catId })} 
+                          onHeal={(catId) => dispatchAction('USE_MEDICINE', { catId })}
+                          onComfort={(catId) => dispatchAction('COMFORT_CAT', { catId })}
                           onRename={actions.renameCat}
                           relationships={relationshipSystem.relationships} 
                           allCats={state.cats}
@@ -1068,13 +1018,13 @@ export function CatFarm() {
             </TabsContent>
             <TabsContent value="chores" className="mt-0">
               <PanelErrorBoundary panelName="ChorePanel">
-                <ChorePanel onDoChore={wrappedDoChore} />
+                <ChorePanel onDoChore={(choreId, baseReward) => dispatchAction('DO_CHORE', { choreId, baseReward })} />
               </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="supplies" className="mt-0">
               <PanelErrorBoundary panelName="ResourcePanel">
                 <ResourcePanel resources={state.resources} money={state.money} catCount={state.cats.length}
-                  onBuyResource={wrappedBuyResource} onFeedCats={wrappedFeedCats} onUseToys={actions.useToys} />
+                  onBuyResource={(resource, cost) => dispatchAction('BUY_RESOURCE', { resource: resource as keyof Resources, cost })} onFeedCats={() => dispatchAction('FEED_CATS')} onUseToys={actions.useToys} />
               </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="market" className="mt-0">
@@ -1098,13 +1048,13 @@ export function CatFarm() {
             <TabsContent value="breeding" className="mt-0">
               <PanelErrorBoundary panelName="BreedingPanel">
                 <BreedingPanel cats={state.cats} cooldown={state.breedingCooldown} hasSpace={state.cats.length < state.space}
-                  onBreed={wrappedBreedCats} getBreedingCompatibility={relationshipSystem.getBreedingCompatibility} catCostumes={state.catCostumes} relationships={relationshipSystem.relationships} />
+                  onBreed={(cat1Id, cat2Id) => dispatchAction('BREED_CATS', { cat1Id, cat2Id })} getBreedingCompatibility={relationshipSystem.getBreedingCompatibility} catCostumes={state.catCostumes} relationships={relationshipSystem.relationships} />
               </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="training" className="mt-0">
               <PanelErrorBoundary panelName="TrainingPanel">
                 <TrainingPanel cats={state.cats} treats={state.resources.treats} toys={state.resources.toys}
-                  day={state.day} onTrain={wrappedTrainCat} onRest={actions.restCat} catCostumes={state.catCostumes} />
+                  day={state.day} onTrain={(catId, trickId) => dispatchAction('TRAIN_CAT', { catId, trickId })} onRest={actions.restCat} catCostumes={state.catCostumes} />
               </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="bulk" className="mt-0">
@@ -1127,10 +1077,10 @@ export function CatFarm() {
             <TabsContent value="social" className="mt-0 space-y-4">
               <PanelErrorBoundary panelName="SocialPanels">
                 <SocializePanel cats={state.cats} treats={state.resources.treats}
-                  getRelationship={relationshipSystem.getRelationship} onSocialize={wrappedSocializeCats} catCostumes={state.catCostumes}
+                  getRelationship={relationshipSystem.getRelationship} onSocialize={(cat1Id, cat2Id) => dispatchAction('SOCIALIZE_CATS', { cat1Id, cat2Id })} catCostumes={state.catCostumes}
                   initialCat1Id={quickSocializePair?.cat1Id} initialCat2Id={quickSocializePair?.cat2Id} onClearSelection={clearQuickSocializePair} />
                 <MatchmakingPanel cats={state.cats} relationships={relationshipSystem.relationships}
-                  onSocialize={wrappedSocializeCats} treats={state.resources.treats} catCostumes={state.catCostumes} />
+                  onSocialize={(cat1Id, cat2Id) => dispatchAction('SOCIALIZE_CATS', { cat1Id, cat2Id })} treats={state.resources.treats} catCostumes={state.catCostumes} />
                 <GroupActivitiesPanel cats={state.cats} groups={relationshipSystem.groups}
                   treats={state.resources.treats} toys={state.resources.toys} onGroupActivity={actions.doGroupActivity} catCostumes={state.catCostumes} />
                 <RelationshipPanel cats={state.cats} relationships={relationshipSystem.relationships}
