@@ -5,6 +5,7 @@ import { PanelSkeleton } from '../PanelSkeleton';
 import { Cat, Resources } from '@/types/game';
 import type { Friend } from '@/hooks/useFriends';
 import type { ActiveCoopChallenge, CoopChallengeInvite, CoopChallenge } from '@/types/coopChallenges';
+import { GameAction, GameActions, GameActionPayloads } from '@/types/gameEvents';
 
 // Lazy load panels for performance
 const FriendsPanel = lazy(() => import('../FriendsPanel').then(m => ({ default: m.FriendsPanel })));
@@ -24,7 +25,7 @@ interface SocialFeaturesPanelsProps {
   pendingInvites: CoopChallengeInvite[];
   sentInvites: CoopChallengeInvite[];
   coopTemplates: CoopChallenge[];
-  dispatchAction: (type: string, payload?: Record<string, unknown>) => void;
+  dispatchAction: <A extends GameAction>(type: A, payload?: GameActionPayloads[A]) => void;
   onGiftReceived: (cat: Cat) => void;
   onSendCoopInvite: (friendId: string, challengeId: string) => boolean | Promise<boolean>;
   onAcceptCoopInvite: (inviteId: string) => boolean | Promise<boolean>;
@@ -78,7 +79,7 @@ export function SocialFeaturesPanels({
             <CatGiftingPanel 
               userId={userId} 
               cats={cats}
-              onGiftSent={(catId) => dispatchAction('SELL_CAT', { catId })}
+              onGiftSent={(catId) => dispatchAction(GameActions.SELL_CAT, { catId })}
               onGiftReceived={onGiftReceived}
               catCostumes={catCostumes}
             />
@@ -94,7 +95,7 @@ export function SocialFeaturesPanels({
               money={money}
               resources={resources}
               onTradeComplete={(removeCats, addCats) => {
-                removeCats.forEach(catId => dispatchAction('SELL_CAT', { catId }));
+                removeCats.forEach(catId => dispatchAction(GameActions.SELL_CAT, { catId }));
                 addCats.forEach(cat => onGiftReceived(cat));
               }}
               catCostumes={catCostumes}

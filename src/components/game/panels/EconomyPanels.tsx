@@ -3,6 +3,7 @@ import { TabsContent } from '@/components/ui/tabs';
 import { PanelErrorBoundary } from '../PanelErrorBoundary';
 import { PanelSkeleton } from '../PanelSkeleton';
 import { Resources, MarketListing } from '@/types/game';
+import { GameAction, GameActions, GameActionPayloads } from '@/types/gameEvents';
 
 // Lazy load panels for performance
 const ChorePanel = lazy(() => import('../ChorePanel').then(m => ({ default: m.ChorePanel })));
@@ -15,7 +16,7 @@ interface EconomyPanelsProps {
   catCount: number;
   marketListings: MarketListing[];
   hasSpace: boolean;
-  dispatchAction: (type: string, payload?: Record<string, unknown>) => void;
+  dispatchAction: <A extends GameAction>(type: A, payload?: GameActionPayloads[A]) => void;
   onBuyFromMarket: (listingId: string) => void;
 }
 
@@ -37,7 +38,7 @@ export function EconomyPanels({
       <TabsContent value="chores" className="mt-0">
         <PanelErrorBoundary panelName="ChorePanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
-            <ChorePanel onDoChore={(choreId, baseReward) => dispatchAction('DO_CHORE', { choreId, baseReward })} />
+            <ChorePanel onDoChore={(choreId, baseReward) => dispatchAction(GameActions.DO_CHORE, { choreId, baseReward })} />
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
@@ -48,9 +49,9 @@ export function EconomyPanels({
               resources={resources} 
               money={money} 
               catCount={catCount}
-              onBuyResource={(resource, cost) => dispatchAction('BUY_RESOURCE', { resource: resource as keyof Resources, cost })} 
-              onFeedCats={() => dispatchAction('FEED_CATS')} 
-              onUseToys={() => dispatchAction('USE_TOYS')} 
+              onBuyResource={(resource, cost) => dispatchAction(GameActions.BUY_RESOURCE, { resource: resource as keyof Resources, cost })} 
+              onFeedCats={() => dispatchAction(GameActions.FEED_CATS, undefined)} 
+              onUseToys={() => dispatchAction(GameActions.USE_TOYS, undefined)} 
             />
           </Suspense>
         </PanelErrorBoundary>

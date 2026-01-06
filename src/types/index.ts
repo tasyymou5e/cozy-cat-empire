@@ -122,7 +122,8 @@ export { SPECIALIZATIONS } from './specializations';
 export type { LegacyTrait } from './legacy';
 
 // Game events types
-export type { GameAction } from './gameEvents';
+export type { GameAction, GameActionPayloads, ActionSideEffects } from './gameEvents';
+export { GameActions, ACTION_SIDE_EFFECTS } from './gameEvents';
 
 // Changelog types
 export type { ChangelogEntry } from './changelog';
