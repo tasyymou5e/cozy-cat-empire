@@ -1,59 +1,67 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { GameMessage } from '@/hooks/useGameMessages';
 
 /**
  * Props for the MessageBar component
+ * Supports both legacy props and new GameMessage object
  */
 interface MessageBarProps {
-  /** The message text to display */
-  message: string;
-  /** Message type affecting styling */
-  type: 'info' | 'success' | 'warning' | 'error';
+  /** The message text to display (legacy) */
+  message?: string;
+  /** Message type affecting styling (legacy) */
+  type?: 'info' | 'success' | 'warning' | 'error';
+  /** New unified message object */
+  gameMessage?: GameMessage | null;
   /** Optional callback to dismiss the message */
   onDismiss?: () => void;
+  /** Number of messages in queue (optional) */
+  queueCount?: number;
 }
 
 /**
  * MessageBar - Displays game notifications and alerts
  * 
- * Shows messages with different styling based on type. Success messages
- * auto-dismiss after 5 seconds. Can be manually dismissed via X button.
+ * Supports both legacy props (message + type) and new GameMessage object.
+ * When using GameMessage, auto-dismiss is handled by useGameMessages hook.
  * 
  * @example
  * ```tsx
- * <MessageBar 
- *   message="Cat fed successfully!"
- *   type="success"
- *   onDismiss={() => setMessage('')}
- * />
+ * // Legacy usage
+ * <MessageBar message="Cat fed!" type="success" onDismiss={...} />
+ * 
+ * // New unified usage
+ * <MessageBar gameMessage={currentMessage} onDismiss={...} queueCount={2} />
  * ```
  */
 export const MessageBar = React.forwardRef<HTMLDivElement, MessageBarProps>(
-  function MessageBar({ message, type, onDismiss }, ref) {
-    useEffect(() => {
-      if (type === 'success' && onDismiss && message.trim()) {
-        const timer = setTimeout(() => {
-          onDismiss();
-        }, 5000);
-        
-        return () => clearTimeout(timer);
-      }
-    }, [message, type, onDismiss]);
+  function MessageBar({ message, type, gameMessage, onDismiss, queueCount = 0 }, ref) {
+    // Support both legacy and new props
+    const displayText = gameMessage?.text ?? message ?? '';
+    const displayType = gameMessage?.type ?? type ?? 'info';
 
-    if (!message.trim()) return null;
+    if (!displayText.trim()) return null;
 
     return (
       <div
         ref={ref}
         className={cn(
-          'message-bar relative',
-          type === 'success' && 'message-success',
-          type === 'warning' && 'message-warning',
-          type === 'error' && 'message-error',
+          'message-bar relative transition-all duration-300',
+          displayType === 'success' && 'message-success',
+          displayType === 'warning' && 'message-warning',
+          displayType === 'error' && 'message-error',
         )}
       >
-        <p className="text-center font-medium pr-8">{message}</p>
+        <p className="text-center font-medium pr-8">{displayText}</p>
+        
+        {/* Queue indicator */}
+        {queueCount > 0 && (
+          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs bg-background/60 px-1.5 py-0.5 rounded-full">
+            +{queueCount}
+          </span>
+        )}
+        
         {onDismiss && (
           <button
             onClick={onDismiss}

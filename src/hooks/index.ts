@@ -55,6 +55,8 @@ export { useRelationshipReminders } from './useRelationshipReminders';
 export { useErrorLogger } from './useErrorLogger';
 export { usePlayerProfile } from './usePlayerProfile';
 export { usePlayerActivityLog, logPlayerActivity } from './usePlayerActivityLog';
+export { useGameMessages } from './useGameMessages';
+export type { GameMessage, MessageType, MessagePriority, MessageOptions } from './useGameMessages';
 
 // Re-export common shadcn hooks
 export { useToast, toast } from './use-toast';

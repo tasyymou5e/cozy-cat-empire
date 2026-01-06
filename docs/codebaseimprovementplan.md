@@ -81,19 +81,25 @@ This plan addresses architectural issues identified in the audit, prioritized by
 
 ---
 
-### Step 1.4: Unify Notification System
+### Step 1.4: Unify Notification System ✅ COMPLETED
 
-**Files to Modify:**
-- `src/hooks/useGameState.ts` - Remove internal showMessage
-- `src/components/game/MessageBar.tsx` - Integrate with unified system
+**Created:** `src/hooks/useGameMessages.ts` (~180 lines)
+- Message queue with priority levels (low, normal, high, critical)
+- Auto-dismiss timing based on message type
+- Deduplication of repeated messages (500ms window)
+- Message history tracking (last 10)
+- Backward-compatible `showMessage(text, type, options?)` API
 
-**Files to Create:**
-- `src/hooks/useGameMessages.ts` - Centralized message/toast management
+**Modified:**
+- `src/hooks/game/types.ts` - Added `MessageType` export
+- `src/components/game/MessageBar.tsx` - Now supports both legacy props and new `GameMessage` object, added queue indicator
+- `src/hooks/index.ts` - Exports `useGameMessages` and related types
 
-**Unify:**
-1. Game action messages (current showMessage)
-2. Social notifications (current NotificationCenter)
-3. System toasts (current sonner)
+**Key Features:**
+- Priority-based message queue (critical messages interrupt)
+- Queue count badge on MessageBar
+- Maintains backward compatibility with existing code
+- Social notifications (useNotifications) remain separate as designed
 
 ---
 
