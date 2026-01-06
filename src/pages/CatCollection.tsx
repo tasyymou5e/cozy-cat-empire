@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useGameState } from '@/hooks/useGameState';
+import { useGameState } from '@/hooks/game';
 import { useSound } from '@/contexts/SoundContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';

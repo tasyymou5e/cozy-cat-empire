@@ -4,7 +4,7 @@ import { ArrowLeft, Cat as CatIcon, Image as ImageIcon } from 'lucide-react';
 import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useGameState } from '@/hooks/useGameState';
+import { useGameState } from '@/hooks/game';
 import { useSound } from '@/contexts/SoundContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
