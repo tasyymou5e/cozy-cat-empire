@@ -6,6 +6,7 @@ import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
 import { supabase } from '@/integrations/supabase/client';
 import { UserDetailModal } from '@/components/admin/UserDetailModal';
 import { ExportButton } from '@/components/admin/ExportButton';
+import { AdminUserProfile } from '@/types/admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -69,15 +70,15 @@ const getDisplayName = (user: { display_name?: string | null; email?: string | n
 export default function AdminUsers() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUserProfile | null>(null);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [userToDelete, setUserToDelete] = useState<AdminUserProfile | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [newRole, setNewRole] = useState<string>('');
   const [viewingUserId, setViewingUserId] = useState<string | null>(null);
   const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
-  const [userToSuspend, setUserToSuspend] = useState<any>(null);
+  const [userToSuspend, setUserToSuspend] = useState<AdminUserProfile | null>(null);
   const [suspensionReason, setSuspensionReason] = useState('');
   const [isSuspending, setIsSuspending] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
@@ -301,13 +302,13 @@ export default function AdminUsers() {
     }
   };
 
-  const openRoleDialog = (user: any) => {
+  const openRoleDialog = (user: AdminUserProfile) => {
     setSelectedUser(user);
     setNewRole(user.role || 'user');
     setRoleDialogOpen(true);
   };
 
-  const openDeleteDialog = (user: any) => {
+  const openDeleteDialog = (user: AdminUserProfile) => {
     setUserToDelete(user);
     setDeleteDialogOpen(true);
   };
@@ -372,7 +373,7 @@ export default function AdminUsers() {
     }
   };
 
-  const openSuspendDialog = (user: any) => {
+  const openSuspendDialog = (user: AdminUserProfile) => {
     setUserToSuspend(user);
     setSuspensionReason('');
     setSuspendDialogOpen(true);
@@ -421,7 +422,7 @@ export default function AdminUsers() {
     }
   };
 
-  const handleUnsuspendUser = async (user: any) => {
+  const handleUnsuspendUser = async (user: AdminUserProfile) => {
     try {
       const { error } = await supabase
         .from('profiles')

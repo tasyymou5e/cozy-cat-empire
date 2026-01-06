@@ -28,16 +28,12 @@ export default function AdminAuth() {
 
   // Check admin status when user changes
   useEffect(() => {
-    console.log('[AdminAuth] Effect running:', { user: user?.id, isAdmin, adminLoading, checked });
-    
     // Don't do anything while still loading or checking
     if (adminLoading || !checked) {
-      console.log('[AdminAuth] Still loading/checking, skipping...');
       return;
     }
     
     if (user && isAdmin) {
-      console.log('[AdminAuth] User is admin, navigating to dashboard');
       // Log successful admin login
       logAuthAttempt({
         email: user.email || 'unknown',
@@ -47,7 +43,6 @@ export default function AdminAuth() {
       });
       navigate('/catking/dashboard');
     } else if (user && !isAdmin && checked) {
-      console.log('[AdminAuth] User is NOT admin, denying access');
       // Log access denied - only when we've definitively checked
       logAuthAttempt({
         email: user.email || 'unknown',

@@ -4,6 +4,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ChallengeForm } from '@/components/admin/ChallengeForm';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdminChallengeAnalytics } from '@/hooks/useAdminData';
+import { AdminChallenge } from '@/types/admin';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -31,13 +32,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { ArrowLeftRight, Gift, Calendar, Users, Plus, Pencil, Trash2, BarChart3, Target, Trophy, TrendingUp } from 'lucide-react';
+import { ArrowLeftRight, Gift, Calendar, Users, Plus, Pencil, Trash2, BarChart3, Target, Trophy, TrendingUp }from 'lucide-react';
 
 export default function AdminModeration() {
   const [activeTab, setActiveTab] = useState('trades');
   const [challengeFormOpen, setChallengeFormOpen] = useState(false);
-  const [editingChallenge, setEditingChallenge] = useState<any>(null);
-  const [deletingChallenge, setDeletingChallenge] = useState<any>(null);
+  const [editingChallenge, setEditingChallenge] = useState<AdminChallenge | null>(null);
+  const [deletingChallenge, setDeletingChallenge] = useState<AdminChallenge | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -166,7 +167,7 @@ export default function AdminModeration() {
     },
   });
 
-  const toggleChallengeActive = async (challenge: any) => {
+  const toggleChallengeActive = async (challenge: AdminChallenge) => {
     try {
       const { error } = await supabase
         .from('weekly_challenges')
@@ -175,8 +176,9 @@ export default function AdminModeration() {
       if (error) throw error;
       refetchChallenges();
       toast({ title: challenge.is_active ? 'Challenge Deactivated' : 'Challenge Activated' });
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast({ title: 'Error', description: message, variant: 'destructive' });
     }
   };
 
@@ -742,6 +744,7 @@ export default function AdminModeration() {
           }}
           initialData={{
             ...editingChallenge,
+            difficulty: (editingChallenge.difficulty as 'easy' | 'medium' | 'hard' | 'expert') || 'medium',
             starts_at: new Date(editingChallenge.starts_at),
             ends_at: new Date(editingChallenge.ends_at),
           }}

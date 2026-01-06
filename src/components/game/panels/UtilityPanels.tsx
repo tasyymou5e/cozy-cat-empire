@@ -12,23 +12,12 @@ import { LegacyCat, checkRetirementEligibility } from '@/types/legacy';
 import { checkSpecializationEligibility } from '@/types/specializations';
 import type { BattlePassReward } from '@/types/battlePass';
 
-interface UtilityPanelsProps {
-  cats: Cat[];
-  catCostumes: Record<string, string>;
-  relationships: CatRelationship[];
-  achievements: Achievement[];
-  money: number;
-  totalMoneyEarned: number;
-  totalShowWins: number;
-  kittensBreed: number;
-  houseSize: string;
-  acres: number;
-  challengesCompleted: number;
+/**
+ * Legacy/Hall of Fame props grouped together
+ */
+interface LegacyProps {
   retiredCats: LegacyCat[];
   totalLegacyBonus: number;
-  isLoggedIn: boolean;
-  cloudSyncing: boolean;
-  lastCloudSave: string | null;
   onRetireCat: (cat: Cat) => void;
   canRetire: (cat: Cat) => boolean;
   getEligibility: (cat: Cat) => ReturnType<typeof checkRetirementEligibility>;
@@ -38,6 +27,13 @@ interface UtilityPanelsProps {
     trainingBonus: number;
     relationshipBonus: number;
   };
+}
+
+/**
+ * Specialization props grouped together
+ */
+interface SpecializationProps {
+  kittensBred: number;
   onSpecialize: (catId: string, specializationId: string) => void;
   canSpecialize: (cat: Cat, friendshipCount: number, kittenCount: number) => ReturnType<typeof checkSpecializationEligibility>;
   getSpecialization: (cat: Cat) => CatSpecializationData | undefined;
@@ -49,12 +45,60 @@ interface UtilityPanelsProps {
     kittenHealthBonus: number;
     breedingSuccessBonus: number;
   };
-  onClaimBPReward: (reward: BattlePassReward) => void;
+}
+
+/**
+ * Battle pass props grouped together
+ */
+interface BattlePassProps {
+  money: number;
+  onClaimReward: (reward: BattlePassReward) => void;
   onUpgradePremium: () => void;
+}
+
+/**
+ * Achievement stats needed for panel
+ */
+interface AchievementStats {
+  cats: number;
+  showWins: number;
+  money: number;
+  breeding: number;
+  house: boolean;
+  farm: boolean;
+  acres: number;
+  challengesCompleted: number;
+}
+
+/**
+ * Save/Load props grouped together
+ */
+interface SaveLoadProps {
+  isLoggedIn: boolean;
+  cloudSyncing: boolean;
+  lastCloudSave: string | null;
   onSave: () => void;
   onLoad: () => void;
   hasSave: boolean;
   lastSaveDay: number;
+}
+
+interface UtilityPanelsProps {
+  /** Cat data */
+  cats: Cat[];
+  catCostumes: Record<string, string>;
+  relationships: CatRelationship[];
+  achievements: Achievement[];
+  /** Legacy/Hall of Fame data and handlers */
+  legacy: LegacyProps;
+  /** Specialization data and handlers */
+  specialization: SpecializationProps;
+  /** Battle pass handlers */
+  battlePass: BattlePassProps;
+  /** Achievement stats */
+  stats: AchievementStats;
+  /** Save/Load data and handlers */
+  saveLoad: SaveLoadProps;
 }
 
 /**
@@ -65,32 +109,11 @@ export function UtilityPanels({
   catCostumes,
   relationships,
   achievements,
-  money,
-  totalMoneyEarned,
-  totalShowWins,
-  kittensBreed,
-  houseSize,
-  acres,
-  challengesCompleted,
-  retiredCats,
-  totalLegacyBonus,
-  isLoggedIn,
-  cloudSyncing,
-  lastCloudSave,
-  onRetireCat,
-  canRetire,
-  getEligibility,
-  getKittenBonuses,
-  onSpecialize,
-  canSpecialize,
-  getSpecialization,
-  getActiveBonuses,
-  onClaimBPReward,
-  onUpgradePremium,
-  onSave,
-  onLoad,
-  hasSave,
-  lastSaveDay,
+  legacy,
+  specialization,
+  battlePass,
+  stats,
+  saveLoad,
 }: UtilityPanelsProps) {
   return (
     <>
@@ -98,13 +121,13 @@ export function UtilityPanels({
         <PanelErrorBoundary panelName="HallOfFamePanel">
           <HallOfFamePanel
             cats={cats}
-            retiredCats={retiredCats}
-            totalLegacyBonus={totalLegacyBonus}
+            retiredCats={legacy.retiredCats}
+            totalLegacyBonus={legacy.totalLegacyBonus}
             catCostumes={catCostumes}
-            onRetireCat={onRetireCat}
-            canRetire={canRetire}
-            getEligibility={getEligibility}
-            getKittenBonuses={getKittenBonuses}
+            onRetireCat={legacy.onRetireCat}
+            canRetire={legacy.canRetire}
+            getEligibility={legacy.getEligibility}
+            getKittenBonuses={legacy.getKittenBonuses}
           />
         </PanelErrorBoundary>
       </TabsContent>
@@ -114,20 +137,20 @@ export function UtilityPanels({
             cats={cats}
             catCostumes={catCostumes}
             relationships={relationships}
-            kittensBred={kittensBreed}
-            onSpecialize={onSpecialize}
-            canSpecialize={canSpecialize}
-            getSpecialization={getSpecialization}
-            getActiveBonuses={getActiveBonuses}
+            kittensBred={specialization.kittensBred}
+            onSpecialize={specialization.onSpecialize}
+            canSpecialize={specialization.canSpecialize}
+            getSpecialization={specialization.getSpecialization}
+            getActiveBonuses={specialization.getActiveBonuses}
           />
         </PanelErrorBoundary>
       </TabsContent>
       <TabsContent value="battlepass" className="mt-0">
         <PanelErrorBoundary panelName="BattlePassPanel">
           <BattlePassPanel
-            money={money}
-            onClaimReward={onClaimBPReward}
-            onUpgradePremium={onUpgradePremium}
+            money={battlePass.money}
+            onClaimReward={battlePass.onClaimReward}
+            onUpgradePremium={battlePass.onUpgradePremium}
           />
         </PanelErrorBoundary>
       </TabsContent>
@@ -135,29 +158,23 @@ export function UtilityPanels({
         <PanelErrorBoundary panelName="MorePanels">
           <AchievementsPanel 
             achievements={achievements}
-            currentStats={{ 
-              cats: cats.length, 
-              showWins: totalShowWins, 
-              money: totalMoneyEarned,
-              breeding: kittensBreed, 
-              house: houseSize !== 'apartment', 
-              farm: houseSize === 'farm', 
-              acres, 
-              challengesCompleted 
-            }} 
+            currentStats={stats} 
           />
           <GraphicsSettingsPanel />
           <SaveLoadPanel 
-            onSave={onSave} 
-            onLoad={onLoad} 
-            hasSave={hasSave} 
-            lastSaveDay={lastSaveDay}
-            isLoggedIn={isLoggedIn}
-            cloudSyncing={cloudSyncing}
-            lastCloudSave={lastCloudSave}
+            onSave={saveLoad.onSave} 
+            onLoad={saveLoad.onLoad} 
+            hasSave={saveLoad.hasSave} 
+            lastSaveDay={saveLoad.lastSaveDay}
+            isLoggedIn={saveLoad.isLoggedIn}
+            cloudSyncing={saveLoad.cloudSyncing}
+            lastCloudSave={saveLoad.lastCloudSave}
           />
         </PanelErrorBoundary>
       </TabsContent>
     </>
   );
 }
+
+// Re-export types for external use
+export type { UtilityPanelsProps, LegacyProps, SpecializationProps, BattlePassProps, AchievementStats, SaveLoadProps };

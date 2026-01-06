@@ -34,14 +34,14 @@ export function useAdminAuth() {
 
     async function checkAdminRole() {
       try {
-        console.log('[useAdminAuth] Starting role check for user:', userIdBeingChecked);
+        
         
         const { data, error } = await supabase.rpc('has_role', {
           _user_id: userIdBeingChecked,
           _role: 'admin'
         });
 
-        console.log('[useAdminAuth] RPC result:', { data, error, userIdBeingChecked });
+        
 
         // Only update state if we're still checking this same user
         if (checkInProgress.current === userIdBeingChecked) {
@@ -73,14 +73,6 @@ export function useAdminAuth() {
   // 1. Auth is still loading, OR
   // 2. We have a user but haven't finished checking THIS user's role yet
   const loading = authLoading || (!!user && checkedUserId !== user.id);
-
-  console.log('[useAdminAuth] State:', { 
-    userId: user?.id, 
-    checkedUserId, 
-    isAdmin, 
-    loading, 
-    authLoading 
-  });
 
   return { isAdmin, loading, user, checked: !!user && checkedUserId === user.id };
 }

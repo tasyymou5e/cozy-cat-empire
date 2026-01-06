@@ -151,9 +151,8 @@ export function useSpecializations(): UseSpecializationsReturn {
       
       // Clear legacy storage after successful migration
       localStorage.removeItem(LEGACY_STORAGE_KEY);
-      console.log('Migrated legacy specialization data');
-    } catch (e) {
-      console.warn('Failed to migrate legacy specializations:', e);
+    } catch {
+      // Silent fail for legacy migration - data will remain in localStorage for retry
     }
   }, []);
 

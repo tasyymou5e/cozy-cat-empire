@@ -5,159 +5,112 @@ import { WeeklyChallengesPanel } from '../WeeklyChallengesPanel';
 import { DailyObjectivesPanel } from '../DailyObjectivesPanel';
 import { CollectionProgressPanel } from '../CollectionProgressPanel';
 import { LuckyWheelPanel } from '../LuckyWheelPanel';
-import { Cat } from '@/types/game';
-import { CatRelationship } from '@/types/relationships';
-import type { DailyObjective } from '@/types/dailyObjectives';
-import type { ChallengeWithProgress, ChallengeType } from '@/types/challenges';
-import type { CollectionCategory } from '@/types/collections';
-import type { WheelPrize } from '@/types/luckyWheel';
-
-interface CollectionSetProgress {
-  collected: number;
-  total: number;
-  items: { id: string; name: string; emoji: string; collected: boolean }[];
-}
+import type { 
+  SharedCatDataProps, 
+  ChallengeProps, 
+  ObjectivesProps, 
+  WheelProps, 
+  CollectionProps,
+  FeedbackProps 
+} from './types';
 
 interface ProgressPanelsProps {
-  cats: Cat[];
-  relationships: CatRelationship[];
-  catCostumes: Record<string, string>;
-  challenges: ChallengeWithProgress[];
-  challengesLoading: boolean;
-  challengeTimeRemaining: string | null;
-  lastProgressUpdate: { type: ChallengeType; value: number } | null;
-  totalChallengesCompleted: number;
-  currentStreak: number;
-  longestStreak: number;
-  objectives: DailyObjective[];
-  allObjectivesCompleted: boolean;
-  objectivesBonusClaimed: boolean;
-  breedProgress: CollectionSetProgress;
-  personalityProgress: CollectionSetProgress;
-  costumeProgress: CollectionSetProgress;
-  trickProgress: CollectionSetProgress;
-  overallProgress: number;
-  completedSets: CollectionCategory[];
-  canSpin: boolean;
-  spinsRemaining: number;
-  isSpinning: boolean;
-  lastPrize: WheelPrize | null;
-  totalSpins: number;
-  isVIP: boolean;
-  playSound: (sound: string) => void;
-  fireConfetti: () => void;
-  onClaimChallengeReward: (challengeId: string) => Promise<{ coins: number; badge: string | null } | false>;
-  onProgressAnimationComplete: () => void;
-  onClaimObjectivesBonus: () => void;
-  getSetReward: (category: CollectionCategory) => { coins?: number; title?: string; bonus?: string };
-  onSpin: () => void;
-  onClaimWheelPrize: (prize: WheelPrize | null) => void;
-  onClearPrize: () => void;
+  /** Shared cat data (cats, relationships, costumes) */
+  catData: SharedCatDataProps;
+  /** Weekly challenges data and handlers */
+  challenge: ChallengeProps;
+  /** Daily objectives data and handlers */
+  objectives: ObjectivesProps;
+  /** Lucky wheel data and handlers */
+  wheel: WheelProps;
+  /** Collection progress data */
+  collection: CollectionProps;
+  /** Audio/visual feedback functions */
+  feedback: FeedbackProps;
 }
 
 /**
  * Progress and reward panels: Leaderboard, Challenges, Objectives, Collection, Lucky Wheel
  */
 export function ProgressPanels({
-  cats,
-  relationships,
-  catCostumes,
-  challenges,
-  challengesLoading,
-  challengeTimeRemaining,
-  lastProgressUpdate,
-  totalChallengesCompleted,
-  currentStreak,
-  longestStreak,
+  catData,
+  challenge,
   objectives,
-  allObjectivesCompleted,
-  objectivesBonusClaimed,
-  breedProgress,
-  personalityProgress,
-  costumeProgress,
-  trickProgress,
-  overallProgress,
-  completedSets,
-  canSpin,
-  spinsRemaining,
-  isSpinning,
-  lastPrize,
-  totalSpins,
-  isVIP,
-  playSound,
-  fireConfetti,
-  onClaimChallengeReward,
-  onProgressAnimationComplete,
-  onClaimObjectivesBonus,
-  getSetReward,
-  onSpin,
-  onClaimWheelPrize,
-  onClearPrize,
+  wheel,
+  collection,
+  feedback,
 }: ProgressPanelsProps) {
   return (
     <>
       <TabsContent value="leaderboard" className="mt-0">
         <PanelErrorBoundary panelName="LeaderboardPanel">
-          <LeaderboardPanel cats={cats} relationships={relationships} catCostumes={catCostumes} />
+          <LeaderboardPanel 
+            cats={catData.cats} 
+            relationships={catData.relationships} 
+            catCostumes={catData.catCostumes} 
+          />
         </PanelErrorBoundary>
       </TabsContent>
       <TabsContent value="challenges" className="mt-0">
         <PanelErrorBoundary panelName="WeeklyChallengesPanel">
           <WeeklyChallengesPanel
-            challenges={challenges}
-            loading={challengesLoading}
-            timeRemaining={challengeTimeRemaining}
-            onClaimReward={onClaimChallengeReward}
+            challenges={challenge.challenges}
+            loading={challenge.loading}
+            timeRemaining={challenge.timeRemaining}
+            onClaimReward={challenge.onClaimReward}
             onRewardClaimed={() => {
-              playSound('coin');
-              fireConfetti();
+              feedback.playSound('coin');
+              feedback.fireConfetti();
             }}
-            lastProgressUpdate={lastProgressUpdate}
-            onProgressAnimationComplete={onProgressAnimationComplete}
-            totalChallengesCompleted={totalChallengesCompleted}
-            currentStreak={currentStreak}
-            longestStreak={longestStreak}
+            lastProgressUpdate={challenge.lastProgressUpdate}
+            onProgressAnimationComplete={challenge.onProgressAnimationComplete}
+            totalChallengesCompleted={challenge.totalCompleted}
+            currentStreak={challenge.currentStreak}
+            longestStreak={challenge.longestStreak}
           />
         </PanelErrorBoundary>
       </TabsContent>
       <TabsContent value="objectives" className="mt-0">
         <PanelErrorBoundary panelName="DailyObjectivesPanel">
           <DailyObjectivesPanel
-            objectives={objectives}
-            allCompleted={allObjectivesCompleted}
-            bonusClaimed={objectivesBonusClaimed}
-            onClaimBonus={onClaimObjectivesBonus}
+            objectives={objectives.objectives}
+            allCompleted={objectives.allCompleted}
+            bonusClaimed={objectives.bonusClaimed}
+            onClaimBonus={objectives.onClaimBonus}
           />
         </PanelErrorBoundary>
       </TabsContent>
       <TabsContent value="wheel" className="mt-0">
         <PanelErrorBoundary panelName="LuckyWheelPanel">
           <LuckyWheelPanel
-            canSpin={canSpin}
-            spinsRemaining={spinsRemaining}
-            isSpinning={isSpinning}
-            lastPrize={lastPrize}
-            totalSpins={totalSpins}
-            isVIP={isVIP}
-            onSpin={onSpin}
-            onClaimPrize={onClaimWheelPrize}
-            onClearPrize={onClearPrize}
+            canSpin={wheel.canSpin}
+            spinsRemaining={wheel.spinsRemaining}
+            isSpinning={wheel.isSpinning}
+            lastPrize={wheel.lastPrize}
+            totalSpins={wheel.totalSpins}
+            isVIP={wheel.isVIP}
+            onSpin={wheel.onSpin}
+            onClaimPrize={wheel.onClaimPrize}
+            onClearPrize={wheel.onClearPrize}
           />
         </PanelErrorBoundary>
       </TabsContent>
       <TabsContent value="collection" className="mt-0">
         <PanelErrorBoundary panelName="CollectionProgressPanel">
           <CollectionProgressPanel
-            breedProgress={breedProgress}
-            personalityProgress={personalityProgress}
-            costumeProgress={costumeProgress}
-            trickProgress={trickProgress}
-            overallProgress={overallProgress}
-            completedSets={completedSets}
-            getSetReward={getSetReward}
+            breedProgress={collection.breedProgress}
+            personalityProgress={collection.personalityProgress}
+            costumeProgress={collection.costumeProgress}
+            trickProgress={collection.trickProgress}
+            overallProgress={collection.overallProgress}
+            completedSets={collection.completedSets}
+            getSetReward={collection.getSetReward}
           />
         </PanelErrorBoundary>
       </TabsContent>
     </>
   );
 }
+
+// Re-export types for external use
+export type { ProgressPanelsProps };
