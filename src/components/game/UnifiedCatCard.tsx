@@ -8,6 +8,13 @@ import { CatAvatar } from './CatAvatar';
 import { ComfortButton } from './ComfortButton';
 import { CatCardReaction } from './CatCardReaction';
 import { CatReaction } from '@/contexts/CatReactionContext';
+import { 
+  getCatRelationships, 
+  getFriendRelationships, 
+  getEnemyRelationships, 
+  getBestFriend,
+  needsSocialAttention 
+} from '@/lib/relationshipUtils';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -175,22 +182,13 @@ export function UnifiedCatCard({
   const shouldShowFlip = showFlip ?? defaults.showFlip;
   const shouldAnimate = animated ?? defaults.animated;
 
-  // Calculate relationships
-  const catRelationships = relationships.filter(r => r.catId1 === cat.id || r.catId2 === cat.id);
-  const friends = catRelationships.filter(r => {
-    const level = getRelationshipLevel(r.score);
-    return level === 'friend' || level === 'bestFriend';
-  });
-  const enemies = catRelationships.filter(r => {
-    const level = getRelationshipLevel(r.score);
-    return level === 'enemy' || level === 'rival';
-  });
-  const bestFriendRel = catRelationships.find(r => getRelationshipLevel(r.score) === 'bestFriend');
-  const bestFriendId = bestFriendRel ? (bestFriendRel.catId1 === cat.id ? bestFriendRel.catId2 : bestFriendRel.catId1) : null;
-  const bestFriend = bestFriendId ? allCats.find(c => c.id === bestFriendId) : null;
+  // Calculate relationships using utility functions
+  const friends = getFriendRelationships(cat.id, relationships);
+  const enemies = getEnemyRelationships(cat.id, relationships);
+  const bestFriend = getBestFriend(cat.id, relationships, allCats);
 
   // Check if cat needs comforting
-  const needsComfort = cat.happiness < 50 || enemies.length > friends.length || cat.health < 50;
+  const needsComfort = cat.happiness < 50 || needsSocialAttention(cat.id, relationships) || cat.health < 50;
   const moodEmoji = cat.happiness < 30 ? '😿' : cat.happiness < 50 ? '😾' : null;
 
   // Focus input when editing

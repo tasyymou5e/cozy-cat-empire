@@ -183,17 +183,24 @@ Remove localStorage dependency in useSpecializations, rely on cloud save via Cat
 
 ---
 
-### Step 4.2: Extract Relationship Utilities
+### Step 4.2: Extract Relationship Utilities ✅ COMPLETED
 
-**Create:** `src/lib/relationshipUtils.ts`
+**Created:** `src/lib/relationshipUtils.ts`
 
-Move from UnifiedCatCard:
-```typescript
-export function getCatRelationships(catId: string, relationships: CatRelationship[]);
-export function countFriends(catId: string, relationships: CatRelationship[]);
-export function countEnemies(catId: string, relationships: CatRelationship[]);
-export function getBestFriend(catId: string, relationships: CatRelationship[], cats: Cat[]);
-```
+**Functions exported:**
+- `getCatRelationships(catId, relationships)` - Get all relationships for a cat
+- `getOtherCatId(catId, relationship)` - Get the other cat in a relationship
+- `filterRelationshipsByLevel(relationships, levels)` - Filter by level(s)
+- `countFriends(catId, relationships)` - Count friend relationships
+- `countEnemies(catId, relationships)` - Count enemy relationships
+- `getFriendRelationships(catId, relationships)` - Get friend relationships
+- `getEnemyRelationships(catId, relationships)` - Get enemy relationships
+- `getBestFriend(catId, relationships, cats)` - Get best friend cat
+- `getWorstEnemy(catId, relationships, cats)` - Get worst enemy cat
+- `needsSocialAttention(catId, relationships)` - Check if needs attention
+- `getRelationshipSummary(catId, relationships, cats)` - Full summary
+
+**Updated:** `src/components/game/UnifiedCatCard.tsx` - Now imports and uses utility functions
 
 ---
 
