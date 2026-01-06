@@ -773,7 +773,19 @@ export function CatFarm() {
         isMobile={isMobile}
       />
 
-      <StatusBar state={state} onUpgrade={actions.upgradeHouse} onCatShow={(tier) => dispatchAction('CAT_SHOW', { tier })} relationships={relationshipSystem.relationships} />
+      <StatusBar 
+        day={state.day}
+        money={state.money}
+        cats={state.cats}
+        space={state.space}
+        houseSize={state.houseSize}
+        acres={state.acres}
+        totalShowWins={state.totalShowWins}
+        showCooldown={state.showCooldown}
+        onUpgrade={actions.upgradeHouse} 
+        onCatShow={(tier) => dispatchAction('CAT_SHOW', { tier })} 
+        relationships={relationshipSystem.relationships} 
+      />
       <MessageBar gameMessage={currentMessage} onDismiss={dismissQueuedMessage} queueCount={queueCount} />
 
       <Tabs value={sideTab} onValueChange={setSideTab} className={`flex-1 flex flex-col ${isMobile ? 'pb-16' : ''}`}>
@@ -1047,7 +1059,7 @@ export function CatFarm() {
             <TabsContent value="battlepass" className="mt-0">
               <PanelErrorBoundary panelName="BattlePassPanel">
                 <BattlePassPanel
-                  state={state}
+                  money={state.money}
                   onClaimReward={handleClaimBPReward}
                   onUpgradePremium={handleUpgradePremium}
                 />

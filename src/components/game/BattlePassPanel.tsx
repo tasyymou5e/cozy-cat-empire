@@ -5,19 +5,17 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Lock, Gift, Star, Crown, Clock, Sparkles, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useBattlePass } from '@/hooks/useBattlePass';
 import { BattlePassReward, getSeasonTimeRemaining, XP_SOURCES } from '@/types/battlePass';
-import { GameState } from '@/types/game';
 
 interface BattlePassPanelProps {
-  state: GameState;
+  money: number;
   onClaimReward: (reward: BattlePassReward) => void;
   onUpgradePremium: () => void;
 }
 
-export function BattlePassPanel({ state, onClaimReward, onUpgradePremium }: BattlePassPanelProps) {
+export function BattlePassPanel({ money, onClaimReward, onUpgradePremium }: BattlePassPanelProps) {
   const { battlePass, season, xpProgress, claimReward, canClaimReward, getUnclaimedRewards, allRewards, upgradeToPremium } = useBattlePass();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [viewTier, setViewTier] = useState(battlePass.currentTier);
@@ -33,7 +31,7 @@ export function BattlePassPanel({ state, onClaimReward, onUpgradePremium }: Batt
   };
   
   const handleUpgrade = () => {
-    if (state.money >= 500) {
+    if (money >= 500) {
       upgradeToPremium();
       onUpgradePremium();
       setShowUpgradeDialog(false);
@@ -329,7 +327,7 @@ export function BattlePassPanel({ state, onClaimReward, onUpgradePremium }: Batt
             
             <div className="text-center">
               <p className="text-2xl font-bold">500 💰</p>
-              <p className="text-sm text-muted-foreground">Your balance: {state.money} coins</p>
+              <p className="text-sm text-muted-foreground">Your balance: {money} coins</p>
             </div>
           </div>
           
@@ -339,7 +337,7 @@ export function BattlePassPanel({ state, onClaimReward, onUpgradePremium }: Batt
             </Button>
             <Button 
               onClick={handleUpgrade}
-              disabled={state.money < 500}
+              disabled={money < 500}
               className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
             >
               <Crown className="w-4 h-4 mr-2" />
