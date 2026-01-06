@@ -4,23 +4,36 @@ import { CoopChallengeType } from './coopChallenges';
 import { Resources } from './game';
 
 /**
+ * Enum-like constant object for game action types.
+ * Use this for type-safe action dispatching.
+ * 
+ * @example
+ * ```tsx
+ * import { GameActions } from '@/types/gameEvents';
+ * dispatchAction(GameActions.TRAIN_CAT, { catId, trickId });
+ * ```
+ */
+export const GameActions = {
+  FEED_CATS: 'FEED_CATS',
+  FEED_SINGLE_CAT: 'FEED_SINGLE_CAT',
+  DO_CHORE: 'DO_CHORE',
+  BUY_RESOURCE: 'BUY_RESOURCE',
+  USE_MEDICINE: 'USE_MEDICINE',
+  USE_TOYS: 'USE_TOYS',
+  COMFORT_CAT: 'COMFORT_CAT',
+  SELL_CAT: 'SELL_CAT',
+  TRAIN_CAT: 'TRAIN_CAT',
+  REST_CAT: 'REST_CAT',
+  BREED_CATS: 'BREED_CATS',
+  SOCIALIZE_CATS: 'SOCIALIZE_CATS',
+  GROUP_ACTIVITY: 'GROUP_ACTIVITY',
+  CAT_SHOW: 'CAT_SHOW',
+} as const;
+
+/**
  * All game actions that can trigger side effects
  */
-export type GameAction =
-  | 'FEED_CATS'
-  | 'FEED_SINGLE_CAT'
-  | 'DO_CHORE'
-  | 'BUY_RESOURCE'
-  | 'USE_MEDICINE'
-  | 'USE_TOYS'
-  | 'COMFORT_CAT'
-  | 'SELL_CAT'
-  | 'TRAIN_CAT'
-  | 'REST_CAT'
-  | 'BREED_CATS'
-  | 'SOCIALIZE_CATS'
-  | 'GROUP_ACTIVITY'
-  | 'CAT_SHOW';
+export type GameAction = typeof GameActions[keyof typeof GameActions];
 
 /**
  * Payload types for each action

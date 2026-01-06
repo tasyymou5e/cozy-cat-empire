@@ -4,6 +4,7 @@ import { PanelErrorBoundary } from '../PanelErrorBoundary';
 import { PanelSkeleton } from '../PanelSkeleton';
 import { Cat } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
+import { GameAction, GameActions, GameActionPayloads } from '@/types/gameEvents';
 
 // Lazy load panels for performance
 const BreedingPanel = lazy(() => import('../BreedingPanel').then(m => ({ default: m.BreedingPanel })));
@@ -21,7 +22,7 @@ interface BreedingTrainingPanelsProps {
   relationships: CatRelationship[];
   money: number;
   ownedCostumes: string[];
-  dispatchAction: (type: string, payload?: Record<string, unknown>) => void;
+  dispatchAction: <A extends GameAction>(type: A, payload?: GameActionPayloads[A]) => void;
   getBreedingCompatibility: (cat1Id: string, cat2Id: string) => {
     canBreed: boolean;
     bonus: number;
@@ -77,7 +78,7 @@ export function BreedingTrainingPanels({
               cats={cats} 
               cooldown={breedingCooldown} 
               hasSpace={hasSpace}
-              onBreed={(cat1Id, cat2Id) => dispatchAction('BREED_CATS', { cat1Id, cat2Id })} 
+              onBreed={(cat1Id, cat2Id) => dispatchAction(GameActions.BREED_CATS, { cat1Id, cat2Id })} 
               getBreedingCompatibility={getBreedingCompatibility} 
               catCostumes={catCostumes} 
               relationships={relationships} 
@@ -93,9 +94,9 @@ export function BreedingTrainingPanels({
               treats={treats} 
               toys={toys}
               day={day} 
-              onTrain={(catId, trickId) => dispatchAction('TRAIN_CAT', { catId, trickId })} 
-              onRest={(catId) => dispatchAction('REST_CAT', { catId })} 
-              catCostumes={catCostumes} 
+              onTrain={(catId, trickId) => dispatchAction(GameActions.TRAIN_CAT, { catId, trickId })} 
+              onRest={(catId) => dispatchAction(GameActions.REST_CAT, { catId })} 
+              catCostumes={catCostumes}
             />
           </Suspense>
         </PanelErrorBoundary>

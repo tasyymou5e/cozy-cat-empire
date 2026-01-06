@@ -1,6 +1,6 @@
 import { useCatFarmState, TAB_LABELS } from '@/hooks/useCatFarmState';
 import { useCatFarmHandlers, MOOD_LABELS } from '@/hooks/useCatFarmHandlers';
-
+import { GameActions } from '@/types/gameEvents';
 // Decomposed components
 import { CatFarmSkeleton } from './CatFarmSkeleton';
 import { CatFarmHeader } from './CatFarmHeader';
@@ -75,9 +75,9 @@ export function CatFarm() {
         lastEventId={relationshipSystem.lastEventId}
         cats={state.cats}
         onCatClick={() => farmState.sound.playSound('click')}
-        onFeed={(catId) => dispatchAction('FEED_SINGLE_CAT', { catId })}
-        onComfort={(catId) => dispatchAction('COMFORT_CAT', { catId })}
-        onHeal={(catId) => dispatchAction('USE_MEDICINE', { catId })}
+        onFeed={(catId) => dispatchAction(GameActions.FEED_SINGLE_CAT, { catId })}
+        onComfort={(catId) => dispatchAction(GameActions.COMFORT_CAT, { catId })}
+        onHeal={(catId) => dispatchAction(GameActions.USE_MEDICINE, { catId })}
         hasFood={state.resources.food > 0}
         hasMedicine={state.resources.medicine > 0}
         currentDailyEvent={currentDailyEvent}
