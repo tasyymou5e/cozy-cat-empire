@@ -44,7 +44,7 @@ This document captures the comprehensive architecture audit findings for the Cat
 |---|-------|----------|--------|-------|
 | 4 | `useCatFarmState` too large (~285 lines) | `src/hooks/useCatFarmState.ts` | ✅ COMPLETED | Split into `useCatFarmUIState.ts` + `useCatFarmSystems.ts` |
 | 5 | `useCatFarmHandlers` mixed concerns | `src/hooks/useCatFarmHandlers.ts` | ✅ COMPLETED | Split into 4 handler hooks in `src/hooks/handlers/` |
-| 6 | Duplicated sound system | `useSoundEffects.ts` + `SoundContext.tsx` | ⏳ REMAINING | SoundContext wraps useSoundEffects - consider consolidating |
+| 6 | Duplicated sound system | `useSoundEffects.ts` + `SoundContext.tsx` | ✅ COMPLETED | Consolidated into single `SoundContext.tsx` |
 | 7 | `TAB_LABELS` in hook file | `useCatFarmState.ts` | ✅ COMPLETED | Moved to `src/constants/tabs.ts` |
 | 8 | `useRelationships` lacks JSDoc | `src/hooks/useRelationships.ts` | ✅ COMPLETED | Documentation added |
 | 9 | `MOOD_LABELS` in handlers file | `useCatFarmHandlers.ts` | ✅ COMPLETED | Moved to `src/constants/moods.ts` |
@@ -71,7 +71,7 @@ This document captures the comprehensive architecture audit findings for the Cat
 | 16 | `generateId` duplicated | `useRelationships.ts`, `types.ts` | ✅ COMPLETED | Centralized in `lib/utils.ts` |
 | 17 | Magic strings for actions | `dispatchAction('SELL_CAT', ...)` | ⏳ REMAINING | Consider enum for action types |
 | 18 | No lazy loading for panels | Panel components | ⏳ REMAINING | Add `React.lazy` for performance |
-| 19 | Missing admin hooks docs | `useAdminAuth.ts`, `useAdminData.ts` | ⏳ REMAINING | Add JSDoc like social hooks |
+| 19 | Missing admin hooks docs | `useAdminAuth.ts`, `useAdminData.ts` | ✅ COMPLETED | JSDoc added to all admin hooks |
 | 20 | No constants file | Various files | ✅ COMPLETED | Created `src/constants/` directory |
 
 ---

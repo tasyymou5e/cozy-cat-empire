@@ -22,7 +22,7 @@ import { toast } from '@/hooks/use-toast';
 import { useChallengeAchievements } from '@/hooks/useChallengeAchievements';
 import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 import type { ChallengeWithProgress, ChallengeType, WeeklyChallenge, PlayerChallengeProgress } from '@/types/challenges';
-import type { SoundType } from '@/hooks/useSoundEffects';
+import type { SoundType } from '@/contexts/SoundContext';
 
 /**
  * Haptic feedback functions for challenge events

@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Cat } from '@/types/game';
-import { useSound } from '@/contexts/SoundContext';
-import { SoundType } from '@/hooks/useSoundEffects';
+import { useSound, SoundType } from '@/contexts/SoundContext';
 
 interface ActivityPopup {
   id: string;

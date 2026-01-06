@@ -39,7 +39,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { GameState, ACHIEVEMENT_DEFS } from '@/types/game';
 import { DailyEvent } from '@/types/dailyEvents';
 import { useRelationships } from '../useRelationships';
-import { SoundType } from '../useSoundEffects';
+import { SoundType } from '@/contexts/SoundContext';
 import { ChallengeType } from '@/types/challenges';
 import { LogActivityParams } from '../usePlayerActivityLog';
 
