@@ -36,8 +36,11 @@ export interface RelationshipSaveData {
 /** React setState function for GameState */
 export type GameStateSetter = React.Dispatch<React.SetStateAction<GameState>>;
 
-/** Message display function signature */
-export type ShowMessageFn = (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+/** Message types */
+export type MessageType = 'info' | 'success' | 'warning' | 'error';
+
+/** Message display function signature (backward compatible) */
+export type ShowMessageFn = (msg: string, type?: MessageType) => void;
 
 /** Relationship system return type */
 export type RelationshipSystem = ReturnType<typeof useRelationships>;
