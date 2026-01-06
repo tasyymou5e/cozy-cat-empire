@@ -1,6 +1,85 @@
+/**
+ * @fileoverview Admin data fetching hooks
+ * 
+ * Provides React Query hooks for fetching administrative data including
+ * user statistics, error logs, activity logs, storage stats, and analytics.
+ * All hooks use TanStack Query for caching and automatic refetching.
+ * 
+ * @module hooks/admin/useAdminData
+ */
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+/**
+ * Parameters for fetching admin users
+ * 
+ * @interface UseAdminUsersParams
+ * @property {string} [search] - Search term for display name, username, or email
+ * @property {number} [page] - Page number (1-indexed)
+ * @property {number} [pageSize] - Number of results per page
+ */
+interface UseAdminUsersParams {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+/**
+ * Parameters for fetching error logs
+ * 
+ * @interface UseAdminErrorsParams
+ * @property {string} [errorType] - Filter by error type
+ * @property {string} [status] - Filter by status (open, resolved, etc.)
+ * @property {number} [page] - Page number (1-indexed)
+ * @property {number} [pageSize] - Number of results per page
+ */
+interface UseAdminErrorsParams {
+  errorType?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+/**
+ * Parameters for fetching player activity logs
+ * 
+ * @interface UseAdminPlayerActivityParams
+ * @property {string} [activityType] - Filter by activity type
+ * @property {number} [page] - Page number (1-indexed)
+ * @property {number} [pageSize] - Number of results per page
+ */
+interface UseAdminPlayerActivityParams {
+  activityType?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+/**
+ * Hook to fetch aggregate admin dashboard statistics
+ * 
+ * Returns counts for users, game saves, recent errors, and aggregated
+ * player statistics (total wins, cats, kittens, money).
+ * 
+ * @returns {UseQueryResult} Query result with stats data
+ * 
+ * @example
+ * ```tsx
+ * function AdminDashboard() {
+ *   const { data: stats, isLoading } = useAdminStats();
+ * 
+ *   if (isLoading) return <Spinner />;
+ * 
+ *   return (
+ *     <div>
+ *       <StatCard title="Users" value={stats.userCount} />
+ *       <StatCard title="Errors (24h)" value={stats.errorCount24h} />
+ *       <StatCard title="Total Cats" value={stats.totalCats} />
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export function useAdminStats() {
   return useQuery({
     queryKey: ['admin-stats'],
@@ -31,8 +110,11 @@ export function useAdminStats() {
       ) || { totalShowWins: 0, totalCats: 0, totalKittens: 0, totalMoney: 0 };
 
       return {
+        /** Total number of registered users */
         userCount: profilesResult.count || 0,
+        /** Total number of game saves */
         gameSaveCount: gameSavesResult.count || 0,
+        /** Number of errors in the last 24 hours */
         errorCount24h: errorsResult.count || 0,
         ...aggregateStats,
       };
@@ -41,12 +123,37 @@ export function useAdminStats() {
   });
 }
 
-interface UseAdminUsersParams {
-  search?: string;
-  page?: number;
-  pageSize?: number;
-}
-
+/**
+ * Hook to fetch paginated user list with search
+ * 
+ * Returns users with their profiles, player stats, and roles.
+ * Supports searching by display name, username, or email.
+ * 
+ * @param {UseAdminUsersParams} params - Search and pagination options
+ * @returns {UseQueryResult} Query result with users array and pagination info
+ * 
+ * @example
+ * ```tsx
+ * function UserManagement() {
+ *   const [search, setSearch] = useState('');
+ *   const [page, setPage] = useState(1);
+ * 
+ *   const { data, isLoading } = useAdminUsers({ search, page, pageSize: 20 });
+ * 
+ *   return (
+ *     <>
+ *       <SearchInput value={search} onChange={setSearch} />
+ *       <UserTable users={data?.users || []} />
+ *       <Pagination
+ *         page={page}
+ *         totalPages={data?.totalPages || 1}
+ *         onChange={setPage}
+ *       />
+ *     </>
+ *   );
+ * }
+ * ```
+ */
 export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdminUsersParams = {}) {
   return useQuery({
     queryKey: ['admin-users', search, page, pageSize],
@@ -104,8 +211,11 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
         .select('id', { count: 'exact', head: true });
 
       return {
+        /** Array of user objects with profiles, stats, and roles */
         users: users || [],
+        /** Total number of users matching the search */
         totalCount: count || 0,
+        /** Total number of pages */
         totalPages: Math.ceil((count || 0) / pageSize),
       };
     },
@@ -113,13 +223,31 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
   });
 }
 
-interface UseAdminErrorsParams {
-  errorType?: string;
-  status?: string;
-  page?: number;
-  pageSize?: number;
-}
-
+/**
+ * Hook to fetch paginated error logs with filtering
+ * 
+ * Returns error logs with optional filtering by error type and status.
+ * 
+ * @param {UseAdminErrorsParams} params - Filter and pagination options
+ * @returns {UseQueryResult} Query result with errors array and pagination info
+ * 
+ * @example
+ * ```tsx
+ * function ErrorLogViewer() {
+ *   const [errorType, setErrorType] = useState<string>();
+ *   const [page, setPage] = useState(1);
+ * 
+ *   const { data, isLoading } = useAdminErrors({ errorType, page });
+ * 
+ *   return (
+ *     <>
+ *       <ErrorTypeFilter value={errorType} onChange={setErrorType} />
+ *       <ErrorTable errors={data?.errors || []} />
+ *     </>
+ *   );
+ * }
+ * ```
+ */
 export function useAdminErrors({ errorType, status, page = 1, pageSize = 20 }: UseAdminErrorsParams = {}) {
   return useQuery({
     queryKey: ['admin-errors', errorType, status, page, pageSize],
@@ -157,8 +285,11 @@ export function useAdminErrors({ errorType, status, page = 1, pageSize = 20 }: U
       const { count } = await countQuery;
 
       return {
+        /** Array of error log entries */
         errors: data || [],
+        /** Total number of errors matching filters */
         totalCount: count || 0,
+        /** Total number of pages */
         totalPages: Math.ceil((count || 0) / pageSize),
       };
     },
@@ -166,6 +297,29 @@ export function useAdminErrors({ errorType, status, page = 1, pageSize = 20 }: U
   });
 }
 
+/**
+ * Hook to fetch error trends over the last 7 days
+ * 
+ * Returns daily error counts grouped by error type for trend analysis
+ * and visualization in charts.
+ * 
+ * @returns {UseQueryResult} Query result with daily error data for charts
+ * 
+ * @example
+ * ```tsx
+ * function ErrorTrendsChart() {
+ *   const { data: trends } = useAdminErrorTrends();
+ * 
+ *   return (
+ *     <LineChart data={trends}>
+ *       <Line dataKey="total" name="Total Errors" />
+ *       <Line dataKey="uncaught_error" name="Uncaught" />
+ *       <Line dataKey="network_error" name="Network" />
+ *     </LineChart>
+ *   );
+ * }
+ * ```
+ */
 export function useAdminErrorTrends() {
   return useQuery({
     queryKey: ['admin-error-trends'],
@@ -227,6 +381,26 @@ export function useAdminErrorTrends() {
   });
 }
 
+/**
+ * Hook to fetch paginated authentication attempt logs
+ * 
+ * Returns logs of login attempts including successes, failures,
+ * and access denied events.
+ * 
+ * @param {number} page - Page number (1-indexed)
+ * @param {number} pageSize - Number of results per page
+ * @returns {UseQueryResult} Query result with auth logs and pagination info
+ * 
+ * @example
+ * ```tsx
+ * function AuthLogsTable() {
+ *   const [page, setPage] = useState(1);
+ *   const { data } = useAdminAuthLogs(page, 20);
+ * 
+ *   return <LogsTable logs={data?.logs || []} />;
+ * }
+ * ```
+ */
 export function useAdminAuthLogs(page = 1, pageSize = 20) {
   return useQuery({
     queryKey: ['admin-auth-logs', page, pageSize],
@@ -244,8 +418,11 @@ export function useAdminAuthLogs(page = 1, pageSize = 20) {
         .select('id', { count: 'exact', head: true });
 
       return {
+        /** Array of authentication attempt logs */
         logs: data || [],
+        /** Total number of auth logs */
         totalCount: count || 0,
+        /** Total number of pages */
         totalPages: Math.ceil((count || 0) / pageSize),
       };
     },
@@ -253,6 +430,34 @@ export function useAdminAuthLogs(page = 1, pageSize = 20) {
   });
 }
 
+/**
+ * Hook to fetch paginated admin activity logs
+ * 
+ * Returns logs of admin actions for audit trail and accountability.
+ * 
+ * @param {number} page - Page number (1-indexed)
+ * @param {number} pageSize - Number of results per page
+ * @returns {UseQueryResult} Query result with activity logs and pagination info
+ * 
+ * @example
+ * ```tsx
+ * function ActivityLogViewer() {
+ *   const [page, setPage] = useState(1);
+ *   const { data } = useAdminActivityLogs(page);
+ * 
+ *   return (
+ *     <Table>
+ *       {data?.logs.map(log => (
+ *         <TableRow key={log.id}>
+ *           <TableCell>{log.action_type}</TableCell>
+ *           <TableCell>{log.action_description}</TableCell>
+ *         </TableRow>
+ *       ))}
+ *     </Table>
+ *   );
+ * }
+ * ```
+ */
 export function useAdminActivityLogs(page = 1, pageSize = 20) {
   return useQuery({
     queryKey: ['admin-activity-logs', page, pageSize],
@@ -270,8 +475,11 @@ export function useAdminActivityLogs(page = 1, pageSize = 20) {
         .select('id', { count: 'exact', head: true });
 
       return {
+        /** Array of admin activity logs */
         logs: data || [],
+        /** Total number of activity logs */
         totalCount: count || 0,
+        /** Total number of pages */
         totalPages: Math.ceil((count || 0) / pageSize),
       };
     },
@@ -279,13 +487,27 @@ export function useAdminActivityLogs(page = 1, pageSize = 20) {
   });
 }
 
-// New: Player Activity Log hook for Phase 1.3
-interface UseAdminPlayerActivityParams {
-  activityType?: string;
-  page?: number;
-  pageSize?: number;
-}
-
+/**
+ * Hook to fetch paginated player activity logs
+ * 
+ * Returns logs of player actions (friend requests, trades, etc.)
+ * with optional filtering by activity type.
+ * 
+ * @param {UseAdminPlayerActivityParams} params - Filter and pagination options
+ * @returns {UseQueryResult} Query result with player activity logs
+ * 
+ * @example
+ * ```tsx
+ * function PlayerActivityViewer() {
+ *   const { data } = useAdminPlayerActivityLogs({ 
+ *     activityType: 'friend_request_sent',
+ *     page: 1 
+ *   });
+ * 
+ *   return <ActivityTable logs={data?.logs || []} />;
+ * }
+ * ```
+ */
 export function useAdminPlayerActivityLogs({ 
   activityType, 
   page = 1, 
@@ -319,8 +541,11 @@ export function useAdminPlayerActivityLogs({
       const { count } = await countQuery;
 
       return {
+        /** Array of player activity logs */
         logs: data || [],
+        /** Total number of logs matching filter */
         totalCount: count || 0,
+        /** Total number of pages */
         totalPages: Math.ceil((count || 0) / pageSize),
       };
     },
@@ -328,7 +553,30 @@ export function useAdminPlayerActivityLogs({
   });
 }
 
-// New: Storage Bucket Stats hook for Phase 1.2
+/**
+ * Hook to fetch storage bucket statistics
+ * 
+ * Returns file counts for each storage bucket (photo-gallery, cat-portraits).
+ * 
+ * @returns {UseQueryResult} Query result with storage stats per bucket
+ * 
+ * @example
+ * ```tsx
+ * function StorageOverview() {
+ *   const { data: buckets } = useAdminStorageStats();
+ * 
+ *   return (
+ *     <div>
+ *       {buckets?.map(bucket => (
+ *         <div key={bucket.bucket}>
+ *           {bucket.bucket}: {bucket.count} files
+ *         </div>
+ *       ))}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export function useAdminStorageStats() {
   return useQuery({
     queryKey: ['admin-storage-stats'],
@@ -344,8 +592,11 @@ export function useAdminStorageStats() {
             
             if (error) throw error;
             return { 
+              /** Bucket name */
               bucket, 
+              /** Number of files in bucket */
               count: data?.length ?? 0, 
+              /** Operation status */
               status: 'ok' as const 
             };
           } catch {
@@ -360,11 +611,35 @@ export function useAdminStorageStats() {
       
       return stats;
     },
-    staleTime: 60000, // Cache for 1 minute
+    staleTime: 60000,
   });
 }
 
-// New: All Database Tables Stats for Phase 1.1
+/**
+ * Hook to fetch row counts for all database tables
+ * 
+ * Returns counts for all tables grouped by category (core, social,
+ * challenges, progression, leaderboards, logging, content).
+ * 
+ * @returns {UseQueryResult} Query result with table stats grouped by category
+ * 
+ * @example
+ * ```tsx
+ * function DatabaseOverview() {
+ *   const { data } = useAdminAllTableStats();
+ * 
+ *   return (
+ *     <div>
+ *       <p>Total Tables: {data?.totalTables}</p>
+ *       <p>Total Rows: {data?.totalRows}</p>
+ *       {Object.entries(data?.grouped || {}).map(([category, tables]) => (
+ *         <CategorySection key={category} tables={tables} />
+ *       ))}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export function useAdminAllTableStats() {
   return useQuery({
     queryKey: ['admin-all-table-stats'],
@@ -435,9 +710,13 @@ export function useAdminAllTableStats() {
       }, {} as Record<string, typeof results>);
 
       return {
+        /** Table stats grouped by category */
         grouped,
+        /** All table stats in flat array */
         all: results,
+        /** Total number of tables */
         totalTables: results.length,
+        /** Total row count across all tables */
         totalRows: results.reduce((sum, r) => sum + (r.count ?? 0), 0),
       };
     },
@@ -445,7 +724,30 @@ export function useAdminAllTableStats() {
   });
 }
 
-// Live Activity Monitor for Dashboard
+/**
+ * Hook to monitor live activity in the last 5 minutes
+ * 
+ * Returns counts of recent saves, errors, trades, and gifts.
+ * Auto-refreshes every 30 seconds for real-time monitoring.
+ * 
+ * @returns {UseQueryResult} Query result with live activity counts
+ * 
+ * @example
+ * ```tsx
+ * function LiveActivityMonitor() {
+ *   const { data } = useAdminLiveActivity();
+ * 
+ *   return (
+ *     <div className="grid grid-cols-4 gap-4">
+ *       <LiveStat label="Recent Saves" value={data?.recentSaves} />
+ *       <LiveStat label="Recent Errors" value={data?.recentErrors} />
+ *       <LiveStat label="Recent Trades" value={data?.recentTrades} />
+ *       <LiveStat label="Recent Gifts" value={data?.recentGifts} />
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export function useAdminLiveActivity() {
   return useQuery({
     queryKey: ['admin-live-activity'],
@@ -464,18 +766,50 @@ export function useAdminLiveActivity() {
       ]);
       
       return {
+        /** Game saves in last 5 minutes */
         recentSaves: savesResult.count ?? 0,
+        /** Errors in last 5 minutes */
         recentErrors: errorsResult.count ?? 0,
+        /** Trades in last 5 minutes */
         recentTrades: tradesResult.count ?? 0,
+        /** Gifts in last 5 minutes */
         recentGifts: giftsResult.count ?? 0,
+        /** Timestamp of this query */
         timestamp: new Date().toISOString(),
       };
     },
-    refetchInterval: 30000, // Auto-refresh every 30 seconds
+    refetchInterval: 30000,
   });
 }
 
-// Challenge Analytics
+/**
+ * Hook to fetch weekly challenge analytics
+ * 
+ * Returns detailed analytics for each challenge including participation,
+ * completion rates, and difficulty breakdown.
+ * 
+ * @returns {UseQueryResult} Query result with challenge analytics
+ * 
+ * @example
+ * ```tsx
+ * function ChallengeAnalytics() {
+ *   const { data } = useAdminChallengeAnalytics();
+ * 
+ *   return (
+ *     <div>
+ *       <h2>Overall: {data?.summary.overallCompletionRate.toFixed(1)}% completion</h2>
+ *       {data?.challenges.map(c => (
+ *         <ChallengeCard 
+ *           key={c.id} 
+ *           name={c.name}
+ *           completionRate={c.completionRate}
+ *         />
+ *       ))}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export function useAdminChallengeAnalytics() {
   return useQuery({
     queryKey: ['admin-challenge-analytics'],
@@ -536,7 +870,9 @@ export function useAdminChallengeAnalytics() {
       });
 
       return {
+        /** Per-challenge analytics */
         challenges: challengeAnalytics,
+        /** Summary statistics */
         summary: {
           totalChallenges,
           activeChallenges,
@@ -544,13 +880,37 @@ export function useAdminChallengeAnalytics() {
           totalCompletions,
           overallCompletionRate,
         },
+        /** Stats broken down by difficulty */
         difficultyStats,
       };
     },
   });
 }
 
-// Retention Analytics
+/**
+ * Hook to fetch user retention analytics
+ * 
+ * Returns DAU/WAU/MAU metrics, login streak distribution, and
+ * overall engagement statistics.
+ * 
+ * @returns {UseQueryResult} Query result with retention metrics
+ * 
+ * @example
+ * ```tsx
+ * function RetentionDashboard() {
+ *   const { data } = useAdminRetentionAnalytics();
+ * 
+ *   return (
+ *     <div>
+ *       <MetricCard label="DAU" value={data?.dau} percent={data?.dauPercent} />
+ *       <MetricCard label="WAU" value={data?.wau} percent={data?.wauPercent} />
+ *       <MetricCard label="MAU" value={data?.mau} percent={data?.mauPercent} />
+ *       <StreakChart data={data?.streakDistribution} />
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export function useAdminRetentionAnalytics() {
   return useQuery({
     queryKey: ['admin-retention-analytics'],
@@ -599,16 +959,27 @@ export function useAdminRetentionAnalytics() {
       const maxStreak = loginData.reduce((max, l) => Math.max(max, l.longest_streak ?? 0), 0);
 
       return {
+        /** Daily active users */
         dau,
+        /** Weekly active users */
         wau,
+        /** Monthly active users */
         mau,
+        /** Total registered users */
         totalUsers,
+        /** DAU as percentage of total users */
         dauPercent: totalUsers > 0 ? (dau / totalUsers) * 100 : 0,
+        /** WAU as percentage of total users */
         wauPercent: totalUsers > 0 ? (wau / totalUsers) * 100 : 0,
+        /** MAU as percentage of total users */
         mauPercent: totalUsers > 0 ? (mau / totalUsers) * 100 : 0,
+        /** Login streak distribution for charts */
         streakDistribution,
+        /** Average login streak */
         avgStreak,
+        /** Maximum login streak across all users */
         maxStreak,
+        /** Total login count across all users */
         totalLogins: loginData.reduce((sum, l) => sum + (l.total_logins ?? 0), 0),
       };
     },

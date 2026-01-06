@@ -12,22 +12,75 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Hook to check if current user has admin role
+ * Return type for the useAdminAuth hook
  * 
- * @returns Admin status, loading state, user, and check completion flag
+ * @interface UseAdminAuthResult
+ * @property {boolean} isAdmin - Whether the current user has admin role
+ * @property {boolean} loading - Whether the role check is in progress
+ * @property {Object | null} user - The current authenticated user object
+ * @property {boolean} checked - Whether the role check has completed for the current user
+ */
+interface UseAdminAuthResult {
+  isAdmin: boolean;
+  loading: boolean;
+  user: ReturnType<typeof useAuth>['user'];
+  checked: boolean;
+}
+
+/**
+ * Hook to check if the current user has admin role
+ * 
+ * Verifies admin privileges by calling the `has_role` RPC function
+ * in Supabase. The hook handles authentication state changes and
+ * prevents duplicate checks for the same user.
+ * 
+ * @returns {UseAdminAuthResult} Admin status, loading state, user, and check completion flag
  * 
  * @example
  * ```tsx
- * const { isAdmin, loading } = useAdminAuth();
- * if (loading) return <Spinner />;
- * if (!isAdmin) return <Navigate to="/auth" />;
+ * function AdminDashboard() {
+ *   const { isAdmin, loading, user } = useAdminAuth();
+ * 
+ *   if (loading) {
+ *     return <LoadingSpinner />;
+ *   }
+ * 
+ *   if (!isAdmin) {
+ *     return <Navigate to="/auth" />;
+ *   }
+ * 
+ *   return (
+ *     <div>
+ *       <h1>Welcome, Admin {user?.email}</h1>
+ *       <AdminContent />
+ *     </div>
+ *   );
+ * }
+ * ```
+ * 
+ * @example
+ * ```tsx
+ * // Using with AdminRoute component for protected routes
+ * function AdminRoute({ children }: { children: React.ReactNode }) {
+ *   const { isAdmin, loading, checked } = useAdminAuth();
+ * 
+ *   if (loading) return <Spinner />;
+ *   if (checked && !isAdmin) return <Navigate to="/catking" />;
+ * 
+ *   return <>{children}</>;
+ * }
  * ```
  */
-export function useAdminAuth() {
+export function useAdminAuth(): UseAdminAuthResult {
   const { user, loading: authLoading } = useAuth();
+  
+  /** Whether the current user has admin role */
   const [isAdmin, setIsAdmin] = useState(false);
-  // Track which user ID we've completed checking - null means no check done yet
+  
+  /** Track which user ID we've completed checking - null means no check done yet */
   const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
+  
+  /** Ref to track in-progress check to prevent race conditions */
   const checkInProgress = useRef<string | null>(null);
 
   useEffect(() => {
@@ -53,6 +106,10 @@ export function useAdminAuth() {
     checkInProgress.current = user.id;
     const userIdBeingChecked = user.id;
 
+    /**
+     * Performs the admin role check via RPC
+     * @internal
+     */
     async function checkAdminRole() {
       try {
         const { data, error } = await supabase.rpc('has_role', {
@@ -91,5 +148,14 @@ export function useAdminAuth() {
   // 2. We have a user but haven't finished checking THIS user's role yet
   const loading = authLoading || (!!user && checkedUserId !== user.id);
 
-  return { isAdmin, loading, user, checked: !!user && checkedUserId === user.id };
+  return { 
+    /** Whether the current user has admin role */
+    isAdmin, 
+    /** Whether the role check is in progress */
+    loading, 
+    /** The current authenticated user object */
+    user, 
+    /** Whether the role check has completed for the current user */
+    checked: !!user && checkedUserId === user.id 
+  };
 }
