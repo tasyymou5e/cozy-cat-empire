@@ -1,34 +1,37 @@
 import { useState } from 'react';
-import { GameState, Cat, BREEDS } from '@/types/game';
+import { Cat } from '@/types/game';
 import { 
   SHOW_TIERS, ShowTier, ShowTierInfo, 
   getSeason, getCurrentSeasonalEvent, getSpecialEvent, getAvailableTiers, SEASONS 
 } from '@/types/showEvents';
-import { MIN_SHOW_GRADE } from '@/types/grading';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trophy, Star, Calendar, Sparkles } from 'lucide-react';
+import { Trophy, Star, Sparkles } from 'lucide-react';
 
 interface CatShowPanelProps {
-  state: GameState;
+  day: number;
+  totalShowWins: number;
+  showCooldown: number;
+  cats: Cat[];
+  money: number;
   onEnterShow: (tier: ShowTier) => void;
 }
 
-export function CatShowPanel({ state, onEnterShow }: CatShowPanelProps) {
+export function CatShowPanel({ day, totalShowWins, showCooldown, cats, money, onEnterShow }: CatShowPanelProps) {
   const [selectedTier, setSelectedTier] = useState<ShowTier>('local');
   const [isOpen, setIsOpen] = useState(false);
 
-  const season = getSeason(state.day);
+  const season = getSeason(day);
   const seasonInfo = SEASONS[season];
-  const seasonalEvent = getCurrentSeasonalEvent(state.day);
-  const specialEvent = getSpecialEvent(state.day);
-  const availableTiers = getAvailableTiers(state.totalShowWins);
-  const showAvailable = state.showCooldown === 0;
+  const seasonalEvent = getCurrentSeasonalEvent(day);
+  const specialEvent = getSpecialEvent(day);
+  const availableTiers = getAvailableTiers(totalShowWins);
+  const showAvailable = showCooldown === 0;
 
-  const eligibleCats = state.cats.filter(c => c.health >= 70 && c.happiness >= 60);
+  const eligibleCats = cats.filter(c => c.health >= 70 && c.happiness >= 60);
   
   const getEligibleForTier = (tier: ShowTierInfo) => {
     return eligibleCats.filter(c => c.grade >= tier.minGrade);
@@ -36,7 +39,7 @@ export function CatShowPanel({ state, onEnterShow }: CatShowPanelProps) {
 
   const currentTier = SHOW_TIERS.find(t => t.id === selectedTier)!;
   const eligibleForSelected = getEligibleForTier(currentTier);
-  const canAffordEntry = state.money >= currentTier.entryFee;
+  const canAffordEntry = money >= currentTier.entryFee;
 
   const handleEnterShow = () => {
     onEnterShow(selectedTier);
@@ -64,7 +67,7 @@ export function CatShowPanel({ state, onEnterShow }: CatShowPanelProps) {
               </Badge>
             </span>
           ) : (
-            <>🎪 Next Show in {state.showCooldown} days</>
+            <>🎪 Next Show in {showCooldown} days</>
           )}
         </Button>
       </DialogTrigger>
@@ -82,7 +85,7 @@ export function CatShowPanel({ state, onEnterShow }: CatShowPanelProps) {
           <span className="text-2xl">{seasonInfo.emoji}</span>
           <div className="flex-1">
             <p className="font-medium">{seasonInfo.name} Season</p>
-            <p className="text-xs text-muted-foreground">Day {state.day}</p>
+            <p className="text-xs text-muted-foreground">Day {day}</p>
           </div>
           {seasonalEvent && (
             <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
@@ -197,7 +200,7 @@ export function CatShowPanel({ state, onEnterShow }: CatShowPanelProps) {
         {/* Enter Button */}
         <div className="flex items-center justify-between pt-2">
           <div className="text-sm text-muted-foreground">
-            Your wins: <span className="font-bold">{state.totalShowWins}</span>
+            Your wins: <span className="font-bold">{totalShowWins}</span>
           </div>
           <Button 
             onClick={handleEnterShow}

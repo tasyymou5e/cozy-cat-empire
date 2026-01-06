@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameState, HOUSE_UPGRADES } from '@/types/game';
+import { Cat, HOUSE_UPGRADES } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
 import { ShowTier, getSeason, SEASONS, getCurrentSeasonalEvent, getSpecialEvent } from '@/types/showEvents';
 import { CatShowPanel } from './CatShowPanel';
@@ -11,17 +11,20 @@ import { Badge } from '@/components/ui/badge';
  * Props for the StatusBar component
  */
 interface StatusBarProps {
-  /** Current game state */
-  state: GameState;
-  /** Callback when upgrading home */
+  day: number;
+  money: number;
+  cats: Cat[];
+  space: number;
+  houseSize: 'apartment' | 'house' | 'mansion' | 'farm';
+  acres: number;
+  totalShowWins: number;
+  showCooldown: number;
   onUpgrade: () => void;
-  /** Callback when entering a cat show */
   onCatShow: (tier: ShowTier) => void;
-  /** Cat relationships for social stats display */
   relationships?: CatRelationship[];
 }
 
-const houseEmojis = {
+const houseEmojis: Record<string, string> = {
   apartment: '🏢',
   house: '🏡',
   mansion: '🏰',
@@ -33,38 +36,26 @@ const houseEmojis = {
  * 
  * Shows current day, season, money, cat count, home size, show wins, and
  * relationship summary. Includes upgrade button and cat show panel.
- * 
- * @example
- * ```tsx
- * <StatusBar 
- *   state={gameState}
- *   onUpgrade={handleUpgrade}
- *   onCatShow={handleCatShow}
- *   relationships={relationships}
- * />
- * ```
  */
 export const StatusBar = React.forwardRef<HTMLDivElement, StatusBarProps>(
-  function StatusBar({ state, onUpgrade, onCatShow, relationships = [] }, ref) {
+  function StatusBar({ day, money, cats, space, houseSize, acres, totalShowWins, showCooldown, onUpgrade, onCatShow, relationships = [] }, ref) {
   let nextCost: number;
   let canUpgrade: boolean;
   
-  if (state.houseSize === 'farm') {
-    nextCost = 5000 * (state.acres + 1);
-    canUpgrade = state.money >= nextCost && state.acres < 100;
+  if (houseSize === 'farm') {
+    nextCost = 5000 * (acres + 1);
+    canUpgrade = money >= nextCost && acres < 100;
   } else {
-    const upgrade = HOUSE_UPGRADES[state.houseSize];
+    const upgrade = HOUSE_UPGRADES[houseSize];
     nextCost = upgrade.cost;
-    canUpgrade = state.money >= nextCost;
+    canUpgrade = money >= nextCost;
   }
   
-  const eligibleForShow = state.cats.filter(c => c.health >= 70 && c.happiness >= 60).length;
-  
   // Season info
-  const season = getSeason(state.day);
+  const season = getSeason(day);
   const seasonInfo = SEASONS[season];
-  const seasonalEvent = getCurrentSeasonalEvent(state.day);
-  const specialEvent = getSpecialEvent(state.day);
+  const seasonalEvent = getCurrentSeasonalEvent(day);
+  const specialEvent = getSpecialEvent(day);
 
   // Calculate relationship stats
   const friendCount = relationships.filter(r => r.score >= 20).length;
@@ -77,7 +68,7 @@ export const StatusBar = React.forwardRef<HTMLDivElement, StatusBarProps>(
           <span className="text-2xl">📅</span>
           <div>
             <p className="text-xs text-muted-foreground">Day</p>
-            <p className="font-bold">{state.day}</p>
+            <p className="font-bold">{day}</p>
           </div>
         </div>
 
@@ -98,7 +89,7 @@ export const StatusBar = React.forwardRef<HTMLDivElement, StatusBarProps>(
           <span className="text-2xl">💰</span>
           <div>
             <p className="text-xs text-muted-foreground">Money</p>
-            <p className="font-bold text-lg text-gradient-gold">${state.money}</p>
+            <p className="font-bold text-lg text-gradient-gold">${money}</p>
           </div>
         </div>
         
@@ -106,18 +97,18 @@ export const StatusBar = React.forwardRef<HTMLDivElement, StatusBarProps>(
           <span className="text-2xl">🐱</span>
           <div>
             <p className="text-xs text-muted-foreground">Cats</p>
-            <p className="font-bold">{state.cats.length}/{state.space}</p>
+            <p className="font-bold">{cats.length}/{space}</p>
           </div>
-          <Progress value={(state.cats.length / state.space) * 100} className="w-16 h-1.5 mt-1" />
+          <Progress value={(cats.length / space) * 100} className="w-16 h-1.5 mt-1" />
         </div>
         
         <div className="status-item">
-          <span className="text-2xl">{houseEmojis[state.houseSize]}</span>
+          <span className="text-2xl">{houseEmojis[houseSize]}</span>
           <div>
             <p className="text-xs text-muted-foreground">Home</p>
             <p className="font-bold capitalize">
-              {state.houseSize}
-              {state.houseSize === 'farm' && ` (${state.acres}/100 ac)`}
+              {houseSize}
+              {houseSize === 'farm' && ` (${acres}/100 ac)`}
             </p>
           </div>
           <Button 
@@ -135,7 +126,7 @@ export const StatusBar = React.forwardRef<HTMLDivElement, StatusBarProps>(
           <span className="text-2xl">🏆</span>
           <div>
             <p className="text-xs text-muted-foreground">Show Wins</p>
-            <p className="font-bold">{state.totalShowWins}</p>
+            <p className="font-bold">{totalShowWins}</p>
           </div>
         </div>
         
@@ -156,7 +147,14 @@ export const StatusBar = React.forwardRef<HTMLDivElement, StatusBarProps>(
       </div>
       
       <div className="status-actions">
-        <CatShowPanel state={state} onEnterShow={onCatShow} />
+        <CatShowPanel 
+          day={day}
+          totalShowWins={totalShowWins}
+          showCooldown={showCooldown}
+          cats={cats}
+          money={money}
+          onEnterShow={onCatShow} 
+        />
       </div>
     </div>
   );
