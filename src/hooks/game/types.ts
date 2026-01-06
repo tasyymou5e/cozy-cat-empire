@@ -17,6 +17,17 @@ import { SoundType } from '../useSoundEffects';
 import { ChallengeType } from '@/types/challenges';
 import { LogActivityParams } from '../usePlayerActivityLog';
 import { useRelationships } from '../useRelationships';
+import { CatRelationship, RelationshipEvent } from '@/types/relationships';
+
+// ============================================================================
+// Relationship Save Data Type
+// ============================================================================
+
+/** Data structure for saving/loading relationships */
+export interface RelationshipSaveData {
+  relationships: CatRelationship[];
+  events: RelationshipEvent[];
+}
 
 // ============================================================================
 // Type Definitions
