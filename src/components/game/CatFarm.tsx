@@ -154,8 +154,8 @@ export function CatFarm() {
     vipTier,
     isVIP,
   } = useDailyLoginRewards(user?.id, playSound, vibrateAchievement, fireConfetti);
-  const { newGiftAlert, clearNewGift, acceptGift: acceptCatGift, declineGift: declineCatGift } = useCatGifts(user?.id);
-  const { newTradeAlert, clearNewTrade, acceptTrade: acceptTradeOffer, declineTrade: declineTradeOffer } = useTrading(user?.id);
+  const { receivedGifts, newGiftAlert, clearNewGift, acceptGift: acceptCatGift, declineGift: declineCatGift } = useCatGifts(user?.id);
+  const { incomingTrades, newTradeAlert, clearNewTrade, acceptTrade: acceptTradeOffer, declineTrade: declineTradeOffer } = useTrading(user?.id);
   const { showOutdatedToast } = usePortraitOutdatedToast();
   
   // Relationship reminders system
@@ -184,7 +184,7 @@ export function CatFarm() {
   const { battlePass, season, xpProgress, addXP: addBattlePassXP, claimReward: claimBPReward, getUnclaimedRewards, canClaimReward: canClaimBPReward, upgradeToPremium } = useBattlePass(user?.id);
   
   // Friends for coop challenges
-  const { friends } = useFriends(user?.id);
+  const { friends, pendingRequests } = useFriends(user?.id);
   
   // Coop Challenges system
   const { 
@@ -323,8 +323,37 @@ export function CatFarm() {
       badges['bulk'] = bulkActionsNeeded;
     }
 
+    // Phase 6: Additional badges
+    // Gifts - pending gifts count (received gifts with pending status)
+    const pendingGiftsCount = receivedGifts?.filter(g => g.status === 'pending').length || 0;
+    if (pendingGiftsCount > 0) {
+      badges['gifts'] = pendingGiftsCount;
+    }
+
+    // Trading - pending trades count (incoming trades with pending status)
+    const pendingTradesCount = incomingTrades?.filter(t => t.status === 'pending').length || 0;
+    if (pendingTradesCount > 0) {
+      badges['trading'] = pendingTradesCount;
+    }
+
+    // Friends - friend requests count
+    if (pendingRequests && pendingRequests.length > 0) {
+      badges['friends'] = pendingRequests.length;
+    }
+
+    // Challenges - claimable rewards (completed but not claimed)
+    const claimableChallenges = challenges?.filter(c => c.progress?.completed && !c.progress?.reward_claimed).length || 0;
+    if (claimableChallenges > 0) {
+      badges['challenges'] = claimableChallenges;
+    }
+
+    // Breeding - cooldown ready indicator
+    if (state.breedingCooldown === 0 && state.cats.length >= 2) {
+      badges['breeding'] = 1;
+    }
+
     return badges;
-  }, [objectives, allObjectivesCompleted, canSpin, spinsRemaining, retiredCats.length, specializations.length, getUnclaimedRewards, getCoopActiveCount, getCoopPendingCount, relationshipNeedsAttention, state.cats, state.day, relationshipSystem.relationships]);
+  }, [objectives, allObjectivesCompleted, canSpin, spinsRemaining, retiredCats.length, specializations.length, getUnclaimedRewards, getCoopActiveCount, getCoopPendingCount, relationshipNeedsAttention, state.cats, state.day, relationshipSystem.relationships, receivedGifts, incomingTrades, pendingRequests, challenges, state.breedingCooldown]);
 
   // Calculate category-level badges
   const categoryBadges = useMemo(() => {

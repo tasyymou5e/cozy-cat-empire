@@ -43,6 +43,7 @@ interface Cat {
   appearance?: CatAppearance; // Custom appearance options
   portraitUrl?: string; // AI-generated portrait
   appearanceHash?: string; // Hash for detecting outdated portraits
+  specialization?: 'show_star' | 'social_butterfly' | 'dynasty_builder'; // Specialization path
 }
 ```
 
@@ -358,11 +359,20 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 
 ### Main Game (`src/components/game/CatFarm.tsx`)
 - Master component orchestrating all panels
-- Tab-based sidebar layout
+- Category-based tab navigation (5 categories with sub-tabs)
 - Audio controls in header
+- Quick Access dropdown menu
 - Notification center
 - Cloud sync indicator
 - What's New popup for returning players
+- Mobile bottom navigation support
+
+### Navigation Components:
+- **CategoryTabBar.tsx**: Two-tier grouped tab navigation with 5 categories (Farm, Cats, Social, Progress, Settings)
+- **QuickAccessMenu.tsx**: Header dropdown with recent tabs and external page links
+- **MobileBottomNav.tsx**: Fixed bottom navigation for mobile devices
+- **MobileMenuSheet.tsx**: Full-screen mobile menu sheet
+- **Breadcrumbs.tsx**: Navigation breadcrumbs for external pages
 
 ### Cat Display Components:
 - **CatCard.tsx**: Individual cat display with stats, actions, inline rename

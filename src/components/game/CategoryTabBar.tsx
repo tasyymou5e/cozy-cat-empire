@@ -216,30 +216,38 @@ export function CategoryTabBar({ activeTab, onTabChange, highlightedTab, badges 
           const badgeCount = badges[tab.id] || 0;
 
           return (
-            <TabsTrigger
-              key={tab.id}
-              value={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              title={`${tab.label}: ${tab.description}`}
-              className={cn(
-                'relative flex-shrink-0 min-w-10 min-h-10 text-base px-3 transition-all',
-                isHighlighted && 'ring-2 ring-primary animate-pulse'
-              )}
-            >
-              <span className="flex items-center gap-1.5">
-                {typeof tab.icon === 'string' ? (
-                  <span>{tab.icon}</span>
-                ) : (
-                  tab.icon
-                )}
-                {!isMobile && <span className="text-xs hidden sm:inline">{tab.label}</span>}
-              </span>
-              {badgeCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full text-[10px] flex items-center justify-center text-primary-foreground">
-                  {badgeCount > 9 ? '9+' : badgeCount}
-                </span>
-              )}
-            </TabsTrigger>
+            <Tooltip key={tab.id}>
+              <TooltipTrigger asChild>
+                <TabsTrigger
+                  value={tab.id}
+                  onClick={() => onTabChange(tab.id)}
+                  className={cn(
+                    'relative flex-shrink-0 min-w-10 min-h-10 text-base px-3 transition-all',
+                    isHighlighted && 'ring-2 ring-primary animate-pulse'
+                  )}
+                >
+                  <span className="flex items-center gap-1.5">
+                    {typeof tab.icon === 'string' ? (
+                      <span>{tab.icon}</span>
+                    ) : (
+                      tab.icon
+                    )}
+                    {!isMobile && <span className="text-xs hidden sm:inline">{tab.label}</span>}
+                  </span>
+                  {badgeCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full text-[10px] flex items-center justify-center text-primary-foreground">
+                      {badgeCount > 9 ? '9+' : badgeCount}
+                    </span>
+                  )}
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="text-center">
+                  <div className="font-medium">{tab.label}</div>
+                  <div className="text-xs text-muted-foreground">{tab.description}</div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
           );
         })}
       </TabsList>

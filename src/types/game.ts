@@ -28,6 +28,8 @@ export interface Cat {
   portraitUrl?: string; // AI-generated portrait URL
   portraitGeneratedAt?: number; // Timestamp of generation
   appearanceHash?: string; // Hash of appearance/costume when portrait was generated (for caching)
+  // Specialization system
+  specialization?: 'show_star' | 'social_butterfly' | 'dynasty_builder';
 }
 
 export interface Resources {
