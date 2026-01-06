@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Player-to-player trading system hook
+ * 
+ * Provides functionality for creating, accepting, declining, and cancelling
+ * trade offers between players. Supports trading cats, money, and resources.
+ * Includes real-time updates via Supabase subscriptions.
+ * 
+ * @module hooks/useTrading
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Cat, Resources } from '@/types/game';
@@ -6,6 +16,23 @@ import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
 /**
  * Trade offer data structure
+ * 
+ * @interface TradeOffer
+ * @property {string} id - Unique trade offer ID
+ * @property {string} sender_id - ID of the player who created the trade
+ * @property {string} recipient_id - ID of the player receiving the trade offer
+ * @property {Cat[]} offered_cats - Cats being offered by the sender
+ * @property {number} offered_money - Money being offered by the sender
+ * @property {Partial<Resources>} offered_resources - Resources being offered
+ * @property {Cat[]} requested_cats - Cats requested from the recipient
+ * @property {number} requested_money - Money requested from the recipient
+ * @property {Partial<Resources>} requested_resources - Resources requested
+ * @property {string | null} message - Optional message from the sender
+ * @property {'pending' | 'accepted' | 'declined' | 'cancelled'} status - Trade status
+ * @property {string} created_at - ISO timestamp of trade creation
+ * @property {string} expires_at - ISO timestamp of trade expiration
+ * @property {string} [sender_name] - Display name of the sender (populated for incoming trades)
+ * @property {string} [recipient_name] - Display name of the recipient (populated for outgoing trades)
  */
 interface TradeOffer {
   id: string;
@@ -27,6 +54,15 @@ interface TradeOffer {
 
 /**
  * Data required to create a new trade offer
+ * 
+ * @interface TradeData
+ * @property {string} recipientId - ID of the player to send the trade to
+ * @property {Cat[]} offeredCats - Cats to offer in the trade
+ * @property {number} offeredMoney - Money to offer (coins)
+ * @property {Partial<Resources>} offeredResources - Resources to offer
+ * @property {number} requestedMoney - Money to request from recipient
+ * @property {Partial<Resources>} requestedResources - Resources to request
+ * @property {string} [message] - Optional message to include with the trade
  */
 interface TradeData {
   recipientId: string;
@@ -39,36 +75,119 @@ interface TradeData {
 }
 
 /**
+ * Result of a trade operation
+ * 
+ * @interface TradeResult
+ * @property {boolean} success - Whether the operation succeeded
+ * @property {string} [error] - Error message if operation failed
+ */
+interface TradeResult {
+  success: boolean;
+  error?: string;
+}
+
+/**
  * Hook for managing player-to-player trading
- *
- * Handles creating, accepting, declining, and cancelling trade offers.
- * Includes real-time updates for incoming trades.
- *
- * @param userId - The current user's ID
- * @returns Trade lists and trade management functions
- *
+ * 
+ * Provides functionality to:
+ * - Fetch incoming and outgoing trade offers
+ * - Create new trade offers with cats, money, and resources
+ * - Accept incoming trades (returns the traded cats)
+ * - Decline or cancel trades
+ * - Real-time notifications for new incoming trades
+ * 
+ * Trade offers automatically expire after 7 days.
+ * All operations show toast notifications and log to player activity.
+ * 
+ * @param {string | undefined} userId - The current user's ID (undefined if not logged in)
+ * @returns {Object} Trading state and functions
+ * 
  * @example
  * ```tsx
- * const { incomingTrades, createTrade, acceptTrade } = useTrading(userId);
- *
- * // Create a new trade offer
- * await createTrade({
- *   recipientId: friendId,
- *   offeredCats: [cat],
- *   offeredMoney: 100,
- *   requestedMoney: 50
- * });
- *
- * // Accept an incoming trade
- * const tradedCats = await acceptTrade(tradeId);
+ * function TradingPanel() {
+ *   const { user } = useAuth();
+ *   const {
+ *     incomingTrades,
+ *     outgoingTrades,
+ *     loading,
+ *     createTrade,
+ *     acceptTrade,
+ *     declineTrade,
+ *     cancelTrade,
+ *     newTradeAlert,
+ *     clearNewTrade
+ *   } = useTrading(user?.id);
+ * 
+ *   // Create a trade offering a cat for 500 coins
+ *   const handleCreateTrade = async (friendId: string, cat: Cat) => {
+ *     const result = await createTrade({
+ *       recipientId: friendId,
+ *       offeredCats: [cat],
+ *       offeredMoney: 0,
+ *       offeredResources: {},
+ *       requestedMoney: 500,
+ *       requestedResources: {},
+ *       message: 'Want to trade?'
+ *     });
+ *     
+ *     if (result.success) {
+ *       // Cat should be removed from sender's inventory
+ *       removeCatFromState(cat.id);
+ *     }
+ *   };
+ * 
+ *   // Accept an incoming trade
+ *   const handleAccept = async (tradeId: string) => {
+ *     const trade = await acceptTrade(tradeId);
+ *     if (trade) {
+ *       // Add received cats to inventory
+ *       trade.offered_cats.forEach(addCatToState);
+ *       // Apply money changes
+ *       addMoney(trade.offered_money - trade.requested_money);
+ *     }
+ *   };
+ * 
+ *   // Show popup when new trade arrives
+ *   useEffect(() => {
+ *     if (newTradeAlert) {
+ *       showTradePopup(newTradeAlert);
+ *     }
+ *   }, [newTradeAlert]);
+ * 
+ *   return (
+ *     <div>
+ *       <h2>Incoming ({incomingTrades.length})</h2>
+ *       {incomingTrades.map(trade => (
+ *         <TradeCard key={trade.id} trade={trade} onAccept={handleAccept} />
+ *       ))}
+ *       <h2>Outgoing ({outgoingTrades.length})</h2>
+ *       {outgoingTrades.map(trade => (
+ *         <TradeCard key={trade.id} trade={trade} onCancel={cancelTrade} />
+ *       ))}
+ *     </div>
+ *   );
+ * }
  * ```
  */
 export function useTrading(userId: string | undefined) {
+  /** List of pending incoming trade offers */
   const [incomingTrades, setIncomingTrades] = useState<TradeOffer[]>([]);
+  
+  /** List of all outgoing trade offers (any status) */
   const [outgoingTrades, setOutgoingTrades] = useState<TradeOffer[]>([]);
+  
+  /** Whether data is currently being fetched */
   const [loading, setLoading] = useState(true);
+  
+  /** New trade alert for popup notification */
   const [newTradeAlert, setNewTradeAlert] = useState<TradeOffer | null>(null);
 
+  /**
+   * Fetches all incoming and outgoing trades from the database
+   * 
+   * @internal
+   * @returns {Promise<void>}
+   */
   const fetchTrades = useCallback(async () => {
     if (!userId) {
       setLoading(false);
@@ -76,7 +195,7 @@ export function useTrading(userId: string | undefined) {
     }
 
     try {
-      // Fetch incoming trades
+      // Fetch incoming trades (pending only)
       const { data: incoming, error: incomingError } = await supabase
         .from('trade_offers')
         .select('*')
@@ -86,7 +205,7 @@ export function useTrading(userId: string | undefined) {
 
       if (incomingError) throw incomingError;
 
-      // Fetch outgoing trades
+      // Fetch outgoing trades (all statuses for history)
       const { data: outgoing, error: outgoingError } = await supabase
         .from('trade_offers')
         .select('*')
@@ -95,7 +214,7 @@ export function useTrading(userId: string | undefined) {
 
       if (outgoingError) throw outgoingError;
 
-      // Get sender/recipient names
+      // Get sender/recipient names for display
       const userIds = [...new Set([
         ...(incoming || []).map(t => t.sender_id),
         ...(outgoing || []).map(t => t.recipient_id)
@@ -139,11 +258,12 @@ export function useTrading(userId: string | undefined) {
     }
   }, [userId]);
 
+  // Initial fetch
   useEffect(() => {
     fetchTrades();
   }, [fetchTrades]);
 
-  // Real-time subscription for trade updates
+  // Real-time subscription for incoming trade updates
   useEffect(() => {
     if (!userId) return;
 
@@ -193,7 +313,30 @@ export function useTrading(userId: string | undefined) {
     };
   }, [userId, fetchTrades]);
 
-  const createTrade = async (tradeData: TradeData) => {
+  /**
+   * Creates a new trade offer
+   * 
+   * Sends a trade offer to another player. The offered cats should be
+   * removed from the sender's inventory when the trade is created.
+   * Trade offers expire after 7 days if not acted upon.
+   * 
+   * @param {TradeData} tradeData - The trade offer details
+   * @returns {Promise<TradeResult>} Result with success status and optional error
+   * 
+   * @example
+   * ```ts
+   * const result = await createTrade({
+   *   recipientId: 'friend-uuid',
+   *   offeredCats: [myCat],
+   *   offeredMoney: 100,
+   *   offeredResources: { food: 10 },
+   *   requestedMoney: 0,
+   *   requestedResources: {},
+   *   message: 'Trade you this cat for 100 coins!'
+   * });
+   * ```
+   */
+  const createTrade = async (tradeData: TradeData): Promise<TradeResult> => {
     if (!userId) return { success: false, error: 'Not logged in' };
 
     try {
@@ -212,7 +355,7 @@ export function useTrading(userId: string | undefined) {
 
       if (error) throw error;
 
-      // Log trade created activity (non-blocking)
+      // Log trade created activity
       logPlayerActivity(userId, {
         activityType: 'trade_created',
         activityDescription: `Created a trade offer with ${tradeData.offeredCats.length} cat(s)`,
@@ -241,6 +384,28 @@ export function useTrading(userId: string | undefined) {
     }
   };
 
+  /**
+   * Accepts an incoming trade offer
+   * 
+   * Marks the trade as accepted and returns the trade details.
+   * The caller should handle adding received cats and money to inventory.
+   * 
+   * @param {string} tradeId - The ID of the trade to accept
+   * @returns {Promise<TradeOffer | null>} The accepted trade, or null if failed
+   * 
+   * @example
+   * ```ts
+   * const trade = await acceptTrade(tradeId);
+   * if (trade) {
+   *   // Add received cats to your farm
+   *   trade.offered_cats.forEach(cat => addCat(cat));
+   *   // Add received money
+   *   addMoney(trade.offered_money);
+   *   // Deduct requested money
+   *   deductMoney(trade.requested_money);
+   * }
+   * ```
+   */
   const acceptTrade = async (tradeId: string): Promise<TradeOffer | null> => {
     if (!userId) return null;
     
@@ -255,7 +420,7 @@ export function useTrading(userId: string | undefined) {
 
       if (error) throw error;
 
-      // Log trade completed activity (non-blocking)
+      // Log trade completed activity
       logPlayerActivity(userId, {
         activityType: 'trade_completed',
         activityDescription: 'Completed a trade',
@@ -285,7 +450,15 @@ export function useTrading(userId: string | undefined) {
     }
   };
 
-  const declineTrade = async (tradeId: string) => {
+  /**
+   * Declines an incoming trade offer
+   * 
+   * Marks the trade as declined. The sender will see this in their outgoing trades.
+   * 
+   * @param {string} tradeId - The ID of the trade to decline
+   * @returns {Promise<boolean>} Whether the operation succeeded
+   */
+  const declineTrade = async (tradeId: string): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('trade_offers')
@@ -307,7 +480,15 @@ export function useTrading(userId: string | undefined) {
     }
   };
 
-  const cancelTrade = async (tradeId: string) => {
+  /**
+   * Cancels an outgoing trade offer
+   * 
+   * Marks the trade as cancelled. Only the sender can cancel their own trades.
+   * 
+   * @param {string} tradeId - The ID of the trade to cancel
+   * @returns {Promise<boolean>} Whether the operation succeeded
+   */
+  const cancelTrade = async (tradeId: string): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('trade_offers')
@@ -329,20 +510,35 @@ export function useTrading(userId: string | undefined) {
     }
   };
 
+  /**
+   * Clears the new trade alert popup
+   * 
+   * @returns {void}
+   */
   const clearNewTrade = useCallback(() => {
     setNewTradeAlert(null);
   }, []);
 
   return {
+    /** List of pending incoming trade offers */
     incomingTrades,
+    /** List of all outgoing trade offers */
     outgoingTrades,
+    /** Whether data is currently loading */
     loading,
+    /** Create a new trade offer */
     createTrade,
+    /** Accept an incoming trade */
     acceptTrade,
+    /** Decline an incoming trade */
     declineTrade,
+    /** Cancel an outgoing trade */
     cancelTrade,
+    /** Manually refresh trades */
     refetch: fetchTrades,
+    /** New trade alert for popup (real-time) */
     newTradeAlert,
+    /** Clear the new trade alert */
     clearNewTrade
   };
 }
