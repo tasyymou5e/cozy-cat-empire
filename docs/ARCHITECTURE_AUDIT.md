@@ -8,8 +8,8 @@
 This document captures the comprehensive architecture audit findings for the Cat Farm codebase. The audit identified 20 issues across 4 priority levels, with significant progress made on critical and structural improvements.
 
 **Progress Overview:**
-- ✅ 14 issues resolved
-- ⏳ 6 issues remaining
+- ✅ 16 issues resolved
+- ⏳ 4 issues remaining
 - 🏆 7 architectural strengths identified
 
 ---
@@ -132,18 +132,14 @@ src/
 
 ## Remaining Work
 
-### High Priority
-1. **Consolidate sound system** - Merge `useSoundEffects.ts` with `SoundContext.tsx`
-2. **Standardize error handling** - Create consistent pattern across hooks
-
 ### Medium Priority
-3. **Add domain hook tests** - `useBreeding`, `useTraining`, `useBulkActions`, `useCatShows`
-4. **Standardize panel data fetching** - Document or enforce pattern
+1. **Standardize error handling** - Create consistent pattern across hooks (#14)
+2. **Add domain hook tests** - `useBreeding`, `useTraining`, `useBulkActions`, `useCatShows` (#12)
+3. **Standardize panel data fetching** - Document or enforce pattern (#11)
 
 ### Low Priority
-5. **Add admin hooks JSDoc** - Match social hooks documentation style
-6. **Create action type enum** - Replace magic strings in `dispatchAction`
-7. **Add lazy loading** - Use `React.lazy` for panel components
+4. **Create action type enum** - Replace magic strings in `dispatchAction` (#17)
+5. **Add lazy loading** - Use `React.lazy` for panel components (#18)
 
 ---
 
@@ -154,7 +150,7 @@ src/
 | **Phase 1** | Critical Fixes | ✅ Complete | #1, #2, #3 |
 | **Phase 2** | Structural Improvements | ✅ Complete | #4, #5, #7, #8, #9 |
 | **Phase 3** | Code Organization | ✅ Complete | #10, #13, #15, #16, #20 |
-| **Phase 4** | Quality Enhancements | ⏳ In Progress | #6, #11, #12, #14, #17, #18, #19 |
+| **Phase 4** | Quality Enhancements | ⏳ In Progress | #11, #12, #14, #17, #18 |
 
 ---
 
