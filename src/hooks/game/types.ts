@@ -86,6 +86,10 @@ export interface GameActions {
   updateCatAppearance: (catId: string, appearance: CatAppearance) => void;
   /** Update cat's AI portrait URL */
   updateCatPortrait: (catId: string, portraitUrl: string, hash?: string) => void;
+  /** Set specialization on a cat */
+  setSpecialization: (catId: string, type: import('@/types/specializations').SpecializationType) => void;
+  /** Add XP to a specialized cat */
+  addSpecializationXP: (catId: string, amount: number) => void;
 
   // ============ Resources (6 actions) ============
   /** Purchase resources from shop */

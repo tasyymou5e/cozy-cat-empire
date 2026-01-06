@@ -143,7 +143,7 @@ export function useGameState(
 
   // Merge all actions into unified interface
   const actions: GameActions = useMemo(() => ({
-    // Cat Management (8)
+    // Cat Management (10)
     addCat: catManagementActions.addCat,
     buyFromMarket: catManagementActions.buyFromMarket,
     sellCat: catManagementActions.sellCat,
@@ -152,6 +152,8 @@ export function useGameState(
     addReceivedCat: catManagementActions.addReceivedCat,
     updateCatAppearance: catManagementActions.updateCatAppearance,
     updateCatPortrait: catManagementActions.updateCatPortrait,
+    setSpecialization: catManagementActions.setSpecialization,
+    addSpecializationXP: catManagementActions.addSpecializationXP,
 
     // Resources (6)
     buyResource: resourceActions.buyResource,

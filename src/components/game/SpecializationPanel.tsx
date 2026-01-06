@@ -7,10 +7,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Cat } from '@/types/game';
+import { Cat, CatSpecializationData } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
 import {
-  CatSpecialization,
   SpecializationType,
   SPECIALIZATIONS,
   SPECIALIZATION_MIN_GRADE,
@@ -25,13 +24,12 @@ import { CatAvatar } from './CatAvatar';
 
 interface SpecializationPanelProps {
   cats: Cat[];
-  specializations: CatSpecialization[];
   catCostumes: Record<string, string>;
   relationships: CatRelationship[];
   kittensBred: number;
-  onSpecialize: (catId: string, type: SpecializationType) => boolean;
+  onSpecialize: (catId: string, type: SpecializationType) => void;
   canSpecialize: (cat: Cat, friendshipCount: number, kittenCount: number) => ReturnType<typeof checkSpecializationEligibility>;
-  getSpecialization: (catId: string) => CatSpecialization | undefined;
+  getSpecialization: (cat: Cat) => CatSpecializationData | undefined;
   getActiveBonuses: () => {
     showScoreBonus: number;
     showMoneyBonus: number;
@@ -60,28 +58,28 @@ function SpecializedCatCard({
   catCostumes,
 }: {
   cat: Cat;
-  spec: CatSpecialization;
+  spec: CatSpecializationData;
   catCostumes: Record<string, string>;
 }) {
-  const specDef = SPECIALIZATIONS[spec.specialization];
+  const specDef = SPECIALIZATIONS[spec.type];
   const mastery = getMasteryLevel(spec.xp);
   const nextMastery = getNextMasteryLevel(spec.xp);
-  const Icon = SPEC_ICONS[spec.specialization];
+  const Icon = SPEC_ICONS[spec.type];
 
   const xpProgress = nextMastery
     ? ((spec.xp - mastery.xpRequired) / (nextMastery.xpRequired - mastery.xpRequired)) * 100
     : 100;
 
   return (
-    <div className={cn('p-3 rounded-lg border', SPEC_COLORS[spec.specialization])}>
+    <div className={cn('p-3 rounded-lg border', SPEC_COLORS[spec.type])}>
       <div className="flex items-start gap-3">
         <div className="relative">
           <CatAvatar cat={cat} equippedCostumeId={catCostumes[cat.id]} size="md" />
           <div className={cn(
             'absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs',
-            spec.specialization === 'show_star' && 'bg-amber-500',
-            spec.specialization === 'social_butterfly' && 'bg-pink-500',
-            spec.specialization === 'dynasty_builder' && 'bg-purple-500',
+            spec.type === 'show_star' && 'bg-amber-500',
+            spec.type === 'social_butterfly' && 'bg-pink-500',
+            spec.type === 'dynasty_builder' && 'bg-purple-500',
           )}>
             <Icon className="h-3 w-3" />
           </div>
@@ -90,7 +88,7 @@ function SpecializedCatCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-bold truncate">{cat.name}</span>
-            <Badge variant="outline" className={cn('text-xs', SPEC_COLORS[spec.specialization])}>
+            <Badge variant="outline" className={cn('text-xs', SPEC_COLORS[spec.type])}>
               {specDef.emoji} {specDef.name}
             </Badge>
           </div>
@@ -257,7 +255,6 @@ function EligibleCatCard({
 
 export function SpecializationPanel({
   cats,
-  specializations,
   catCostumes,
   relationships,
   kittensBred,
@@ -277,19 +274,19 @@ export function SpecializationPanel({
 
   // Find eligible cats
   const eligibleCats = cats.filter(cat => {
-    if (getSpecialization(cat.id)) return false;
+    if (getSpecialization(cat)) return false;
     const eligibility = canSpecialize(cat, getFriendshipCount(cat.id), kittensBred);
     return eligibility.isEligible;
   });
 
   // Find almost eligible cats (Grade 10-11)
   const almostEligibleCats = cats.filter(cat => {
-    if (getSpecialization(cat.id)) return false;
+    if (getSpecialization(cat)) return false;
     return cat.grade >= 10 && cat.grade < SPECIALIZATION_MIN_GRADE;
   }).slice(0, 3);
 
   // Specialized cats
-  const specializedCats = cats.filter(cat => getSpecialization(cat.id));
+  const specializedCats = cats.filter(cat => getSpecialization(cat));
 
   const hasAnyBonuses = Object.values(bonuses).some(v => v > 0);
 
@@ -302,7 +299,7 @@ export function SpecializationPanel({
             <CardTitle className="text-lg">Specializations</CardTitle>
           </div>
           <Badge className="bg-primary/20 text-primary border-primary/30">
-            {specializations.length} Specialists
+            {specializedCats.length} Specialists
           </Badge>
         </div>
         <CardDescription>
@@ -426,7 +423,7 @@ export function SpecializationPanel({
             <ScrollArea className="h-[250px] pr-2">
               <div className="space-y-2">
                 {specializedCats.map(cat => {
-                  const spec = getSpecialization(cat.id)!;
+                  const spec = getSpecialization(cat)!;
                   return (
                     <SpecializedCatCard
                       key={cat.id}

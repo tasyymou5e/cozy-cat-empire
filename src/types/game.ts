@@ -1,8 +1,17 @@
 import { TrickId } from './grading';
 import { CatAppearance } from './catAppearance';
+import { SpecializationType } from './specializations';
 
 export type CatBreed = 'stray' | 'tabby' | 'persian' | 'siamese' | 'maine-coon' | 'british-shorthair' | 'ragdoll' | 'bengal';
 export type CatPersonality = 'lazy' | 'playful' | 'affectionate' | 'independent' | 'curious' | 'shy';
+
+/** Extended specialization data stored on cat */
+export interface CatSpecializationData {
+  type: SpecializationType;
+  level: number; // 1-3 mastery
+  xp: number;
+  specializedAt: string; // ISO date
+}
 
 export interface Cat {
   id: string;
@@ -28,8 +37,8 @@ export interface Cat {
   portraitUrl?: string; // AI-generated portrait URL
   portraitGeneratedAt?: number; // Timestamp of generation
   appearanceHash?: string; // Hash of appearance/costume when portrait was generated (for caching)
-  // Specialization system
-  specialization?: 'show_star' | 'social_butterfly' | 'dynasty_builder';
+  // Specialization system - now stores full data
+  specialization?: CatSpecializationData;
 }
 
 export interface Resources {

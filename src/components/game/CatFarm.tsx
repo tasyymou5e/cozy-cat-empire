@@ -192,8 +192,8 @@ export function CatFarm() {
   // Hall of Fame / Legacy system
   const { retiredCats, totalLegacyBonus, retireCat, canRetire, getEligibility, getKittenBonuses } = useLegacy(user?.id);
   
-  // Specialization system
-  const { specializations, specializeCat, getSpecialization, addXP, canSpecialize, getActiveBonuses: getSpecBonuses, getSpecializedCats } = useSpecializations();
+  // Specialization system (stateless utilities - uses Cat.specialization)
+  const { canSpecialize, getSpecialization, getActiveBonuses: getSpecBonuses, getSpecializedCats, migrateLegacyData: migrateSpecializations } = useSpecializations();
   
   // Battle Pass system
   const { battlePass, season, xpProgress, addXP: addBattlePassXP, claimReward: claimBPReward, getUnclaimedRewards, canClaimReward: canClaimBPReward, upgradeToPremium } = useBattlePass(user?.id);
@@ -290,7 +290,7 @@ export function CatFarm() {
     canSpin,
     spinsRemaining,
     retiredCatsCount: retiredCats.length,
-    specializationsCount: specializations.length,
+    specializationsCount: state.cats.filter(c => c.specialization).length,
     getUnclaimedRewards,
     getCoopActiveCount,
     getCoopPendingCount,
@@ -1020,14 +1020,13 @@ export function CatFarm() {
               <PanelErrorBoundary panelName="SpecializationPanel">
                 <SpecializationPanel
                   cats={state.cats}
-                  specializations={specializations}
                   catCostumes={state.catCostumes}
                   relationships={relationshipSystem.relationships}
                   kittensBred={kittensBreed}
-                  onSpecialize={specializeCat}
+                  onSpecialize={actions.setSpecialization}
                   canSpecialize={canSpecialize}
                   getSpecialization={getSpecialization}
-                  getActiveBonuses={getSpecBonuses}
+                  getActiveBonuses={() => getSpecBonuses(state.cats)}
                 />
               </PanelErrorBoundary>
             </TabsContent>
