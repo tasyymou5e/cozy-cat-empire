@@ -28,21 +28,36 @@ This plan addresses architectural issues identified in the audit, prioritized by
 
 ---
 
-### Step 1.2: Split useGameState into Domain Hooks
+### Step 1.2: Split useGameState into Domain Hooks ✅ COMPLETED
 
-**Files to Create:**
-- `src/hooks/game/useCatManagement.ts` - Cat CRUD operations
-- `src/hooks/game/useResources.ts` - Resource management
-- `src/hooks/game/useBreeding.ts` - Breeding mechanics
-- `src/hooks/game/useTraining.ts` - Training mechanics
-- `src/hooks/game/useCatShows.ts` - Show logic
-- `src/hooks/game/useBulkActions.ts` - Bulk operations
-- `src/hooks/game/useAchievements.ts` - Achievement tracking
-- `src/hooks/game/index.ts` - Composes all domain hooks
+**Files Created:**
+- `src/hooks/game/types.ts` - Shared types, GameHookDependencies, utility functions (165 lines)
+- `src/hooks/game/useCatManagement.ts` - Cat CRUD: addCat, sellCat, renameCat, feedSingleCat, comfortCat, updateCatAppearance, updateCatPortrait, buyFromMarket (185 lines)
+- `src/hooks/game/useResources.ts` - Resource management: buyResource, feedCats, useToys, useMedicine, applyResourceEffect, regenerateMarket (155 lines)
+- `src/hooks/game/useSaveLoad.ts` - Save/load: saveGame, loadGame, hasSaveGame, resetGame, loadFromData, clearMessage (145 lines)
+- `src/hooks/game/useCostumes.ts` - Costume management: buyCostume, equipCostume (85 lines)
+- `src/hooks/game/useTraining.ts` - Training: trainCat, restCat, doGroupActivity, socializeCats (165 lines)
+- `src/hooks/game/useBreeding.ts` - Breeding: breedCats with compatibility checks and kitten inheritance (175 lines)
+- `src/hooks/game/useBulkActions.ts` - Bulk operations: healAllSickCats, restAllTiredCats, comfortAllUnhappyCats, trainAllAvailableCats, sellSelectedCats, socializeAllNeglected (225 lines)
+- `src/hooks/game/useCatShows.ts` - Show logic: catShow with tier handling, seasonal events, scoring (195 lines)
+- `src/hooks/game/useGameCore.ts` - Core game: doChore, upgradeHouse, nextDay, processDailyEvent, clearDailyEvent, dismissMessage, deductMoney, setMoney (215 lines)
+- `src/hooks/game/index.ts` - Composer that combines all 9 domain hooks into unified useGameState export (155 lines)
 
-**Current useGameState.ts:** 1,444 lines, 60+ useCallback functions
+**Result:**
+- Replaced monolithic 1,444-line useGameState.ts with 11 focused domain hooks
+- Total: ~1,665 lines across 11 files (better organized, each <225 lines)
+- All 42 game actions preserved with identical API
+- TypeScript GameActions interface enforces completeness
+- Single-line import change: `import { useGameState } from '@/hooks/game'`
 
-**After refactor:** Each domain hook ~100-200 lines, single responsibility
+**Files Updated to Use Modular Version:**
+- `src/components/game/CatFarm.tsx`
+- `src/pages/CatCollection.tsx`
+- `src/pages/CatCustomization.tsx`
+- `src/pages/CatPhotoBooth.tsx`
+- `src/pages/CatRelationships.tsx`
+
+**Legacy File:** `src/hooks/useGameState.ts` can now be deleted (1,444 lines)
 
 ---
 
@@ -199,44 +214,51 @@ Remove the redundant direct hook call at line 130.
 
 ## File Summary
 
-### Files to Create
+### Files Created
 
-| File | Purpose |
-|------|---------|
-| `src/hooks/useGameEvents.ts` | Central action dispatcher |
-| `src/hooks/game/useCatManagement.ts` | Cat CRUD |
-| `src/hooks/game/useResources.ts` | Resources |
-| `src/hooks/game/useBreeding.ts` | Breeding |
-| `src/hooks/game/useTraining.ts` | Training |
-| `src/hooks/game/useCatShows.ts` | Shows |
-| `src/hooks/game/useBulkActions.ts` | Bulk ops |
-| `src/hooks/game/useAchievements.ts` | Achievements |
-| `src/hooks/game/index.ts` | Barrel |
-| `src/hooks/useGameMessages.ts` | Unified messages |
-| `src/hooks/useBadgeCounts.ts` | Badge calculation |
-| `src/hooks/index.ts` | Barrel export |
-| `src/types/catNames.ts` | Name generation data |
-| `src/lib/relationshipUtils.ts` | Relationship utilities |
-| `src/components/game/CatFarmHeader.tsx` | Header component |
-| `src/components/game/CatFarmContent.tsx` | Content component |
-| `src/components/game/CatFarmProviders.tsx` | Providers wrapper |
-| `src/components/game/panels/*.tsx` | Category panels |
-| `src/components/game/PanelErrorBoundary.tsx` | Error boundary ✅ Created |
+| File | Purpose | Status |
+|------|---------|--------|
+| `src/hooks/useGameEvents.ts` | Central action dispatcher | ✅ Created |
+| `src/hooks/game/types.ts` | Shared types & utilities | ✅ Created |
+| `src/hooks/game/useCatManagement.ts` | Cat CRUD (8 actions) | ✅ Created |
+| `src/hooks/game/useResources.ts` | Resources (6 actions) | ✅ Created |
+| `src/hooks/game/useSaveLoad.ts` | Save/load (6 actions) | ✅ Created |
+| `src/hooks/game/useCostumes.ts` | Costumes (2 actions) | ✅ Created |
+| `src/hooks/game/useBreeding.ts` | Breeding (1 action) | ✅ Created |
+| `src/hooks/game/useTraining.ts` | Training (4 actions) | ✅ Created |
+| `src/hooks/game/useCatShows.ts` | Shows (1 action) | ✅ Created |
+| `src/hooks/game/useBulkActions.ts` | Bulk ops (6 actions) | ✅ Created |
+| `src/hooks/game/useGameCore.ts` | Core game (8 actions) | ✅ Created |
+| `src/hooks/game/index.ts` | Composer (42 actions total) | ✅ Created |
+| `src/hooks/useBadgeCounts.ts` | Badge calculation | ✅ Created |
+| `src/types/catNames.ts` | Name generation data | ✅ Created |
+| `src/lib/relationshipUtils.ts` | Relationship utilities | ✅ Created |
+| `src/components/game/PanelErrorBoundary.tsx` | Error boundary | ✅ Created |
+| `src/hooks/useGameMessages.ts` | Unified messages | ❌ Not started |
+| `src/hooks/index.ts` | Barrel export | ❌ Not started |
+| `src/components/game/CatFarmHeader.tsx` | Header component | ❌ Not started |
+| `src/components/game/CatFarmContent.tsx` | Content component | ❌ Not started |
+| `src/components/game/CatFarmProviders.tsx` | Providers wrapper | ❌ Not started |
+| `src/components/game/panels/*.tsx` | Category panels | ❌ Not started |
 
 ### Files Deleted
 
 | File | Status |
 |------|--------|
-| `src/components/game/CatCard.tsx` | ✅ Deleted (Phase 2.2)
+| `src/components/game/CatCard.tsx` | ✅ Deleted (Phase 2.2) |
+| `src/hooks/useGameState.ts` | 🔜 Ready to delete (Phase 1.2) |
 
-### Files to Heavily Modify
+### Files Modified
 
-| File | Changes |
-|------|---------|
-| `src/hooks/useGameState.ts` | Split into domain hooks |
-| `src/components/game/CatFarm.tsx` | Decompose into sub-components |
-| `src/hooks/useSpecializations.ts` | Integrate with cloud save |
-| `src/components/game/UnifiedCatCard.tsx` | Remove name data, use utilities |
+| File | Changes | Status |
+|------|---------|--------|
+| `src/components/game/CatFarm.tsx` | Import from @/hooks/game | ✅ Updated |
+| `src/pages/CatCollection.tsx` | Import from @/hooks/game | ✅ Updated |
+| `src/pages/CatCustomization.tsx` | Import from @/hooks/game | ✅ Updated |
+| `src/pages/CatPhotoBooth.tsx` | Import from @/hooks/game | ✅ Updated |
+| `src/pages/CatRelationships.tsx` | Import from @/hooks/game | ✅ Updated |
+| `src/hooks/useSpecializations.ts` | Integrate with cloud save | ❌ Not started |
+| `src/components/game/UnifiedCatCard.tsx` | Use relationship utilities | ✅ Updated |
 
 ---
 
