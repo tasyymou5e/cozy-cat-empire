@@ -57,7 +57,7 @@ This plan addresses architectural issues identified in the audit, prioritized by
 - `src/pages/CatPhotoBooth.tsx`
 - `src/pages/CatRelationships.tsx`
 
-**Legacy File:** `src/hooks/useGameState.ts` can now be deleted (1,444 lines)
+**Legacy File:** ✅ Deleted `src/hooks/useGameState.ts` (1,444 lines removed from codebase)
 
 ---
 
