@@ -40,7 +40,7 @@ export { useHaptics } from './useHaptics';
 export { usePortraitCredits } from './usePortraitCredits';
 export { usePortraitOutdatedToast } from './usePortraitOutdatedToast';
 export { useLuckyWheel } from './useLuckyWheel';
-export { useSpecializations } from './useSpecializations';
+export { useSpecializations, getMasteryLevel, getNextMasteryLevel } from './useSpecializations';
 export { useLegacy } from './useLegacy';
 
 // UI hooks

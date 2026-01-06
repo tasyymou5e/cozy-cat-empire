@@ -2,6 +2,8 @@ import { useCallback } from 'react';
 import { Cat, CAT_NAMES, BREEDS, PERSONALITIES, CAT_COSTS } from '@/types/game';
 import { CatAppearance } from '@/types/catAppearance';
 import { generateRandomGrade } from '@/types/grading';
+import { SpecializationType } from '@/types/specializations';
+import { getMasteryLevel } from '@/types/specializations';
 import { GameHookDependencies, generateId, createDefaultTrickProgress, getRandomBreed } from './types';
 
 export interface CatManagementActions {
@@ -13,6 +15,8 @@ export interface CatManagementActions {
   addReceivedCat: (cat: Cat) => void;
   updateCatAppearance: (catId: string, appearance: CatAppearance) => void;
   updateCatPortrait: (catId: string, portraitUrl: string, hash?: string) => void;
+  setSpecialization: (catId: string, type: SpecializationType) => void;
+  addSpecializationXP: (catId: string, amount: number) => void;
 }
 
 export function useCatManagement(deps: GameHookDependencies): CatManagementActions {
@@ -203,6 +207,50 @@ export function useCatManagement(deps: GameHookDependencies): CatManagementActio
     }));
   }, [setState]);
 
+  const setSpecialization = useCallback((catId: string, type: SpecializationType) => {
+    setState(prev => {
+      const cat = prev.cats.find(c => c.id === catId);
+      if (!cat || cat.specialization) return prev; // Already specialized
+      
+      showMessage(`${cat.name} is now a ${type.replace('_', ' ')}! 🌟`, 'success');
+      playSound?.('levelUp');
+      
+      return {
+        ...prev,
+        cats: prev.cats.map(c => c.id === catId ? {
+          ...c,
+          specialization: {
+            type,
+            level: 1,
+            xp: 0,
+            specializedAt: new Date().toISOString(),
+          }
+        } : c),
+      };
+    });
+  }, [setState, showMessage, playSound]);
+
+  const addSpecializationXP = useCallback((catId: string, amount: number) => {
+    setState(prev => ({
+      ...prev,
+      cats: prev.cats.map(cat => {
+        if (cat.id !== catId || !cat.specialization) return cat;
+        
+        const newXP = cat.specialization.xp + amount;
+        const newLevel = getMasteryLevel(newXP).level;
+        
+        return {
+          ...cat,
+          specialization: {
+            ...cat.specialization,
+            xp: newXP,
+            level: newLevel,
+          }
+        };
+      }),
+    }));
+  }, [setState]);
+
   return { 
     addCat, 
     buyFromMarket, 
@@ -211,6 +259,8 @@ export function useCatManagement(deps: GameHookDependencies): CatManagementActio
     comfortCat, 
     addReceivedCat, 
     updateCatAppearance, 
-    updateCatPortrait 
+    updateCatPortrait,
+    setSpecialization,
+    addSpecializationXP,
   };
 }

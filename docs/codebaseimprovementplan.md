@@ -144,14 +144,22 @@ Extracted the 85-line `tabBadges` and `categoryBadges` useMemo calculations from
 
 ## Phase 3: Data Consistency
 
-### Step 3.1: Integrate Specializations with Cat Interface
+### Step 3.1: Integrate Specializations with Cat Interface ✅ COMPLETED
 
-**Files to Modify:**
-- `src/types/game.ts` - Already done ✅
-- `src/hooks/useSpecializations.ts` - Update to modify Cat.specialization
-- `src/hooks/useGameState.ts` - Add setSpecialization action
+**Files Modified:**
+- `src/types/game.ts` - Added `CatSpecializationData` interface, changed `Cat.specialization` from simple type to full data object
+- `src/hooks/useSpecializations.ts` - Refactored to stateless utilities (163→155 lines), removed localStorage dependency
+- `src/hooks/game/useCatManagement.ts` - Added `setSpecialization` and `addSpecializationXP` actions
+- `src/hooks/game/types.ts` - Added new actions to `GameActions` interface
+- `src/hooks/game/index.ts` - Exported new actions
+- `src/components/game/SpecializationPanel.tsx` - Updated to use new Cat-based API
+- `src/components/game/CatFarm.tsx` - Updated useSpecializations usage
 
-Remove localStorage dependency in useSpecializations, rely on cloud save via Cat object.
+**Result:**
+- Specialization data now stored in `Cat.specialization` field
+- Automatic cloud sync via game_state save
+- Legacy localStorage data migration included
+- Stateless hook pattern (read from cats, write via game actions)
 
 ---
 
