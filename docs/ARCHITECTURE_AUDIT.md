@@ -56,7 +56,7 @@ This document captures the comprehensive architecture audit findings for the Cat
 | # | Issue | Location | Status | Notes |
 |---|-------|----------|--------|-------|
 | 10 | No barrel export for types | `src/types/` | ✅ COMPLETED | Created `src/types/index.ts` |
-| 11 | Panel data fetching inconsistent | `FriendsPanel`, `PlayerProfilePanel` | ⏳ REMAINING | Some receive props, some use hooks internally |
+| 11 | Panel data fetching inconsistent | `FriendsPanel`, `PlayerProfilePanel` | ✅ COMPLETED | Documented in `PANEL_DATA_FETCHING.md` |
 | 12 | Missing domain hook tests | `src/hooks/game/__tests__/` | ✅ COMPLETED | All 6 domain hooks now tested |
 | 13 | `CAT_NAMES` duplication | `game.ts` vs `catNames.ts` | ✅ COMPLETED | `catNames.ts` is now source of truth |
 | 14 | No standard error handling | Various hooks | ✅ COMPLETED | Created `src/lib/errorHandling.ts` with standardized utilities |
