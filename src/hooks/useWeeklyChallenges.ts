@@ -1,3 +1,21 @@
+/**
+ * @fileoverview useWeeklyChallenges - Weekly challenge tracking system
+ * 
+ * Manages weekly challenges including progress tracking, reward claiming,
+ * and real-time updates via Supabase subscriptions. Integrates with the
+ * challenge achievements system for meta-progression.
+ * 
+ * Features:
+ * - Automatic progress tracking for various challenge types
+ * - Real-time updates when progress changes
+ * - Reward claiming with coins and badges
+ * - Time remaining display for active challenges
+ * - Sound effects and haptic feedback for progress/completion
+ * - Integration with challenge achievement streaks
+ * 
+ * @module hooks/useWeeklyChallenges
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -10,46 +28,102 @@ import type { SoundType } from '@/hooks/useSoundEffects';
  * Haptic feedback functions for challenge events
  */
 interface HapticFunctions {
+  /** Vibrate on progress increment */
   vibrateProgress: () => void;
+  /** Vibrate on challenge completion */
   vibrateComplete: () => void;
+  /** Vibrate on achievement unlock */
   vibrateAchievement: () => void;
 }
 
 /**
- * Hook for managing weekly challenges
- *
- * Tracks progress on active challenges, handles reward claiming, and provides
- * real-time updates. Includes sound effects and haptic feedback for progress.
- *
- * @param userId - The current user's ID
- * @param playSound - Function to play sound effects
- * @param fireChallengeBurst - Function to trigger confetti animation
- * @param haptics - Haptic feedback functions
+ * Return type for claimed rewards
+ */
+interface ClaimResult {
+  /** Coins earned from the challenge */
+  coins: number;
+  /** Badge name earned (if any) */
+  badge: string | null;
+}
+
+/**
+ * Return type for the useWeeklyChallenges hook
+ */
+export interface WeeklyChallengesReturn {
+  /** Array of active challenges with progress data */
+  challenges: ChallengeWithProgress[];
+  /** Loading state for initial fetch */
+  loading: boolean;
+  /** Update progress for a challenge type */
+  updateProgress: (type: ChallengeType, increment?: number) => Promise<void>;
+  /** Claim reward for a completed challenge */
+  claimReward: (challengeId: string) => Promise<ClaimResult | false>;
+  /** Get formatted time remaining string */
+  getTimeRemaining: () => string | null;
+  /** Refetch challenges from database */
+  refetch: () => Promise<void>;
+  /** Last progress update (for animations) */
+  lastProgressUpdate: { type: ChallengeType; value: number } | null;
+  /** Clear the last progress update */
+  clearProgressUpdate: () => void;
+  /** Total challenges completed all-time */
+  totalChallengesCompleted: number;
+  /** Current weekly challenge streak */
+  currentStreak: number;
+  /** Longest streak ever achieved */
+  longestStreak: number;
+}
+
+/**
+ * Hook for managing weekly challenges and their progress.
+ * 
+ * Fetches active challenges on mount and sets up real-time subscriptions
+ * for progress updates. Provides methods to update progress and claim rewards.
+ * 
+ * @param userId - The current user's ID (undefined if not logged in)
+ * @param playSound - Optional function to play sound effects
+ * @param fireChallengeBurst - Optional function to trigger confetti animation
+ * @param haptics - Optional haptic feedback functions
  * @returns Challenge data and management functions
- *
+ * 
  * @example
  * ```tsx
- * const { challenges, updateProgress, claimReward } = useWeeklyChallenges(userId, playSound);
- *
+ * const {
+ *   challenges,
+ *   updateProgress,
+ *   claimReward,
+ *   getTimeRemaining
+ * } = useWeeklyChallenges(userId, playSound, fireConfetti, haptics);
+ * 
  * // Update progress when player wins a show
- * updateProgress('show_wins', 1);
- *
- * // Claim reward for completed challenge
- * const reward = await claimReward(challengeId);
+ * await updateProgress('show_wins', 1);
+ * 
+ * // Display challenges with progress
+ * challenges.map(c => (
+ *   <ChallengeCard
+ *     key={c.id}
+ *     challenge={c}
+ *     onClaim={() => claimReward(c.id)}
+ *   />
+ * ));
  * ```
  */
 export function useWeeklyChallenges(
-  userId: string | undefined, 
+  userId: string | undefined,
   playSound?: (type: SoundType) => void,
   fireChallengeBurst?: () => void,
   haptics?: HapticFunctions
-) {
+): WeeklyChallengesReturn {
   const [challenges, setChallenges] = useState<ChallengeWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastProgressUpdate, setLastProgressUpdate] = useState<{ type: ChallengeType; value: number } | null>(null);
-  
+
   const { totalChallengesCompleted, currentStreak, longestStreak, incrementCompleted } = useChallengeAchievements(userId, playSound, haptics?.vibrateAchievement);
 
+  /**
+   * Fetch active challenges and user progress from database.
+   * Combines challenge definitions with user-specific progress records.
+   */
   const fetchChallenges = useCallback(async () => {
     if (!userId) {
       setLoading(false);
@@ -129,6 +203,16 @@ export function useWeeklyChallenges(
     };
   }, [userId, fetchChallenges]);
 
+  /**
+   * Update progress for challenges of a specific type.
+   * 
+   * Finds all active challenges matching the type and increments their progress.
+   * Triggers completion effects if the challenge target is reached.
+   * Logs activity and triggers sounds/haptics appropriately.
+   * 
+   * @param challengeType - The type of challenge to update (e.g., 'show_wins')
+   * @param increment - Amount to add to progress (default: 1)
+   */
   const updateProgress = useCallback(async (
     challengeType: ChallengeType,
     increment: number = 1
@@ -218,7 +302,16 @@ export function useWeeklyChallenges(
     fetchChallenges();
   }, [userId, challenges, fetchChallenges]);
 
-  const claimReward = useCallback(async (challengeId: string) => {
+  /**
+   * Claim the reward for a completed challenge.
+   * 
+   * Marks the challenge as claimed and increments the player's challenge
+   * completion count for achievement tracking. Triggers coin sound on success.
+   * 
+   * @param challengeId - ID of the challenge to claim
+   * @returns Claimed rewards (coins + optional badge) or false on failure
+   */
+  const claimReward = useCallback(async (challengeId: string): Promise<ClaimResult | false> => {
     if (!userId) return false;
 
     const challenge = challenges.find(c => c.id === challengeId);
@@ -254,7 +347,12 @@ export function useWeeklyChallenges(
     return { coins: challenge.reward_coins, badge: challenge.reward_badge };
   }, [userId, challenges, fetchChallenges, incrementCompleted, playSound]);
 
-  const getTimeRemaining = useCallback(() => {
+  /**
+   * Get a human-readable string for time remaining on current challenges.
+   * 
+   * @returns Formatted string like "2d 5h remaining" or null if no active challenges
+   */
+  const getTimeRemaining = useCallback((): string | null => {
     if (challenges.length === 0) return null;
     
     const endDate = new Date(challenges[0].ends_at);
