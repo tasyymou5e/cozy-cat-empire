@@ -1,6 +1,6 @@
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ActivityFeed } from '@/components/admin/ActivityFeed';
-import { useAdminStats, useAdminLiveActivity } from '@/hooks/useAdminData';
+import { useAdminStats, useAdminLiveActivity } from '@/hooks/admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';

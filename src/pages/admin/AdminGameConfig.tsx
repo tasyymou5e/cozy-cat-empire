@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { useAdminActivityLog } from '@/hooks/useAdminActivityLog';
+import { useAdminActivityLog } from '@/hooks/admin';
 import {
   Settings,
   ToggleLeft,

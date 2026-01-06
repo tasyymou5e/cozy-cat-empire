@@ -33,8 +33,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { useAdminActivityLog } from '@/hooks/useAdminActivityLog';
-import { useAdminRateLimit } from '@/hooks/useAdminRateLimit';
+import { useAdminActivityLog, useAdminRateLimit } from '@/hooks/admin';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { Bell, Plus, Send, Users, Crown, Activity, UserX, CheckCircle, XCircle, Clock } from 'lucide-react';

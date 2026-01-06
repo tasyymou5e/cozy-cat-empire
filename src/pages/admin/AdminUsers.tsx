@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { useAdminUsers } from '@/hooks/useAdminData';
-import { useAdminActivityLog } from '@/hooks/useAdminActivityLog';
+import { useAdminUsers, useAdminActivityLog } from '@/hooks/admin';
 import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
 import { supabase } from '@/integrations/supabase/client';
 import { UserDetailModal } from '@/components/admin/UserDetailModal';

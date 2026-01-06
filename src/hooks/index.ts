@@ -24,6 +24,9 @@ export type { CatFarmSystems } from './useCatFarmSystems';
 // Handler hooks
 export * from './handlers';
 
+// Admin hooks (grouped)
+export * from './admin';
+
 // Social hooks
 export { useFriends } from './useFriends';
 export { useCatGifts } from './useCatGifts';

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ChallengeForm } from '@/components/admin/ChallengeForm';
 import { supabase } from '@/integrations/supabase/client';
-import { useAdminChallengeAnalytics } from '@/hooks/useAdminData';
+import { useAdminChallengeAnalytics } from '@/hooks/admin';
 import { AdminChallenge } from '@/types/admin';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

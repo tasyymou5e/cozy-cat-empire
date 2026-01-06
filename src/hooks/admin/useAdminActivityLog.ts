@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Admin activity logging hook
+ * 
+ * Provides functionality to log admin actions and auth attempts
+ * for audit trail and security monitoring.
+ * 
+ * @module hooks/admin/useAdminActivityLog
+ */
+
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Json } from '@/integrations/supabase/types';
@@ -11,6 +20,21 @@ interface LogActivityParams {
   metadata?: Record<string, Json>;
 }
 
+/**
+ * Hook to log admin activities
+ * 
+ * @returns Function to log admin actions
+ * 
+ * @example
+ * ```tsx
+ * const { logActivity } = useAdminActivityLog();
+ * await logActivity({
+ *   actionType: 'role_change',
+ *   actionDescription: 'Changed user role to admin',
+ *   targetUserId: userId
+ * });
+ * ```
+ */
 export function useAdminActivityLog() {
   const { user } = useAuth();
 
@@ -47,6 +71,12 @@ export function useAdminActivityLog() {
   return { logActivity };
 }
 
+/**
+ * Standalone function to log authentication attempts
+ * Can be used without the hook context
+ * 
+ * @param params - Auth attempt details
+ */
 export async function logAuthAttempt(params: {
   email: string;
   attemptType: 'admin_login' | 'admin_login_failed' | 'access_denied';

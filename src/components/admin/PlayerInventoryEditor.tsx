@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAdminActivityLog } from '@/hooks/useAdminActivityLog';
+import { useAdminActivityLog } from '@/hooks/admin';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

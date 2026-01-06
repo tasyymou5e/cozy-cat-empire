@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { useAdminErrors, useAdminErrorTrends } from '@/hooks/useAdminData';
+import { useAdminErrors, useAdminErrorTrends } from '@/hooks/admin';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

@@ -1,5 +1,5 @@
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { useAdminStats, useAdminUsers, useAdminRetentionAnalytics } from '@/hooks/useAdminData';
+import { useAdminStats, useAdminUsers, useAdminRetentionAnalytics } from '@/hooks/admin';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';

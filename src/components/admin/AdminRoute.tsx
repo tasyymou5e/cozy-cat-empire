@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { logAuthAttempt } from '@/hooks/useAdminActivityLog';
+import { useAdminAuth, logAuthAttempt } from '@/hooks/admin';
 import { Loader2 } from 'lucide-react';
 
 interface AdminRouteProps {

@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Admin rate limiting hook
+ * 
+ * Provides rate limiting for sensitive admin actions to prevent abuse.
+ * Tracks action counts within time windows and enforces limits.
+ * 
+ * @module hooks/admin/useAdminRateLimit
+ */
+
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -8,7 +17,9 @@ interface RateLimitConfig {
   windowHours: number;
 }
 
-// Rate limit configurations
+/**
+ * Rate limit configurations for different admin actions
+ */
 export const RATE_LIMITS: Record<string, RateLimitConfig> = {
   user_delete: { actionType: 'user_delete', limit: 5, windowHours: 1 },
   bulk_role_change: { actionType: 'bulk_role_change', limit: 3, windowHours: 1 },
@@ -17,6 +28,19 @@ export const RATE_LIMITS: Record<string, RateLimitConfig> = {
   bulk_suspend: { actionType: 'bulk_suspend', limit: 3, windowHours: 1 },
 };
 
+/**
+ * Hook to enforce rate limits on admin actions
+ * 
+ * @returns Rate limit checking and recording functions
+ * 
+ * @example
+ * ```tsx
+ * const { enforceRateLimit } = useAdminRateLimit();
+ * const allowed = await enforceRateLimit('user_delete');
+ * if (!allowed) return;
+ * // Proceed with deletion
+ * ```
+ */
 export function useAdminRateLimit() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -131,7 +155,7 @@ export function useAdminRateLimit() {
   };
 
   const enforceRateLimit = async (actionType: string): Promise<boolean> => {
-    const { allowed, remaining, resetAt } = await checkRateLimit(actionType);
+    const { allowed, resetAt } = await checkRateLimit(actionType);
 
     if (!allowed) {
       const resetTime = resetAt ? resetAt.toLocaleTimeString() : 'soon';
