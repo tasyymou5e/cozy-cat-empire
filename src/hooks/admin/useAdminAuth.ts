@@ -1,7 +1,28 @@
+/**
+ * @fileoverview Admin authentication hook
+ * 
+ * Provides admin role verification for protected admin routes.
+ * Uses the has_role RPC function to check admin privileges.
+ * 
+ * @module hooks/admin/useAdminAuth
+ */
+
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
+/**
+ * Hook to check if current user has admin role
+ * 
+ * @returns Admin status, loading state, user, and check completion flag
+ * 
+ * @example
+ * ```tsx
+ * const { isAdmin, loading } = useAdminAuth();
+ * if (loading) return <Spinner />;
+ * if (!isAdmin) return <Navigate to="/auth" />;
+ * ```
+ */
 export function useAdminAuth() {
   const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -34,14 +55,10 @@ export function useAdminAuth() {
 
     async function checkAdminRole() {
       try {
-        
-        
         const { data, error } = await supabase.rpc('has_role', {
           _user_id: userIdBeingChecked,
           _role: 'admin'
         });
-
-        
 
         // Only update state if we're still checking this same user
         if (checkInProgress.current === userIdBeingChecked) {

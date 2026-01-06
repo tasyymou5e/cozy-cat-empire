@@ -6,7 +6,7 @@ import {
   useAdminPlayerActivityLogs,
   useAdminStorageStats,
   useAdminAllTableStats 
-} from '@/hooks/useAdminData';
+} from '@/hooks/admin';
 import { ExportButton } from '@/components/admin/ExportButton';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ProfileEditor } from '@/components/admin/ProfileEditor';
-import { useAdminActivityLog } from '@/hooks/useAdminActivityLog';
+import { useAdminActivityLog } from '@/hooks/admin';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

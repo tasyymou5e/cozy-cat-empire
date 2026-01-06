@@ -37,7 +37,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { useAdminActivityLog } from '@/hooks/useAdminActivityLog';
+import { useAdminActivityLog } from '@/hooks/admin';
 import { format } from 'date-fns';
 import { Sparkles, Plus, Pencil, Trash2, Calendar, Coins, Star } from 'lucide-react';
 import { Json } from '@/integrations/supabase/types';
