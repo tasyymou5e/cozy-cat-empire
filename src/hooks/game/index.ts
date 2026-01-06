@@ -1,8 +1,38 @@
 /**
- * useGameState - Modular Game State Management
+ * @fileoverview useGameState - Modular Game State Management
  * 
- * This file combines all domain hooks into the unified useGameState export.
- * The hook is composed of 9 focused domain hooks for better maintainability.
+ * This is the central game state hook that composes all domain-specific hooks
+ * into a unified API. It provides a single entry point for all game logic
+ * and state management.
+ * 
+ * ## Architecture
+ * 
+ * The hook is composed of 9 focused domain hooks:
+ * - {@link useSaveLoad} - Game persistence (local & cloud)
+ * - {@link useCostumes} - Costume purchasing and equipping
+ * - {@link useResources} - Resource management (food, medicine, etc.)
+ * - {@link useCatManagement} - Cat lifecycle operations
+ * - {@link useTraining} - Training and socialization
+ * - {@link useBreeding} - Cat breeding
+ * - {@link useBulkActions} - Mass operations on cats
+ * - {@link useCatShows} - Show competitions
+ * - {@link useGameCore} - Core mechanics (chores, housing, day cycle)
+ * 
+ * ## Usage
+ * 
+ * ```typescript
+ * const {
+ *   state,           // Current game state
+ *   message,         // Current message text
+ *   messageType,     // Message type (info/success/warning/error)
+ *   kittensBreed,    // Total kittens bred
+ *   relationshipSystem, // Cat relationships manager
+ *   currentDailyEvent,  // Active daily event
+ *   actions,         // All game actions (44 total)
+ * } = useGameState(playSound, onChallengeProgress, logActivity);
+ * ```
+ * 
+ * @module hooks/game
  */
 
 import { useState, useCallback, useMemo } from 'react';
@@ -37,10 +67,43 @@ export type { GameActions, GameHookDependencies, RelationshipSaveData };
 export { createInitialState };
 
 /**
- * useGameState - Core game logic and state management hook (Composed Version)
+ * Core game logic and state management hook.
  * 
- * This is the modular implementation that combines all domain hooks.
- * It has the exact same API as the original useGameState.
+ * This is the main entry point for game state. It combines all domain hooks
+ * into a single unified interface with 44 game actions across 9 domains.
+ * 
+ * @param playSound - Optional sound effect callback
+ * @param onChallengeProgress - Optional challenge progress callback
+ * @param logActivity - Optional activity logging callback
+ * 
+ * @returns Game state, messages, and all game actions
+ * 
+ * @example
+ * ```typescript
+ * function CatFarm() {
+ *   const { playSound } = useSoundEffects();
+ *   const { onChallengeProgress } = useWeeklyChallenges();
+ *   
+ *   const {
+ *     state,
+ *     message,
+ *     messageType,
+ *     actions
+ *   } = useGameState(playSound, onChallengeProgress);
+ *   
+ *   return (
+ *     <div>
+ *       <StatusBar money={state.money} day={state.day} />
+ *       <button onClick={() => actions.addCat('stray')}>
+ *         Add Stray Cat
+ *       </button>
+ *       <button onClick={() => actions.nextDay()}>
+ *         Next Day
+ *       </button>
+ *     </div>
+ *   );
+ * }
+ * ```
  */
 export function useGameState(
   playSound?: (type: SoundType) => void,
@@ -57,13 +120,23 @@ export function useGameState(
   // Relationship system
   const relationshipSystem = useRelationships();
 
-  // Message helper
+  /**
+   * Display a message to the user
+   * @param msg - Message text
+   * @param type - Message type for styling
+   */
   const showMessage = useCallback((msg: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
     setMessage(msg);
     setMessageType(type);
   }, []);
 
-  // Achievement checker
+  /**
+   * Check and unlock achievements based on current game state
+   * @param newState - Updated game state to check
+   * @param extraKittens - Additional kittens to count
+   * @param wasBestFriendBreed - Whether breeding involved best friends
+   * @returns Updated state with any newly unlocked achievements
+   */
   const checkAchievements = useCallback((newState: GameState, extraKittens = 0, wasBestFriendBreed = false): GameState => {
     const stats = {
       cats: newState.cats.length,
@@ -112,7 +185,7 @@ export function useGameState(
     return { ...newState, achievements: updatedAchievements };
   }, [kittensBreed, playSound, showMessage]);
 
-  // Build shared dependencies
+  // Build shared dependencies for domain hooks
   const deps: GameHookDependencies = useMemo(() => ({
     state,
     setState,

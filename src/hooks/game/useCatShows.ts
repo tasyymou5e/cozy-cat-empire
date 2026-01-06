@@ -1,7 +1,14 @@
 /**
- * useCatShows - Cat show competitions domain hook
+ * @fileoverview useCatShows - Cat show competitions domain hook
  * 
- * Handles entering cats in shows, calculating scores, and distributing prizes.
+ * Handles cat show mechanics including:
+ * - Show entry and eligibility checks
+ * - Score calculation based on stats, breed, and relationships
+ * - Prize distribution with tier and event multipliers
+ * - Relationship events (jealousy, celebration)
+ * - Cooldown management
+ * 
+ * @module hooks/game/useCatShows
  */
 
 import { useCallback } from 'react';
@@ -9,15 +16,44 @@ import { BREEDS } from '@/types/game';
 import { ShowTier, SHOW_TIERS, getCurrentSeasonalEvent, getSpecialEvent } from '@/types/showEvents';
 import { GameHookDependencies, SHOW_COOLDOWN_DAYS } from './types';
 
+/**
+ * Actions available for cat shows
+ */
 export interface CatShowActions {
+  /**
+   * Enter cats in a show competition.
+   * 
+   * Tiers: local, regional, national, international
+   * Each tier has different requirements, entry fees, and rewards.
+   * 
+   * @param tier - Show tier to enter (defaults to 'local')
+   */
   catShow: (tier?: ShowTier) => void;
 }
 
+/**
+ * Hook for cat show competition mechanics.
+ * 
+ * @param deps - Shared game hook dependencies
+ * @returns Object containing cat show actions
+ * 
+ * @example
+ * ```typescript
+ * const { catShow } = useCatShows(deps);
+ * 
+ * // Enter local show
+ * catShow();
+ * 
+ * // Enter regional show
+ * catShow('regional');
+ * ```
+ */
 export function useCatShows(deps: GameHookDependencies): CatShowActions {
   const { setState, showMessage, playSound, relationshipSystem, onChallengeProgress, logActivity } = deps;
 
   const catShow = useCallback((tier: ShowTier = 'local') => {
     setState(prev => {
+      // Check cooldown
       if (prev.showCooldown > 0) {
         showMessage(`Next show in ${prev.showCooldown} days! Cat shows are every ${SHOW_COOLDOWN_DAYS} days. 🎪`, 'warning');
         playSound?.('error');
@@ -26,7 +62,7 @@ export function useCatShows(deps: GameHookDependencies): CatShowActions {
 
       const tierInfo = SHOW_TIERS.find(t => t.id === tier)!;
       
-      // Check if player has enough wins to enter this tier
+      // Check minimum wins requirement for tier
       if (prev.totalShowWins < tierInfo.minWins) {
         showMessage(`Need ${tierInfo.minWins} wins to enter ${tierInfo.name}! 🏆`, 'warning');
         playSound?.('error');
@@ -40,7 +76,7 @@ export function useCatShows(deps: GameHookDependencies): CatShowActions {
         return prev;
       }
 
-      // Get eligible cats for this tier (healthy, happy, and meets grade requirement)
+      // Get eligible cats (healthy, happy, meets grade requirement)
       const eligibleCats = prev.cats.filter(
         c => c.health >= 70 && c.happiness >= 60 && c.grade >= tierInfo.minGrade
       );
@@ -51,7 +87,7 @@ export function useCatShows(deps: GameHookDependencies): CatShowActions {
         return prev;
       }
       
-      // Calculate event bonuses
+      // Calculate event bonuses (seasonal and special events)
       const seasonalEvent = getCurrentSeasonalEvent(prev.day);
       const specialEvent = getSpecialEvent(prev.day);
       let eventMultiplier = 1;
@@ -68,6 +104,7 @@ export function useCatShows(deps: GameHookDependencies): CatShowActions {
       
       const totalMultiplier = tierInfo.rewardMultiplier * eventMultiplier;
       
+      // Enter up to 5 cats
       const participants = eligibleCats.slice(0, 5);
       let totalReward = 0;
       let wins = 0;
@@ -80,6 +117,7 @@ export function useCatShows(deps: GameHookDependencies): CatShowActions {
       const updatedCats = prev.cats.map(cat => {
         if (!participants.find(p => p.id === cat.id)) return cat;
         
+        // Friends in the show provide moral support
         const friendsInShow = participants.filter(p => {
           if (p.id === cat.id) return false;
           const rel = relationshipSystem.getRelationship(cat.id, p.id);
@@ -87,9 +125,10 @@ export function useCatShows(deps: GameHookDependencies): CatShowActions {
         });
         const friendBonus = friendsInShow.length * 5;
         
-        // Grade now matters more for higher tiers
+        // Grade matters more for higher tiers
         const gradeBonus = (cat.grade - tierInfo.minGrade) * 3;
         
+        // Calculate total score
         const score = cat.health + cat.happiness + (BREEDS[cat.breed].rarity * 10) + 
                       (cat.showWins * 5) + friendBonus + gradeBonus;
         const threshold = 200 * difficultyModifier;
@@ -106,6 +145,7 @@ export function useCatShows(deps: GameHookDependencies): CatShowActions {
         return cat;
       });
       
+      // Random chance for jealousy event between winner and loser
       if (winners.length > 0 && losers.length > 0 && Math.random() < 0.2) {
         const winnerId = winners[Math.floor(Math.random() * winners.length)];
         const loserId = losers[Math.floor(Math.random() * losers.length)];
@@ -116,6 +156,7 @@ export function useCatShows(deps: GameHookDependencies): CatShowActions {
         }
       }
       
+      // Random chance for celebration event between winners
       if (winners.length >= 2 && Math.random() < 0.3) {
         const cat1 = prev.cats.find(c => c.id === winners[0]);
         const cat2 = prev.cats.find(c => c.id === winners[1]);
@@ -127,6 +168,7 @@ export function useCatShows(deps: GameHookDependencies): CatShowActions {
       totalReward = Math.floor(totalReward);
       const netReward = totalReward - tierInfo.entryFee;
       
+      // Build result message
       let resultMsg = `${tierInfo.emoji} ${tierInfo.name}: ${wins} wins! `;
       if (tierInfo.entryFee > 0) {
         resultMsg += `Earned $${totalReward} - $${tierInfo.entryFee} fee = $${netReward}. `;

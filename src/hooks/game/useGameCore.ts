@@ -1,7 +1,14 @@
 /**
- * useGameCore - Core game mechanics domain hook
+ * @fileoverview useGameCore - Core game mechanics domain hook
  * 
- * Handles chores, housing upgrades, day advancement, daily events, and money operations.
+ * Handles fundamental game operations:
+ * - Completing chores for money
+ * - Housing upgrades (apartment → house → mansion → farm)
+ * - Day advancement with daily updates
+ * - Daily event processing
+ * - Money operations
+ * 
+ * @module hooks/game/useGameCore
  */
 
 import { useCallback } from 'react';
@@ -9,22 +16,87 @@ import { HOUSE_UPGRADES } from '@/types/game';
 import { getRandomDailyEvent, DailyEvent } from '@/types/dailyEvents';
 import { GameHookDependencies, generateMarketListings } from './types';
 
+/**
+ * Actions available for core game mechanics
+ */
 export interface GameCoreActions {
+  /**
+   * Complete a chore to earn money.
+   * @param choreId - ID of the chore type
+   * @param baseReward - Base coin reward (random bonus added)
+   */
   doChore: (choreId: string, baseReward: number) => void;
+  
+  /**
+   * Upgrade housing to increase cat capacity.
+   * Progression: apartment (5) → house (10) → mansion (25) → farm (50+)
+   */
   upgradeHouse: () => void;
+  
+  /**
+   * Advance to the next day.
+   * Processes: hunger decrease, health/happiness changes, relationship decay,
+   * cooldown reductions, market refresh (every 3 days).
+   */
   nextDay: () => void;
+  
+  /**
+   * Process a random daily event.
+   * Events can affect money, reputation, resources, and cat stats.
+   */
   processDailyEvent: () => void;
+  
+  /** Clear the current daily event display */
   clearDailyEvent: () => void;
+  
+  /** Dismiss the current message */
   dismissMessage: () => void;
+  
+  /**
+   * Safely deduct money with validation.
+   * @param amount - Amount to deduct
+   * @param reason - Reason shown in message
+   * @returns true if successful
+   */
   deductMoney: (amount: number, reason: string) => boolean;
+  
+  /**
+   * Set money directly (for backend sync).
+   * @param newMoney - New money value
+   */
   setMoney: (newMoney: number) => void;
 }
 
+/**
+ * Extended dependencies for core game mechanics
+ */
 export interface GameCoreDependencies extends GameHookDependencies {
+  /** Setter for current daily event */
   setCurrentDailyEvent: React.Dispatch<React.SetStateAction<DailyEvent | null>>;
+  /** Setter for message text */
   setMessage: React.Dispatch<React.SetStateAction<string>>;
 }
 
+/**
+ * Hook for core game mechanics.
+ * 
+ * @param deps - Extended game hook dependencies
+ * @returns Object containing core game actions
+ * 
+ * @example
+ * ```typescript
+ * const { doChore, upgradeHouse, nextDay } = useGameCore(deps);
+ * 
+ * // Complete a chore
+ * doChore('clean', 15);
+ * 
+ * // Upgrade house
+ * upgradeHouse();
+ * 
+ * // Advance to next day
+ * nextDay();
+ * ```
+ */
 export function useGameCore(deps: GameCoreDependencies): GameCoreActions {
   const { 
     state, setState, showMessage, playSound, relationshipSystem, 
@@ -35,6 +107,7 @@ export function useGameCore(deps: GameCoreDependencies): GameCoreActions {
     const bonus = Math.floor(Math.random() * 20);
     const earnings = baseReward + bonus;
     setState(prev => {
+      // Some chores also boost cat happiness
       const happinessBoost = choreId === 'play' || choreId === 'socialize';
       return {
         ...prev,
@@ -51,6 +124,7 @@ export function useGameCore(deps: GameCoreDependencies): GameCoreActions {
 
   const upgradeHouse = useCallback(() => {
     setState(prev => {
+      // Farm expansion (after reaching farm level)
       if (prev.houseSize === 'farm') {
         if (prev.acres >= 100) {
           showMessage("Your farm is at maximum size! 🌾", 'info');
@@ -67,6 +141,7 @@ export function useGameCore(deps: GameCoreDependencies): GameCoreActions {
         return { ...prev, money: prev.money - cost, acres: prev.acres + 1, space: prev.space + 20 };
       }
 
+      // Regular house upgrades
       const upgrade = HOUSE_UPGRADES[prev.houseSize];
       if (!upgrade.next) return prev;
       
@@ -92,15 +167,19 @@ export function useGameCore(deps: GameCoreDependencies): GameCoreActions {
   const nextDay = useCallback(() => {
     setState(prev => {
       let deadCats: string[] = [];
+      
+      // Process daily cat stat changes
       const updatedCats = prev.cats
         .map(cat => {
           let health = cat.health;
           let happiness = Math.max(0, cat.happiness - 3);
           let hunger = Math.max(0, cat.hunger - 10);
           
+          // Relationships affect happiness
           const relationshipMod = relationshipSystem.getHappinessModifier(cat.id);
           happiness = Math.max(0, Math.min(100, happiness + relationshipMod));
           
+          // Low hunger and happiness damage health
           if (hunger < 30) { health -= 5; happiness -= 5; }
           if (happiness < 40) health -= 3;
           
@@ -110,6 +189,7 @@ export function useGameCore(deps: GameCoreDependencies): GameCoreActions {
           return { ...cat, health, happiness, hunger, age: cat.age + 0.01, restLevel: Math.max(0, cat.restLevel - 5) };
         })
         .filter(cat => {
+          // Remove dead cats
           if (cat.health <= 0) {
             deadCats.push(cat.name);
             relationshipSystem.removeCatRelationships(cat.id);
@@ -118,14 +198,17 @@ export function useGameCore(deps: GameCoreDependencies): GameCoreActions {
           return true;
         });
 
+      // Process relationship system
       relationshipSystem.processDailyRelationships(updatedCats, prev.day + 1);
       relationshipSystem.processRelationshipDecay(updatedCats, prev.day + 1);
       relationshipSystem.detectGroups(updatedCats);
 
+      // Refresh market every 3 days
       const newMarket = prev.day % 3 === 0 ? generateMarketListings() : prev.marketListings;
       const newBreedingCooldown = Math.max(0, prev.breedingCooldown - 1);
       const newShowCooldown = Math.max(0, prev.showCooldown - 1);
 
+      // Show appropriate day message
       if (deadCats.length > 0) {
         showMessage(`Day ${prev.day + 1}. Sadly, ${deadCats.join(', ')} passed away... 😢`, 'error');
       } else if (newShowCooldown === 0 && prev.showCooldown > 0) {
@@ -157,6 +240,7 @@ export function useGameCore(deps: GameCoreDependencies): GameCoreActions {
     setState(prev => {
       let newState = { ...prev };
       
+      // Apply event effects
       if (event.moneyChange) {
         newState.money = Math.max(0, newState.money + event.moneyChange);
       }
