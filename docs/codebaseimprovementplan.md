@@ -181,6 +181,24 @@ Extracted the 85-line `tabBadges` and `categoryBadges` useMemo calculations from
 
 ---
 
+### Step 3.3: Standardize Cloud Persistence ✅ COMPLETED
+
+**Database Created:**
+- `player_progress` table with RLS policies for secure user-specific data
+
+**Files Modified:**
+- `src/hooks/useMilestones.ts` - Added cloud sync (load on mount, sync on change, merge with localStorage)
+- `src/hooks/useLuckyWheel.ts` - Added cloud sync (tracks spins, best prize across devices)
+- `src/hooks/useCollectionProgress.ts` - Added cloud sync (completed sets persist)
+
+**Result:**
+- All three hooks now sync with Lovable Cloud when user is authenticated
+- localStorage remains as fallback/offline support
+- Merge strategy: cloud data wins for conflicts, union for arrays
+- Automatic sync on data changes
+
+---
+
 ### Step 3.3: Standardize Component Props ✅ COMPLETED
 
 **Files Modified:**

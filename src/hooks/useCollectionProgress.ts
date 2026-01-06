@@ -8,6 +8,8 @@ import {
   TRICK_COLLECTION,
 } from '@/types/collections';
 import { COSTUMES } from '@/types/costumes';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseCollectionProgressReturn {
   progress: CollectionProgress;
@@ -34,12 +36,54 @@ export function useCollectionProgress(
   cats: Cat[],
   ownedCostumes: string[]
 ): UseCollectionProgressReturn {
+  const { user } = useAuth();
+  
   const [completedSets, setCompletedSets] = useState<CollectionCategory[]>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
   });
   
   const [newlyCompletedSet, setNewlyCompletedSet] = useState<CollectionCategory | null>(null);
+  const [cloudLoaded, setCloudLoaded] = useState(false);
+
+  // Load from cloud on mount
+  useEffect(() => {
+    if (!user?.id || cloudLoaded) return;
+    
+    const loadFromCloud = async () => {
+      const { data } = await supabase
+        .from('player_progress')
+        .select('completed_sets')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (data && data.completed_sets) {
+        const cloudSets = data.completed_sets as CollectionCategory[];
+        const merged = [...new Set([...completedSets, ...cloudSets])];
+        setCompletedSets(merged);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      }
+      setCloudLoaded(true);
+    };
+    
+    loadFromCloud();
+  }, [user?.id, cloudLoaded]);
+
+  // Sync to cloud when completedSets changes
+  useEffect(() => {
+    if (!user?.id || !cloudLoaded || completedSets.length === 0) return;
+    
+    const syncToCloud = async () => {
+      await supabase
+        .from('player_progress')
+        .upsert({
+          user_id: user.id,
+          completed_sets: completedSets,
+        }, { onConflict: 'user_id' });
+    };
+    
+    syncToCloud();
+  }, [user?.id, completedSets, cloudLoaded]);
 
   // Calculate what's collected based on current cats
   const collectedBreeds = useMemo(() => {

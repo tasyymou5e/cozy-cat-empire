@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { WheelState, WheelPrize, selectRandomPrize, getTodayDateString } from '@/types/luckyWheel';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseLuckyWheelReturn {
   canSpin: boolean;
@@ -13,13 +15,11 @@ interface UseLuckyWheelReturn {
 
 const STORAGE_KEY = 'cat-farm-lucky-wheel';
 const FREE_SPINS_PER_DAY = 1;
-const MAX_SPINS_PER_DAY = 3;
 
 function getInitialState(): WheelState {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
     const parsed: WheelState = JSON.parse(stored);
-    // Reset if new day
     if (parsed.lastSpinDate !== getTodayDateString()) {
       return {
         ...parsed,
@@ -38,16 +38,68 @@ function getInitialState(): WheelState {
 }
 
 export function useLuckyWheel(isVIP: boolean = false): UseLuckyWheelReturn {
+  const { user } = useAuth();
   const [state, setState] = useState<WheelState>(getInitialState);
   const [isSpinning, setIsSpinning] = useState(false);
   const [lastPrize, setLastPrize] = useState<WheelPrize | null>(null);
+  const [cloudLoaded, setCloudLoaded] = useState(false);
 
-  // VIP gets extra free spin
   const freeSpins = isVIP ? FREE_SPINS_PER_DAY + 1 : FREE_SPINS_PER_DAY;
   const spinsRemaining = Math.max(0, freeSpins - state.spinsToday);
   const canSpin = spinsRemaining > 0 && !isSpinning;
 
-  // Persist state
+  // Load from cloud on mount
+  useEffect(() => {
+    if (!user?.id || cloudLoaded) return;
+    
+    const loadFromCloud = async () => {
+      const { data } = await supabase
+        .from('player_progress')
+        .select('last_spin_date, spins_today, total_spins, best_prize')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (data) {
+        const today = getTodayDateString();
+        const cloudLastSpinDate = data.last_spin_date;
+        const isNewDay = cloudLastSpinDate !== today;
+        
+        const cloudState: WheelState = {
+          lastSpinDate: isNewDay ? null : cloudLastSpinDate,
+          spinsToday: isNewDay ? 0 : (data.spins_today || 0),
+          totalSpins: Math.max(state.totalSpins, data.total_spins || 0),
+          bestPrize: data.best_prize as WheelState['bestPrize'],
+        };
+        
+        setState(cloudState);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudState));
+      }
+      setCloudLoaded(true);
+    };
+    
+    loadFromCloud();
+  }, [user?.id, cloudLoaded]);
+
+  // Sync to cloud when state changes
+  useEffect(() => {
+    if (!user?.id || !cloudLoaded) return;
+    
+    const syncToCloud = async () => {
+      await supabase
+        .from('player_progress')
+        .upsert({
+          user_id: user.id,
+          last_spin_date: state.lastSpinDate,
+          spins_today: state.spinsToday,
+          total_spins: state.totalSpins,
+          best_prize: state.bestPrize,
+        }, { onConflict: 'user_id' });
+    };
+    
+    syncToCloud();
+  }, [user?.id, state, cloudLoaded]);
+
+  // Persist to localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
@@ -85,7 +137,6 @@ export function useLuckyWheel(isVIP: boolean = false): UseLuckyWheelReturn {
       };
     });
 
-    // Simulate spin animation delay
     setTimeout(() => {
       setLastPrize(prize);
       setIsSpinning(false);
