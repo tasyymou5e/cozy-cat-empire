@@ -1,16 +1,20 @@
+import { lazy, Suspense } from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import { PanelErrorBoundary } from '../PanelErrorBoundary';
-import { HallOfFamePanel } from '../HallOfFamePanel';
-import { SpecializationPanel } from '../SpecializationPanel';
-import { BattlePassPanel } from '../BattlePassPanel';
-import { AchievementsPanel } from '../AchievementsPanel';
-import { GraphicsSettingsPanel } from '../GraphicsSettingsPanel';
-import { SaveLoadPanel } from '../SaveLoadPanel';
+import { PanelSkeleton } from '../PanelSkeleton';
 import { Cat, CatSpecializationData, Achievement } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
 import { LegacyCat, checkRetirementEligibility } from '@/types/legacy';
 import { checkSpecializationEligibility } from '@/types/specializations';
 import type { BattlePassReward } from '@/types/battlePass';
+
+// Lazy load panels for performance
+const HallOfFamePanel = lazy(() => import('../HallOfFamePanel').then(m => ({ default: m.HallOfFamePanel })));
+const SpecializationPanel = lazy(() => import('../SpecializationPanel').then(m => ({ default: m.SpecializationPanel })));
+const BattlePassPanel = lazy(() => import('../BattlePassPanel').then(m => ({ default: m.BattlePassPanel })));
+const AchievementsPanel = lazy(() => import('../AchievementsPanel').then(m => ({ default: m.AchievementsPanel })));
+const GraphicsSettingsPanel = lazy(() => import('../GraphicsSettingsPanel').then(m => ({ default: m.GraphicsSettingsPanel })));
+const SaveLoadPanel = lazy(() => import('../SaveLoadPanel').then(m => ({ default: m.SaveLoadPanel })));
 
 /**
  * Legacy/Hall of Fame props grouped together
@@ -103,6 +107,7 @@ interface UtilityPanelsProps {
 
 /**
  * Utility and settings panels: Legacy, Specializations, Battle Pass, Achievements, Settings, Save/Load
+ * Uses React.lazy for code splitting and improved initial load performance.
  */
 export function UtilityPanels({
   cats,
@@ -119,57 +124,69 @@ export function UtilityPanels({
     <>
       <TabsContent value="legacy" className="mt-0">
         <PanelErrorBoundary panelName="HallOfFamePanel">
-          <HallOfFamePanel
-            cats={cats}
-            retiredCats={legacy.retiredCats}
-            totalLegacyBonus={legacy.totalLegacyBonus}
-            catCostumes={catCostumes}
-            onRetireCat={legacy.onRetireCat}
-            canRetire={legacy.canRetire}
-            getEligibility={legacy.getEligibility}
-            getKittenBonuses={legacy.getKittenBonuses}
-          />
+          <Suspense fallback={<PanelSkeleton rows={4} />}>
+            <HallOfFamePanel
+              cats={cats}
+              retiredCats={legacy.retiredCats}
+              totalLegacyBonus={legacy.totalLegacyBonus}
+              catCostumes={catCostumes}
+              onRetireCat={legacy.onRetireCat}
+              canRetire={legacy.canRetire}
+              getEligibility={legacy.getEligibility}
+              getKittenBonuses={legacy.getKittenBonuses}
+            />
+          </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
       <TabsContent value="specializations" className="mt-0">
         <PanelErrorBoundary panelName="SpecializationPanel">
-          <SpecializationPanel
-            cats={cats}
-            catCostumes={catCostumes}
-            relationships={relationships}
-            kittensBred={specialization.kittensBred}
-            onSpecialize={specialization.onSpecialize}
-            canSpecialize={specialization.canSpecialize}
-            getSpecialization={specialization.getSpecialization}
-            getActiveBonuses={specialization.getActiveBonuses}
-          />
+          <Suspense fallback={<PanelSkeleton rows={4} />}>
+            <SpecializationPanel
+              cats={cats}
+              catCostumes={catCostumes}
+              relationships={relationships}
+              kittensBred={specialization.kittensBred}
+              onSpecialize={specialization.onSpecialize}
+              canSpecialize={specialization.canSpecialize}
+              getSpecialization={specialization.getSpecialization}
+              getActiveBonuses={specialization.getActiveBonuses}
+            />
+          </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
       <TabsContent value="battlepass" className="mt-0">
         <PanelErrorBoundary panelName="BattlePassPanel">
-          <BattlePassPanel
-            money={battlePass.money}
-            onClaimReward={battlePass.onClaimReward}
-            onUpgradePremium={battlePass.onUpgradePremium}
-          />
+          <Suspense fallback={<PanelSkeleton rows={5} />}>
+            <BattlePassPanel
+              money={battlePass.money}
+              onClaimReward={battlePass.onClaimReward}
+              onUpgradePremium={battlePass.onUpgradePremium}
+            />
+          </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
       <TabsContent value="more" className="mt-0 space-y-4">
         <PanelErrorBoundary panelName="MorePanels">
-          <AchievementsPanel 
-            achievements={achievements}
-            currentStats={stats} 
-          />
-          <GraphicsSettingsPanel />
-          <SaveLoadPanel 
-            onSave={saveLoad.onSave} 
-            onLoad={saveLoad.onLoad} 
-            hasSave={saveLoad.hasSave} 
-            lastSaveDay={saveLoad.lastSaveDay}
-            isLoggedIn={saveLoad.isLoggedIn}
-            cloudSyncing={saveLoad.cloudSyncing}
-            lastCloudSave={saveLoad.lastCloudSave}
-          />
+          <Suspense fallback={<PanelSkeleton rows={3} />}>
+            <AchievementsPanel 
+              achievements={achievements}
+              currentStats={stats} 
+            />
+          </Suspense>
+          <Suspense fallback={<PanelSkeleton rows={2} showHeader={false} />}>
+            <GraphicsSettingsPanel />
+          </Suspense>
+          <Suspense fallback={<PanelSkeleton rows={2} showHeader={false} />}>
+            <SaveLoadPanel 
+              onSave={saveLoad.onSave} 
+              onLoad={saveLoad.onLoad} 
+              hasSave={saveLoad.hasSave} 
+              lastSaveDay={saveLoad.lastSaveDay}
+              isLoggedIn={saveLoad.isLoggedIn}
+              cloudSyncing={saveLoad.cloudSyncing}
+              lastCloudSave={saveLoad.lastCloudSave}
+            />
+          </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
     </>
