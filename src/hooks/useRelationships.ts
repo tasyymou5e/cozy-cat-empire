@@ -20,12 +20,7 @@ import {
   RELATIONSHIP_DECAY,
   getDecayInfo,
 } from '@/types/relationships';
-
-/**
- * Generates a random unique ID
- * @internal
- */
-const generateId = () => Math.random().toString(36).substr(2, 9);
+import { generateId } from '@/lib/utils';
 
 /**
  * Save data structure for relationship persistence
