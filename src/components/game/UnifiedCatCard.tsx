@@ -71,32 +71,7 @@ export interface UnifiedCatCardProps {
   className?: string;
 }
 
-// Name generation data
-const BREED_NAMES: Record<CatBreed, string[]> = {
-  'siamese': ['Sakura', 'Miko', 'Yuki', 'Suki', 'Kiko', 'Hana', 'Wasabi', 'Tempura', 'Sake', 'Nori', 'Tofu', 'Mochi'],
-  'persian': ['Duchess', 'Prince', 'Valentino', 'Anastasia', 'Cleopatra', 'Empress', 'Countess', 'Marquis', 'Vivienne', 'Reginald'],
-  'maine-coon': ['Bear', 'Moose', 'Timber', 'Ranger', 'Hunter', 'Maple', 'Everest', 'Grizzly', 'Kodiak', 'Aspen', 'Summit'],
-  'british-shorthair': ['Winston', 'Churchill', 'Wellington', 'Sherlock', 'Watson', 'Paddington', 'Biscuit', 'Earl Grey', 'Crumpet'],
-  'ragdoll': ['Marshmallow', 'Velvet', 'Cashmere', 'Fluffernutter', 'Snuggles', 'Cloud', 'Pillow', 'Cottontail', 'Silky'],
-  'bengal': ['Rajah', 'Sheba', 'Zara', 'Jungle', 'Safari', 'Tigris', 'Savanna', 'Leo', 'Panther', 'Aztec', 'Sahara'],
-  'tabby': ['Stripes', 'Marble', 'Autumn', 'Caramel', 'Butterscotch', 'Toffee', 'Cinnamon', 'Tiger', 'Amber'],
-  'stray': ['Scrappy', 'Lucky', 'Rascal', 'Scout', 'Maverick', 'Bandit', 'Dusty', 'Patches', 'Scruffy', 'Streetwise'],
-};
-
-const PERSONALITY_NAMES: Record<CatPersonality, string[]> = {
-  'lazy': ['Snoozer', 'Dreamer', 'Sleepy', 'Cozy', 'Lounger', 'Napkin', 'Slumber', 'Dozer', 'Yawnie', 'Pillow'],
-  'playful': ['Zoom', 'Bounce', 'Sparky', 'Frisky', 'Zippy', 'Turbo', 'Rocket', 'Dash', 'Peppy', 'Zinger'],
-  'affectionate': ['Cuddles', 'Sweetie', 'Honey', 'Lovebug', 'Snugglepuff', 'Huggy', 'Smoochie', 'Darling', 'Angel'],
-  'independent': ['Maverick', 'Solo', 'Rebel', 'Sphinx', 'Mystery', 'Enigma', 'Lone Wolf', 'Rogue', 'Drifter'],
-  'curious': ['Scout', 'Explorer', 'Sherlock', 'Detective', 'Peepers', 'Nosy', 'Snoop', 'Inquisitor', 'Seeker'],
-  'shy': ['Whisper', 'Shadow', 'Misty', 'Ghost', 'Phantom', 'Bashful', 'Wallflower', 'Timid', 'Hush'],
-};
-
-const UNIVERSAL_NAMES = [
-  'Whiskers', 'Mittens', 'Luna', 'Oliver', 'Bella', 'Max', 'Coco',
-  'Biscuit', 'Muffin', 'Cookie', 'Sir Fluffington', 'Lord Meowington',
-  'Gandalf', 'Yoda', 'Dumbledore', 'Felix', 'Ginger', 'Pepper',
-];
+import { generateRandomCatName } from '@/types/catNames';
 
 const personalityEmojis: Record<string, string> = {
   'lazy': '😴', 'playful': '🎮', 'affectionate': '💗', 'independent': '😎', 'curious': '🔍', 'shy': '🙈',
@@ -234,10 +209,7 @@ export function UnifiedCatCard({
   };
 
   const generateRandomName = () => {
-    const breedNames = BREED_NAMES[cat.breed] || [];
-    const personalityNames = PERSONALITY_NAMES[cat.personality] || [];
-    const combinedNames = [...breedNames, ...personalityNames, ...UNIVERSAL_NAMES];
-    setEditName(combinedNames[Math.floor(Math.random() * combinedNames.length)]);
+    setEditName(generateRandomCatName(cat.breed, cat.personality));
   };
 
   const glowColor = reaction?.type === 'positive' 
