@@ -30,8 +30,11 @@ import { useRelationshipReminders } from '@/hooks/useRelationshipReminders';
 import { useTheme } from 'next-themes';
 import { useCatReactions } from '@/contexts/CatReactionContext';
 
-// Decomposed components (available for future use)
+// Decomposed components
 import { CatFarmSkeleton } from './CatFarmSkeleton';
+import { CatFarmHeader } from './CatFarmHeader';
+import { CatFarmDialogs } from './CatFarmDialogs';
+import { CatFarmOverlays } from './CatFarmOverlays';
 
 // Panel and UI components
 import { StatusBar } from './StatusBar';
@@ -70,31 +73,10 @@ import { MobileBottomNav } from './MobileBottomNav';
 import { MobileMenuSheet } from './MobileMenuSheet';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 
-// Overlay and Dialog components
-import { TutorialSystem } from './TutorialSystem';
-import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
-import { RelationshipAnimations } from './RelationshipAnimations';
-import { MoodAnimations } from './MoodAnimations';
-import { CatActivityPopups } from './CatActivityPopups';
-import { DailyEventToast } from './DailyEventToast';
-import { MilestonePopup } from './MilestonePopup';
-import { GiftReceivedDialog } from './GiftReceivedDialog';
-import { TradeReceivedDialog } from './TradeReceivedDialog';
-import { DailyRewardsPanel } from './DailyRewardsPanel';
-import { WhatsNewPopup } from './WhatsNewPopup';
-import { QuickAccessMenu } from './QuickAccessMenu';
-import { NotificationCenter } from './NotificationCenter';
-
 // UI primitives
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { FloatingDecorations } from '@/components/ui/FloatingDecorations';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Slider } from '@/components/ui/slider';
-import { Link } from 'react-router-dom';
-import { Volume2, VolumeX, Music, Music2, Settings2, Keyboard, LogIn, LogOut, User, Cloud, Sun, Moon, CalendarDays, Sparkles } from 'lucide-react';
 
 // Types
 import { BattlePassReward } from '@/types/battlePass';
@@ -702,241 +684,80 @@ export function CatFarm() {
   return (
     <AnimatedBackground variant="game" className="min-h-screen">
       <FloatingDecorations variant="paws" density="low" className="opacity-20" />
-      <TutorialSystem onHighlightTab={setHighlightedTab} />
-      <KeyboardShortcutsHelp open={showShortcutsHelp} onClose={() => setShowShortcutsHelp(false)} />
-      <RelationshipAnimations events={relationshipSystem.events} lastEventId={relationshipSystem.lastEventId} />
-      <MoodAnimations cats={state.cats} />
-      <CatActivityPopups 
-        cats={state.cats} 
-        onCatClick={(catId) => {
-          const cat = state.cats.find(c => c.id === catId);
-          if (cat) playSound('click');
-        }}
+      {/* Overlays: Tutorial, Animations, Popups */}
+      <CatFarmOverlays
+        onHighlightTab={setHighlightedTab}
+        showShortcutsHelp={showShortcutsHelp}
+        onCloseShortcutsHelp={() => setShowShortcutsHelp(false)}
+        events={relationshipSystem.events}
+        lastEventId={relationshipSystem.lastEventId}
+        cats={state.cats}
+        onCatClick={() => playSound('click')}
         onFeed={(catId) => { actions.feedSingleCat?.(catId); trackObjective('feed_cats'); }}
         onComfort={(catId) => dispatchAction('COMFORT_CAT', { catId })}
         onHeal={(catId) => dispatchAction('USE_MEDICINE', { catId })}
         hasFood={state.resources.food > 0}
         hasMedicine={state.resources.medicine > 0}
-      />
-      <DailyEventToast event={currentDailyEvent} onDismiss={actions.clearDailyEvent} />
-      
-      {/* Milestone Celebration Popup */}
-      <MilestonePopup
-        milestone={pendingCelebration}
-        onClaim={handleClaimMilestone}
-        onDismiss={dismissCelebration}
+        currentDailyEvent={currentDailyEvent}
+        onDismissDailyEvent={actions.clearDailyEvent}
       />
       
-      {/* Gift Received Popup */}
-      <GiftReceivedDialog
-        gift={newGiftAlert}
-        onAccept={handleAcceptGiftFromPopup}
-        onDecline={handleDeclineGiftFromPopup}
-        onClose={clearNewGift}
-      />
-      
-      {/* Trade Received Popup */}
-      <TradeReceivedDialog
-        trade={newTradeAlert}
-        onAccept={handleAcceptTradeFromPopup}
-        onDecline={handleDeclineTradeFromPopup}
-        onClose={clearNewTrade}
-      />
-      
-      {/* Daily Login Rewards Modal */}
-      <DailyRewardsPanel
-        currentStreak={loginStreak}
-        longestStreak={loginLongestStreak}
+      {/* Dialogs: Milestones, Gifts, Trades, Daily Rewards, What's New */}
+      <CatFarmDialogs
+        newGiftAlert={newGiftAlert}
+        onAcceptGift={handleAcceptGiftFromPopup}
+        onDeclineGift={handleDeclineGiftFromPopup}
+        onClearGift={clearNewGift}
+        newTradeAlert={newTradeAlert}
+        onAcceptTrade={handleAcceptTradeFromPopup}
+        onDeclineTrade={handleDeclineTradeFromPopup}
+        onClearTrade={clearNewTrade}
+        pendingMilestone={pendingCelebration}
+        onClaimMilestone={handleClaimMilestone}
+        onDismissMilestone={dismissCelebration}
+        loginStreak={loginStreak}
+        loginLongestStreak={loginLongestStreak}
         totalLogins={totalLogins}
-        canClaim={canClaimDailyReward}
-        showModal={showDailyRewardsModal}
-        onCloseModal={() => setShowDailyRewardsModal(false)}
-        onClaim={handleClaimDailyReward}
+        canClaimDailyReward={canClaimDailyReward}
+        showDailyRewardsModal={showDailyRewardsModal}
+        onCloseDailyRewardsModal={() => setShowDailyRewardsModal(false)}
+        onClaimDailyReward={handleClaimDailyReward}
         vipTier={vipTier}
         isVIP={isVIP}
+        showWhatsNew={showWhatsNew}
+        onCloseWhatsNew={() => setShowWhatsNew(false)}
       />
       
-      {/* What's New Popup */}
-      <WhatsNewPopup
-        open={showWhatsNew}
-        onClose={() => setShowWhatsNew(false)}
+      {/* Header: Logo, Audio, User Menu */}
+      <CatFarmHeader
+        musicOn={musicOn}
+        soundOn={soundOn}
+        currentMoodLabel={currentMoodLabel}
+        sfxVolume={sfxVolume}
+        musicVolume={musicVolume}
+        onToggleMusic={toggleMusic}
+        onToggleSound={toggleSound}
+        onSfxVolumeChange={handleSfxVolumeChange}
+        onMusicVolumeChange={handleMusicVolumeChange}
+        theme={theme}
+        onThemeChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        recentTabs={recentTabs}
+        onNavigateTab={setSideTab}
+        onShowShortcutsHelp={() => setShowShortcutsHelp(true)}
+        onShowWhatsNew={() => setShowWhatsNew(true)}
+        onShowDailyRewards={() => setShowDailyRewardsModal(true)}
+        user={user}
+        onSignOut={signOut}
+        lastCloudSave={lastCloudSave}
+        cloudSyncing={cloudSyncing}
+        onCloudSave={handleCloudSave}
+        onLocalSave={actions.saveGame}
+        onResetGame={actions.resetGame}
+        isVIP={isVIP}
+        vipTier={vipTier}
+        canClaimDailyReward={canClaimDailyReward}
+        isMobile={isMobile}
       />
-      
-      <header className="game-header">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">🐱 Cat Farm</h1>
-          <span className="text-xs text-muted-foreground hidden sm:inline">Build your 100-acre cat empire!</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {musicOn && currentMoodLabel && (
-            <span className="text-xs text-muted-foreground hidden sm:inline">{currentMoodLabel}</span>
-          )}
-          
-          {/* Quick Access Menu - replaces individual page links */}
-          <QuickAccessMenu 
-            recentTabs={recentTabs} 
-            onNavigateTab={setSideTab} 
-          />
-          
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" title="Audio settings">
-                <Settings2 className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64" align="end">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <Volume2 className="h-4 w-4" /> Sound Effects
-                    </label>
-                    <span className="text-xs text-muted-foreground">{sfxVolume}%</span>
-                  </div>
-                  <Slider
-                    value={[sfxVolume]}
-                    onValueChange={handleSfxVolumeChange}
-                    max={100}
-                    step={5}
-                    className="w-full"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <Music className="h-4 w-4" /> Music
-                    </label>
-                    <span className="text-xs text-muted-foreground">{musicVolume}%</span>
-                  </div>
-                  <Slider
-                    value={[musicVolume]}
-                    onValueChange={handleMusicVolumeChange}
-                    max={100}
-                    step={5}
-                    className="w-full"
-                  />
-                </div>
-                <div className="border-t pt-3">
-                  <button
-                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    className="flex items-center gap-2 w-full text-sm font-medium hover:text-primary transition-colors"
-                  >
-                    {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                    {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-                  </button>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-          <Button variant="ghost" size="sm" onClick={toggleMusic} title={musicOn ? "Stop music" : "Play ambient music"}>
-            {musicOn ? <Music2 className="h-4 w-4 text-primary" /> : <Music className="h-4 w-4" />}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={toggleSound} title={soundOn ? "Mute sounds" : "Unmute sounds"}>
-            {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-          </Button>
-          {!isMobile && (
-            <Button variant="ghost" size="sm" onClick={() => setShowShortcutsHelp(true)} title="Keyboard Shortcuts (?)" className="min-h-10 min-w-10">
-              <Keyboard className="h-4 w-4" />
-            </Button>
-          )}
-          
-          {/* What's New Button */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setShowWhatsNew(true)} 
-            title="What's New"
-            className="min-h-10 min-w-10"
-          >
-            <Sparkles className="h-4 w-4" />
-          </Button>
-          
-          {/* Notification Center */}
-          <NotificationCenter userId={user?.id} onNavigate={setSideTab} />
-          
-          {/* VIP Badge */}
-          {user && isVIP && vipTier && (
-            <Badge 
-              className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold text-xs animate-vip-glow cursor-pointer"
-              onClick={() => setShowDailyRewardsModal(true)}
-            >
-              {vipTier.emoji} {vipTier.name}
-            </Badge>
-          )}
-          
-          {/* Daily Rewards Button */}
-          {user && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowDailyRewardsModal(true)}
-              title="Daily Rewards"
-              className={`min-h-10 min-w-10 relative ${canClaimDailyReward ? 'animate-bounce-gentle' : ''}`}
-            >
-              <CalendarDays className="h-4 w-4" />
-              {canClaimDailyReward && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse" />
-              )}
-            </Button>
-          )}
-          
-          {/* Cloud sync indicator */}
-          {user && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleCloudSave} 
-              disabled={cloudSyncing}
-              title={cloudSyncing ? 'Syncing...' : 'Sync to cloud'}
-              className="min-h-10 min-w-10"
-            >
-              {cloudSyncing ? (
-                <Cloud className="h-4 w-4 animate-pulse text-primary" />
-              ) : (
-                <Cloud className="h-4 w-4 text-green-500" />
-              )}
-            </Button>
-          )}
-          
-          {!user && (
-            <Button variant="ghost" size="sm" onClick={actions.saveGame} title="Save (S)" className="min-h-10 min-w-10">💾</Button>
-          )}
-          
-          {/* Auth buttons */}
-          {user ? (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="min-h-10 gap-2">
-                  <User className="h-4 w-4" />
-                  <span className="hidden sm:inline text-xs">{user.email?.split('@')[0]}</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48" align="end">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium truncate">{user.email}</p>
-                  {lastCloudSave && (
-                    <p className="text-xs text-muted-foreground">
-                      Last sync: {new Date(lastCloudSave).toLocaleTimeString()}
-                    </p>
-                  )}
-                  <Button variant="outline" size="sm" className="w-full" onClick={() => signOut()}>
-                    <LogOut className="h-4 w-4 mr-2" /> Log Out
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-          ) : (
-            <Link to="/auth">
-              <Button variant="outline" size="sm" className="min-h-10 gap-2">
-                <LogIn className="h-4 w-4" />
-                <span className="hidden sm:inline">Log In</span>
-              </Button>
-            </Link>
-          )}
-          
-          <Button variant="ghost" size="sm" onClick={actions.resetGame} className="min-h-10 min-w-10 hidden sm:flex">New Game</Button>
-        </div>
-      </header>
 
       <StatusBar state={state} onUpgrade={actions.upgradeHouse} onCatShow={(tier) => dispatchAction('CAT_SHOW', { tier })} relationships={relationshipSystem.relationships} />
       <MessageBar message={message} type={messageType} onDismiss={actions.dismissMessage} />
