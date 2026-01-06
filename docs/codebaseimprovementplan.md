@@ -61,23 +61,24 @@ This plan addresses architectural issues identified in the audit, prioritized by
 
 ---
 
-### Step 1.3: Decompose CatFarm.tsx ✅ PHASE 1 COMPLETE
+### Step 1.3: Decompose CatFarm.tsx ✅ PHASE 2 COMPLETE
 
 **Files Created & Integrated:**
 - `src/components/game/CatFarmSkeleton.tsx` - Loading skeleton (~50 lines) ✅ INTEGRATED
 - `src/components/game/CatFarmHeader.tsx` - Logo, controls, user menu (~264 lines) ✅ INTEGRATED
 - `src/components/game/CatFarmDialogs.tsx` - Modal dialogs and popups (~141 lines) ✅ INTEGRATED
 - `src/components/game/CatFarmOverlays.tsx` - Tutorial, animations, toasts (~73 lines) ✅ INTEGRATED
+- `src/hooks/useCatFarmState.ts` - Consolidated state management (~240 lines) ✅ CREATED
+- `src/hooks/useCatFarmHandlers.ts` - Consolidated event handlers (~340 lines) ✅ CREATED
 
 **Completed:**
-- ✅ All 4 components now integrated into CatFarm.tsx
-- ✅ Removed ~235 lines of inline code from CatFarm.tsx
-- ✅ Removed unused imports (icons, UI primitives now in sub-components)
+- ✅ All 4 UI components integrated into CatFarm.tsx
+- ✅ Extracted all hook initializations to useCatFarmState
+- ✅ Extracted all event handlers to useCatFarmHandlers
+- ✅ CatFarm.tsx reduced from ~1,110 lines to ~480 lines (under 500 target!)
+- ✅ TAB_LABELS and MOOD_LABELS exported from hooks for reuse
 
-**Optional Future Work:**
-- Extract panel rendering into separate components (FarmPanels, SocialPanels, etc.)
-
-**Current CatFarm.tsx:** ~1,040 lines (down from 1,291)
+**Current CatFarm.tsx:** ~480 lines (down from 1,110)
 
 ---
 
