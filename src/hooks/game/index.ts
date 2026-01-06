@@ -1,13 +1,8 @@
 /**
- * Composed useGameState hook
+ * useGameState - Modular Game State Management
  * 
  * This file combines all domain hooks into the unified useGameState export.
- * The original useGameState.ts is preserved and still works - this is an
- * alternative implementation using the modular architecture.
- * 
- * To switch to this implementation:
- * Change: import { useGameState } from '@/hooks/useGameState'
- * To:     import { useGameState } from '@/hooks/game'
+ * The hook is composed of 9 focused domain hooks for better maintainability.
  */
 
 import { useState, useCallback, useMemo } from 'react';
