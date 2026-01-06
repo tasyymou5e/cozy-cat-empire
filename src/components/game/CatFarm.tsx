@@ -176,9 +176,93 @@ export function CatFarm() {
             <EconomyPanels resources={state.resources} money={state.money} catCount={state.cats.length} marketListings={state.marketListings} hasSpace={state.cats.length < state.space} dispatchAction={dispatchAction} onBuyFromMarket={actions.buyFromMarket} />
             <BreedingTrainingPanels cats={state.cats} breedingCooldown={state.breedingCooldown} hasSpace={state.cats.length < state.space} treats={state.resources.treats} toys={state.resources.toys} day={state.day} catCostumes={state.catCostumes} relationships={relationshipSystem.relationships} money={state.money} ownedCostumes={state.ownedCostumes} dispatchAction={dispatchAction} getBreedingCompatibility={relationshipSystem.getBreedingCompatibility} onBuyCostume={actions.buyCostume} onEquipCostume={actions.equipCostume} onPortraitOutdated={showOutdatedToast} />
             <SocialPanels cats={state.cats} resources={state.resources} relationships={relationshipSystem.relationships} groups={relationshipSystem.groups} events={relationshipSystem.events} catCostumes={state.catCostumes} currentDay={state.day} maintenanceStreak={relationshipSystem.maintenanceStreak} needsAttentionCount={relationshipReminders.needsAttentionCount} quickSocializePair={ui.quickSocializePair} dispatchAction={dispatchAction} getRelationship={relationshipSystem.getRelationship} onClearSelection={clearQuickSocializePair} onQuickSocialize={handleQuickSocialize} onHealAll={actions.healAllSickCats} onRestAll={actions.restAllTiredCats} onComfortAll={actions.comfortAllUnhappyCats} onTrainAll={actions.trainAllAvailableCats} onSellSelected={actions.sellSelectedCats} onSocializeAll={actions.socializeAllNeglected} />
-            <ProgressPanels cats={state.cats} relationships={relationshipSystem.relationships} catCostumes={state.catCostumes} challenges={weeklyChallenges.challenges} challengesLoading={weeklyChallenges.loading} challengeTimeRemaining={weeklyChallenges.getTimeRemaining()} lastProgressUpdate={weeklyChallenges.lastProgressUpdate} totalChallengesCompleted={weeklyChallenges.totalChallengesCompleted} currentStreak={weeklyChallenges.currentStreak} longestStreak={weeklyChallenges.longestStreak} objectives={objectives.objectives} allObjectivesCompleted={objectives.allCompleted} objectivesBonusClaimed={objectives.bonusClaimed} breedProgress={collection.breedProgress} personalityProgress={collection.personalityProgress} costumeProgress={collection.costumeProgress} trickProgress={collection.trickProgress} overallProgress={collection.overallProgress} completedSets={collection.progress.completedSets} canSpin={luckyWheel.canSpin} spinsRemaining={luckyWheel.spinsRemaining} isSpinning={luckyWheel.isSpinning} lastPrize={luckyWheel.lastPrize} totalSpins={luckyWheel.totalSpins} isVIP={dailyRewards.isVIP} playSound={farmState.sound.playSound} fireConfetti={farmState.confetti.fireConfetti} onClaimChallengeReward={weeklyChallenges.claimReward} onProgressAnimationComplete={weeklyChallenges.clearProgressUpdate} onClaimObjectivesBonus={handleClaimObjectivesBonus} getSetReward={collection.getSetReward} onSpin={luckyWheel.spin} onClaimWheelPrize={handleClaimWheelPrize} onClearPrize={luckyWheel.clearLastPrize} />
+            <ProgressPanels 
+              catData={{ cats: state.cats, relationships: relationshipSystem.relationships, catCostumes: state.catCostumes }}
+              challenge={{
+                challenges: weeklyChallenges.challenges,
+                loading: weeklyChallenges.loading,
+                timeRemaining: weeklyChallenges.getTimeRemaining(),
+                lastProgressUpdate: weeklyChallenges.lastProgressUpdate,
+                totalCompleted: weeklyChallenges.totalChallengesCompleted,
+                currentStreak: weeklyChallenges.currentStreak,
+                longestStreak: weeklyChallenges.longestStreak,
+                onClaimReward: weeklyChallenges.claimReward,
+                onProgressAnimationComplete: weeklyChallenges.clearProgressUpdate,
+              }}
+              objectives={{
+                objectives: objectives.objectives,
+                allCompleted: objectives.allCompleted,
+                bonusClaimed: objectives.bonusClaimed,
+                onClaimBonus: handleClaimObjectivesBonus,
+              }}
+              wheel={{
+                canSpin: luckyWheel.canSpin,
+                spinsRemaining: luckyWheel.spinsRemaining,
+                isSpinning: luckyWheel.isSpinning,
+                lastPrize: luckyWheel.lastPrize,
+                totalSpins: luckyWheel.totalSpins,
+                isVIP: dailyRewards.isVIP,
+                onSpin: luckyWheel.spin,
+                onClaimPrize: handleClaimWheelPrize,
+                onClearPrize: luckyWheel.clearLastPrize,
+              }}
+              collection={{
+                breedProgress: collection.breedProgress,
+                personalityProgress: collection.personalityProgress,
+                costumeProgress: collection.costumeProgress,
+                trickProgress: collection.trickProgress,
+                overallProgress: collection.overallProgress,
+                completedSets: collection.progress.completedSets,
+                getSetReward: collection.getSetReward,
+              }}
+              feedback={{ playSound: farmState.sound.playSound, fireConfetti: farmState.confetti.fireConfetti }}
+            />
             <SocialFeaturesPanels userId={auth.user?.id} cats={state.cats} money={state.money} resources={state.resources} catCostumes={state.catCostumes} friends={friends.friends} activeChallenges={coopChallenges.activeChallenges} pendingInvites={coopChallenges.pendingInvites} sentInvites={coopChallenges.sentInvites} coopTemplates={coopChallenges.templates} dispatchAction={dispatchAction} onGiftReceived={(cat) => actions.addReceivedCat?.(cat)} onSendCoopInvite={coopChallenges.sendInvite} onAcceptCoopInvite={coopChallenges.acceptInvite} onDeclineCoopInvite={coopChallenges.declineInvite} onCancelCoopInvite={coopChallenges.cancelInvite} onClaimCoopReward={handleClaimCoopReward} />
-            <UtilityPanels cats={state.cats} catCostumes={state.catCostumes} relationships={relationshipSystem.relationships} achievements={state.achievements} money={state.money} totalMoneyEarned={state.totalMoneyEarned} totalShowWins={state.totalShowWins} kittensBreed={kittensBreed} houseSize={state.houseSize} acres={state.acres} challengesCompleted={weeklyChallenges.totalChallengesCompleted} retiredCats={legacy.retiredCats} totalLegacyBonus={legacy.totalLegacyBonus} isLoggedIn={!!auth.user} cloudSyncing={ui.cloudSyncing} lastCloudSave={ui.lastCloudSave} onRetireCat={handleRetireCat} canRetire={legacy.canRetire} getEligibility={legacy.getEligibility} getKittenBonuses={legacy.getKittenBonuses} onSpecialize={actions.setSpecialization} canSpecialize={specializations.canSpecialize} getSpecialization={specializations.getSpecialization} getActiveBonuses={() => specializations.getActiveBonuses(state.cats)} onClaimBPReward={handleClaimBPReward} onUpgradePremium={handleUpgradePremium} onSave={auth.user ? handleCloudSave : actions.saveGame} onLoad={auth.user ? handleCloudLoad : actions.loadGame} hasSave={actions.hasSaveGame()} lastSaveDay={actions.getSaveDay()} />
+            <UtilityPanels 
+              cats={state.cats} 
+              catCostumes={state.catCostumes} 
+              relationships={relationshipSystem.relationships} 
+              achievements={state.achievements}
+              legacy={{
+                retiredCats: legacy.retiredCats,
+                totalLegacyBonus: legacy.totalLegacyBonus,
+                onRetireCat: handleRetireCat,
+                canRetire: legacy.canRetire,
+                getEligibility: legacy.getEligibility,
+                getKittenBonuses: legacy.getKittenBonuses,
+              }}
+              specialization={{
+                kittensBred: kittensBreed,
+                onSpecialize: actions.setSpecialization,
+                canSpecialize: specializations.canSpecialize,
+                getSpecialization: specializations.getSpecialization,
+                getActiveBonuses: () => specializations.getActiveBonuses(state.cats),
+              }}
+              battlePass={{
+                money: state.money,
+                onClaimReward: handleClaimBPReward,
+                onUpgradePremium: handleUpgradePremium,
+              }}
+              stats={{
+                cats: state.cats.length,
+                showWins: state.totalShowWins,
+                money: state.totalMoneyEarned,
+                breeding: kittensBreed,
+                house: state.houseSize !== 'apartment',
+                farm: state.houseSize === 'farm',
+                acres: state.acres,
+                challengesCompleted: weeklyChallenges.totalChallengesCompleted,
+              }}
+              saveLoad={{
+                isLoggedIn: !!auth.user,
+                cloudSyncing: ui.cloudSyncing,
+                lastCloudSave: ui.lastCloudSave,
+                onSave: auth.user ? handleCloudSave : actions.saveGame,
+                onLoad: auth.user ? handleCloudLoad : actions.loadGame,
+                hasSave: actions.hasSaveGame(),
+                lastSaveDay: actions.getSaveDay(),
+              }}
+            />
           </aside>
         </main>
       </Tabs>
