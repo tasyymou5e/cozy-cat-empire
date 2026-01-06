@@ -163,11 +163,18 @@ Extracted the 85-line `tabBadges` and `categoryBadges` useMemo calculations from
 
 ---
 
-### Step 3.2: Fix Relationship Streak Cloud Sync
+### Step 3.2: Fix Relationship Streak Cloud Sync ✅ COMPLETED
 
-**Files to Modify:**
-- `src/hooks/useRelationships.ts` - Add cloud sync option
-- `src/hooks/useCloudSave.ts` - Include maintenance streak data
+**Files Modified:**
+- `src/hooks/game/types.ts` - Extended `RelationshipSaveData` interface with streak fields
+- `src/hooks/useCloudSave.ts` - Updated `RelationshipSaveData` to include streak fields
+- `src/hooks/game/useSaveLoad.ts` - Updated `resetGame` to include streak reset
+
+**Result:**
+- Maintenance streak data (`maintenanceStreak`, `longestMaintenanceStreak`, `lastMaintenanceDay`) now included in cloud saves
+- `useRelationships.getRelationshipSaveData()` already returned these fields - just needed type updates
+- `loadRelationships()` already handled optional streak fields with fallbacks
+- Full cloud sync for all relationship data including streaks
 
 ---
 

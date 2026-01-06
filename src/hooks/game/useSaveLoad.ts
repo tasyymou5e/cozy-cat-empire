@@ -75,7 +75,13 @@ export function useSaveLoad(deps: GameHookDependencies): SaveLoadActions {
     localStorage.removeItem(SAVE_KEY);
     setState(createInitialState());
     setKittensBreed(0);
-    relationshipSystem.loadRelationships({ relationships: [], events: [] });
+    relationshipSystem.loadRelationships({ 
+      relationships: [], 
+      events: [],
+      maintenanceStreak: 0,
+      longestMaintenanceStreak: 0,
+      lastMaintenanceDay: null,
+    });
     showMessage('New game started! Good luck! 🎉', 'success');
     playSound?.('success');
   }, [setState, setKittensBreed, relationshipSystem, playSound, showMessage]);
