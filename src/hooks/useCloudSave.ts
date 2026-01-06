@@ -7,6 +7,10 @@ import { Json } from '@/integrations/supabase/types';
 interface RelationshipSaveData {
   relationships: CatRelationship[];
   events: RelationshipEvent[];
+  // Maintenance streak tracking
+  maintenanceStreak?: number;
+  longestMaintenanceStreak?: number;
+  lastMaintenanceDay?: number | null;
 }
 
 interface CloudSaveData {

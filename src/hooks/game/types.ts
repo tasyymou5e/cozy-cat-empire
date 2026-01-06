@@ -27,6 +27,10 @@ import { CatRelationship, RelationshipEvent } from '@/types/relationships';
 export interface RelationshipSaveData {
   relationships: CatRelationship[];
   events: RelationshipEvent[];
+  // Maintenance streak tracking
+  maintenanceStreak?: number;
+  longestMaintenanceStreak?: number;
+  lastMaintenanceDay?: number | null;
 }
 
 // ============================================================================
