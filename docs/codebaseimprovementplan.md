@@ -204,12 +204,11 @@ Remove localStorage dependency in useSpecializations, rely on cloud save via Cat
 
 ---
 
-### Step 4.3: Standardize Sound Context Usage
+### Step 4.3: Standardize Sound Context Usage ✅ COMPLETED
 
-**Files to Modify:**
-- `src/components/game/CatFarm.tsx` - Use `useSound()` from context instead of `useSoundEffects()` directly
-
-Remove the redundant direct hook call at line 130.
+**Updated:** `src/components/game/CatFarm.tsx`
+- Changed import from `useSoundEffects` to `useSound` from context
+- Now uses shared sound instance from `SoundProvider` instead of creating a new instance
 
 ---
 
