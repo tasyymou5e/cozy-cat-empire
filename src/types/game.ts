@@ -84,13 +84,8 @@ export interface GameState {
   catCostumes: Record<string, string>; // catId -> costumeId
 }
 
-export const CAT_NAMES = [
-  'Whiskers', 'Mittens', 'Shadow', 'Luna', 'Oliver', 'Mochi', 'Ginger',
-  'Patches', 'Smokey', 'Tiger', 'Cleo', 'Felix', 'Bella', 'Max', 'Coco',
-  'Simba', 'Nala', 'Oreo', 'Pumpkin', 'Biscuit', 'Waffle', 'Muffin',
-  'Pepper', 'Gizmo', 'Tigger', 'Chester', 'Jasper', 'Oscar', 'Leo',
-  'Charlie', 'Milo', 'Loki', 'Salem', 'Binx', 'Boots', 'Socks'
-];
+// Re-export from canonical source for backward compatibility
+export { UNIVERSAL_NAMES as CAT_NAMES } from './catNames';
 
 export const BREEDS: Record<CatBreed, { name: string; baseValue: number; rarity: number }> = {
   'stray': { name: 'Stray', baseValue: 30, rarity: 1 },

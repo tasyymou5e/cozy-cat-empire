@@ -1,17 +1,28 @@
 /**
- * Barrel export for all custom hooks
+ * @fileoverview Barrel export for all custom hooks
  * 
  * Usage: import { useCloudSave, useFriends, useConfetti } from '@/hooks';
+ * 
+ * @module hooks
  */
 
 // Game hooks
 export * from './game';
 export { useRelationships } from './useRelationships';
 export { useGameEvents } from './useGameEvents';
+
+// CatFarm state management
 export { useCatFarmState, TAB_LABELS } from './useCatFarmState';
 export type { CatFarmState } from './useCatFarmState';
 export { useCatFarmHandlers, MOOD_LABELS } from './useCatFarmHandlers';
 export type { CatFarmHandlers } from './useCatFarmHandlers';
+export { useCatFarmUIState } from './useCatFarmUIState';
+export type { CatFarmUIState } from './useCatFarmUIState';
+export { useCatFarmSystems } from './useCatFarmSystems';
+export type { CatFarmSystems } from './useCatFarmSystems';
+
+// Handler hooks
+export * from './handlers';
 
 // Social hooks
 export { useFriends } from './useFriends';

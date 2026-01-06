@@ -7,13 +7,8 @@
  * @module hooks/useCatFarmState
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useGameState } from '@/hooks/game';
-import { useSound } from '@/contexts/SoundContext';
-import { useConfetti } from '@/hooks/useConfetti';
-import { useHaptics } from '@/hooks/useHaptics';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
 import { useGlobalLeaderboard } from '@/hooks/useGlobalLeaderboard';
 import { useWeeklyChallenges } from '@/hooks/useWeeklyChallenges';
@@ -35,36 +30,11 @@ import { usePlayerActivityLog } from '@/hooks/usePlayerActivityLog';
 import { usePortraitOutdatedToast } from '@/hooks/usePortraitOutdatedToast';
 import { useRelationshipReminders } from '@/hooks/useRelationshipReminders';
 import { useGameMessages } from '@/hooks/useGameMessages';
-import { useTheme } from 'next-themes';
-import { useCatReactions } from '@/contexts/CatReactionContext';
+import { useCatFarmUIState } from './useCatFarmUIState';
+import { useCatFarmSystems } from './useCatFarmSystems';
 
-const TAB_LABELS: Record<string, { label: string; icon: string }> = {
-  actions: { label: 'Actions', icon: '🐾' },
-  chores: { label: 'Chores', icon: '🧹' },
-  supplies: { label: 'Supplies', icon: '📦' },
-  market: { label: 'Market', icon: '🛒' },
-  costumes: { label: 'Costumes', icon: '👗' },
-  breeding: { label: 'Breeding', icon: '💕' },
-  training: { label: 'Training', icon: '💪' },
-  bulk: { label: 'Bulk Actions', icon: '⚡' },
-  social: { label: 'Social', icon: '🤝' },
-  leaderboard: { label: 'Leaderboard', icon: '🏆' },
-  friends: { label: 'Friends', icon: '👥' },
-  profile: { label: 'Profile', icon: '👤' },
-  gifts: { label: 'Gifts', icon: '🎁' },
-  trading: { label: 'Trading', icon: '↔️' },
-  challenges: { label: 'Challenges', icon: '🎯' },
-  objectives: { label: 'Objectives', icon: '📋' },
-  wheel: { label: 'Lucky Wheel', icon: '🎲' },
-  collection: { label: 'Collection', icon: '📚' },
-  legacy: { label: 'Hall of Fame', icon: '👑' },
-  specializations: { label: 'Specializations', icon: '✨' },
-  battlepass: { label: 'Season Pass', icon: '📜' },
-  coop: { label: 'Co-op', icon: '🤝' },
-  more: { label: 'Settings', icon: '⚙️' },
-};
-
-export { TAB_LABELS };
+// Re-export TAB_LABELS for backward compatibility
+export { TAB_LABELS } from '@/constants/tabs';
 
 /**
  * Consolidated state hook for CatFarm component
@@ -78,22 +48,22 @@ export { TAB_LABELS };
  * ```
  */
 export function useCatFarmState() {
-  // Core systems
-  const soundSystem = useSound();
-  const { playSound } = soundSystem;
-  const confetti = useConfetti();
-  const haptics = useHaptics();
-  const { user, signOut, loading: authLoading } = useAuth();
-  const { logActivity } = usePlayerActivityLog(user?.id);
-  const { theme, setTheme } = useTheme();
-  const isMobile = useIsMobile();
-  const { getCatReaction } = useCatReactions();
+  // Core systems (extracted)
+  const systems = useCatFarmSystems();
+  const { sound, confetti, haptics, auth } = systems;
+  const { playSound } = sound;
   
-  // Weekly challenges
+  // UI state (extracted)
+  const ui = useCatFarmUIState();
+  
+  // Player activity logging
+  const { logActivity } = usePlayerActivityLog(auth.user?.id);
+  
+  // Weekly challenges (needs sound for notifications)
   const weeklyChallenges = useWeeklyChallenges(
-    user?.id, 
-    playSound, 
-    confetti.fireChallengeBurst, 
+    auth.user?.id,
+    playSound,
+    confetti.fireChallengeBurst,
     haptics
   );
   
@@ -114,21 +84,21 @@ export function useCatFarmState() {
   }, [message, messageType, messageSystem]);
   
   // Cloud and profile
-  const cloudSave = useCloudSave(user?.id);
-  const leaderboard = useGlobalLeaderboard(user?.id);
-  const profile = usePlayerProfile(user?.id);
+  const cloudSave = useCloudSave(auth.user?.id);
+  const leaderboard = useGlobalLeaderboard(auth.user?.id);
+  const profile = usePlayerProfile(auth.user?.id);
   
   // Daily rewards
   const dailyRewards = useDailyLoginRewards(
-    user?.id, 
-    playSound, 
-    haptics.vibrateAchievement, 
+    auth.user?.id,
+    playSound,
+    haptics.vibrateAchievement,
     confetti.fireConfetti
   );
   
   // Gift and trade systems
-  const gifts = useCatGifts(user?.id);
-  const trading = useTrading(user?.id);
+  const gifts = useCatGifts(auth.user?.id);
+  const trading = useTrading(auth.user?.id);
   const { showOutdatedToast } = usePortraitOutdatedToast();
   
   // Relationship reminders
@@ -141,24 +111,24 @@ export function useCatFarmState() {
   
   // Milestone and objectives
   const milestones = useMilestones();
-  const objectives = useDailyObjectives(user?.id);
+  const objectives = useDailyObjectives(auth.user?.id);
   
   // Collection and wheel
   const collection = useCollectionProgress(state.cats, state.ownedCostumes);
   const luckyWheel = useLuckyWheel(dailyRewards.isVIP);
   
   // Legacy/Hall of Fame
-  const legacy = useLegacy(user?.id);
+  const legacy = useLegacy(auth.user?.id);
   
   // Specializations
   const specializations = useSpecializations();
   
   // Battle Pass
-  const battlePass = useBattlePass(user?.id);
+  const battlePass = useBattlePass(auth.user?.id);
   
   // Friends and coop
-  const friends = useFriends(user?.id);
-  const coopChallenges = useCoopChallenges(user?.id, friends.friends, playSound);
+  const friends = useFriends(auth.user?.id);
+  const coopChallenges = useCoopChallenges(auth.user?.id, friends.friends, playSound);
   
   // Badge counts
   const badgeCounts = useBadgeCounts({
@@ -179,54 +149,16 @@ export function useCatFarmState() {
     pendingRequests: friends.pendingRequests,
     challenges: weeklyChallenges.challenges,
   });
-  
-  // UI State
-  const [sideTab, setSideTab] = useState('actions');
-  const [soundOn, setSoundOn] = useState(true);
-  const [musicOn, setMusicOn] = useState(false);
-  const [currentMoodLabel, setCurrentMoodLabel] = useState('');
-  const [sfxVolume, setSfxVolume] = useState(50);
-  const [musicVolume, setMusicVolume] = useState(40);
-  const [lastAchievementCount, setLastAchievementCount] = useState(0);
-  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
-  const [highlightedTab, setHighlightedTab] = useState<string | null>(null);
-  const [cloudSyncing, setCloudSyncing] = useState(false);
-  const [lastCloudSave, setLastCloudSave] = useState<string | null>(null);
-  const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
-  const [showWhatsNew, setShowWhatsNew] = useState(false);
-  const [quickSocializePair, setQuickSocializePair] = useState<{cat1Id: string, cat2Id: string} | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [recentTabs, setRecentTabs] = useState<Array<{tab: string, label: string, icon: string, timestamp: number}>>(() => {
-    try {
-      const saved = localStorage.getItem('cat-farm-recent-tabs');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
 
-  // Track recent tabs
-  useEffect(() => {
-    const tabInfo = TAB_LABELS[sideTab];
-    if (!tabInfo) return;
-
-    setRecentTabs(prev => {
-      const filtered = prev.filter(t => t.tab !== sideTab);
-      const updated = [{ tab: sideTab, label: tabInfo.label, icon: tabInfo.icon, timestamp: Date.now() }, ...filtered].slice(0, 4);
-      localStorage.setItem('cat-farm-recent-tabs', JSON.stringify(updated));
-      return updated;
-    });
-  }, [sideTab]);
-  
   return {
-    // Core systems
-    sound: soundSystem,
-    confetti,
-    haptics,
-    auth: { user, signOut, loading: authLoading },
-    theme: { theme, setTheme },
-    isMobile,
-    getCatReaction,
+    // Core systems (from useCatFarmSystems)
+    sound: systems.sound,
+    confetti: systems.confetti,
+    haptics: systems.haptics,
+    auth: systems.auth,
+    theme: systems.theme,
+    isMobile: systems.isMobile,
+    getCatReaction: systems.getCatReaction,
     
     // Game state
     gameState,
@@ -262,25 +194,8 @@ export function useCatFarmState() {
     coopChallenges,
     badgeCounts,
     
-    // UI State
-    ui: {
-      sideTab, setSideTab,
-      soundOn, setSoundOn,
-      musicOn, setMusicOn,
-      currentMoodLabel, setCurrentMoodLabel,
-      sfxVolume, setSfxVolume,
-      musicVolume, setMusicVolume,
-      lastAchievementCount, setLastAchievementCount,
-      showShortcutsHelp, setShowShortcutsHelp,
-      highlightedTab, setHighlightedTab,
-      cloudSyncing, setCloudSyncing,
-      lastCloudSave, setLastCloudSave,
-      hasLoadedCloud, setHasLoadedCloud,
-      showWhatsNew, setShowWhatsNew,
-      quickSocializePair, setQuickSocializePair,
-      mobileMenuOpen, setMobileMenuOpen,
-      recentTabs, setRecentTabs,
-    },
+    // UI State (from useCatFarmUIState)
+    ui,
   };
 }
 
