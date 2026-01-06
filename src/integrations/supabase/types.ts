@@ -1002,6 +1002,63 @@ export type Database = {
           },
         ]
       }
+      player_progress: {
+        Row: {
+          best_prize: string | null
+          completed_sets: string[] | null
+          created_at: string | null
+          id: string
+          last_spin_date: string | null
+          player_title: string | null
+          spins_today: number | null
+          total_spins: number | null
+          unlocked_milestones: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          best_prize?: string | null
+          completed_sets?: string[] | null
+          created_at?: string | null
+          id?: string
+          last_spin_date?: string | null
+          player_title?: string | null
+          spins_today?: number | null
+          total_spins?: number | null
+          unlocked_milestones?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          best_prize?: string | null
+          completed_sets?: string[] | null
+          created_at?: string | null
+          id?: string
+          last_spin_date?: string | null
+          player_title?: string | null
+          spins_today?: number | null
+          total_spins?: number | null
+          unlocked_milestones?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_stats: {
         Row: {
           achievements_unlocked: number | null
