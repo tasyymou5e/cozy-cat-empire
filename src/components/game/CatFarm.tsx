@@ -82,6 +82,7 @@ import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { CatGridSkeleton } from './CatGridSkeleton';
 import { PanelSkeleton } from './PanelSkeleton';
 import { StatusBarSkeleton } from './StatusBarSkeleton';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FloatingDecorations } from '@/components/ui/FloatingDecorations';
 import { Button } from '@/components/ui/button';
@@ -1144,205 +1145,253 @@ export function CatFarm() {
 
           <aside className="action-sidebar">
             <TabsContent value="actions" className="mt-0">
-              <ActionPanel onAddCat={actions.addCat} onNextDay={actions.nextDay} money={state.money} space={state.space} catCount={state.cats.length} />
+              <PanelErrorBoundary panelName="ActionPanel">
+                <ActionPanel onAddCat={actions.addCat} onNextDay={actions.nextDay} money={state.money} space={state.space} catCount={state.cats.length} />
+              </PanelErrorBoundary>
             </TabsContent>
-            <TabsContent value="chores" className="mt-0"><ChorePanel onDoChore={wrappedDoChore} /></TabsContent>
+            <TabsContent value="chores" className="mt-0">
+              <PanelErrorBoundary panelName="ChorePanel">
+                <ChorePanel onDoChore={wrappedDoChore} />
+              </PanelErrorBoundary>
+            </TabsContent>
             <TabsContent value="supplies" className="mt-0">
-              <ResourcePanel resources={state.resources} money={state.money} catCount={state.cats.length}
-                onBuyResource={wrappedBuyResource} onFeedCats={wrappedFeedCats} onUseToys={actions.useToys} />
+              <PanelErrorBoundary panelName="ResourcePanel">
+                <ResourcePanel resources={state.resources} money={state.money} catCount={state.cats.length}
+                  onBuyResource={wrappedBuyResource} onFeedCats={wrappedFeedCats} onUseToys={actions.useToys} />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="market" className="mt-0">
-              <MarketPanel listings={state.marketListings} money={state.money} hasSpace={state.cats.length < state.space} onBuy={actions.buyFromMarket} />
+              <PanelErrorBoundary panelName="MarketPanel">
+                <MarketPanel listings={state.marketListings} money={state.money} hasSpace={state.cats.length < state.space} onBuy={actions.buyFromMarket} />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="costumes" className="mt-0">
-              <CostumeShopPanel 
-                cats={state.cats} 
-                money={state.money} 
-                ownedCostumes={state.ownedCostumes} 
-                catCostumes={state.catCostumes}
-                onBuyCostume={actions.buyCostume}
-                onEquipCostume={actions.equipCostume}
-                onPortraitOutdated={showOutdatedToast}
-              />
+              <PanelErrorBoundary panelName="CostumeShopPanel">
+                <CostumeShopPanel 
+                  cats={state.cats} 
+                  money={state.money} 
+                  ownedCostumes={state.ownedCostumes} 
+                  catCostumes={state.catCostumes}
+                  onBuyCostume={actions.buyCostume}
+                  onEquipCostume={actions.equipCostume}
+                  onPortraitOutdated={showOutdatedToast}
+                />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="breeding" className="mt-0">
-              <BreedingPanel cats={state.cats} cooldown={state.breedingCooldown} hasSpace={state.cats.length < state.space}
-                onBreed={wrappedBreedCats} getBreedingCompatibility={relationshipSystem.getBreedingCompatibility} catCostumes={state.catCostumes} relationships={relationshipSystem.relationships} />
+              <PanelErrorBoundary panelName="BreedingPanel">
+                <BreedingPanel cats={state.cats} cooldown={state.breedingCooldown} hasSpace={state.cats.length < state.space}
+                  onBreed={wrappedBreedCats} getBreedingCompatibility={relationshipSystem.getBreedingCompatibility} catCostumes={state.catCostumes} relationships={relationshipSystem.relationships} />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="training" className="mt-0">
-              <TrainingPanel cats={state.cats} treats={state.resources.treats} toys={state.resources.toys}
-                day={state.day} onTrain={wrappedTrainCat} onRest={actions.restCat} catCostumes={state.catCostumes} />
+              <PanelErrorBoundary panelName="TrainingPanel">
+                <TrainingPanel cats={state.cats} treats={state.resources.treats} toys={state.resources.toys}
+                  day={state.day} onTrain={wrappedTrainCat} onRest={actions.restCat} catCostumes={state.catCostumes} />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="bulk" className="mt-0">
-              <BulkActionsPanel 
-                cats={state.cats}
-                resources={state.resources}
-                day={state.day}
-                relationships={relationshipSystem.relationships}
-                onHealAll={actions.healAllSickCats}
-                onRestAll={actions.restAllTiredCats}
-                onComfortAll={actions.comfortAllUnhappyCats}
-                onTrainAll={actions.trainAllAvailableCats}
-                onSellSelected={actions.sellSelectedCats}
-                onSocializeAll={actions.socializeAllNeglected}
-                catCostumes={state.catCostumes}
-              />
+              <PanelErrorBoundary panelName="BulkActionsPanel">
+                <BulkActionsPanel 
+                  cats={state.cats}
+                  resources={state.resources}
+                  day={state.day}
+                  relationships={relationshipSystem.relationships}
+                  onHealAll={actions.healAllSickCats}
+                  onRestAll={actions.restAllTiredCats}
+                  onComfortAll={actions.comfortAllUnhappyCats}
+                  onTrainAll={actions.trainAllAvailableCats}
+                  onSellSelected={actions.sellSelectedCats}
+                  onSocializeAll={actions.socializeAllNeglected}
+                  catCostumes={state.catCostumes}
+                />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="social" className="mt-0 space-y-4">
-              <SocializePanel cats={state.cats} treats={state.resources.treats}
-                getRelationship={relationshipSystem.getRelationship} onSocialize={wrappedSocializeCats} catCostumes={state.catCostumes}
-                initialCat1Id={quickSocializePair?.cat1Id} initialCat2Id={quickSocializePair?.cat2Id} onClearSelection={clearQuickSocializePair} />
-              <MatchmakingPanel cats={state.cats} relationships={relationshipSystem.relationships}
-                onSocialize={wrappedSocializeCats} treats={state.resources.treats} catCostumes={state.catCostumes} />
-              <GroupActivitiesPanel cats={state.cats} groups={relationshipSystem.groups}
-                treats={state.resources.treats} toys={state.resources.toys} onGroupActivity={actions.doGroupActivity} catCostumes={state.catCostumes} />
-              <RelationshipPanel cats={state.cats} relationships={relationshipSystem.relationships}
-                groups={relationshipSystem.groups} events={relationshipSystem.events} catCostumes={state.catCostumes}
-                currentDay={state.day} maintenanceStreak={relationshipSystem.maintenanceStreak} 
-                needsAttentionCount={relationshipNeedsAttention} onQuickSocialize={handleQuickSocialize} />
+              <PanelErrorBoundary panelName="SocialPanels">
+                <SocializePanel cats={state.cats} treats={state.resources.treats}
+                  getRelationship={relationshipSystem.getRelationship} onSocialize={wrappedSocializeCats} catCostumes={state.catCostumes}
+                  initialCat1Id={quickSocializePair?.cat1Id} initialCat2Id={quickSocializePair?.cat2Id} onClearSelection={clearQuickSocializePair} />
+                <MatchmakingPanel cats={state.cats} relationships={relationshipSystem.relationships}
+                  onSocialize={wrappedSocializeCats} treats={state.resources.treats} catCostumes={state.catCostumes} />
+                <GroupActivitiesPanel cats={state.cats} groups={relationshipSystem.groups}
+                  treats={state.resources.treats} toys={state.resources.toys} onGroupActivity={actions.doGroupActivity} catCostumes={state.catCostumes} />
+                <RelationshipPanel cats={state.cats} relationships={relationshipSystem.relationships}
+                  groups={relationshipSystem.groups} events={relationshipSystem.events} catCostumes={state.catCostumes}
+                  currentDay={state.day} maintenanceStreak={relationshipSystem.maintenanceStreak} 
+                  needsAttentionCount={relationshipNeedsAttention} onQuickSocialize={handleQuickSocialize} />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="leaderboard" className="mt-0">
-              <LeaderboardPanel cats={state.cats} relationships={relationshipSystem.relationships} catCostumes={state.catCostumes} />
+              <PanelErrorBoundary panelName="LeaderboardPanel">
+                <LeaderboardPanel cats={state.cats} relationships={relationshipSystem.relationships} catCostumes={state.catCostumes} />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="friends" className="mt-0">
-              <FriendsPanel userId={user?.id} />
+              <PanelErrorBoundary panelName="FriendsPanel">
+                <FriendsPanel userId={user?.id} />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="profile" className="mt-0">
-              <PlayerProfilePanel userId={user?.id} />
+              <PanelErrorBoundary panelName="PlayerProfilePanel">
+                <PlayerProfilePanel userId={user?.id} />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="gifts" className="mt-0">
-              <CatGiftingPanel 
-                userId={user?.id} 
-                cats={state.cats}
-                onGiftSent={(catId) => actions.sellCat(catId)}
-                onGiftReceived={(cat) => actions.addReceivedCat?.(cat)}
-                catCostumes={state.catCostumes}
-              />
+              <PanelErrorBoundary panelName="CatGiftingPanel">
+                <CatGiftingPanel 
+                  userId={user?.id} 
+                  cats={state.cats}
+                  onGiftSent={(catId) => actions.sellCat(catId)}
+                  onGiftReceived={(cat) => actions.addReceivedCat?.(cat)}
+                  catCostumes={state.catCostumes}
+                />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="trading" className="mt-0">
-              <TradingPanel 
-                userId={user?.id}
-                cats={state.cats}
-                money={state.money}
-                resources={state.resources}
-                onTradeComplete={(removeCats, addCats, moneyChange, resourceChanges) => {
-                  removeCats.forEach(catId => actions.sellCat(catId));
-                  addCats.forEach(cat => actions.addReceivedCat?.(cat));
-                  // Money and resources handled by trade system
-                }}
-                catCostumes={state.catCostumes}
-              />
+              <PanelErrorBoundary panelName="TradingPanel">
+                <TradingPanel 
+                  userId={user?.id}
+                  cats={state.cats}
+                  money={state.money}
+                  resources={state.resources}
+                  onTradeComplete={(removeCats, addCats, moneyChange, resourceChanges) => {
+                    removeCats.forEach(catId => actions.sellCat(catId));
+                    addCats.forEach(cat => actions.addReceivedCat?.(cat));
+                    // Money and resources handled by trade system
+                  }}
+                  catCostumes={state.catCostumes}
+                />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="challenges" className="mt-0">
-              <WeeklyChallengesPanel
-                challenges={challenges}
-                loading={challengesLoading}
-                timeRemaining={getTimeRemaining()}
-                onClaimReward={claimReward}
-                onRewardClaimed={(coins, badge) => {
-                  playSound?.('coin');
-                  fireConfetti();
-                }}
-                lastProgressUpdate={lastProgressUpdate}
-                onProgressAnimationComplete={clearProgressUpdate}
-                totalChallengesCompleted={totalChallengesCompleted}
-                currentStreak={currentStreak}
-                longestStreak={longestStreak}
-              />
+              <PanelErrorBoundary panelName="WeeklyChallengesPanel">
+                <WeeklyChallengesPanel
+                  challenges={challenges}
+                  loading={challengesLoading}
+                  timeRemaining={getTimeRemaining()}
+                  onClaimReward={claimReward}
+                  onRewardClaimed={(coins, badge) => {
+                    playSound?.('coin');
+                    fireConfetti();
+                  }}
+                  lastProgressUpdate={lastProgressUpdate}
+                  onProgressAnimationComplete={clearProgressUpdate}
+                  totalChallengesCompleted={totalChallengesCompleted}
+                  currentStreak={currentStreak}
+                  longestStreak={longestStreak}
+                />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="objectives" className="mt-0">
-              <DailyObjectivesPanel
-                objectives={objectives}
-                allCompleted={allObjectivesCompleted}
-                bonusClaimed={bonusClaimed}
-                onClaimBonus={handleClaimObjectivesBonus}
-              />
+              <PanelErrorBoundary panelName="DailyObjectivesPanel">
+                <DailyObjectivesPanel
+                  objectives={objectives}
+                  allCompleted={allObjectivesCompleted}
+                  bonusClaimed={bonusClaimed}
+                  onClaimBonus={handleClaimObjectivesBonus}
+                />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="wheel" className="mt-0">
-              <LuckyWheelPanel
-                canSpin={canSpin}
-                spinsRemaining={spinsRemaining}
-                isSpinning={isSpinning}
-                lastPrize={lastPrize}
-                totalSpins={totalSpins}
-                isVIP={isVIP}
-                onSpin={spinWheel}
-                onClaimPrize={handleClaimWheelPrize}
-                onClearPrize={clearLastPrize}
-              />
+              <PanelErrorBoundary panelName="LuckyWheelPanel">
+                <LuckyWheelPanel
+                  canSpin={canSpin}
+                  spinsRemaining={spinsRemaining}
+                  isSpinning={isSpinning}
+                  lastPrize={lastPrize}
+                  totalSpins={totalSpins}
+                  isVIP={isVIP}
+                  onSpin={spinWheel}
+                  onClaimPrize={handleClaimWheelPrize}
+                  onClearPrize={clearLastPrize}
+                />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="collection" className="mt-0">
-              <CollectionProgressPanel
-                breedProgress={breedProgress}
-                personalityProgress={personalityProgress}
-                costumeProgress={costumeProgress}
-                trickProgress={trickProgress}
-                overallProgress={overallProgress}
-                completedSets={collectionProgress.completedSets}
-                getSetReward={getSetReward}
-              />
+              <PanelErrorBoundary panelName="CollectionProgressPanel">
+                <CollectionProgressPanel
+                  breedProgress={breedProgress}
+                  personalityProgress={personalityProgress}
+                  costumeProgress={costumeProgress}
+                  trickProgress={trickProgress}
+                  overallProgress={overallProgress}
+                  completedSets={collectionProgress.completedSets}
+                  getSetReward={getSetReward}
+                />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="legacy" className="mt-0">
-              <HallOfFamePanel
-                cats={state.cats}
-                retiredCats={retiredCats}
-                totalLegacyBonus={totalLegacyBonus}
-                catCostumes={state.catCostumes}
-                onRetireCat={handleRetireCat}
-                canRetire={canRetire}
-                getEligibility={getEligibility}
-                getKittenBonuses={getKittenBonuses}
-              />
+              <PanelErrorBoundary panelName="HallOfFamePanel">
+                <HallOfFamePanel
+                  cats={state.cats}
+                  retiredCats={retiredCats}
+                  totalLegacyBonus={totalLegacyBonus}
+                  catCostumes={state.catCostumes}
+                  onRetireCat={handleRetireCat}
+                  canRetire={canRetire}
+                  getEligibility={getEligibility}
+                  getKittenBonuses={getKittenBonuses}
+                />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="specializations" className="mt-0">
-              <SpecializationPanel
-                cats={state.cats}
-                specializations={specializations}
-                catCostumes={state.catCostumes}
-                relationships={relationshipSystem.relationships}
-                kittensBred={kittensBreed}
-                onSpecialize={specializeCat}
-                canSpecialize={canSpecialize}
-                getSpecialization={getSpecialization}
-                getActiveBonuses={getSpecBonuses}
-              />
+              <PanelErrorBoundary panelName="SpecializationPanel">
+                <SpecializationPanel
+                  cats={state.cats}
+                  specializations={specializations}
+                  catCostumes={state.catCostumes}
+                  relationships={relationshipSystem.relationships}
+                  kittensBred={kittensBreed}
+                  onSpecialize={specializeCat}
+                  canSpecialize={canSpecialize}
+                  getSpecialization={getSpecialization}
+                  getActiveBonuses={getSpecBonuses}
+                />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="battlepass" className="mt-0">
-              <BattlePassPanel
-                state={state}
-                onClaimReward={handleClaimBPReward}
-                onUpgradePremium={handleUpgradePremium}
-              />
+              <PanelErrorBoundary panelName="BattlePassPanel">
+                <BattlePassPanel
+                  state={state}
+                  onClaimReward={handleClaimBPReward}
+                  onUpgradePremium={handleUpgradePremium}
+                />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="coop" className="mt-0">
-              <CoopChallengesPanel
-                userId={user?.id}
-                friends={friends}
-                activeChallenges={coopActiveChallenges}
-                pendingInvites={coopPendingInvites}
-                sentInvites={coopSentInvites}
-                templates={coopTemplates}
-                onSendInvite={sendCoopInvite}
-                onAcceptInvite={acceptCoopInvite}
-                onDeclineInvite={declineCoopInvite}
-                onCancelInvite={cancelCoopInvite}
-                onClaimReward={handleClaimCoopReward}
-              />
+              <PanelErrorBoundary panelName="CoopChallengesPanel">
+                <CoopChallengesPanel
+                  userId={user?.id}
+                  friends={friends}
+                  activeChallenges={coopActiveChallenges}
+                  pendingInvites={coopPendingInvites}
+                  sentInvites={coopSentInvites}
+                  templates={coopTemplates}
+                  onSendInvite={sendCoopInvite}
+                  onAcceptInvite={acceptCoopInvite}
+                  onDeclineInvite={declineCoopInvite}
+                  onCancelInvite={cancelCoopInvite}
+                  onClaimReward={handleClaimCoopReward}
+                />
+              </PanelErrorBoundary>
             </TabsContent>
             <TabsContent value="more" className="mt-0 space-y-4">
-              <AchievementsPanel achievements={state.achievements}
-                currentStats={{ cats: state.cats.length, showWins: state.totalShowWins, money: state.totalMoneyEarned,
-                  breeding: kittensBreed, house: state.houseSize !== 'apartment', farm: state.houseSize === 'farm', acres: state.acres, challengesCompleted: totalChallengesCompleted }} />
-              <GraphicsSettingsPanel />
-              <SaveLoadPanel 
-                onSave={user ? handleCloudSave : actions.saveGame} 
-                onLoad={user ? handleCloudLoad : actions.loadGame} 
-                hasSave={actions.hasSaveGame()} 
-                lastSaveDay={actions.getSaveDay()}
-                isLoggedIn={!!user}
-                cloudSyncing={cloudSyncing}
-                lastCloudSave={lastCloudSave}
-              />
+              <PanelErrorBoundary panelName="MorePanels">
+                <AchievementsPanel achievements={state.achievements}
+                  currentStats={{ cats: state.cats.length, showWins: state.totalShowWins, money: state.totalMoneyEarned,
+                    breeding: kittensBreed, house: state.houseSize !== 'apartment', farm: state.houseSize === 'farm', acres: state.acres, challengesCompleted: totalChallengesCompleted }} />
+                <GraphicsSettingsPanel />
+                <SaveLoadPanel 
+                  onSave={user ? handleCloudSave : actions.saveGame} 
+                  onLoad={user ? handleCloudLoad : actions.loadGame} 
+                  hasSave={actions.hasSaveGame()} 
+                  lastSaveDay={actions.getSaveDay()}
+                  isLoggedIn={!!user}
+                  cloudSyncing={cloudSyncing}
+                  lastCloudSave={lastCloudSave}
+                />
+              </PanelErrorBoundary>
             </TabsContent>
           </aside>
         </main>
