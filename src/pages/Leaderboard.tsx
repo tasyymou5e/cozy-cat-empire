@@ -6,12 +6,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { GlobalLeaderboardPanel } from '@/components/game/GlobalLeaderboardPanel';
 import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useSound } from '@/contexts/SoundContext';
 
 export default function Leaderboard() {
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
-  const { setVolume } = useSoundEffects();
+  const { setVolume } = useSound();
   
   const [soundOn, setSoundOn] = useState(true);
 
