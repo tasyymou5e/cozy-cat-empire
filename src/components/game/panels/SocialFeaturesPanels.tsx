@@ -1,13 +1,17 @@
+import { lazy, Suspense } from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import { PanelErrorBoundary } from '../PanelErrorBoundary';
-import { FriendsPanel } from '../FriendsPanel';
-import { PlayerProfilePanel } from '../PlayerProfilePanel';
-import { CatGiftingPanel } from '../CatGiftingPanel';
-import { TradingPanel } from '../TradingPanel';
-import { CoopChallengesPanel } from '../CoopChallengesPanel';
+import { PanelSkeleton } from '../PanelSkeleton';
 import { Cat, Resources } from '@/types/game';
 import type { Friend } from '@/hooks/useFriends';
 import type { ActiveCoopChallenge, CoopChallengeInvite, CoopChallenge } from '@/types/coopChallenges';
+
+// Lazy load panels for performance
+const FriendsPanel = lazy(() => import('../FriendsPanel').then(m => ({ default: m.FriendsPanel })));
+const PlayerProfilePanel = lazy(() => import('../PlayerProfilePanel').then(m => ({ default: m.PlayerProfilePanel })));
+const CatGiftingPanel = lazy(() => import('../CatGiftingPanel').then(m => ({ default: m.CatGiftingPanel })));
+const TradingPanel = lazy(() => import('../TradingPanel').then(m => ({ default: m.TradingPanel })));
+const CoopChallengesPanel = lazy(() => import('../CoopChallengesPanel').then(m => ({ default: m.CoopChallengesPanel })));
 
 interface SocialFeaturesPanelsProps {
   userId?: string;
@@ -31,6 +35,7 @@ interface SocialFeaturesPanelsProps {
 
 /**
  * Social features panels: Friends, Profile, Gifts, Trading, Co-op
+ * Uses React.lazy for code splitting and improved initial load performance.
  */
 export function SocialFeaturesPanels({
   userId,
@@ -55,55 +60,65 @@ export function SocialFeaturesPanels({
     <>
       <TabsContent value="friends" className="mt-0">
         <PanelErrorBoundary panelName="FriendsPanel">
-          <FriendsPanel userId={userId} />
+          <Suspense fallback={<PanelSkeleton rows={4} />}>
+            <FriendsPanel userId={userId} />
+          </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
       <TabsContent value="profile" className="mt-0">
         <PanelErrorBoundary panelName="PlayerProfilePanel">
-          <PlayerProfilePanel userId={userId} />
+          <Suspense fallback={<PanelSkeleton rows={3} />}>
+            <PlayerProfilePanel userId={userId} />
+          </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
       <TabsContent value="gifts" className="mt-0">
         <PanelErrorBoundary panelName="CatGiftingPanel">
-          <CatGiftingPanel 
-            userId={userId} 
-            cats={cats}
-            onGiftSent={(catId) => dispatchAction('SELL_CAT', { catId })}
-            onGiftReceived={onGiftReceived}
-            catCostumes={catCostumes}
-          />
+          <Suspense fallback={<PanelSkeleton rows={4} />}>
+            <CatGiftingPanel 
+              userId={userId} 
+              cats={cats}
+              onGiftSent={(catId) => dispatchAction('SELL_CAT', { catId })}
+              onGiftReceived={onGiftReceived}
+              catCostumes={catCostumes}
+            />
+          </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
       <TabsContent value="trading" className="mt-0">
         <PanelErrorBoundary panelName="TradingPanel">
-          <TradingPanel 
-            userId={userId}
-            cats={cats}
-            money={money}
-            resources={resources}
-            onTradeComplete={(removeCats, addCats) => {
-              removeCats.forEach(catId => dispatchAction('SELL_CAT', { catId }));
-              addCats.forEach(cat => onGiftReceived(cat));
-            }}
-            catCostumes={catCostumes}
-          />
+          <Suspense fallback={<PanelSkeleton rows={4} />}>
+            <TradingPanel 
+              userId={userId}
+              cats={cats}
+              money={money}
+              resources={resources}
+              onTradeComplete={(removeCats, addCats) => {
+                removeCats.forEach(catId => dispatchAction('SELL_CAT', { catId }));
+                addCats.forEach(cat => onGiftReceived(cat));
+              }}
+              catCostumes={catCostumes}
+            />
+          </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
       <TabsContent value="coop" className="mt-0">
         <PanelErrorBoundary panelName="CoopChallengesPanel">
-          <CoopChallengesPanel
-            userId={userId}
-            friends={friends}
-            activeChallenges={activeChallenges}
-            pendingInvites={pendingInvites}
-            sentInvites={sentInvites}
-            templates={coopTemplates}
-            onSendInvite={onSendCoopInvite}
-            onAcceptInvite={onAcceptCoopInvite}
-            onDeclineInvite={onDeclineCoopInvite}
-            onCancelInvite={onCancelCoopInvite}
-            onClaimReward={onClaimCoopReward}
-          />
+          <Suspense fallback={<PanelSkeleton rows={4} />}>
+            <CoopChallengesPanel
+              userId={userId}
+              friends={friends}
+              activeChallenges={activeChallenges}
+              pendingInvites={pendingInvites}
+              sentInvites={sentInvites}
+              templates={coopTemplates}
+              onSendInvite={onSendCoopInvite}
+              onAcceptInvite={onAcceptCoopInvite}
+              onDeclineInvite={onDeclineCoopInvite}
+              onCancelInvite={onCancelCoopInvite}
+              onClaimReward={onClaimCoopReward}
+            />
+          </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
     </>
