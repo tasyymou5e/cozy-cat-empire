@@ -99,7 +99,7 @@ export function createMockRelationshipSystem(): ReturnType<typeof import('@/hook
     checkMaintenanceStreak: vi.fn(),
     detectGroups: vi.fn(),
     getHappinessModifier: vi.fn().mockReturnValue(0),
-    getBreedingCompatibility: vi.fn().mockReturnValue(0.5),
+    getBreedingCompatibility: vi.fn().mockReturnValue({ canBreed: true, bonus: 0, message: 'Compatible' }),
     removeCatRelationships: vi.fn(),
     loadRelationships: vi.fn(),
     getRelationshipSaveData: vi.fn().mockReturnValue({
