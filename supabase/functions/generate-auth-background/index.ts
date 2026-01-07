@@ -6,7 +6,53 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const BACKGROUND_KEY = "auth-background-v1.png";
+type Season = 'spring' | 'summer' | 'autumn' | 'winter';
+
+const SEASONAL_PROMPTS: Record<Season, string> = {
+  spring: `Create a bright, cheerful, kawaii-style cartoon cat farm in SPRING.
+Features: cherry blossoms, colorful flowers blooming, soft pink and green colors,
+butterflies, baby chicks, cute cats playing among the flowers.
+Pastel colors, gentle rolling hills, cute red barn, white picket fences.
+Style: clean vector illustration, minimal detail, soft gradients.
+Wide panoramic 16:9 aspect ratio view suitable for a desktop background.
+Ultra high resolution.`,
+
+  summer: `Create a bright, cheerful, kawaii-style cartoon cat farm in SUMMER.
+Features: bright sunny day, sunflowers, blue sky with fluffy clouds,
+cats playing in sprinklers, ice cream stand, colorful bunting.
+Warm golden and green colors, vibrant and joyful.
+Style: clean vector illustration, minimal detail, soft gradients.
+Wide panoramic 16:9 aspect ratio view suitable for a desktop background.
+Ultra high resolution.`,
+
+  autumn: `Create a cozy, warm, kawaii-style cartoon cat farm in AUTUMN.
+Features: orange and golden leaves, pumpkins, harvest decorations,
+cats playing in leaf piles, apple trees, warm sunset colors.
+Cozy barn with haystacks, falling leaves animation feel.
+Style: clean vector illustration, minimal detail, soft gradients.
+Wide panoramic 16:9 aspect ratio view suitable for a desktop background.
+Ultra high resolution.`,
+
+  winter: `Create a magical, cozy, kawaii-style cartoon cat farm in WINTER.
+Features: gentle snow falling, snowcats, warm lights from barn windows,
+cats wearing tiny scarves, snowflakes, pine trees with snow.
+Soft blue and white colors with warm orange glows from windows.
+Style: clean vector illustration, minimal detail, soft gradients.
+Wide panoramic 16:9 aspect ratio view suitable for a desktop background.
+Ultra high resolution.`
+};
+
+const DEFAULT_PROMPT = `Create a bright, cheerful, kawaii-style cartoon illustration of a cozy cat farm landscape. 
+Features: soft pastel colors with lavender and cream sky, gentle rolling green hills, 
+a cute red barn with white trim, white picket fences, colorful flowers scattered around,
+and 5-7 adorable cartoon cats playing and relaxing around the farm. 
+Style: clean vector illustration, minimal detail, soft gradients, 
+warm and inviting atmosphere, suitable as a website background.
+The scene should feel light, airy, fun, and child-friendly. No text.
+Wide panoramic 16:9 aspect ratio view suitable for a desktop background.
+Ultra high resolution.`;
+
+const getBackgroundKey = (season?: Season) => `auth-background-${season || 'default'}-v1.png`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -24,35 +70,42 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
-    // Check if background already exists
-    const { data: existingFile } = await supabase.storage
-      .from("backgrounds")
-      .list("", { search: BACKGROUND_KEY });
+    // Parse request body
+    const { forceRegenerate, season } = await req.json().catch(() => ({}));
+    const BACKGROUND_KEY = getBackgroundKey(season);
+    const prompt = season && SEASONAL_PROMPTS[season as Season] ? SEASONAL_PROMPTS[season as Season] : DEFAULT_PROMPT;
 
-    if (existingFile && existingFile.length > 0) {
-      const { data: urlData } = supabase.storage
+    console.log(`Processing request - Season: ${season}, ForceRegenerate: ${forceRegenerate}, Key: ${BACKGROUND_KEY}`);
+
+    // If force regenerate, delete existing background first
+    if (forceRegenerate) {
+      console.log("Force regenerate requested, deleting existing background...");
+      await supabase.storage
         .from("backgrounds")
-        .getPublicUrl(BACKGROUND_KEY);
-      
-      console.log("Returning existing background:", urlData.publicUrl);
-      return new Response(
-        JSON.stringify({ url: urlData.publicUrl, cached: true }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+        .remove([BACKGROUND_KEY]);
+    }
+
+    // Check if background already exists (unless force regenerating)
+    if (!forceRegenerate) {
+      const { data: existingFile } = await supabase.storage
+        .from("backgrounds")
+        .list("", { search: BACKGROUND_KEY });
+
+      if (existingFile && existingFile.length > 0) {
+        const { data: urlData } = supabase.storage
+          .from("backgrounds")
+          .getPublicUrl(BACKGROUND_KEY);
+        
+        console.log("Returning existing background:", urlData.publicUrl);
+        return new Response(
+          JSON.stringify({ url: urlData.publicUrl, cached: true, season }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Generate new background using Lovable AI
-    console.log("Generating new background image...");
-    
-    const prompt = `Create a bright, cheerful, kawaii-style cartoon illustration of a cozy cat farm landscape. 
-Features: soft pastel colors with lavender and cream sky, gentle rolling green hills, 
-a cute red barn with white trim, white picket fences, colorful flowers scattered around,
-and 5-7 adorable cartoon cats playing and relaxing around the farm. 
-Style: clean vector illustration, minimal detail, soft gradients, 
-warm and inviting atmosphere, suitable as a website background.
-The scene should feel light, airy, fun, and child-friendly. No text.
-Wide panoramic 16:9 aspect ratio view suitable for a desktop background.
-Ultra high resolution.`;
+    console.log(`Generating new ${season || 'default'} background image...`);
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -119,7 +172,7 @@ Ultra high resolution.`;
     console.log("Background generated and uploaded:", urlData.publicUrl);
 
     return new Response(
-      JSON.stringify({ url: urlData.publicUrl, cached: false }),
+      JSON.stringify({ url: urlData.publicUrl, cached: false, season }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

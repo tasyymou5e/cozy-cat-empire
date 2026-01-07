@@ -16,7 +16,10 @@ import {
 } from '@/components/ui/GlassCard';
 import { LoadingCat } from '@/components/ui/LoadingCat';
 import { FloatingDecorations } from '@/components/ui/FloatingDecorations';
+import { AnimatedFarmCats } from '@/components/ui/AnimatedFarmCats';
 import { useAuthBackground } from '@/hooks/useAuthBackground';
+import { useAdminAuth } from '@/hooks/admin/useAdminAuth';
+import { cn } from '@/lib/utils';
 import {
   Mail,
   Lock,
@@ -27,6 +30,7 @@ import {
   Loader2,
   Check,
   AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 
 const authSchema = z.object({
@@ -77,7 +81,9 @@ const AVATAR_OPTIONS = ['😺', '😸', '😹', '😻', '😼', '😽', '🙀', 
 export default function Auth() {
   const navigate = useNavigate();
   const { user, signIn, signUp, loading } = useAuth();
-  const { backgroundUrl, isLoading: bgLoading } = useAuthBackground();
+  const { backgroundUrl, isLoading: bgLoading, regenerate, currentSeason } = useAuthBackground();
+  const { isAdmin } = useAdminAuth();
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -634,11 +640,34 @@ export default function Auth() {
     }
   };
 
+  const handleRegenerate = async () => {
+    setIsRegenerating(true);
+    try {
+      await regenerate();
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
   const hasSignupErrors =
     nameError || usernameError || nameAvailable === false || usernameAvailable === false;
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4">
+      {/* Admin Regenerate Background Button */}
+      {isAdmin && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRegenerate}
+          disabled={isRegenerating || bgLoading}
+          className="fixed top-4 right-4 z-50 bg-white/50 backdrop-blur-sm hover:bg-white/70 shadow-md"
+          title={`Regenerate ${currentSeason} background (Admin only)`}
+        >
+          <RefreshCw className={cn("h-5 w-5", isRegenerating && "animate-spin")} />
+        </Button>
+      )}
+
       {/* AI-generated background image layer */}
       {backgroundUrl && (
         <div 
@@ -662,8 +691,11 @@ export default function Auth() {
       {/* Semi-transparent overlay for form readability */}
       <div className="fixed inset-0 bg-white/25 backdrop-blur-[1px]" />
       
+      {/* Animated SVG Cats walking around */}
+      <AnimatedFarmCats count={4} className="opacity-80" />
+      
       {/* Bokeh bubbles overlay for depth */}
-      <div className="fixed inset-0 pointer-events-none">
+      <div className="fixed inset-0 pointer-events-none z-[6]">
         <div className="bokeh-bubble w-32 h-32 top-[8%] left-[5%] opacity-40" style={{ animationDelay: '0s' }} />
         <div className="bokeh-bubble w-48 h-48 top-[15%] right-[8%] opacity-40" style={{ animationDelay: '1s' }} />
         <div className="bokeh-bubble w-24 h-24 bottom-[25%] left-[12%] opacity-40" style={{ animationDelay: '2s' }} />
