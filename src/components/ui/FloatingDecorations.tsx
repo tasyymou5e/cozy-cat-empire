@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { useEffect, useState, useCallback } from 'react';
 
 /**
  * Props for the FloatingDecorations component
@@ -10,6 +11,8 @@ interface FloatingDecorationsProps {
   density?: 'low' | 'medium' | 'high';
   /** Additional CSS classes */
   className?: string;
+  /** Enable parallax effect on mouse move */
+  parallax?: boolean;
 }
 
 // Fixed positions around edges for kawaii-cats variant
@@ -32,12 +35,12 @@ const KAWAII_EMOJIS = ['😺', '😸', '😻', '🐱', '😽', '🙀', '😹', '
  * FloatingDecorations - Floating emoji decorations overlay
  *
  * Renders floating, animated emoji icons as decorative elements.
- * Use as an overlay on pages for visual flair.
+ * Use as an overlay on pages for visual flair. Supports parallax on mouse move.
  *
  * @example
  * ```tsx
  * <div className="relative">
- *   <FloatingDecorations variant="paws" density="low" className="opacity-20" />
+ *   <FloatingDecorations variant="paws" density="low" parallax className="opacity-20" />
  *   <MainContent />
  * </div>
  * ```
@@ -47,7 +50,36 @@ export function FloatingDecorations({
   variant = 'paws',
   density = 'low',
   className,
+  parallax = true,
 }: FloatingDecorationsProps) {
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    // Normalize to 0-1 range, centered at 0.5
+    setMousePos({
+      x: e.clientX / window.innerWidth,
+      y: e.clientY / window.innerHeight,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!parallax) return;
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [parallax, handleMouseMove]);
+
+  // Calculate parallax offset for each item based on depth
+  const getParallaxStyle = (index: number) => {
+    if (!parallax) return {};
+    const depth = 0.5 + (index % 3) * 0.25; // Varying depths: 0.5, 0.75, 1.0
+    const offsetX = (mousePos.x - 0.5) * 30 * depth;
+    const offsetY = (mousePos.y - 0.5) * 20 * depth;
+    return {
+      transform: `translate(${offsetX}px, ${offsetY}px)`,
+      transition: 'transform 0.3s ease-out',
+    };
+  };
+
   const decorations = {
     paws: ['🐾', '🐱', '🐾'],
     hearts: ['💕', '❤️', '💖'],
@@ -67,6 +99,7 @@ export function FloatingDecorations({
             className="absolute animate-float text-3xl md:text-4xl opacity-70"
             style={{
               ...pos,
+              ...getParallaxStyle(i),
               animationDelay: `${i * 0.5}s`,
               animationDuration: `${4 + (i % 3)}s`,
             }}
@@ -95,6 +128,7 @@ export function FloatingDecorations({
           style={{
             left: `${5 + ((i * 23) % 85)}%`,
             top: `${10 + ((i * 27) % 75)}%`,
+            ...getParallaxStyle(i),
             animationDelay: `${i * 0.7}s`,
             animationDuration: `${4 + (i % 4)}s`,
           }}
