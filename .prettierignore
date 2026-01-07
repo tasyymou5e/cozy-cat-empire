@@ -1,0 +1,8 @@
+dist
+node_modules
+package-lock.json
+bun.lockb
+src/integrations/supabase/types.ts
+*.min.js
+coverage
+.husky
