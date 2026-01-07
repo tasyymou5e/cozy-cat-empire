@@ -4,7 +4,7 @@ import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ExportButtonProps {
-  data: any[];
+  data: Record<string, unknown>[];
   filename: string;
   columns?: string[];
 }
