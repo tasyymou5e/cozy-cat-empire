@@ -207,6 +207,8 @@ This document provides a comprehensive overview of all pages and components in t
 | Component | Description |
 |-----------|-------------|
 | `AnimatedBackground.tsx` | Animated page background |
+| `AnimatedFarmCats.tsx` | Interactive animated SVG cats for auth page with hover reactions |
+| `SeasonalParticles.tsx` | Season-based particle effects (snowflakes, blossoms, fireflies, leaves) |
 | `FloatingDecorations.tsx` | Floating decorative elements |
 | `GlassCard.tsx` | Glassmorphism card style |
 | `LoadingCat.tsx` | Cat-themed loading spinner |
@@ -339,6 +341,8 @@ Standard shadcn/ui components available:
 | `useNotifications` | In-app notifications |
 | `usePushNotifications` | Push notification subscription |
 | `useSoundEffects` | Sound effect playback |
+| `useAuthSounds` | Lightweight audio for auth page cat interactions |
+| `useAuthBackground` | Seasonal AI-generated auth page backgrounds |
 | `useConfetti` | Confetti animations |
 | `useHaptics` | Haptic feedback |
 | `useKeyboardShortcuts` | Keyboard shortcut handling |

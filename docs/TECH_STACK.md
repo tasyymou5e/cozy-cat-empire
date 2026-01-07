@@ -175,7 +175,7 @@ export default defineConfig({
 ```
 src/
 ├── components/
-│   ├── game/           # 77+ game components
+│   ├── game/           # 82+ game components
 │   │   ├── CatFarm.tsx         # Main game orchestrator
 │   │   ├── CatCard.tsx         # Cat display + inline rename
 │   │   ├── CatVisual.tsx       # Unified cat visual
@@ -196,7 +196,14 @@ src/
 │   │   ├── CollectionProgressPanel.tsx # Collection tracking
 │   │   ├── *Skeleton.tsx       # Loading skeletons
 │   │   └── ...
-│   ├── ui/             # 40+ shadcn/ui primitives
+│   ├── ui/             # 45+ UI components (shadcn/ui + custom)
+│   │   ├── SeasonalParticles.tsx  # Season-based particle effects
+│   │   ├── AnimatedFarmCats.tsx   # Interactive animated cats for auth page
+│   │   ├── AnimatedBackground.tsx
+│   │   ├── FloatingDecorations.tsx
+│   │   ├── GlassCard.tsx
+│   │   ├── LoadingCat.tsx
+│   │   └── ...                    # 40+ shadcn/ui primitives
 │   ├── stats/          # 7 statistics components
 │   ├── admin/          # 7 admin dashboard components
 │   ├── ErrorBoundary.tsx
@@ -258,7 +265,8 @@ src/
 │       └── types.ts         # Generated types
 ├── lib/
 │   ├── utils.ts             # Utility functions
-│   └── portraitUtils.ts     # Portrait utilities
+│   ├── portraitUtils.ts     # Portrait utilities
+│   └── seasonUtils.ts       # Season detection and seasonal prompts
 ├── pages/
 │   ├── Index.tsx            # Main game
 │   ├── Auth.tsx             # Login/signup
@@ -287,8 +295,10 @@ supabase/
     ├── process-leaderboard-rewards/
     ├── generate-weekly-challenges/
     ├── generate-cat-portrait/
+    ├── generate-auth-background/  # Seasonal auth page backgrounds
     ├── send-push-notification/
     ├── send-password-reset/
+    ├── cleanup-error-logs/
     └── admin-delete-user/
 ```
 
