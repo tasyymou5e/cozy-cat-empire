@@ -17,8 +17,10 @@ import {
 import { LoadingCat } from '@/components/ui/LoadingCat';
 import { FloatingDecorations } from '@/components/ui/FloatingDecorations';
 import { AnimatedFarmCats } from '@/components/ui/AnimatedFarmCats';
+import { SeasonalParticles } from '@/components/ui/SeasonalParticles';
 import { useAuthBackground } from '@/hooks/useAuthBackground';
 import { useAdminAuth } from '@/hooks/admin/useAdminAuth';
+import { getCurrentRealSeason } from '@/lib/seasonUtils';
 import { cn } from '@/lib/utils';
 import {
   Mail,
@@ -691,8 +693,15 @@ export default function Auth() {
       {/* Semi-transparent overlay for form readability */}
       <div className="fixed inset-0 bg-white/25 backdrop-blur-[1px]" />
       
+      {/* Seasonal Particles (snow, blossoms, fireflies, leaves) */}
+      <SeasonalParticles 
+        season={currentSeason || getCurrentRealSeason()} 
+        density="medium"
+        className="opacity-70"
+      />
+      
       {/* Animated SVG Cats walking around */}
-      <AnimatedFarmCats count={4} className="opacity-80" />
+      <AnimatedFarmCats count={4} className="opacity-80" interactive soundEnabled />
       
       {/* Bokeh bubbles overlay for depth */}
       <div className="fixed inset-0 pointer-events-none z-[6]">
