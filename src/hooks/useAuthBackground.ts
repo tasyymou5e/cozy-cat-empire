@@ -1,14 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getCurrentRealSeason, type RealSeason } from '@/lib/seasonUtils';
 
-const CACHE_KEY = 'auth-background-url-v1';
+const CACHE_KEY_PREFIX = 'auth-background-url';
 const CACHE_TIMESTAMP_KEY = 'auth-background-timestamp-v1';
+const CACHE_SEASON_KEY = 'auth-background-season';
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+const getCacheKey = (season: RealSeason) => `${CACHE_KEY_PREFIX}-${season}-v1`;
 
 interface AuthBackgroundState {
   backgroundUrl: string | null;
   isLoading: boolean;
   error: string | null;
+  currentSeason: RealSeason;
 }
 
 export function useAuthBackground() {
@@ -16,15 +21,25 @@ export function useAuthBackground() {
     backgroundUrl: null,
     isLoading: true,
     error: null,
+    currentSeason: getCurrentRealSeason(),
   });
 
   const fetchBackground = useCallback(async (forceRegenerate = false) => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    const currentSeason = getCurrentRealSeason();
+    const cacheKey = getCacheKey(currentSeason);
+    
+    setState(prev => ({ ...prev, isLoading: true, error: null, currentSeason }));
 
     try {
+      // Check if season changed - force regenerate if so
+      const cachedSeason = localStorage.getItem(CACHE_SEASON_KEY);
+      if (cachedSeason && cachedSeason !== currentSeason) {
+        forceRegenerate = true;
+      }
+
       // Check cache first (unless forcing regenerate)
       if (!forceRegenerate) {
-        const cachedUrl = localStorage.getItem(CACHE_KEY);
+        const cachedUrl = localStorage.getItem(cacheKey);
         const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
         
         if (cachedUrl && cachedTimestamp) {
@@ -34,7 +49,7 @@ export function useAuthBackground() {
             try {
               const response = await fetch(cachedUrl, { method: 'HEAD' });
               if (response.ok) {
-                setState({ backgroundUrl: cachedUrl, isLoading: false, error: null });
+                setState({ backgroundUrl: cachedUrl, isLoading: false, error: null, currentSeason });
                 return;
               }
             } catch {
@@ -46,17 +61,20 @@ export function useAuthBackground() {
       }
 
       // Call edge function to get/generate background
-      const { data, error } = await supabase.functions.invoke('generate-auth-background');
+      const { data, error } = await supabase.functions.invoke('generate-auth-background', {
+        body: { forceRegenerate, season: currentSeason }
+      });
 
       if (error) {
         throw new Error(error.message || 'Failed to generate background');
       }
 
       if (data?.url) {
-        // Cache the URL
-        localStorage.setItem(CACHE_KEY, data.url);
+        // Cache the URL with season
+        localStorage.setItem(cacheKey, data.url);
         localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
-        setState({ backgroundUrl: data.url, isLoading: false, error: null });
+        localStorage.setItem(CACHE_SEASON_KEY, currentSeason);
+        setState({ backgroundUrl: data.url, isLoading: false, error: null, currentSeason });
       } else if (data?.error) {
         throw new Error(data.error);
       }
@@ -71,9 +89,13 @@ export function useAuthBackground() {
   }, []);
 
   const regenerate = useCallback(() => {
+    const currentSeason = getCurrentRealSeason();
+    const cacheKey = getCacheKey(currentSeason);
+    
     // Clear cache and regenerate
-    localStorage.removeItem(CACHE_KEY);
+    localStorage.removeItem(cacheKey);
     localStorage.removeItem(CACHE_TIMESTAMP_KEY);
+    localStorage.removeItem(CACHE_SEASON_KEY);
     return fetchBackground(true);
   }, [fetchBackground]);
 

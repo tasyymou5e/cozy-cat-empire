@@ -740,6 +740,78 @@
   animation: particle-sparkle 1.5s ease-in-out infinite;
 }
 
+/* === ANIMATED FARM CATS === */
+
+/* Cat walking left to right */
+@keyframes walk-left-to-right {
+  0% {
+    transform: translateX(-150px);
+  }
+  100% {
+    transform: translateX(calc(100vw + 150px));
+  }
+}
+
+.animate-walk-left-to-right {
+  animation: walk-left-to-right 25s linear infinite;
+}
+
+/* Cat walking right to left */
+@keyframes walk-right-to-left {
+  0% {
+    transform: translateX(calc(100vw + 150px));
+  }
+  100% {
+    transform: translateX(-150px);
+  }
+}
+
+.animate-walk-right-to-left {
+  animation: walk-right-to-left 30s linear infinite;
+}
+
+/* Idle cat animation */
+@keyframes cat-idle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-cat-idle {
+  animation: cat-idle 3s ease-in-out infinite;
+}
+
+/* Sleeping cat breathing */
+@keyframes cat-breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.animate-cat-breathe {
+  animation: cat-breathe 4s ease-in-out infinite;
+}
+
+/* Tail swish animation */
+@keyframes tail-swish {
+  0%, 100% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+}
+
+.animate-tail-swish {
+  animation: tail-swish 1s ease-in-out infinite;
+}
+
 /* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {
   .animated-gradient-bg,
@@ -758,7 +830,12 @@
   .animate-costume-sparkle,
   .animate-costume-shimmer-bronze,
   .animate-costume-shimmer-silver,
-  .animate-particle-sparkle {
+  .animate-particle-sparkle,
+  .animate-walk-left-to-right,
+  .animate-walk-right-to-left,
+  .animate-cat-idle,
+  .animate-cat-breathe,
+  .animate-tail-swish {
     animation: none;
   }
 
