@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { GameState } from '@/types/game';
 import { CatRelationship, RelationshipEvent } from '@/types/relationships';
+import { isValidGameState, isCatRelationship, isRelationshipEvent } from '@/types/guards';
 import { Json } from '@/integrations/supabase/types';
 
 interface RelationshipSaveData {
@@ -18,6 +19,21 @@ interface CloudSaveData {
   kittens_bred: number;
   relationships: RelationshipSaveData;
   last_played_at: string;
+}
+
+/** Validate relationship save data structure */
+function isValidRelationshipData(value: unknown): value is RelationshipSaveData {
+  if (typeof value !== 'object' || value === null) return false;
+  const obj = value as Record<string, unknown>;
+
+  if (!Array.isArray(obj.relationships) || !obj.relationships.every(isCatRelationship)) {
+    return false;
+  }
+  if (!Array.isArray(obj.events) || !obj.events.every(isRelationshipEvent)) {
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -100,14 +116,24 @@ export function useCloudSave(userId: string | undefined) {
         return { data: null };
       }
 
+      // Validate game state
+      const gameState = data.game_state as unknown;
+      if (!isValidGameState(gameState)) {
+        console.error('Cloud load: Invalid game state structure');
+        return { data: null, error: 'Cloud save data is corrupted' };
+      }
+
+      // Validate relationship data with fallback
+      const rawRelationships = data.relationships as unknown;
+      const relationships: RelationshipSaveData = isValidRelationshipData(rawRelationships)
+        ? rawRelationships
+        : { relationships: [], events: [] };
+
       return {
         data: {
-          game_state: data.game_state as unknown as GameState,
+          game_state: gameState,
           kittens_bred: data.kittens_bred ?? 0,
-          relationships: (data.relationships as unknown as RelationshipSaveData) ?? {
-            relationships: [],
-            events: [],
-          },
+          relationships,
           last_played_at: data.last_played_at ?? '',
         },
       };
