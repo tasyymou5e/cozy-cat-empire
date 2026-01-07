@@ -1437,6 +1437,17 @@ export type Database = {
           status: string
         }[]
       }
+      get_cron_job_trends: {
+        Args: { days_back?: number }
+        Returns: {
+          avg_duration_ms: number
+          date: string
+          failed: number
+          jobname: string
+          successful: number
+          total_runs: number
+        }[]
+      }
       get_cron_jobs: {
         Args: never
         Returns: {
