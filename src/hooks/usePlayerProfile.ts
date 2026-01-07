@@ -69,6 +69,42 @@ export function usePlayerProfile(userId: string | undefined) {
     fetchProfile();
   }, [fetchProfile]);
 
+  // Realtime subscription for profile updates
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`profile-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${userId}`,
+        },
+        (payload) => {
+          const newData = payload.new as {
+            id: string;
+            display_name: string | null;
+            avatar_emoji: string | null;
+            username: string | null;
+          };
+          setProfile({
+            id: newData.id,
+            display_name: newData.display_name,
+            avatar_emoji: newData.avatar_emoji || '😺',
+            username: newData.username,
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
+
   const updateProfile = useCallback(
     async (
       displayName: string,

@@ -172,6 +172,39 @@ export function usePhotoGallery(userId?: string | null) {
     }
   }, [userId, loadLocalPhotos]);
 
+  // Realtime subscription for gallery updates
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`gallery-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'gallery_photos',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => syncWithCloudRef.current()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'gallery_photos',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => syncWithCloudRef.current()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
+
   const savePhoto = useCallback(
     async (photo: Omit<GalleryPhoto, 'id' | 'createdAt' | 'syncStatus'>) => {
       if (photos.length >= MAX_GALLERY_PHOTOS) {

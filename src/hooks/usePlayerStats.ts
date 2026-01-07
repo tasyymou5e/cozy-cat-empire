@@ -135,6 +135,29 @@ export function usePlayerStats(userId: string | undefined) {
     fetchStats();
   }, [fetchStats]);
 
+  // Realtime subscription for stats updates
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`player-stats-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'player_stats',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => fetchStats()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, fetchStats]);
+
   return {
     stats,
     categoryRanks,
