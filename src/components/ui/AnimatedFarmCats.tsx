@@ -1,9 +1,26 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
+import { useAuthSounds } from '@/hooks/useAuthSounds';
 
 interface AnimatedFarmCatsProps {
   className?: string;
   count?: number;
+  interactive?: boolean;
+  soundEnabled?: boolean;
+}
+
+type CatType = 'tabby' | 'gray' | 'white' | 'calico';
+
+const CAT_REACTIONS: Record<CatType, { text: string; emoji: string }> = {
+  tabby: { text: 'Mrrp!', emoji: '💕' },
+  gray: { text: 'Purrrr~', emoji: '😻' },
+  white: { text: 'Nya!', emoji: '✨' },
+  calico: { text: 'Zzz...?', emoji: '😴' },
+};
+
+interface CatReactionBubbleProps {
+  catType: CatType;
+  visible: boolean;
 }
 
 // SVG Cat designs
@@ -136,23 +153,109 @@ const CalicoCat = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// Reaction bubble component
+function CatReactionBubble({ catType, visible }: CatReactionBubbleProps) {
+  if (!visible) return null;
+  
+  const reaction = CAT_REACTIONS[catType];
+  
+  return (
+    <div className="absolute -top-10 left-1/2 -translate-x-1/2 animate-bounce-in z-10">
+      <div className="bg-white/95 dark:bg-gray-800/95 rounded-full px-3 py-1.5 shadow-lg border border-white/50 whitespace-nowrap">
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          {reaction.text} {reaction.emoji}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// Interactive cat wrapper
+interface InteractiveCatProps {
+  Cat: React.ComponentType<{ className?: string }>;
+  catType: CatType;
+  className?: string;
+  interactive?: boolean;
+  soundEnabled?: boolean;
+  onHover?: (catType: CatType) => void;
+}
+
+function InteractiveCat({ Cat, catType, className, interactive, soundEnabled, onHover }: InteractiveCatProps) {
+  const [showReaction, setShowReaction] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseEnter = useCallback(() => {
+    if (!interactive) return;
+    setIsHovered(true);
+    setShowReaction(true);
+    onHover?.(catType);
+    
+    // Hide reaction after 2 seconds
+    setTimeout(() => setShowReaction(false), 2000);
+  }, [interactive, catType, onHover]);
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHovered(false);
+  }, []);
+
+  return (
+    <div 
+      className={cn(
+        "relative",
+        interactive && "pointer-events-auto cursor-pointer"
+      )}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <CatReactionBubble catType={catType} visible={showReaction} />
+      <div className={cn(
+        "transition-all duration-200",
+        isHovered && interactive && "scale-110 drop-shadow-[0_0_8px_rgba(255,182,193,0.6)]"
+      )}>
+        <Cat className={className} />
+      </div>
+    </div>
+  );
+}
+
 // Cat animation configurations
-const CAT_CONFIGS = [
-  { Cat: OrangeTabbyCat, animation: 'walk-left-to-right', duration: '25s', bottom: '3%', delay: '0s' },
-  { Cat: GrayCat, animation: 'cat-idle', duration: '3s', bottom: '8%', position: 'left', delay: '0s' },
-  { Cat: WhiteFluffyCat, animation: 'walk-right-to-left', duration: '30s', bottom: '5%', delay: '5s' },
-  { Cat: CalicoCat, animation: 'cat-sleep', duration: '4s', bottom: '2%', position: 'right', delay: '0s' },
+const CAT_CONFIGS: Array<{
+  Cat: React.ComponentType<{ className?: string }>;
+  catType: CatType;
+  animation: string;
+  duration: string;
+  bottom: string;
+  position?: 'left' | 'right';
+  delay: string;
+}> = [
+  { Cat: OrangeTabbyCat, catType: 'tabby', animation: 'walk-left-to-right', duration: '25s', bottom: '3%', delay: '0s' },
+  { Cat: GrayCat, catType: 'gray', animation: 'cat-idle', duration: '3s', bottom: '8%', position: 'left', delay: '0s' },
+  { Cat: WhiteFluffyCat, catType: 'white', animation: 'walk-right-to-left', duration: '30s', bottom: '5%', delay: '5s' },
+  { Cat: CalicoCat, catType: 'calico', animation: 'cat-sleep', duration: '4s', bottom: '2%', position: 'right', delay: '0s' },
 ];
 
-export function AnimatedFarmCats({ className, count = 4 }: AnimatedFarmCatsProps) {
+export function AnimatedFarmCats({ 
+  className, 
+  count = 4, 
+  interactive = true, 
+  soundEnabled = true 
+}: AnimatedFarmCatsProps) {
+  const { playCatSound } = useAuthSounds();
+  
   const cats = useMemo(() => {
     return CAT_CONFIGS.slice(0, Math.min(count, CAT_CONFIGS.length));
   }, [count]);
 
+  const handleCatHover = useCallback((catType: CatType) => {
+    if (soundEnabled) {
+      playCatSound(catType);
+    }
+  }, [soundEnabled, playCatSound]);
+
   return (
     <div className={cn("fixed inset-0 pointer-events-none overflow-hidden z-[5]", className)}>
       {cats.map((config, index) => {
-        const { Cat, animation, duration, bottom, position, delay } = config;
+        const { Cat, catType, animation, duration, bottom, position, delay } = config;
         
         // Walking cats
         if (animation === 'walk-left-to-right') {
@@ -168,7 +271,13 @@ export function AnimatedFarmCats({ className, count = 4 }: AnimatedFarmCatsProps
                 animationTimingFunction: 'linear',
               }}
             >
-              <Cat />
+              <InteractiveCat 
+                Cat={Cat} 
+                catType={catType} 
+                interactive={interactive}
+                soundEnabled={soundEnabled}
+                onHover={handleCatHover}
+              />
             </div>
           );
         }
@@ -186,7 +295,14 @@ export function AnimatedFarmCats({ className, count = 4 }: AnimatedFarmCatsProps
                 animationTimingFunction: 'linear',
               }}
             >
-              <Cat className="scale-x-[-1]" />
+              <InteractiveCat 
+                Cat={Cat} 
+                catType={catType}
+                className="scale-x-[-1]"
+                interactive={interactive}
+                soundEnabled={soundEnabled}
+                onHover={handleCatHover}
+              />
             </div>
           );
         }
@@ -205,7 +321,13 @@ export function AnimatedFarmCats({ className, count = 4 }: AnimatedFarmCatsProps
                 animationIterationCount: 'infinite',
               }}
             >
-              <Cat />
+              <InteractiveCat 
+                Cat={Cat} 
+                catType={catType}
+                interactive={interactive}
+                soundEnabled={soundEnabled}
+                onHover={handleCatHover}
+              />
             </div>
           );
         }
@@ -224,7 +346,13 @@ export function AnimatedFarmCats({ className, count = 4 }: AnimatedFarmCatsProps
                 animationIterationCount: 'infinite',
               }}
             >
-              <Cat />
+              <InteractiveCat 
+                Cat={Cat} 
+                catType={catType}
+                interactive={interactive}
+                soundEnabled={soundEnabled}
+                onHover={handleCatHover}
+              />
             </div>
           );
         }
