@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { WheelState, WheelPrize, selectRandomPrize, getTodayDateString } from '@/types/luckyWheel';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useBroadcastSync, SYNC_MESSAGES } from './useBroadcastSync';
 
 interface UseLuckyWheelReturn {
   canSpin: boolean;
@@ -43,6 +44,17 @@ export function useLuckyWheel(isVIP: boolean = false): UseLuckyWheelReturn {
   const [isSpinning, setIsSpinning] = useState(false);
   const [lastPrize, setLastPrize] = useState<WheelPrize | null>(null);
   const [cloudLoaded, setCloudLoaded] = useState(false);
+
+  // Cross-tab sync for wheel spins
+  const { broadcast } = useBroadcastSync<{ spinsToday: number }>('lucky-wheel-sync', (msg) => {
+    if (msg.type === SYNC_MESSAGES.WHEEL_SPUN) {
+      // Another tab spun the wheel, update our state
+      setState((prev) => ({
+        ...prev,
+        spinsToday: Math.max(prev.spinsToday, msg.payload?.spinsToday || 0),
+      }));
+    }
+  });
 
   const freeSpins = isVIP ? FREE_SPINS_PER_DAY + 1 : FREE_SPINS_PER_DAY;
   const spinsRemaining = Math.max(0, freeSpins - state.spinsToday);
@@ -130,12 +142,17 @@ export function useLuckyWheel(isVIP: boolean = false): UseLuckyWheelReturn {
           ? prize.rarity
           : prev.bestPrize;
 
-      return {
+      const newState = {
         lastSpinDate: getTodayDateString(),
         spinsToday: prev.spinsToday + 1,
         totalSpins: prev.totalSpins + 1,
         bestPrize: newBestPrize,
       };
+
+      // Broadcast to other tabs
+      broadcast({ type: SYNC_MESSAGES.WHEEL_SPUN, payload: { spinsToday: newState.spinsToday } });
+
+      return newState;
     });
 
     setTimeout(() => {
@@ -144,7 +161,7 @@ export function useLuckyWheel(isVIP: boolean = false): UseLuckyWheelReturn {
     }, 3000);
 
     return prize;
-  }, [canSpin]);
+  }, [canSpin, broadcast]);
 
   const clearLastPrize = useCallback(() => {
     setLastPrize(null);
