@@ -343,11 +343,12 @@ export function ProfileEditor({
       });
 
       onSave?.();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to update profile:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
       toast({
         title: 'Error',
-        description: err.message || 'Failed to update profile',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

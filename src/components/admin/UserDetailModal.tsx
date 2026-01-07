@@ -311,17 +311,20 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
                   <p className="text-muted-foreground text-center py-8">No cats yet</p>
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {cats.map((cat: any, index: number) => (
-                      <Card key={cat.id || index}>
-                        <CardContent className="pt-4">
-                          <p className="font-medium">{cat.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Grade: {cat.grade || 'Unknown'}
-                          </p>
-                          <p className="text-sm text-muted-foreground">Age: {cat.age || 0} days</p>
-                        </CardContent>
-                      </Card>
-                    ))}
+                    {cats.map((cat, index: number) => {
+                      const catData = cat as { id?: string; name?: string; grade?: number; age?: number };
+                      return (
+                        <Card key={catData.id || index}>
+                          <CardContent className="pt-4">
+                            <p className="font-medium">{catData.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Grade: {catData.grade || 'Unknown'}
+                            </p>
+                            <p className="text-sm text-muted-foreground">Age: {catData.age || 0} days</p>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </TabsContent>

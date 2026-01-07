@@ -689,11 +689,12 @@ export function useAdminAllTableStats() {
       );
 
       // Query all tables in parallel
+      // Using type assertion here since we're dynamically querying multiple tables
       const results = await Promise.all(
         allTables.map(async ({ table, category }) => {
           try {
             const { count, error } = await supabase
-              .from(table as any)
+              .from(table as 'profiles')
               .select('*', { count: 'exact', head: true });
 
             return {

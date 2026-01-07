@@ -23,7 +23,7 @@ interface ActivityItem {
   user_id: string;
   activity_type: string;
   activity_description: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   created_at: string;
   profile?: {
     display_name: string | null;

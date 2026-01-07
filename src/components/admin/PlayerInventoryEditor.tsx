@@ -32,9 +32,19 @@ import {
   Minus,
 } from 'lucide-react';
 
+interface GameSave {
+  id: string;
+  user_id: string;
+  game_state: Json;
+  kittens_bred: number | null;
+  relationships: Json | null;
+  last_played_at: string | null;
+  created_at: string | null;
+}
+
 interface PlayerInventoryEditorProps {
   userId: string;
-  gameState: any;
+  gameState: GameSave;
   onUpdate: () => void;
 }
 
@@ -165,10 +175,11 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
       setConfirmDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ['admin-user-game', userId] });
       onUpdate();
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update inventory';
       toast({
         title: 'Error',
-        description: error.message || 'Failed to update inventory',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -248,10 +259,11 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
       setReason('');
       setCreditsDialogOpen(false);
       refetchCredits();
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update portrait credits';
       toast({
         title: 'Error',
-        description: error.message || 'Failed to update portrait credits',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -322,10 +334,11 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
       setResetDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ['admin-user-game', userId] });
       onUpdate();
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to reset game';
       toast({
         title: 'Error',
-        description: error.message || 'Failed to reset game',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -386,7 +399,7 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
                   className="w-20"
                 />
                 <span className="text-xs text-muted-foreground">
-                  ({(currentResources as any)[key] || 0})
+                  ({currentResources[key as keyof Resources] || 0})
                 </span>
               </div>
             ))}
@@ -491,7 +504,7 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
               </div>
             )}
             {Object.entries(resources).map(([key, value]) => {
-              const current = (currentResources as any)[key] || 0;
+              const current = currentResources[key as keyof Resources] || 0;
               if (value !== current) {
                 return (
                   <div key={key} className="flex justify-between capitalize">
