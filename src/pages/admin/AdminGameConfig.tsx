@@ -6,10 +6,36 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAdminActivityLog } from '@/hooks/admin';
 import {
@@ -21,6 +47,8 @@ import {
   Save,
   RotateCcw,
   Sliders,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import {
   Accordion,
@@ -28,6 +56,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+
+const PROTECTED_KEYS = ['maintenance_mode', 'features'];
 
 interface GameConfig {
   key: string;
@@ -58,12 +88,29 @@ const categoryColors: Record<string, string> = {
   general: 'bg-muted text-muted-foreground',
 };
 
+interface NewConfigForm {
+  key: string;
+  category: string;
+  description: string;
+  value: string;
+}
+
+const defaultNewConfig: NewConfigForm = {
+  key: '',
+  category: 'general',
+  description: '',
+  value: '',
+};
+
 export default function AdminGameConfig() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { logActivity } = useAdminActivityLog();
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newConfig, setNewConfig] = useState<NewConfigForm>(defaultNewConfig);
+  const [deletingConfig, setDeletingConfig] = useState<GameConfig | null>(null);
 
   const { data: configs, isLoading } = useQuery({
     queryKey: ['admin-game-config'],
@@ -99,6 +146,72 @@ export default function AdminGameConfig() {
       });
       toast({ title: 'Config updated', description: `${variables.key} has been updated.` });
       setEditingKey(null);
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: NewConfigForm) => {
+      // Check if key already exists
+      const { data: existing } = await supabase
+        .from('game_config')
+        .select('key')
+        .eq('key', data.key)
+        .maybeSingle();
+
+      if (existing) throw new Error('Config key already exists');
+
+      let parsedValue: Json;
+      try {
+        parsedValue = JSON.parse(data.value);
+      } catch {
+        parsedValue = data.value;
+      }
+
+      const { error } = await supabase.from('game_config').insert({
+        key: data.key,
+        category: data.category,
+        description: data.description || null,
+        value: parsedValue,
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-game-config'] });
+      logActivity({
+        actionType: 'config_create',
+        actionDescription: `Created game config: ${newConfig.key}`,
+        targetTable: 'game_config',
+      });
+      toast({ title: 'Config created', description: `${newConfig.key} has been created.` });
+      setCreateOpen(false);
+      setNewConfig(defaultNewConfig);
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (key: string) => {
+      if (PROTECTED_KEYS.includes(key)) {
+        throw new Error('Cannot delete protected config');
+      }
+      const { error } = await supabase.from('game_config').delete().eq('key', key);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-game-config'] });
+      logActivity({
+        actionType: 'config_delete',
+        actionDescription: `Deleted game config: ${deletingConfig?.key}`,
+        targetTable: 'game_config',
+      });
+      toast({ title: 'Config deleted' });
+      setDeletingConfig(null);
     },
     onError: (error) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -168,14 +281,20 @@ export default function AdminGameConfig() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Settings className="h-6 w-6" />
-            Game Configuration
-          </h1>
-          <p className="text-muted-foreground">
-            Manage game settings, feature flags, and system configuration.
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Settings className="h-6 w-6" />
+              Game Configuration
+            </h1>
+            <p className="text-muted-foreground">
+              Manage game settings, feature flags, and system configuration.
+            </p>
+          </div>
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Config
+          </Button>
         </div>
 
         {isLoading ? (
@@ -304,13 +423,25 @@ export default function AdminGameConfig() {
                                   </Button>
                                 </div>
                               ) : (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleEdit(config)}
-                                >
-                                  Edit
-                                </Button>
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleEdit(config)}
+                                  >
+                                    Edit
+                                  </Button>
+                                  {!PROTECTED_KEYS.includes(config.key) && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="text-destructive hover:text-destructive"
+                                      onClick={() => setDeletingConfig(config)}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
                               )}
                             </div>
                             <div className="mt-3">
@@ -350,6 +481,101 @@ export default function AdminGameConfig() {
           </>
         )}
       </div>
+
+      {/* Create Config Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Config</DialogTitle>
+            <DialogDescription>Add a new game configuration setting.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="key">Key</Label>
+              <Input
+                id="key"
+                placeholder="my_config_key"
+                value={newConfig.key}
+                onChange={(e) => setNewConfig({ ...newConfig, key: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Select
+                value={newConfig.category}
+                onValueChange={(value) => setNewConfig({ ...newConfig, category: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="gameplay">Gameplay</SelectItem>
+                  <SelectItem value="economy">Economy</SelectItem>
+                  <SelectItem value="rewards">Rewards</SelectItem>
+                  <SelectItem value="limits">Limits</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Input
+                id="description"
+                placeholder="What this config controls..."
+                value={newConfig.description}
+                onChange={(e) => setNewConfig({ ...newConfig, description: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="value">Value (JSON or string)</Label>
+              <Textarea
+                id="value"
+                placeholder='{"key": "value"} or simple string'
+                value={newConfig.value}
+                onChange={(e) => setNewConfig({ ...newConfig, value: e.target.value })}
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => createMutation.mutate(newConfig)}
+              disabled={!newConfig.key || !newConfig.value || createMutation.isPending}
+            >
+              Create
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deletingConfig} onOpenChange={(open) => !open && setDeletingConfig(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Config</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deletingConfig?.key}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={() => deletingConfig && deleteMutation.mutate(deletingConfig.key)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }

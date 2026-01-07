@@ -10,6 +10,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -39,7 +47,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAdminActivityLog } from '@/hooks/admin';
 import { format } from 'date-fns';
-import { Sparkles, Plus, Pencil, Trash2, Calendar, Coins, Star } from 'lucide-react';
+import { Sparkles, Plus, Pencil, Trash2, Calendar, Coins, Star, Users, Crown, TrendingUp } from 'lucide-react';
 import { Json } from '@/integrations/supabase/types';
 
 interface BattlePassSeason {
@@ -81,15 +89,33 @@ const defaultFormData: SeasonFormData = {
   ],
 };
 
+interface BattlePassProgress {
+  id: string;
+  user_id: string;
+  season_id: string;
+  current_tier: number;
+  current_xp: number;
+  is_premium: boolean;
+  purchased_at: string | null;
+  claimed_rewards: string[];
+  created_at: string;
+  profile?: {
+    display_name: string | null;
+    avatar_emoji: string | null;
+  };
+}
+
 export default function AdminBattlePass() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { logActivity } = useAdminActivityLog();
 
+  const [activeTab, setActiveTab] = useState('seasons');
   const [formOpen, setFormOpen] = useState(false);
   const [editingSeason, setEditingSeason] = useState<BattlePassSeason | null>(null);
   const [deletingSeason, setDeletingSeason] = useState<BattlePassSeason | null>(null);
   const [formData, setFormData] = useState<SeasonFormData>(defaultFormData);
+  const [selectedProgressSeason, setSelectedProgressSeason] = useState<string>('all');
 
   const { data: seasons, isLoading } = useQuery({
     queryKey: ['admin-battle-pass-seasons'],
@@ -103,6 +129,50 @@ export default function AdminBattlePass() {
       return data as BattlePassSeason[];
     },
   });
+
+  // Fetch player progress
+  const { data: progressData, isLoading: progressLoading } = useQuery({
+    queryKey: ['admin-battle-pass-progress', selectedProgressSeason],
+    queryFn: async () => {
+      let query = supabase
+        .from('battle_pass_progress')
+        .select('*')
+        .order('current_tier', { ascending: false });
+
+      if (selectedProgressSeason && selectedProgressSeason !== 'all') {
+        query = query.eq('season_id', selectedProgressSeason);
+      }
+
+      const { data, error } = await query.limit(100);
+      if (error) throw error;
+
+      // Fetch profiles for each user
+      const userIds = data?.map((p) => p.user_id) || [];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_emoji')
+        .in('id', userIds);
+
+      const profileMap = new Map(profiles?.map((p) => [p.id, p]));
+
+      return data?.map((p) => ({
+        ...p,
+        profile: profileMap.get(p.user_id),
+      })) as BattlePassProgress[];
+    },
+  });
+
+  // Calculate revenue stats
+  const revenueStats = {
+    totalPremium: progressData?.filter((p) => p.is_premium).length || 0,
+    estimatedRevenue:
+      (progressData?.filter((p) => p.is_premium).length || 0) *
+      (seasons?.find((s) => s.is_active)?.premium_price || 500),
+    avgTier:
+      progressData && progressData.length > 0
+        ? Math.round(progressData.reduce((sum, p) => sum + (p.current_tier || 0), 0) / progressData.length)
+        : 0,
+  };
 
   const createMutation = useMutation({
     mutationFn: async (data: SeasonFormData) => {
@@ -264,11 +334,66 @@ export default function AdminBattlePass() {
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Seasons</CardTitle>
-            <CardDescription>All battle pass seasons, past and present.</CardDescription>
-          </CardHeader>
+        {/* Stats Cards */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Total Players
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{progressData?.length ?? 0}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Crown className="h-4 w-4 text-yellow-500" />
+                Premium Users
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{revenueStats.totalPremium}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Coins className="h-4 w-4 text-yellow-500" />
+                Est. Revenue
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{revenueStats.estimatedRevenue.toLocaleString()}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Avg Tier
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{revenueStats.avgTier}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="seasons">Seasons</TabsTrigger>
+            <TabsTrigger value="progress">Player Progress</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="seasons">
+            <Card>
+              <CardHeader>
+                <CardTitle>Seasons</CardTitle>
+                <CardDescription>All battle pass seasons, past and present.</CardDescription>
+              </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="space-y-3">
@@ -350,6 +475,94 @@ export default function AdminBattlePass() {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+
+          {/* Player Progress Tab */}
+          <TabsContent value="progress">
+            <Card>
+              <CardHeader className="flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle>Player Progress</CardTitle>
+                  <CardDescription>View player battle pass progress and tiers.</CardDescription>
+                </div>
+                <Select value={selectedProgressSeason} onValueChange={setSelectedProgressSeason}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Filter by season" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Seasons</SelectItem>
+                    {seasons?.map((season) => (
+                      <SelectItem key={season.id} value={season.season_id}>
+                        {season.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardHeader>
+              <CardContent>
+                {progressLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : progressData?.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No player progress found.</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Player</TableHead>
+                        <TableHead>Season</TableHead>
+                        <TableHead>Tier</TableHead>
+                        <TableHead>XP</TableHead>
+                        <TableHead>Premium</TableHead>
+                        <TableHead>Rewards Claimed</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {progressData?.map((progress) => (
+                        <TableRow key={progress.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{progress.profile?.avatar_emoji || '😺'}</span>
+                              <span className="font-medium">
+                                {progress.profile?.display_name || 'Unknown'}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">{progress.season_id}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Star className="h-3 w-3 text-yellow-500" />
+                              <span className="font-bold">{progress.current_tier || 0}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{(progress.current_xp || 0).toLocaleString()}</TableCell>
+                          <TableCell>
+                            {progress.is_premium ? (
+                              <Badge className="bg-yellow-500/10 text-yellow-600 gap-1">
+                                <Crown className="h-3 w-3" /> Premium
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary">Free</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {progress.claimed_rewards?.length || 0} rewards
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Create/Edit Dialog */}

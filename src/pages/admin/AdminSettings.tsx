@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -40,9 +41,14 @@ import {
   ChevronDown,
   RefreshCw,
   Image,
+  Heart,
+  Zap,
+  AlertCircle,
+  CheckCircle2,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 // Activity types for player activity log filter
 const ACTIVITY_TYPES = [
@@ -69,6 +75,72 @@ const CATEGORY_CONFIG: Record<string, { label: string; color: string }> = {
   content: { label: 'Content Management', color: 'bg-cyan-500/10 text-cyan-600' },
 };
 
+// System health check hook
+function useSystemHealth() {
+  return useQuery({
+    queryKey: ['admin-system-health'],
+    queryFn: async () => {
+      const startTime = Date.now();
+      
+      // Database connectivity check
+      const dbStart = Date.now();
+      const { error: dbError } = await supabase.from('profiles').select('id').limit(1);
+      const dbResponseTime = Date.now() - dbStart;
+      
+      // Get recent AI usage for edge function health
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { data: aiUsage } = await supabase
+        .from('ai_usage_log')
+        .select('status, execution_time_ms, function_name')
+        .gte('created_at', oneHourAgo);
+      
+      const successfulCalls = aiUsage?.filter(a => a.status === 'success').length || 0;
+      const totalCalls = aiUsage?.length || 0;
+      const edgeFunctionSuccessRate = totalCalls > 0 ? (successfulCalls / totalCalls) * 100 : 100;
+      const avgExecutionTime = aiUsage && aiUsage.length > 0
+        ? aiUsage.reduce((sum, a) => sum + (a.execution_time_ms || 0), 0) / aiUsage.length
+        : 0;
+      
+      // Get recent errors
+      const { count: recentErrors } = await supabase
+        .from('error_logs')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', oneHourAgo);
+      
+      // Function breakdown
+      const functionBreakdown = aiUsage?.reduce((acc, log) => {
+        const fn = log.function_name;
+        if (!acc[fn]) acc[fn] = { total: 0, success: 0 };
+        acc[fn].total++;
+        if (log.status === 'success') acc[fn].success++;
+        return acc;
+      }, {} as Record<string, { total: number; success: number }>) || {};
+
+      return {
+        database: {
+          status: dbError ? 'error' : dbResponseTime < 100 ? 'healthy' : dbResponseTime < 500 ? 'degraded' : 'slow',
+          responseTime: dbResponseTime,
+          error: dbError?.message,
+        },
+        edgeFunctions: {
+          status: edgeFunctionSuccessRate >= 99 ? 'healthy' : edgeFunctionSuccessRate >= 95 ? 'degraded' : 'error',
+          successRate: edgeFunctionSuccessRate,
+          avgExecutionTime: Math.round(avgExecutionTime),
+          totalCalls,
+          functionBreakdown,
+        },
+        errors: {
+          count: recentErrors || 0,
+          status: (recentErrors || 0) === 0 ? 'healthy' : (recentErrors || 0) < 5 ? 'degraded' : 'error',
+        },
+        lastChecked: new Date().toISOString(),
+        totalCheckTime: Date.now() - startTime,
+      };
+    },
+    refetchInterval: 60000, // Auto-refresh every minute
+  });
+}
+
 export default function AdminSettings() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('activity');
@@ -92,6 +164,7 @@ export default function AdminSettings() {
     isLoading: tableStatsLoading,
     refetch: refetchTables,
   } = useAdminAllTableStats();
+  const { data: healthData, isLoading: healthLoading, refetch: refetchHealth } = useSystemHealth();
 
   const toggleCategory = (category: string) => {
     setOpenCategories((prev) =>
@@ -160,9 +233,13 @@ export default function AdminSettings() {
               <Users className="h-4 w-4" />
               Player Activity
             </TabsTrigger>
-            <TabsTrigger value="database" className="flex items-center gap-2">
+          <TabsTrigger value="database" className="flex items-center gap-2">
               <Database className="h-4 w-4" />
               Database
+            </TabsTrigger>
+            <TabsTrigger value="health" className="flex items-center gap-2">
+              <Heart className="h-4 w-4" />
+              System Health
             </TabsTrigger>
           </TabsList>
 
@@ -630,6 +707,193 @@ export default function AdminSettings() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* System Health Tab */}
+          <TabsContent value="health" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">System Health Monitor</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetchHealth()}
+                disabled={healthLoading}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${healthLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
+
+            {healthLoading ? (
+              <div className="grid gap-4 md:grid-cols-3">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i}>
+                    <CardHeader>
+                      <Skeleton className="h-6 w-32" />
+                    </CardHeader>
+                    <CardContent>
+                      <Skeleton className="h-20 w-full" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* Health Status Cards */}
+                <div className="grid gap-4 md:grid-cols-3">
+                  {/* Database Health */}
+                  <Card className={healthData?.database.status === 'error' ? 'border-destructive' : ''}>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                          <Database className="h-4 w-4" />
+                          Database
+                        </CardTitle>
+                        {healthData?.database.status === 'healthy' && (
+                          <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        )}
+                        {healthData?.database.status === 'degraded' && (
+                          <AlertCircle className="h-5 w-5 text-yellow-500" />
+                        )}
+                        {healthData?.database.status === 'error' && (
+                          <AlertCircle className="h-5 w-5 text-destructive" />
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{healthData?.database.responseTime}ms</div>
+                      <p className="text-xs text-muted-foreground mt-1">Response time</p>
+                      <Badge
+                        className={`mt-2 ${
+                          healthData?.database.status === 'healthy'
+                            ? 'bg-green-500/10 text-green-600'
+                            : healthData?.database.status === 'degraded'
+                              ? 'bg-yellow-500/10 text-yellow-600'
+                              : 'bg-destructive/10 text-destructive'
+                        }`}
+                      >
+                        {healthData?.database.status === 'healthy' && '< 100ms'}
+                        {healthData?.database.status === 'degraded' && '100-500ms'}
+                        {healthData?.database.status === 'slow' && '> 500ms'}
+                        {healthData?.database.status === 'error' && 'Error'}
+                      </Badge>
+                    </CardContent>
+                  </Card>
+
+                  {/* Edge Functions Health */}
+                  <Card className={healthData?.edgeFunctions.status === 'error' ? 'border-destructive' : ''}>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                          <Zap className="h-4 w-4" />
+                          Edge Functions
+                        </CardTitle>
+                        {healthData?.edgeFunctions.status === 'healthy' && (
+                          <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        )}
+                        {healthData?.edgeFunctions.status === 'degraded' && (
+                          <AlertCircle className="h-5 w-5 text-yellow-500" />
+                        )}
+                        {healthData?.edgeFunctions.status === 'error' && (
+                          <AlertCircle className="h-5 w-5 text-destructive" />
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{healthData?.edgeFunctions.successRate.toFixed(1)}%</div>
+                      <p className="text-xs text-muted-foreground mt-1">Success rate (1h)</p>
+                      <div className="mt-2">
+                        <Progress value={healthData?.edgeFunctions.successRate} className="h-2" />
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                        <span>{healthData?.edgeFunctions.totalCalls} calls</span>
+                        <span>Avg {healthData?.edgeFunctions.avgExecutionTime}ms</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Error Rate */}
+                  <Card className={healthData?.errors.status === 'error' ? 'border-destructive' : ''}>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4" />
+                          Errors (1h)
+                        </CardTitle>
+                        {healthData?.errors.status === 'healthy' && (
+                          <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        )}
+                        {healthData?.errors.status === 'degraded' && (
+                          <AlertCircle className="h-5 w-5 text-yellow-500" />
+                        )}
+                        {healthData?.errors.status === 'error' && (
+                          <AlertCircle className="h-5 w-5 text-destructive" />
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{healthData?.errors.count}</div>
+                      <p className="text-xs text-muted-foreground mt-1">Recent errors</p>
+                      <Badge
+                        className={`mt-2 ${
+                          healthData?.errors.status === 'healthy'
+                            ? 'bg-green-500/10 text-green-600'
+                            : healthData?.errors.status === 'degraded'
+                              ? 'bg-yellow-500/10 text-yellow-600'
+                              : 'bg-destructive/10 text-destructive'
+                        }`}
+                      >
+                        {healthData?.errors.status === 'healthy' && 'No issues'}
+                        {healthData?.errors.status === 'degraded' && 'Some errors'}
+                        {healthData?.errors.status === 'error' && 'High error rate'}
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Function Breakdown */}
+                {healthData?.edgeFunctions.functionBreakdown && Object.keys(healthData.edgeFunctions.functionBreakdown).length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm font-medium">Edge Function Breakdown</CardTitle>
+                      <CardDescription>Performance by function (last hour)</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {Object.entries(healthData.edgeFunctions.functionBreakdown).map(([fn, stats]) => {
+                          const successRate = stats.total > 0 ? (stats.success / stats.total) * 100 : 100;
+                          return (
+                            <div key={fn} className="p-3 border rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium text-sm truncate" title={fn}>{fn}</span>
+                                <Badge
+                                  variant="outline"
+                                  className={successRate >= 95 ? 'text-green-600' : successRate >= 80 ? 'text-yellow-600' : 'text-destructive'}
+                                >
+                                  {successRate.toFixed(0)}%
+                                </Badge>
+                              </div>
+                              <div className="mt-2">
+                                <Progress value={successRate} className="h-1" />
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {stats.success}/{stats.total} successful
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Last Check Info */}
+                <p className="text-xs text-muted-foreground text-center">
+                  Last checked: {healthData?.lastChecked && format(new Date(healthData.lastChecked), 'MMM d, HH:mm:ss')} 
+                  {' '}• Check took {healthData?.totalCheckTime}ms • Auto-refreshes every minute
+                </p>
+              </>
+            )}
           </TabsContent>
         </Tabs>
       </div>
