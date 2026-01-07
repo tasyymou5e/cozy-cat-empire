@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { GameState } from '@/types/game';
 import { CatRelationship, RelationshipEvent } from '@/types/relationships';
 import { isValidGameState, isCatRelationship, isRelationshipEvent } from '@/types/guards';
+import { migrateSaveData, needsMigration, getSaveVersionInfo } from '@/lib/saveMigration';
 import { Json } from '@/integrations/supabase/types';
 
 interface RelationshipSaveData {
@@ -116,7 +117,59 @@ export function useCloudSave(userId: string | undefined) {
         return { data: null };
       }
 
-      // Validate game state
+      // Build raw save data for migration check
+      const rawSaveData = {
+        game_state: data.game_state,
+        kittens_bred: data.kittens_bred,
+        relationships: data.relationships,
+        last_played_at: data.last_played_at,
+      };
+
+      // Check if migration is needed
+      if (needsMigration(rawSaveData)) {
+        const versionInfo = getSaveVersionInfo(rawSaveData);
+        console.log(`Migrating cloud save from v${versionInfo.currentVersion} to v${versionInfo.targetVersion}`);
+
+        const migrationResult = migrateSaveData(rawSaveData);
+
+        if (!migrationResult.success) {
+          const errorResult = migrationResult as { success: false; error: string };
+          console.error('Cloud save migration failed:', errorResult.error);
+          return { data: null, error: 'Cloud save data could not be migrated' };
+        }
+
+        if (migrationResult.warnings.length > 0) {
+          console.warn('Cloud migration warnings:', migrationResult.warnings);
+        }
+
+        // Save the migrated data back to cloud
+        const { error: updateError } = await supabase
+          .from('game_saves')
+          .update({
+            game_state: migrationResult.data.state as unknown as Json,
+            kittens_bred: migrationResult.data.kittensBreed,
+            relationships: migrationResult.data.relationships as unknown as Json,
+            last_played_at: new Date().toISOString(),
+          })
+          .eq('user_id', userId);
+
+        if (updateError) {
+          console.error('Failed to save migrated data:', updateError);
+        } else {
+          console.log('Cloud save migrated and updated');
+        }
+
+        return {
+          data: {
+            game_state: migrationResult.data.state,
+            kittens_bred: migrationResult.data.kittensBreed,
+            relationships: migrationResult.data.relationships as RelationshipSaveData,
+            last_played_at: migrationResult.data.savedAt,
+          },
+        };
+      }
+
+      // No migration needed - validate as before
       const gameState = data.game_state as unknown;
       if (!isValidGameState(gameState)) {
         console.error('Cloud load: Invalid game state structure');
