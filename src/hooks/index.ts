@@ -50,6 +50,7 @@ export { usePlayerStats } from './usePlayerStats';
 
 // Feature hooks
 export { useCloudSave } from './useCloudSave';
+export { useAutoSave } from './useAutoSave';
 export { useCloudGallery } from './useCloudGallery';
 export { usePhotoGallery } from './usePhotoGallery';
 export { useConfetti } from './useConfetti';
@@ -61,6 +62,8 @@ export { usePortraitOutdatedToast } from './usePortraitOutdatedToast';
 export { useLuckyWheel } from './useLuckyWheel';
 export { useSpecializations, getMasteryLevel, getNextMasteryLevel } from './useSpecializations';
 export { useLegacy } from './useLegacy';
+export { useBroadcastSync, SYNC_MESSAGES } from './useBroadcastSync';
+export type { SyncMessageType } from './useBroadcastSync';
 
 // UI hooks
 export { useKeyboardShortcuts } from './useKeyboardShortcuts';

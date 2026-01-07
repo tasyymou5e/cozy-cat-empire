@@ -28,6 +28,7 @@ import {
 } from '@/types/dailyRewards';
 import { Resources } from '@/types/game';
 import { useToast } from '@/hooks/use-toast';
+import { useBroadcastSync, SYNC_MESSAGES } from './useBroadcastSync';
 
 /** Sound effect types used by this hook */
 type SoundType = 'click' | 'success' | 'coin' | 'achievement' | 'levelUp';
@@ -122,6 +123,15 @@ export function useDailyLoginRewards(
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
+
+  // Cross-tab sync for daily rewards
+  const { broadcast } = useBroadcastSync<{ claimed: boolean }>('daily-rewards-sync', (msg) => {
+    if (msg.type === SYNC_MESSAGES.DAILY_REWARD_CLAIMED) {
+      // Another tab claimed the reward
+      setCanClaim(false);
+      setShowModal(false);
+    }
+  });
 
   /**
    * Get today's date as YYYY-MM-DD string
@@ -357,6 +367,9 @@ export function useDailyLoginRewards(
       setCanClaim(false);
       setShowModal(false);
       setLoginData((prev) => (prev ? { ...prev, last_claimed_date: today } : null));
+
+      // Broadcast to other tabs
+      broadcast({ type: SYNC_MESSAGES.DAILY_REWARD_CLAIMED, payload: { claimed: true } });
 
       toast({
         title: '🎁 Daily Reward Claimed!',
