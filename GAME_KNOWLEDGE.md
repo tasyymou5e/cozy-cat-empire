@@ -263,6 +263,9 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 - Session management
 - Auto-confirm email signups
 - Password reset functionality
+- **Seasonal Themed Backgrounds:** AI-generated backgrounds that change with real-world seasons
+- **Animated Farm Cats:** Interactive SVG cats that walk across the auth page
+- **Seasonal Particle Effects:** Snowflakes (winter), cherry blossoms (spring), fireflies (summer), falling leaves (autumn)
 - **Forced Profile Setup During Signup:**
   - Display name (required, 3-30 chars, alphanumeric + spaces/underscores/hyphens)
   - Avatar emoji selection (10 cat-themed options)

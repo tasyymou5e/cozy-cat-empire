@@ -68,11 +68,12 @@
 | `photo-gallery` | Photo booth images |
 | `cat-portraits` | AI-generated cat portraits |
 
-### Edge Functions (7)
+### Edge Functions (8)
 
 | Function | Purpose |
 |----------|---------|
 | `generate-cat-portrait` | AI portrait generation |
+| `generate-auth-background` | Seasonal AI-generated auth page backgrounds |
 | `generate-weekly-challenges` | Auto-generate weekly challenges |
 | `process-leaderboard-rewards` | Process periodic rewards |
 | `send-push-notification` | Push notification delivery |
@@ -107,7 +108,7 @@
 
 ### New User
 ```
-Visit → Auth Page → Sign Up → Profile Setup → Tutorial (16 steps) → Game
+Visit → Auth Page (seasonal background + animated cats) → Sign Up → Profile Setup → Tutorial (16 steps) → Game
 ```
 
 ### Returning User  
