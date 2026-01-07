@@ -110,41 +110,87 @@ export default function AdminNotifications() {
       const allowed = await enforceRateLimit('mass_notification');
       if (!allowed) throw new Error('Rate limit exceeded');
 
-      // Get target user count for display
-      let targetCount = 0;
+      // Get target users based on audience
+      let targetUserIds: string[] = [];
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+
       if (data.target === 'all') {
-        const { count } = await supabase
-          .from('push_subscriptions')
-          .select('id', { count: 'exact', head: true });
-        targetCount = count || 0;
+        const { data: subs } = await supabase.from('push_subscriptions').select('user_id');
+        targetUserIds = [...new Set(subs?.map((s) => s.user_id) || [])];
+      } else if (data.target === 'vip') {
+        const { data: vipUsers } = await supabase
+          .from('daily_login_rewards')
+          .select('user_id')
+          .gte('current_streak', 7);
+        const vipIds = new Set(vipUsers?.map((v) => v.user_id) || []);
+        const { data: subs } = await supabase.from('push_subscriptions').select('user_id');
+        targetUserIds = subs?.filter((s) => vipIds.has(s.user_id)).map((s) => s.user_id) || [];
+      } else if (data.target === 'active') {
+        const { data: activeSaves } = await supabase
+          .from('game_saves')
+          .select('user_id')
+          .gte('last_played_at', sevenDaysAgo);
+        const activeIds = new Set(activeSaves?.map((a) => a.user_id) || []);
+        const { data: subs } = await supabase.from('push_subscriptions').select('user_id');
+        targetUserIds = subs?.filter((s) => activeIds.has(s.user_id)).map((s) => s.user_id) || [];
+      } else if (data.target === 'inactive') {
+        const { data: inactiveSaves } = await supabase
+          .from('game_saves')
+          .select('user_id')
+          .lt('last_played_at', fourteenDaysAgo);
+        const inactiveIds = new Set(inactiveSaves?.map((i) => i.user_id) || []);
+        const { data: subs } = await supabase.from('push_subscriptions').select('user_id');
+        targetUserIds = subs?.filter((s) => inactiveIds.has(s.user_id)).map((s) => s.user_id) || [];
       }
 
-      // Insert notification record
+      targetUserIds = [...new Set(targetUserIds)];
+      let sentCount = 0;
+      let failedCount = 0;
+
+      // Send push notifications to each target user
+      for (const userId of targetUserIds) {
+        try {
+          const { error } = await supabase.functions.invoke('send-push-notification', {
+            body: {
+              userId,
+              title: data.title,
+              body: data.body,
+              url: '/',
+            },
+          });
+          if (!error) sentCount++;
+          else failedCount++;
+        } catch {
+          failedCount++;
+        }
+      }
+
+      // Insert notification record with actual delivery count
       const { error } = await supabase.from('admin_notifications').insert({
         title: data.title,
         body: data.body,
         target: data.target,
         sent_by: user?.id,
-        status: 'sent',
-        delivery_count: targetCount,
+        status: sentCount > 0 ? 'sent' : 'failed',
+        delivery_count: sentCount,
+        target_user_ids: targetUserIds,
       });
 
       if (error) throw error;
 
-      // In a real implementation, you would call the edge function to send actual push notifications
-      // For now, we just record the notification
-      return { targetCount };
+      return { targetCount: targetUserIds.length, sentCount, failedCount };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
       logActivity({
         actionType: 'notification_send',
-        actionDescription: `Sent notification to ${target} users: ${title}`,
+        actionDescription: `Sent notification to ${target} users: ${title} (${result.sentCount}/${result.targetCount} delivered)`,
         targetTable: 'admin_notifications',
       });
       toast({
         title: 'Notification Sent',
-        description: `Queued for ${result.targetCount} users with push subscriptions.`,
+        description: `Delivered to ${result.sentCount} of ${result.targetCount} users.${result.failedCount > 0 ? ` ${result.failedCount} failed.` : ''}`,
       });
       setComposeOpen(false);
       setTitle('');
