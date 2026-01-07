@@ -2,6 +2,11 @@ import { TrickId } from './grading';
 import { CatAppearance } from './catAppearance';
 import { SpecializationType } from './specializations';
 
+// ============================================================================
+// Cat Types
+// ============================================================================
+
+/** The 8 available cat breeds with varying values and rarity */
 export type CatBreed =
   | 'stray'
   | 'tabby'
@@ -11,6 +16,8 @@ export type CatBreed =
   | 'british-shorthair'
   | 'ragdoll'
   | 'bengal';
+
+/** The 6 personality types affecting behavior and compatibility */
 export type CatPersonality =
   | 'lazy'
   | 'playful'
@@ -19,83 +26,213 @@ export type CatPersonality =
   | 'curious'
   | 'shy';
 
-/** Extended specialization data stored on cat */
+/** Cat acquisition type affecting initial stats and cost */
+export type CatType = 'stray' | 'adopted' | 'pure';
+
+/** Housing sizes from smallest to largest */
+export type HouseSize = 'apartment' | 'house' | 'mansion' | 'farm';
+
+// ============================================================================
+// Cat Stat Ranges (branded types for validation)
+// ============================================================================
+
+/** Cat stats that range from 0-100 */
+export type StatValue = number;
+
+/** Cat grade value from 1-20 */
+export type GradeValue = number;
+
+/** Cat age in days */
+export type AgeValue = number;
+
+/** Monetary value (always positive) */
+export type MoneyValue = number;
+
+// ============================================================================
+// Cat Interfaces
+// ============================================================================
+
+/**
+ * Extended specialization data stored on cat.
+ * Tracks mastery progress and XP for specialized cats.
+ */
 export interface CatSpecializationData {
+  /** The specialization type chosen */
   type: SpecializationType;
-  level: number; // 1-3 mastery
+  /** Current mastery level (1-3) */
+  level: number;
+  /** Current XP towards next level */
   xp: number;
-  specializedAt: string; // ISO date
+  /** ISO date string when cat was specialized */
+  specializedAt: string;
 }
 
+/**
+ * Progress for learning tricks.
+ * Maps each trick ID to progress percentage (0-100).
+ */
+export type TrickProgress = Record<TrickId, number>;
+
+/**
+ * Complete cat data structure.
+ * Represents all information about a single cat in the game.
+ */
 export interface Cat {
+  /** Unique identifier for this cat */
   id: string;
-  type: 'stray' | 'adopted' | 'pure';
+  /** How the cat was acquired */
+  type: CatType;
+  /** The cat's breed */
   breed: CatBreed;
+  /** Display name (1-20 characters) */
   name: string;
-  health: number;
-  happiness: number;
-  hunger: number;
-  value: number;
-  age: number;
+  /** Health stat (0-100, cat dies at 0) */
+  health: StatValue;
+  /** Happiness stat (0-100) */
+  happiness: StatValue;
+  /** Hunger stat (0-100, affects health if low) */
+  hunger: StatValue;
+  /** Base sell price in coins */
+  value: MoneyValue;
+  /** Cat's age in days */
+  age: AgeValue;
+  /** Personality affecting behavior and compatibility */
   personality: CatPersonality;
+  /** Total show wins for this cat */
   showWins: number;
+  /** Whether cat is listed for sale */
   isForSale: boolean;
-  // Grading system
-  grade: number; // 1-20
+  /** Cat grade (1-20) affecting show performance */
+  grade: GradeValue;
+  /** List of fully learned trick IDs */
   tricksLearned: TrickId[];
-  trickProgress: Record<TrickId, number>; // 0-100 for each trick
-  restLevel: number; // 0-100
-  feedingScore: number; // Cumulative feeding contribution
+  /** Progress (0-100) for each trick */
+  trickProgress: TrickProgress;
+  /** Rest level (0-100) affecting training */
+  restLevel: StatValue;
+  /** Cumulative feeding contribution score */
+  feedingScore: number;
+  /** Last day this cat was trained */
   lastTrainingDay: number;
-  appearance?: CatAppearance; // Visual customization
-  portraitUrl?: string; // AI-generated portrait URL
-  portraitGeneratedAt?: number; // Timestamp of generation
-  appearanceHash?: string; // Hash of appearance/costume when portrait was generated (for caching)
-  // Specialization system - now stores full data
+  /** Optional visual customization */
+  appearance?: CatAppearance;
+  /** AI-generated portrait URL */
+  portraitUrl?: string;
+  /** Timestamp when portrait was generated */
+  portraitGeneratedAt?: number;
+  /** Hash of appearance/costume when portrait was generated */
+  appearanceHash?: string;
+  /** Specialization data if cat is specialized */
   specialization?: CatSpecializationData;
 }
 
+// ============================================================================
+// Resource Types
+// ============================================================================
+
+/** Resource type identifiers */
+export type ResourceType = 'food' | 'medicine' | 'toys' | 'treats';
+
+/**
+ * Player's resource inventory.
+ * All values are non-negative integers.
+ */
 export interface Resources {
+  /** Food units for feeding cats */
   food: number;
+  /** Medicine units for healing sick cats */
   medicine: number;
+  /** Toy units for playtime */
   toys: number;
+  /** Treat units for training */
   treats: number;
 }
 
+// ============================================================================
+// Market Types
+// ============================================================================
+
+/**
+ * A cat listing in the market.
+ * Refreshes every 3 days with new cats.
+ */
 export interface MarketListing {
+  /** Unique listing ID */
   id: string;
+  /** The cat being sold */
   cat: Cat;
-  price: number;
+  /** Price in coins */
+  price: MoneyValue;
+  /** NPC seller name */
   seller: string;
 }
 
+// ============================================================================
+// Achievement Types
+// ============================================================================
+
+/**
+ * Player achievement tracking.
+ * Unlocked when target value is reached.
+ */
 export interface Achievement {
+  /** Unique achievement ID */
   id: string;
+  /** Display name */
   name: string;
+  /** Description of how to unlock */
   description: string;
+  /** Target value to unlock */
   target: number;
+  /** Whether achievement is unlocked */
   unlocked: boolean;
+  /** Timestamp when unlocked */
   unlockedAt?: number;
 }
 
+// ============================================================================
+// Game State
+// ============================================================================
+
+/**
+ * Complete game state.
+ * Contains all persistent game data.
+ */
 export interface GameState {
+  /** All cats owned by the player */
   cats: Cat[];
-  money: number;
+  /** Current money in coins */
+  money: MoneyValue;
+  /** Current cat capacity */
   space: number;
-  houseSize: 'apartment' | 'house' | 'mansion' | 'farm';
+  /** Current housing size */
+  houseSize: HouseSize;
+  /** Farm acres (only for farm housing) */
   acres: number;
+  /** Current game day */
   day: number;
+  /** Player's resource inventory */
   resources: Resources;
+  /** Player reputation score */
   reputation: number;
+  /** Total show wins across all cats */
   totalShowWins: number;
+  /** Total cats adopted */
   catsAdopted: number;
-  totalMoneyEarned: number;
+  /** Total money ever earned */
+  totalMoneyEarned: MoneyValue;
+  /** Current market listings */
   marketListings: MarketListing[];
+  /** All achievements */
   achievements: Achievement[];
+  /** Days until breeding allowed */
   breedingCooldown: number;
-  showCooldown: number; // Days until next show allowed
-  ownedCostumes: string[]; // Costume IDs
-  catCostumes: Record<string, string>; // catId -> costumeId
+  /** Days until next show allowed */
+  showCooldown: number;
+  /** Owned costume IDs */
+  ownedCostumes: string[];
+  /** Cat ID to costume ID mapping */
+  catCostumes: Record<string, string>;
 }
 
 // Re-export from canonical source for backward compatibility

@@ -1,13 +1,60 @@
+// ============================================================================
+// Trick Types
+// ============================================================================
+
+/** Available trick identifiers */
 export type TrickId = 'sit' | 'paw' | 'rollOver' | 'jump' | 'fetch';
 
+/** Trick difficulty level (1-5) */
+export type TrickDifficulty = 1 | 2 | 3 | 4 | 5;
+
+/** Grade tier based on grade value */
+export type GradeTier = 'common' | 'uncommon' | 'rare' | 'veryRare' | 'ultraRare';
+
+/**
+ * Definition of a learnable trick.
+ */
 export interface Trick {
+  /** Unique trick identifier */
   id: TrickId;
+  /** Display name */
   name: string;
+  /** Emoji representation */
   emoji: string;
-  difficulty: number; // 1-5
+  /** Learning difficulty (1-5, higher = harder) */
+  difficulty: TrickDifficulty;
+  /** Grade bonus when learned */
   gradeBonus: number;
 }
 
+// ============================================================================
+// Grade Types
+// ============================================================================
+
+/**
+ * Breakdown of a cat's grade calculation.
+ * Used for detailed grade display.
+ */
+export interface GradeStats {
+  /** Initial base grade (1-20) */
+  baseGrade: number;
+  /** Bonus from regular feeding */
+  feedingBonus: number;
+  /** Bonus from learned tricks */
+  trickBonus: number;
+  /** Bonus from being well-rested */
+  restBonus: number;
+  /** Bonus for being 60+ days old */
+  ageBonus: number;
+  /** Bonus from show wins */
+  showBonus: number;
+}
+
+// ============================================================================
+// Trick Constants
+// ============================================================================
+
+/** All available tricks with their properties */
 export const TRICKS: Trick[] = [
   { id: 'sit', name: 'Sit', emoji: '🪑', difficulty: 1, gradeBonus: 0.5 },
   { id: 'paw', name: 'Give Paw', emoji: '🐾', difficulty: 2, gradeBonus: 0.75 },
@@ -16,14 +63,9 @@ export const TRICKS: Trick[] = [
   { id: 'fetch', name: 'Fetch', emoji: '🎾', difficulty: 5, gradeBonus: 1.5 },
 ];
 
-export interface GradeStats {
-  baseGrade: number; // Initial grade 1-20
-  feedingBonus: number; // From regular feeding
-  trickBonus: number; // From learned tricks
-  restBonus: number; // From being well-rested
-  ageBonus: number; // Bonus for being 60+ days old
-  showBonus: number; // From show wins
-}
+// ============================================================================
+// Grade Constants
+// ============================================================================
 
 // Weighted random for initial grade
 export const GRADE_WEIGHTS = [
@@ -48,9 +90,12 @@ export function generateRandomGrade(): number {
   return 1;
 }
 
-export function getGradeTier(
-  grade: number
-): 'common' | 'uncommon' | 'rare' | 'veryRare' | 'ultraRare' {
+/**
+ * Get the tier classification for a grade value.
+ * @param grade - Grade value (1-20)
+ * @returns The tier classification
+ */
+export function getGradeTier(grade: number): GradeTier {
   if (grade >= 20) return 'ultraRare';
   if (grade >= 18) return 'veryRare';
   if (grade >= 15) return 'rare';

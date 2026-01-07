@@ -1,14 +1,39 @@
+// ============================================================================
+// Costume Types
+// ============================================================================
+
+/** Costume rarity levels */
+export type CostumeRarity = 'common' | 'uncommon' | 'rare' | 'legendary';
+
+/** Costume category for organization */
+export type CostumeCategory = 'hat' | 'outfit' | 'accessory' | 'special';
+
+/**
+ * A purchasable costume for cats.
+ * Provides show bonuses and happiness bonuses.
+ */
 export interface Costume {
+  /** Unique costume ID */
   id: string;
+  /** Display name */
   name: string;
+  /** Emoji representation */
   emoji: string;
+  /** Description text */
   description: string;
+  /** Price in coins (0 for VIP exclusive) */
   price: number;
-  rarity: 'common' | 'uncommon' | 'rare' | 'legendary';
-  showBonus: number; // Percentage bonus in cat shows
+  /** Rarity tier */
+  rarity: CostumeRarity;
+  /** Percentage bonus in cat shows */
+  showBonus: number;
+  /** Daily happiness bonus when worn */
   happinessBonus: number;
-  category: 'hat' | 'outfit' | 'accessory' | 'special';
+  /** Category for shop organization */
+  category: CostumeCategory;
+  /** Whether costume is VIP exclusive */
   vipExclusive?: boolean;
+  /** Minimum login streak required */
   minStreak?: number;
 }
 

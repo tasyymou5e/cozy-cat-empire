@@ -11,12 +11,20 @@ export type {
   Cat,
   CatBreed,
   CatPersonality,
+  CatType,
   CatSpecializationData,
+  HouseSize,
   Resources,
+  ResourceType,
   MarketListing,
   Achievement,
   GameState,
   AchievementType,
+  StatValue,
+  GradeValue,
+  AgeValue,
+  MoneyValue,
+  TrickProgress,
 } from './game';
 
 export {
@@ -50,15 +58,20 @@ export {
 } from './catNames';
 
 // Grading types
-export type { TrickId } from './grading';
+export type { TrickId, TrickDifficulty, GradeTier, Trick, GradeStats } from './grading';
 export { TRICKS, getGradeTier, getGradeStars } from './grading';
 
 // Relationship types
 export type {
   CatRelationship,
   RelationshipEvent,
+  RelationshipEventType,
   RelationshipLevel,
+  RelationshipScore,
   CatGroup,
+  CatGroupType,
+  DecayLevel,
+  RelationshipDecayInfo,
 } from './relationships';
 
 export {
@@ -70,7 +83,7 @@ export {
 } from './relationships';
 
 // Costume types
-export type { Costume } from './costumes';
+export type { Costume, CostumeRarity, CostumeCategory } from './costumes';
 export { COSTUMES, getCostumeById } from './costumes';
 
 // Battle pass types
