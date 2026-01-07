@@ -17,11 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Select,
   SelectContent,
@@ -249,7 +245,7 @@ export default function AdminErrorLogs() {
   const groupedErrors = useMemo(() => {
     if (!data?.errors) return [];
     const groups = new Map<string, { count: number; latestId: string; latestTime: string }>();
-    
+
     data.errors.forEach((error) => {
       const key = error.error_message.slice(0, 100);
       const existing = groups.get(key);
@@ -271,15 +267,9 @@ export default function AdminErrorLogs() {
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold">Error Logs</h1>
-            <p className="text-muted-foreground">
-              Monitor and manage application errors
-            </p>
+            <p className="text-muted-foreground">Monitor and manage application errors</p>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => refetch()}
-            disabled={isFetching}
-          >
+          <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -301,35 +291,35 @@ export default function AdminErrorLogs() {
                 <AreaChart data={trendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorReact" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.1}/>
+                      <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.1} />
                     </linearGradient>
                     <linearGradient id="colorUncaught" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#f97316" stopOpacity={0.1}/>
+                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#f97316" stopOpacity={0.1} />
                     </linearGradient>
                     <linearGradient id="colorNetwork" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#eab308" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#eab308" stopOpacity={0.1}/>
+                      <stop offset="5%" stopColor="#eab308" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#eab308" stopOpacity={0.1} />
                     </linearGradient>
                     <linearGradient id="colorInteraction" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis 
-                    dataKey="displayDate" 
+                  <XAxis
+                    dataKey="displayDate"
                     tick={{ fontSize: 12 }}
                     className="text-muted-foreground"
                   />
-                  <YAxis 
+                  <YAxis
                     tick={{ fontSize: 12 }}
                     className="text-muted-foreground"
                     allowDecimals={false}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
+                  <Tooltip
+                    contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '8px',
@@ -337,40 +327,40 @@ export default function AdminErrorLogs() {
                     labelStyle={{ color: 'hsl(var(--foreground))' }}
                   />
                   <Legend />
-                  <Area 
-                    type="monotone" 
-                    dataKey="react_error_boundary" 
+                  <Area
+                    type="monotone"
+                    dataKey="react_error_boundary"
                     name="React Errors"
-                    stroke="hsl(var(--destructive))" 
-                    fillOpacity={1} 
-                    fill="url(#colorReact)" 
+                    stroke="hsl(var(--destructive))"
+                    fillOpacity={1}
+                    fill="url(#colorReact)"
                     stackId="1"
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="uncaught_error" 
+                  <Area
+                    type="monotone"
+                    dataKey="uncaught_error"
                     name="Uncaught Errors"
-                    stroke="#f97316" 
-                    fillOpacity={1} 
+                    stroke="#f97316"
+                    fillOpacity={1}
                     fill="url(#colorUncaught)"
-                    stackId="1" 
+                    stackId="1"
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="network_error" 
+                  <Area
+                    type="monotone"
+                    dataKey="network_error"
                     name="Network Errors"
-                    stroke="#eab308" 
-                    fillOpacity={1} 
+                    stroke="#eab308"
+                    fillOpacity={1}
                     fill="url(#colorNetwork)"
-                    stackId="1" 
+                    stackId="1"
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="interaction_error" 
+                  <Area
+                    type="monotone"
+                    dataKey="interaction_error"
                     name="Interaction Errors"
-                    stroke="#3b82f6" 
-                    fillOpacity={1} 
-                    fill="url(#colorInteraction)" 
+                    stroke="#3b82f6"
+                    fillOpacity={1}
+                    fill="url(#colorInteraction)"
                     stackId="1"
                   />
                 </AreaChart>
@@ -409,11 +399,7 @@ export default function AdminErrorLogs() {
         {selectedErrors.size > 0 && (
           <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
             <Badge variant="secondary">{selectedErrors.size} selected</Badge>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setResolveDialogOpen(true)}
-            >
+            <Button size="sm" variant="outline" onClick={() => setResolveDialogOpen(true)}>
               <CheckCircle className="h-4 w-4 mr-1" />
               Mark Resolved
             </Button>
@@ -426,19 +412,11 @@ export default function AdminErrorLogs() {
               <XCircle className="h-4 w-4 mr-1" />
               Ignore
             </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => setDeleteDialogOpen(true)}
-            >
+            <Button size="sm" variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
               <Trash2 className="h-4 w-4 mr-1" />
               Delete
             </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setSelectedErrors(new Set())}
-            >
+            <Button size="sm" variant="ghost" onClick={() => setSelectedErrors(new Set())}>
               Clear
             </Button>
           </div>
@@ -495,9 +473,7 @@ export default function AdminErrorLogs() {
                     <TableHead className="w-10">
                       <Checkbox
                         checked={
-                          data?.errors.length
-                            ? selectedErrors.size === data.errors.length
-                            : false
+                          data?.errors.length ? selectedErrors.size === data.errors.length : false
                         }
                         onCheckedChange={toggleSelectAll}
                       />

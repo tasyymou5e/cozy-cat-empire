@@ -1,10 +1,35 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Trash2, Heart, Camera, Image as ImageIcon, Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import {
+  ArrowLeft,
+  Trash2,
+  Heart,
+  Camera,
+  Image as ImageIcon,
+  Cloud,
+  CloudOff,
+  RefreshCw,
+} from 'lucide-react';
 import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { usePhotoGallery } from '@/hooks/usePhotoGallery';
 import { GalleryPhotoCard } from '@/components/game/GalleryPhotoCard';
 import { PhotoLightbox } from '@/components/game/PhotoLightbox';
@@ -18,12 +43,12 @@ type SortMode = 'newest' | 'oldest' | 'name';
 
 /**
  * CatGallery - Photo gallery page for viewing saved photos
- * 
+ *
  * Displays all saved photos with filtering (favorites, by cat) and sorting
  * (newest, oldest, name). Supports cloud sync, bulk delete, and lightbox viewing.
- * 
+ *
  * @route /gallery
- * 
+ *
  * @example
  * ```tsx
  * <Route path="/gallery" element={<CatGallery />} />
@@ -31,12 +56,19 @@ type SortMode = 'newest' | 'oldest' | 'name';
  */
 export default function CatGallery() {
   const { user } = useAuth();
-  const { 
-    photos, deletePhoto, toggleFavorite, clearGallery, photoCount,
-    isSyncing, lastSyncTime, syncNow, isCloudEnabled 
+  const {
+    photos,
+    deletePhoto,
+    toggleFavorite,
+    clearGallery,
+    photoCount,
+    isSyncing,
+    lastSyncTime,
+    syncNow,
+    isCloudEnabled,
   } = usePhotoGallery(user?.id);
   const { toast } = useToast();
-  
+
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [sortMode, setSortMode] = useState<SortMode>('newest');
   const [filterCat, setFilterCat] = useState<string>('all');
@@ -44,24 +76,24 @@ export default function CatGallery() {
 
   // Get unique cat names for filter
   const catNames = useMemo(() => {
-    const names = new Set(photos.map(p => p.catName));
+    const names = new Set(photos.map((p) => p.catName));
     return Array.from(names).sort();
   }, [photos]);
 
   // Filter and sort photos
   const filteredPhotos = useMemo(() => {
     let result = [...photos];
-    
+
     // Filter by favorites
     if (filterMode === 'favorites') {
-      result = result.filter(p => p.isFavorite);
+      result = result.filter((p) => p.isFavorite);
     }
-    
+
     // Filter by cat
     if (filterCat !== 'all') {
-      result = result.filter(p => p.catName === filterCat);
+      result = result.filter((p) => p.catName === filterCat);
     }
-    
+
     // Sort
     switch (sortMode) {
       case 'newest':
@@ -74,15 +106,15 @@ export default function CatGallery() {
         result.sort((a, b) => a.catName.localeCompare(b.catName));
         break;
     }
-    
+
     return result;
   }, [photos, filterMode, filterCat, sortMode]);
 
-  const selectedPhoto = selectedPhotoId 
-    ? filteredPhotos.find(p => p.id === selectedPhotoId) || null 
+  const selectedPhoto = selectedPhotoId
+    ? filteredPhotos.find((p) => p.id === selectedPhotoId) || null
     : null;
 
-  const handleDownload = (photo: typeof photos[0]) => {
+  const handleDownload = (photo: (typeof photos)[0]) => {
     const link = document.createElement('a');
     link.download = `${photo.catName}-gallery.png`;
     link.href = photo.imageDataUrl;
@@ -127,27 +159,22 @@ export default function CatGallery() {
               </span>
             )}
           </div>
-          
+
           <div className="flex items-center gap-2">
             {isCloudEnabled && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSync}
-                disabled={isSyncing}
-              >
+              <Button variant="outline" size="sm" onClick={handleSync} disabled={isSyncing}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
                 Sync
               </Button>
             )}
-            
+
             <Link to="/photobooth">
               <Button variant="outline" size="sm">
                 <Camera className="w-4 h-4 mr-2" />
                 Photo Booth
               </Button>
             </Link>
-            
+
             {photos.length > 0 && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -160,7 +187,8 @@ export default function CatGallery() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Clear entire gallery?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will permanently delete all {photos.length} photos from your gallery. This action cannot be undone.
+                      This will permanently delete all {photos.length} photos from your gallery.
+                      This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -173,7 +201,7 @@ export default function CatGallery() {
           </div>
         </div>
       </header>
-      
+
       {/* Filters */}
       <div className="sticky top-[57px] z-40 bg-background/95 backdrop-blur border-b">
         <div className="container mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
@@ -194,7 +222,7 @@ export default function CatGallery() {
               Favorites
             </Button>
           </div>
-          
+
           {catNames.length > 1 && (
             <Select value={filterCat} onValueChange={setFilterCat}>
               <SelectTrigger className="w-[150px]">
@@ -202,13 +230,15 @@ export default function CatGallery() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Cats</SelectItem>
-                {catNames.map(name => (
-                  <SelectItem key={name} value={name}>{name}</SelectItem>
+                {catNames.map((name) => (
+                  <SelectItem key={name} value={name}>
+                    {name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
-          
+
           <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
             <SelectTrigger className="w-[120px]">
               <SelectValue />
@@ -221,7 +251,7 @@ export default function CatGallery() {
           </Select>
         </div>
       </div>
-      
+
       {/* Gallery Grid */}
       <main className="container mx-auto px-4 py-6">
         {filteredPhotos.length === 0 ? (
@@ -231,7 +261,7 @@ export default function CatGallery() {
               {photos.length === 0 ? 'No Photos Yet!' : 'No Matching Photos'}
             </h2>
             <p className="text-muted-foreground mb-4">
-              {photos.length === 0 
+              {photos.length === 0
                 ? 'Take some photos in the Photo Booth to see them here.'
                 : 'Try changing your filters to see more photos.'}
             </p>
@@ -246,7 +276,7 @@ export default function CatGallery() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {filteredPhotos.map(photo => (
+            {filteredPhotos.map((photo) => (
               <GalleryPhotoCard
                 key={photo.id}
                 photo={photo}
@@ -259,7 +289,7 @@ export default function CatGallery() {
           </div>
         )}
       </main>
-      
+
       {/* Lightbox */}
       <PhotoLightbox
         photo={selectedPhoto}

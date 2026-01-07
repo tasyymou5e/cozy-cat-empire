@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  DailyObjective, 
-  DailyObjectivesState, 
+import {
+  DailyObjective,
+  DailyObjectivesState,
   ObjectiveType,
-  generateDailyObjectives, 
-  getTodayDateString 
+  generateDailyObjectives,
+  getTodayDateString,
 } from '@/types/dailyObjectives';
 
 interface UseDailyObjectivesReturn {
@@ -92,14 +92,12 @@ export function useDailyObjectives(userId?: string): UseDailyObjectivesReturn {
         } else {
           // No cloud data, create initial record
           const localState = getLocalState();
-          await supabase
-            .from('daily_objectives_progress')
-            .insert({
-              user_id: userId,
-              objectives: JSON.parse(JSON.stringify(localState.objectives)),
-              last_refreshed: localState.lastRefreshed,
-              bonus_claimed: localState.bonusClaimed,
-            });
+          await supabase.from('daily_objectives_progress').insert({
+            user_id: userId,
+            objectives: JSON.parse(JSON.stringify(localState.objectives)),
+            last_refreshed: localState.lastRefreshed,
+            bonus_claimed: localState.bonusClaimed,
+          });
           setState(localState);
         }
       } catch (e) {
@@ -118,16 +116,17 @@ export function useDailyObjectives(userId?: string): UseDailyObjectivesReturn {
 
     if (userId) {
       const syncToCloud = async () => {
-        await supabase
-          .from('daily_objectives_progress')
-          .upsert({
+        await supabase.from('daily_objectives_progress').upsert(
+          {
             user_id: userId,
             objectives: JSON.parse(JSON.stringify(state.objectives)),
             last_refreshed: state.lastRefreshed,
             bonus_claimed: state.bonusClaimed,
-          }, {
+          },
+          {
             onConflict: 'user_id',
-          });
+          }
+        );
       };
       syncToCloud();
     }
@@ -147,11 +146,11 @@ export function useDailyObjectives(userId?: string): UseDailyObjectivesReturn {
   }, [state.lastRefreshed]);
 
   const updateProgress = useCallback((type: ObjectiveType, amount: number = 1) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      objectives: prev.objectives.map(obj => {
+      objectives: prev.objectives.map((obj) => {
         if (obj.type !== type || obj.completed) return obj;
-        
+
         const newProgress = Math.min(obj.progress + amount, obj.target);
         return {
           ...obj,
@@ -162,12 +161,12 @@ export function useDailyObjectives(userId?: string): UseDailyObjectivesReturn {
     }));
   }, []);
 
-  const allCompleted = state.objectives.every(obj => obj.completed);
+  const allCompleted = state.objectives.every((obj) => obj.completed);
 
   const claimBonus = useCallback((): number => {
     if (!allCompleted || state.bonusClaimed) return 0;
-    
-    setState(prev => ({ ...prev, bonusClaimed: true }));
+
+    setState((prev) => ({ ...prev, bonusClaimed: true }));
     return state.allCompletedBonus;
   }, [allCompleted, state.bonusClaimed, state.allCompletedBonus]);
 

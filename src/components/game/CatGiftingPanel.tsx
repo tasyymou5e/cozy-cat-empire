@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -31,10 +37,10 @@ interface CatGiftingPanelProps {
 
 /**
  * CatGiftingPanel - Cat gifting interface
- * 
+ *
  * Allows players to send cats as gifts to friends and receive gifted cats.
  * Shows sent gifts with status and pending received gifts.
- * 
+ *
  * @example
  * ```tsx
  * <CatGiftingPanel
@@ -46,20 +52,27 @@ interface CatGiftingPanelProps {
  * ```
  */
 
-export function CatGiftingPanel({ userId, cats, onGiftSent, onGiftReceived, catCostumes }: CatGiftingPanelProps) {
-  const { receivedGifts, sentGifts, loading, sendGift, acceptGift, declineGift } = useCatGifts(userId);
+export function CatGiftingPanel({
+  userId,
+  cats,
+  onGiftSent,
+  onGiftReceived,
+  catCostumes,
+}: CatGiftingPanelProps) {
+  const { receivedGifts, sentGifts, loading, sendGift, acceptGift, declineGift } =
+    useCatGifts(userId);
   const { friends } = useFriends(userId);
   const [selectedCat, setSelectedCat] = useState<string>('');
   const [selectedFriend, setSelectedFriend] = useState<string>('');
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
 
-  const acceptedFriends = friends.filter(f => f.status === 'accepted');
+  const acceptedFriends = friends.filter((f) => f.status === 'accepted');
 
   const handleSendGift = async () => {
     if (!selectedCat || !selectedFriend) return;
-    
-    const cat = cats.find(c => c.id === selectedCat);
+
+    const cat = cats.find((c) => c.id === selectedCat);
     if (!cat) return;
 
     setSending(true);
@@ -141,12 +154,18 @@ export function CatGiftingPanel({ userId, cats, onGiftSent, onGiftReceived, catC
                       <SelectValue placeholder="Choose a cat to gift..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {cats.map(cat => (
+                      {cats.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>
                           <div className="flex items-center gap-2">
-                            <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
+                            <CatVisual
+                              cat={cat}
+                              size="xs"
+                              equippedCostumeId={catCostumes?.[cat.id]}
+                            />
                             <span>{cat.name}</span>
-                            <span className="text-xs text-muted-foreground">{BREEDS[cat.breed]?.name || cat.breed}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {BREEDS[cat.breed]?.name || cat.breed}
+                            </span>
                           </div>
                         </SelectItem>
                       ))}
@@ -161,7 +180,7 @@ export function CatGiftingPanel({ userId, cats, onGiftSent, onGiftReceived, catC
                       <SelectValue placeholder="Choose a friend..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {acceptedFriends.map(friend => (
+                      {acceptedFriends.map((friend) => (
                         <SelectItem key={friend.friend_id} value={friend.friend_id}>
                           {friend.display_name || 'Unknown'}
                         </SelectItem>
@@ -197,19 +216,15 @@ export function CatGiftingPanel({ userId, cats, onGiftSent, onGiftReceived, catC
               {loading ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>
               ) : receivedGifts.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No pending gifts
-                </p>
+                <p className="text-sm text-muted-foreground text-center py-4">No pending gifts</p>
               ) : (
                 <div className="space-y-2">
-                  {receivedGifts.map(gift => (
+                  {receivedGifts.map((gift) => (
                     <div key={gift.id} className="p-3 border rounded-lg bg-card">
                       <div className="flex items-center justify-between mb-2">
                         <div>
                           <p className="font-medium text-sm">{gift.cat_data.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            From: {gift.sender_name}
-                          </p>
+                          <p className="text-xs text-muted-foreground">From: {gift.sender_name}</p>
                         </div>
                         <Badge variant="outline">
                           {BREEDS[gift.cat_data.breed]?.name || gift.cat_data.breed}
@@ -249,24 +264,25 @@ export function CatGiftingPanel({ userId, cats, onGiftSent, onGiftReceived, catC
               {loading ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>
               ) : sentGifts.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No sent gifts
-                </p>
+                <p className="text-sm text-muted-foreground text-center py-4">No sent gifts</p>
               ) : (
                 <div className="space-y-2">
-                  {sentGifts.map(gift => (
+                  {sentGifts.map((gift) => (
                     <div key={gift.id} className="p-3 border rounded-lg bg-card">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium text-sm">{gift.cat_data.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            To: {gift.recipient_name}
-                          </p>
+                          <p className="text-xs text-muted-foreground">To: {gift.recipient_name}</p>
                         </div>
-                        <Badge variant={
-                          gift.status === 'accepted' ? 'default' :
-                          gift.status === 'declined' ? 'destructive' : 'secondary'
-                        }>
+                        <Badge
+                          variant={
+                            gift.status === 'accepted'
+                              ? 'default'
+                              : gift.status === 'declined'
+                                ? 'destructive'
+                                : 'secondary'
+                          }
+                        >
                           {gift.status}
                         </Badge>
                       </div>

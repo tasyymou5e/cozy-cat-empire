@@ -63,94 +63,97 @@ const TAB_KEYS: Record<string, string> = {
 export function useKeyboardShortcuts(actions: ShortcutActions) {
   const navigate = useNavigate();
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Ignore if typing in input
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return;
-    }
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      // Ignore if typing in input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
 
-    // Ignore if modifier keys are pressed (except for Ctrl+S)
-    if (e.altKey || e.metaKey) return;
+      // Ignore if modifier keys are pressed (except for Ctrl+S)
+      if (e.altKey || e.metaKey) return;
 
-    const key = e.key.toLowerCase();
+      const key = e.key.toLowerCase();
 
-    // Ctrl+S - Save
-    if (e.ctrlKey && key === 's') {
-      e.preventDefault();
-      actions.onSave?.();
-      return;
-    }
-
-    if (e.ctrlKey) return;
-
-    switch (key) {
-      case 'f':
-        e.preventDefault();
-        actions.onFeed?.();
-        break;
-      case 'n':
-        e.preventDefault();
-        actions.onNextDay?.();
-        break;
-      case 's':
+      // Ctrl+S - Save
+      if (e.ctrlKey && key === 's') {
         e.preventDefault();
         actions.onSave?.();
-        break;
-      case 'c':
-        e.preventDefault();
-        navigate('/collection');
-        break;
-      case 'h':
-        e.preventDefault();
-        navigate('/');
-        break;
-      case 'g':
-        e.preventDefault();
-        navigate('/gallery');
-        break;
-      case 'p':
-        e.preventDefault();
-        navigate('/photobooth');
-        break;
-      case 'r':
-        e.preventDefault();
-        navigate('/relationships');
-        break;
-      case 'l':
-        e.preventDefault();
-        navigate('/leaderboard');
-        break;
-      case 't':
-        e.preventDefault();
-        actions.onTabChange?.('trading');
-        break;
-      case 'b':
-        e.preventDefault();
-        actions.onTabChange?.('breeding');
-        break;
-      case 'm':
-        e.preventDefault();
-        actions.onTabChange?.('market');
-        break;
-      case 'o':
-        e.preventDefault();
-        actions.onTabChange?.('objectives');
-        break;
-      case 'w':
-        e.preventDefault();
-        actions.onTabChange?.('wheel');
-        break;
-      case '?':
-        // Show shortcuts help - handled by component
-        break;
-      default:
-        // Number keys for tabs
-        if (TAB_KEYS[key] && actions.onTabChange) {
+        return;
+      }
+
+      if (e.ctrlKey) return;
+
+      switch (key) {
+        case 'f':
           e.preventDefault();
-          actions.onTabChange(TAB_KEYS[key]);
-        }
-    }
-  }, [actions, navigate]);
+          actions.onFeed?.();
+          break;
+        case 'n':
+          e.preventDefault();
+          actions.onNextDay?.();
+          break;
+        case 's':
+          e.preventDefault();
+          actions.onSave?.();
+          break;
+        case 'c':
+          e.preventDefault();
+          navigate('/collection');
+          break;
+        case 'h':
+          e.preventDefault();
+          navigate('/');
+          break;
+        case 'g':
+          e.preventDefault();
+          navigate('/gallery');
+          break;
+        case 'p':
+          e.preventDefault();
+          navigate('/photobooth');
+          break;
+        case 'r':
+          e.preventDefault();
+          navigate('/relationships');
+          break;
+        case 'l':
+          e.preventDefault();
+          navigate('/leaderboard');
+          break;
+        case 't':
+          e.preventDefault();
+          actions.onTabChange?.('trading');
+          break;
+        case 'b':
+          e.preventDefault();
+          actions.onTabChange?.('breeding');
+          break;
+        case 'm':
+          e.preventDefault();
+          actions.onTabChange?.('market');
+          break;
+        case 'o':
+          e.preventDefault();
+          actions.onTabChange?.('objectives');
+          break;
+        case 'w':
+          e.preventDefault();
+          actions.onTabChange?.('wheel');
+          break;
+        case '?':
+          // Show shortcuts help - handled by component
+          break;
+        default:
+          // Number keys for tabs
+          if (TAB_KEYS[key] && actions.onTabChange) {
+            e.preventDefault();
+            actions.onTabChange(TAB_KEYS[key]);
+          }
+      }
+    },
+    [actions, navigate]
+  );
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);

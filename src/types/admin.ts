@@ -1,6 +1,6 @@
 /**
  * Admin Types
- * 
+ *
  * Type definitions for admin pages and components.
  * These provide type safety for database records used in the admin dashboard.
  */

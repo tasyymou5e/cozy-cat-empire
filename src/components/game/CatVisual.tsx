@@ -95,7 +95,8 @@ const tierStarColors: Record<string, string> = {
  * Tier-specific grade text colors
  */
 const tierGradeColors: Record<string, string> = {
-  ultraRare: 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent',
+  ultraRare:
+    'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent',
   veryRare: 'text-yellow-300',
   rare: 'text-purple-300',
   uncommon: 'text-blue-300',
@@ -115,27 +116,27 @@ const tierBorderColors: Record<string, string> = {
 
 /**
  * CatVisual - Unified visual representation of a cat
- * 
+ *
  * This is the single source of truth for how a cat looks throughout the app.
  * It displays either an AI-generated portrait (if available and preferPortrait=true)
  * or falls back to the CatAvatar component.
- * 
+ *
  * The visual always reflects:
  * - Cat's custom appearance (fur color, eye color, pattern, etc.)
  * - Equipped costume
  * - Tier-specific effects (animations, glows for rare cats)
- * 
+ *
  * @example
  * ```tsx
  * // Simple avatar
  * <CatVisual cat={myCat} size="md" />
- * 
+ *
  * // Portrait with grade overlay
- * <CatVisual 
- *   cat={myCat} 
- *   size="portrait" 
- *   preferPortrait 
- *   showGrade 
+ * <CatVisual
+ *   cat={myCat}
+ *   size="portrait"
+ *   preferPortrait
+ *   showGrade
  *   equippedCostumeId="crown"
  * />
  * ```
@@ -151,11 +152,11 @@ export function CatVisual({
   onPortraitError,
 }: CatVisualProps) {
   const [portraitFailed, setPortraitFailed] = React.useState(false);
-  
+
   const tier = getGradeTier(cat.grade);
   const stars = getGradeStars(cat.grade);
   const hasPortrait = preferPortrait && cat.portraitUrl && !portraitFailed;
-  
+
   // For portrait mode with showGrade, use larger size display
   const isPortraitMode = size === 'portrait' && hasPortrait;
 
@@ -170,7 +171,7 @@ export function CatVisual({
   }, [cat.portraitUrl]);
 
   return (
-    <div 
+    <div
       className={cn(
         'relative rounded-xl overflow-hidden',
         sizeClasses[size],
@@ -192,31 +193,30 @@ export function CatVisual({
             className="w-full h-full object-cover"
             onError={handlePortraitError}
           />
-          
+
           {/* Grade overlay for portrait mode */}
           {showGrade && (
             <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/70 via-black/40 to-transparent px-2 py-1.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
                   <TierIcon tier={tier} className="h-4 w-4 drop-shadow-lg" />
-                  <span className={cn(
-                    "font-extrabold text-sm drop-shadow-lg",
-                    tierGradeColors[tier]
-                  )}>
+                  <span
+                    className={cn('font-extrabold text-sm drop-shadow-lg', tierGradeColors[tier])}
+                  >
                     {cat.grade}
                   </span>
                 </div>
-                
+
                 {stars > 0 && (
                   <div className="flex gap-0.5">
                     {Array.from({ length: stars }).map((_, i) => (
-                      <Star 
-                        key={i} 
+                      <Star
+                        key={i}
                         className={cn(
-                          "h-3 w-3 drop-shadow-lg",
+                          'h-3 w-3 drop-shadow-lg',
                           tierStarColors[tier],
-                          tier === 'ultraRare' && "animate-star-spin"
-                        )} 
+                          tier === 'ultraRare' && 'animate-star-spin'
+                        )}
                       />
                     ))}
                   </div>
@@ -224,16 +224,16 @@ export function CatVisual({
               </div>
             </div>
           )}
-          
+
           {/* Costume badge on AI portraits */}
           {GRAPHICS_CONFIG.showCostumeOnPortrait && equippedCostumeId && (
             <div className="absolute bottom-1 right-1 z-10">
               <span className="text-lg drop-shadow-lg">
-                {COSTUMES.find(c => c.id === equippedCostumeId)?.emoji || '👔'}
+                {COSTUMES.find((c) => c.id === equippedCostumeId)?.emoji || '👔'}
               </span>
             </div>
           )}
-          
+
           {/* Ultra rare sparkle effect */}
           {tier === 'ultraRare' && (
             <div className="absolute inset-0 pointer-events-none">
@@ -254,10 +254,12 @@ export function CatVisual({
         </Suspense>
       ) : (
         /* Fallback to CatAvatar */
-        <div className={cn(
-          "w-full h-full flex items-center justify-center",
-          isPortraitMode && "bg-gradient-to-br from-background to-muted"
-        )}>
+        <div
+          className={cn(
+            'w-full h-full flex items-center justify-center',
+            isPortraitMode && 'bg-gradient-to-br from-background to-muted'
+          )}
+        >
           <CatAvatar
             cat={cat}
             equippedCostumeId={equippedCostumeId}

@@ -1,5 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { Medal } from 'lucide-react';
 import { format } from 'date-fns';
@@ -68,13 +74,15 @@ export function RankProgressionChart({ data, loading }: RankProgressionChartProp
           </CardTitle>
         </CardHeader>
         <CardContent className="h-64 flex items-center justify-center">
-          <p className="text-muted-foreground">No rank history yet. Your rank changes will appear here!</p>
+          <p className="text-muted-foreground">
+            No rank history yet. Your rank changes will appear here!
+          </p>
         </CardContent>
       </Card>
     );
   }
 
-  const formattedData = data.map(d => ({
+  const formattedData = data.map((d) => ({
     ...d,
     formattedDate: format(new Date(d.date), 'MMM d'),
   }));
@@ -91,13 +99,13 @@ export function RankProgressionChart({ data, loading }: RankProgressionChartProp
         <ChartContainer config={chartConfig} className="h-64 w-full">
           <LineChart data={formattedData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis 
-              dataKey="formattedDate" 
+            <XAxis
+              dataKey="formattedDate"
               tick={{ fontSize: 12 }}
               tickLine={false}
               axisLine={false}
             />
-            <YAxis 
+            <YAxis
               reversed
               tick={{ fontSize: 12 }}
               tickLine={false}
@@ -108,41 +116,41 @@ export function RankProgressionChart({ data, loading }: RankProgressionChartProp
             />
             <ChartTooltip content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
-            <Line 
-              type="monotone" 
-              dataKey="wins" 
+            <Line
+              type="monotone"
+              dataKey="wins"
               stroke={chartConfig.wins.color}
               strokeWidth={2}
               dot={false}
               connectNulls
             />
-            <Line 
-              type="monotone" 
-              dataKey="cats" 
+            <Line
+              type="monotone"
+              dataKey="cats"
               stroke={chartConfig.cats.color}
               strokeWidth={2}
               dot={false}
               connectNulls
             />
-            <Line 
-              type="monotone" 
-              dataKey="breeding" 
+            <Line
+              type="monotone"
+              dataKey="breeding"
               stroke={chartConfig.breeding.color}
               strokeWidth={2}
               dot={false}
               connectNulls
             />
-            <Line 
-              type="monotone" 
-              dataKey="wealth" 
+            <Line
+              type="monotone"
+              dataKey="wealth"
               stroke={chartConfig.wealth.color}
               strokeWidth={2}
               dot={false}
               connectNulls
             />
-            <Line 
-              type="monotone" 
-              dataKey="achievements" 
+            <Line
+              type="monotone"
+              dataKey="achievements"
               stroke={chartConfig.achievements.color}
               strokeWidth={2}
               dot={false}

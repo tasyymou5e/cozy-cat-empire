@@ -1,6 +1,6 @@
 /**
  * PaperCatAvatar - High-quality vector cat avatar using Paper.js
- * 
+ *
  * This component generates detailed vector cat faces programmatically
  * using Paper.js. It supports all appearance options and creates
  * breed-specific shapes for each cat type.
@@ -115,7 +115,7 @@ export function PaperCatAvatar({
   }
 
   // Get costume info for overlay
-  const costume = equippedCostumeId ? COSTUMES.find(c => c.id === equippedCostumeId) : null;
+  const costume = equippedCostumeId ? COSTUMES.find((c) => c.id === equippedCostumeId) : null;
   const vectorCostume = equippedCostumeId ? COSTUME_VECTORS[equippedCostumeId] : null;
 
   return (

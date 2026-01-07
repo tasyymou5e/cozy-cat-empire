@@ -40,9 +40,9 @@ export function LeaderboardPanel({ cats, relationships, catCostumes }: Leaderboa
 
   // Sort by popularity (friends count)
   const byPopularity: RankedCat[] = [...cats]
-    .map(cat => {
-      const catRels = relationships.filter(r => r.catId1 === cat.id || r.catId2 === cat.id);
-      const friendCount = catRels.filter(r => {
+    .map((cat) => {
+      const catRels = relationships.filter((r) => r.catId1 === cat.id || r.catId2 === cat.id);
+      const friendCount = catRels.filter((r) => {
         const level = getRelationshipLevel(r.score);
         return level === 'friend' || level === 'bestFriend';
       }).length;
@@ -52,7 +52,15 @@ export function LeaderboardPanel({ cats, relationships, catCostumes }: Leaderboa
     .slice(0, 5)
     .map((cat, i) => ({ ...cat, rank: i + 1, score: (cat as any).friendCount }));
 
-  const LeaderboardList = ({ rankedCats, label, icon }: { rankedCats: RankedCat[]; label: string; icon: React.ReactNode }) => (
+  const LeaderboardList = ({
+    rankedCats,
+    label,
+    icon,
+  }: {
+    rankedCats: RankedCat[];
+    label: string;
+    icon: React.ReactNode;
+  }) => (
     <div className="space-y-2">
       {rankedCats.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-4">No cats yet!</p>
@@ -61,13 +69,18 @@ export function LeaderboardPanel({ cats, relationships, catCostumes }: Leaderboa
           <div
             key={cat.id}
             className={`flex items-center gap-3 p-2 rounded-lg ${
-              cat.rank === 1 ? 'bg-yellow-100/50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700' :
-              cat.rank === 2 ? 'bg-gray-100/50 dark:bg-gray-800/30 border border-gray-300 dark:border-gray-600' :
-              cat.rank === 3 ? 'bg-orange-100/50 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-700' :
-              'bg-secondary/30'
+              cat.rank === 1
+                ? 'bg-yellow-100/50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700'
+                : cat.rank === 2
+                  ? 'bg-gray-100/50 dark:bg-gray-800/30 border border-gray-300 dark:border-gray-600'
+                  : cat.rank === 3
+                    ? 'bg-orange-100/50 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-700'
+                    : 'bg-secondary/30'
             }`}
           >
-            <span className="text-lg w-6 text-center">{rankEmojis[cat.rank - 1] || `${cat.rank}`}</span>
+            <span className="text-lg w-6 text-center">
+              {rankEmojis[cat.rank - 1] || `${cat.rank}`}
+            </span>
             <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate">{cat.name}</p>
@@ -108,34 +121,34 @@ export function LeaderboardPanel({ cats, relationships, catCostumes }: Leaderboa
         </TabsList>
 
         <TabsContent value="wins" className="mt-3">
-          <LeaderboardList 
-            rankedCats={byWins} 
-            label="Wins" 
-            icon={<Trophy className="h-3 w-3 text-yellow-500" />} 
+          <LeaderboardList
+            rankedCats={byWins}
+            label="Wins"
+            icon={<Trophy className="h-3 w-3 text-yellow-500" />}
           />
         </TabsContent>
 
         <TabsContent value="grade" className="mt-3">
-          <LeaderboardList 
-            rankedCats={byGrade} 
-            label="Grade" 
-            icon={<Star className="h-3 w-3 text-purple-500" />} 
+          <LeaderboardList
+            rankedCats={byGrade}
+            label="Grade"
+            icon={<Star className="h-3 w-3 text-purple-500" />}
           />
         </TabsContent>
 
         <TabsContent value="value" className="mt-3">
-          <LeaderboardList 
-            rankedCats={byValue} 
-            label="Value" 
-            icon={<span className="text-xs text-green-600">$</span>} 
+          <LeaderboardList
+            rankedCats={byValue}
+            label="Value"
+            icon={<span className="text-xs text-green-600">$</span>}
           />
         </TabsContent>
 
         <TabsContent value="popular" className="mt-3">
-          <LeaderboardList 
-            rankedCats={byPopularity} 
-            label="Friends" 
-            icon={<Heart className="h-3 w-3 text-pink-500" />} 
+          <LeaderboardList
+            rankedCats={byPopularity}
+            label="Friends"
+            icon={<Heart className="h-3 w-3 text-pink-500" />}
           />
         </TabsContent>
       </Tabs>

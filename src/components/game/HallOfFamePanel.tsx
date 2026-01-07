@@ -5,11 +5,18 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Cat } from '@/types/game';
-import { 
-  LegacyCat, 
+import {
+  LegacyCat,
   RETIREMENT_REQUIREMENTS,
   LEGACY_TRAIT_INFO,
   LEGACY_ACHIEVEMENT_INFO,
@@ -35,23 +42,25 @@ interface HallOfFamePanelProps {
   };
 }
 
-function LegacyCatCard({ legacy, catCostumes }: { legacy: LegacyCat; catCostumes: Record<string, string> }) {
+function LegacyCatCard({
+  legacy,
+  catCostumes,
+}: {
+  legacy: LegacyCat;
+  catCostumes: Record<string, string>;
+}) {
   const traitInfo = LEGACY_TRAIT_INFO[legacy.legacyTrait];
-  
+
   return (
     <div className="p-3 rounded-lg border bg-gradient-to-br from-amber-500/10 to-yellow-500/10 border-amber-500/30">
       <div className="flex items-start gap-3">
         <div className="relative">
-          <CatAvatar 
-            cat={legacy.cat} 
-            equippedCostumeId={catCostumes[legacy.cat.id]} 
-            size="md" 
-          />
+          <CatAvatar cat={legacy.cat} equippedCostumeId={catCostumes[legacy.cat.id]} size="md" />
           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-white text-xs">
             <Crown className="h-3 w-3" />
           </div>
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-bold truncate">{legacy.cat.name}</span>
@@ -59,14 +68,14 @@ function LegacyCatCard({ legacy, catCostumes }: { legacy: LegacyCat; catCostumes
               {traitInfo.emoji} {traitInfo.name}
             </Badge>
           </div>
-          
+
           <p className="text-xs text-muted-foreground mt-1">
             Retired Day {legacy.retiredAt} • {legacy.cat.breed}
           </p>
-          
+
           <div className="flex flex-wrap gap-1 mt-2">
             <TooltipProvider delayDuration={100}>
-              {legacy.achievements.map(ach => {
+              {legacy.achievements.map((ach) => {
                 const info = LEGACY_ACHIEVEMENT_INFO[ach];
                 return (
                   <Tooltip key={ach}>
@@ -81,7 +90,7 @@ function LegacyCatCard({ legacy, catCostumes }: { legacy: LegacyCat; catCostumes
               })}
             </TooltipProvider>
           </div>
-          
+
           <p className="text-xs text-green-600 mt-2 font-medium">
             +{(legacy.legacyBonus * 100).toFixed(1)}% passive bonus
           </p>
@@ -91,25 +100,25 @@ function LegacyCatCard({ legacy, catCostumes }: { legacy: LegacyCat; catCostumes
   );
 }
 
-function EligibleCatCard({ 
-  cat, 
-  catCostumes, 
-  onRetire, 
-  eligibility 
-}: { 
-  cat: Cat; 
+function EligibleCatCard({
+  cat,
+  catCostumes,
+  onRetire,
+  eligibility,
+}: {
+  cat: Cat;
   catCostumes: Record<string, string>;
   onRetire: () => void;
   eligibility: ReturnType<typeof checkRetirementEligibility>;
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
-  
+
   return (
     <>
       <div className="p-3 rounded-lg border bg-card hover:border-primary/50 transition-all">
         <div className="flex items-start gap-3">
           <CatAvatar cat={cat} equippedCostumeId={catCostumes[cat.id]} size="sm" />
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <span className="font-medium truncate">{cat.name}</span>
@@ -117,29 +126,57 @@ function EligibleCatCard({
                 {eligibility.achievementCount}/4
               </Badge>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-1 mt-2 text-xs">
-              <div className={cn("flex items-center gap-1", eligibility.meetsShowWins ? "text-green-600" : "text-muted-foreground")}>
-                {eligibility.meetsShowWins ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+              <div
+                className={cn(
+                  'flex items-center gap-1',
+                  eligibility.meetsShowWins ? 'text-green-600' : 'text-muted-foreground'
+                )}
+              >
+                {eligibility.meetsShowWins ? (
+                  <Check className="h-3 w-3" />
+                ) : (
+                  <X className="h-3 w-3" />
+                )}
                 {cat.showWins}/{RETIREMENT_REQUIREMENTS.minShowWins} wins
               </div>
-              <div className={cn("flex items-center gap-1", eligibility.meetsGrade ? "text-green-600" : "text-muted-foreground")}>
+              <div
+                className={cn(
+                  'flex items-center gap-1',
+                  eligibility.meetsGrade ? 'text-green-600' : 'text-muted-foreground'
+                )}
+              >
                 {eligibility.meetsGrade ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
                 Grade {cat.grade}/{RETIREMENT_REQUIREMENTS.minGrade}
               </div>
-              <div className={cn("flex items-center gap-1", eligibility.meetsAge ? "text-green-600" : "text-muted-foreground")}>
+              <div
+                className={cn(
+                  'flex items-center gap-1',
+                  eligibility.meetsAge ? 'text-green-600' : 'text-muted-foreground'
+                )}
+              >
                 {eligibility.meetsAge ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
                 Age {cat.age}/{RETIREMENT_REQUIREMENTS.minAge}
               </div>
-              <div className={cn("flex items-center gap-1", eligibility.meetsTricks ? "text-green-600" : "text-muted-foreground")}>
-                {eligibility.meetsTricks ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+              <div
+                className={cn(
+                  'flex items-center gap-1',
+                  eligibility.meetsTricks ? 'text-green-600' : 'text-muted-foreground'
+                )}
+              >
+                {eligibility.meetsTricks ? (
+                  <Check className="h-3 w-3" />
+                ) : (
+                  <X className="h-3 w-3" />
+                )}
                 {cat.tricksLearned?.length || 0}/{RETIREMENT_REQUIREMENTS.minTricks} tricks
               </div>
             </div>
           </div>
-          
-          <Button 
-            size="sm" 
+
+          <Button
+            size="sm"
             variant="outline"
             className="border-amber-500/50 text-amber-700 hover:bg-amber-500/10"
             onClick={() => setShowConfirm(true)}
@@ -148,7 +185,7 @@ function EligibleCatCard({
           </Button>
         </div>
       </div>
-      
+
       {/* Confirmation Dialog */}
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
         <DialogContent>
@@ -158,21 +195,23 @@ function EligibleCatCard({
               Retire {cat.name} to Hall of Fame?
             </DialogTitle>
             <DialogDescription>
-              This will permanently remove {cat.name} from your farm and add them to the Hall of Fame. 
-              They will provide passive bonuses to all future activities.
+              This will permanently remove {cat.name} from your farm and add them to the Hall of
+              Fame. They will provide passive bonuses to all future activities.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-3 py-4">
             <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/30">
               <p className="text-sm font-medium text-amber-700 mb-2">Legacy Benefits:</p>
               <ul className="text-sm space-y-1 text-muted-foreground">
-                <li>• +{(0.01 + eligibility.achievementCount * 0.005) * 100}% passive show money bonus</li>
+                <li>
+                  • +{(0.01 + eligibility.achievementCount * 0.005) * 100}% passive show money bonus
+                </li>
                 <li>• Kitten bonuses based on achievements</li>
                 <li>• Permanent place in Hall of Fame</li>
               </ul>
             </div>
-            
+
             <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/30">
               <p className="text-sm font-medium text-red-700">⚠️ Warning:</p>
               <p className="text-sm text-muted-foreground">
@@ -180,12 +219,12 @@ function EligibleCatCard({
               </p>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowConfirm(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600"
               onClick={() => {
                 onRetire();
@@ -213,16 +252,18 @@ export function HallOfFamePanel({
   getKittenBonuses,
 }: HallOfFamePanelProps) {
   const kittenBonuses = getKittenBonuses();
-  
+
   // Find eligible cats
-  const eligibleCats = cats.filter(cat => canRetire(cat));
-  
+  const eligibleCats = cats.filter((cat) => canRetire(cat));
+
   // Find cats close to eligibility (1 achievement away)
-  const almostEligibleCats = cats.filter(cat => {
-    if (canRetire(cat)) return false;
-    const eligibility = getEligibility(cat);
-    return eligibility.achievementCount === 1;
-  }).slice(0, 3);
+  const almostEligibleCats = cats
+    .filter((cat) => {
+      if (canRetire(cat)) return false;
+      const eligibility = getEligibility(cat);
+      return eligibility.achievementCount === 1;
+    })
+    .slice(0, 3);
 
   return (
     <Card className="border-accent/30">
@@ -236,9 +277,7 @@ export function HallOfFamePanel({
             {retiredCats.length} Legends
           </Badge>
         </div>
-        <CardDescription>
-          Retire legendary cats for permanent bonuses
-        </CardDescription>
+        <CardDescription>Retire legendary cats for permanent bonuses</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Legacy Bonuses Summary */}
@@ -247,42 +286,38 @@ export function HallOfFamePanel({
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Active Legacy Bonuses</span>
               <Badge variant="secondary" className="bg-green-500/20 text-green-700">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +{(totalLegacyBonus * 100).toFixed(1)}% show money
+                <TrendingUp className="h-3 w-3 mr-1" />+{(totalLegacyBonus * 100).toFixed(1)}% show
+                money
               </Badge>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-2 text-xs">
               {kittenBonuses.gradeBonus > 0 && (
                 <div className="flex items-center gap-1 text-purple-600">
-                  <Star className="h-3 w-3" />
-                  +{kittenBonuses.gradeBonus} kitten grade
+                  <Star className="h-3 w-3" />+{kittenBonuses.gradeBonus} kitten grade
                 </div>
               )}
               {kittenBonuses.healthBonus > 0 && (
                 <div className="flex items-center gap-1 text-green-600">
-                  <Heart className="h-3 w-3" />
-                  +{kittenBonuses.healthBonus}% kitten health
+                  <Heart className="h-3 w-3" />+{kittenBonuses.healthBonus}% kitten health
                 </div>
               )}
               {kittenBonuses.trainingBonus > 0 && (
                 <div className="flex items-center gap-1 text-blue-600">
-                  <Sparkles className="h-3 w-3" />
-                  +{kittenBonuses.trainingBonus}% training speed
+                  <Sparkles className="h-3 w-3" />+{kittenBonuses.trainingBonus}% training speed
                 </div>
               )}
               {kittenBonuses.relationshipBonus > 0 && (
                 <div className="flex items-center gap-1 text-pink-600">
-                  <Heart className="h-3 w-3" />
-                  +{kittenBonuses.relationshipBonus} relationship
+                  <Heart className="h-3 w-3" />+{kittenBonuses.relationshipBonus} relationship
                 </div>
               )}
             </div>
           </div>
         )}
-        
+
         <Separator />
-        
+
         {/* Eligible Cats */}
         {eligibleCats.length > 0 && (
           <div className="space-y-2">
@@ -291,7 +326,7 @@ export function HallOfFamePanel({
               Ready to Retire ({eligibleCats.length})
             </h4>
             <div className="space-y-2">
-              {eligibleCats.map(cat => (
+              {eligibleCats.map((cat) => (
                 <EligibleCatCard
                   key={cat.id}
                   cat={cat}
@@ -303,22 +338,23 @@ export function HallOfFamePanel({
             </div>
           </div>
         )}
-        
+
         {/* Almost Eligible */}
         {almostEligibleCats.length > 0 && eligibleCats.length === 0 && (
           <div className="space-y-2">
             <h4 className="text-sm font-medium text-muted-foreground">Almost Ready</h4>
             <div className="space-y-2">
-              {almostEligibleCats.map(cat => {
+              {almostEligibleCats.map((cat) => {
                 const elig = getEligibility(cat);
-                  return (
-                  <div key={cat.id} className="p-2 rounded border bg-muted/30 flex items-center gap-2">
+                return (
+                  <div
+                    key={cat.id}
+                    className="p-2 rounded border bg-muted/30 flex items-center gap-2"
+                  >
                     <CatAvatar cat={cat} equippedCostumeId={catCostumes[cat.id]} size="sm" />
                     <div className="flex-1">
                       <span className="text-sm font-medium">{cat.name}</span>
-                      <p className="text-xs text-muted-foreground">
-                        Needs 1 more achievement
-                      </p>
+                      <p className="text-xs text-muted-foreground">Needs 1 more achievement</p>
                     </div>
                     <Badge variant="outline">{elig.achievementCount}/2</Badge>
                   </div>
@@ -327,37 +363,35 @@ export function HallOfFamePanel({
             </div>
           </div>
         )}
-        
-        {eligibleCats.length === 0 && almostEligibleCats.length === 0 && retiredCats.length === 0 && (
-          <div className="text-center py-6 text-muted-foreground">
-            <Crown className="h-12 w-12 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">No cats ready for the Hall of Fame yet</p>
-            <p className="text-xs mt-1">
-              Cats need 2+ achievements: {RETIREMENT_REQUIREMENTS.minShowWins} wins, 
-              Grade {RETIREMENT_REQUIREMENTS.minGrade}+, Age {RETIREMENT_REQUIREMENTS.minAge}+, 
-              or all {RETIREMENT_REQUIREMENTS.minTricks} tricks
-            </p>
-          </div>
-        )}
-        
+
+        {eligibleCats.length === 0 &&
+          almostEligibleCats.length === 0 &&
+          retiredCats.length === 0 && (
+            <div className="text-center py-6 text-muted-foreground">
+              <Crown className="h-12 w-12 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">No cats ready for the Hall of Fame yet</p>
+              <p className="text-xs mt-1">
+                Cats need 2+ achievements: {RETIREMENT_REQUIREMENTS.minShowWins} wins, Grade{' '}
+                {RETIREMENT_REQUIREMENTS.minGrade}+, Age {RETIREMENT_REQUIREMENTS.minAge}+, or all{' '}
+                {RETIREMENT_REQUIREMENTS.minTricks} tricks
+              </p>
+            </div>
+          )}
+
         <Separator />
-        
+
         {/* Hall of Fame Gallery */}
         <div className="space-y-2">
           <h4 className="text-sm font-medium flex items-center gap-2">
             <Trophy className="h-4 w-4 text-amber-500" />
             Legends Gallery
           </h4>
-          
+
           {retiredCats.length > 0 ? (
             <ScrollArea className="h-[250px] pr-2">
               <div className="space-y-2">
-                {retiredCats.map(legacy => (
-                  <LegacyCatCard 
-                    key={legacy.id} 
-                    legacy={legacy} 
-                    catCostumes={catCostumes}
-                  />
+                {retiredCats.map((legacy) => (
+                  <LegacyCatCard key={legacy.id} legacy={legacy} catCostumes={catCostumes} />
                 ))}
               </div>
             </ScrollArea>
@@ -368,7 +402,7 @@ export function HallOfFamePanel({
             </div>
           )}
         </div>
-        
+
         {/* Requirements Info */}
         <div className="p-3 bg-muted/50 rounded-lg text-xs">
           <p className="font-medium mb-1">Retirement Requirements (need 2+):</p>

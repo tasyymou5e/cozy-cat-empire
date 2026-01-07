@@ -8,7 +8,11 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, metadata?: { display_name: string; avatar_emoji: string; username?: string }) => Promise<{ error: Error | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    metadata?: { display_name: string; avatar_emoji: string; username?: string }
+  ) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -21,13 +25,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -43,20 +47,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     const { error, data } = await supabase.auth.signInWithPassword({ email, password });
-    
+
     if (!error && data.user) {
       logPlayerActivity(data.user.id, {
         activityType: 'login',
         activityDescription: 'Logged into Cat Farm',
-        metadata: { method: 'email' }
+        metadata: { method: 'email' },
       });
     }
-    
+
     return { error: error as Error | null };
   };
 
   const signUp = async (
-    email: string, 
+    email: string,
     password: string,
     metadata?: { display_name: string; avatar_emoji: string; username?: string }
   ) => {
@@ -64,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { 
+      options: {
         emailRedirectTo: redirectUrl,
         data: metadata, // Pass to raw_user_meta_data for trigger
       },
@@ -76,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) {
       logPlayerActivity(user.id, {
         activityType: 'logout',
-        activityDescription: 'Logged out of Cat Farm'
+        activityDescription: 'Logged out of Cat Farm',
       });
     }
     await supabase.auth.signOut();

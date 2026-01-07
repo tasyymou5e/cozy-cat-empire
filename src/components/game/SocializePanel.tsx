@@ -37,11 +37,11 @@ interface SocializePanelProps {
 
 /**
  * SocializePanel - Cat socialization interface
- * 
+ *
  * Allows players to manually socialize two cats to improve their relationship.
  * Uses treats as a resource and shows current relationship status.
  * Supports pre-selection from Quick Socialize feature.
- * 
+ *
  * @example
  * ```tsx
  * <SocializePanel
@@ -56,7 +56,16 @@ interface SocializePanelProps {
  * ```
  */
 
-export function SocializePanel({ cats, treats, getRelationship, onSocialize, catCostumes, initialCat1Id, initialCat2Id, onClearSelection }: SocializePanelProps) {
+export function SocializePanel({
+  cats,
+  treats,
+  getRelationship,
+  onSocialize,
+  catCostumes,
+  initialCat1Id,
+  initialCat2Id,
+  onClearSelection,
+}: SocializePanelProps) {
   const [cat1Id, setCat1Id] = useState<string>(initialCat1Id || '');
   const [cat2Id, setCat2Id] = useState<string>(initialCat2Id || '');
 
@@ -67,10 +76,9 @@ export function SocializePanel({ cats, treats, getRelationship, onSocialize, cat
   }, [initialCat1Id, initialCat2Id]);
 
   const canSocialize = cat1Id && cat2Id && cat1Id !== cat2Id && treats >= 2;
-  
-  const selectedRelationship = cat1Id && cat2Id && cat1Id !== cat2Id
-    ? getRelationship(cat1Id, cat2Id)
-    : null;
+
+  const selectedRelationship =
+    cat1Id && cat2Id && cat1Id !== cat2Id ? getRelationship(cat1Id, cat2Id) : null;
 
   const isPreSelected = initialCat1Id && initialCat2Id;
 
@@ -86,9 +94,7 @@ export function SocializePanel({ cats, treats, getRelationship, onSocialize, cat
   return (
     <Card className="border-accent/30">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2">
-          🤝 Socialize Cats
-        </CardTitle>
+        <CardTitle className="text-lg flex items-center gap-2">🤝 Socialize Cats</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-xs text-muted-foreground">
@@ -103,9 +109,7 @@ export function SocializePanel({ cats, treats, getRelationship, onSocialize, cat
         )}
 
         {cats.length < 2 ? (
-          <p className="text-sm text-muted-foreground">
-            Need at least 2 cats to socialize.
-          </p>
+          <p className="text-sm text-muted-foreground">Need at least 2 cats to socialize.</p>
         ) : (
           <>
             <div className="space-y-2">
@@ -115,15 +119,23 @@ export function SocializePanel({ cats, treats, getRelationship, onSocialize, cat
                   <SelectValue placeholder="Select a cat" />
                 </SelectTrigger>
                 <SelectContent>
-                  {cats.filter(c => c.id !== cat2Id).map(cat => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      <div className="flex items-center gap-2">
-                        <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
-                        <span>{cat.name}</span>
-                        <span className="text-xs text-muted-foreground">{BREEDS[cat.breed].name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {cats
+                    .filter((c) => c.id !== cat2Id)
+                    .map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        <div className="flex items-center gap-2">
+                          <CatVisual
+                            cat={cat}
+                            size="xs"
+                            equippedCostumeId={catCostumes?.[cat.id]}
+                          />
+                          <span>{cat.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {BREEDS[cat.breed].name}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -135,24 +147,38 @@ export function SocializePanel({ cats, treats, getRelationship, onSocialize, cat
                   <SelectValue placeholder="Select a cat" />
                 </SelectTrigger>
                 <SelectContent>
-                  {cats.filter(c => c.id !== cat1Id).map(cat => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      <div className="flex items-center gap-2">
-                        <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
-                        <span>{cat.name}</span>
-                        <span className="text-xs text-muted-foreground">{BREEDS[cat.breed].name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {cats
+                    .filter((c) => c.id !== cat1Id)
+                    .map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        <div className="flex items-center gap-2">
+                          <CatVisual
+                            cat={cat}
+                            size="xs"
+                            equippedCostumeId={catCostumes?.[cat.id]}
+                          />
+                          <span>{cat.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {BREEDS[cat.breed].name}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
 
             {selectedRelationship && (
-              <div className={`text-sm p-2 rounded-lg bg-secondary/50 ${getRelationshipColor(selectedRelationship.level)}`}>
+              <div
+                className={`text-sm p-2 rounded-lg bg-secondary/50 ${getRelationshipColor(selectedRelationship.level)}`}
+              >
                 <span className="mr-2">{getRelationshipEmoji(selectedRelationship.level)}</span>
-                Current: <span className="font-medium capitalize">{selectedRelationship.level}</span>
-                <span className="text-muted-foreground ml-2">({selectedRelationship.score > 0 ? '+' : ''}{selectedRelationship.score})</span>
+                Current:{' '}
+                <span className="font-medium capitalize">{selectedRelationship.level}</span>
+                <span className="text-muted-foreground ml-2">
+                  ({selectedRelationship.score > 0 ? '+' : ''}
+                  {selectedRelationship.score})
+                </span>
               </div>
             )}
 
@@ -162,11 +188,7 @@ export function SocializePanel({ cats, treats, getRelationship, onSocialize, cat
               </div>
             )}
 
-            <Button 
-              onClick={handleSocialize} 
-              disabled={!canSocialize}
-              className="w-full"
-            >
+            <Button onClick={handleSocialize} disabled={!canSocialize} className="w-full">
               {treats < 2 ? '🍬 Need 2 Treats' : '🤝 Socialize (2 treats)'}
             </Button>
           </>

@@ -1,6 +1,6 @@
 /**
  * Breed Shape Definitions
- * 
+ *
  * Defines breed-specific bezier curves and visual features for Paper.js cat generation.
  * Each breed has unique characteristics that affect the cat's appearance.
  */
@@ -85,7 +85,7 @@ export interface BreedDefinition {
  * Breed shape definitions for all cat breeds
  */
 export const BREED_SHAPES: Record<CatBreed, BreedDefinition> = {
-  'siamese': {
+  siamese: {
     head: {
       topCurve: 0.3,
       cheekWidth: 0.85,
@@ -113,8 +113,8 @@ export const BREED_SHAPES: Record<CatBreed, BreedDefinition> = {
     furLength: 'short',
     traits: ['wedge-face', 'large-ears', 'blue-eyes'],
   },
-  
-  'persian': {
+
+  persian: {
     head: {
       topCurve: 0.8,
       cheekWidth: 1.2,
@@ -142,7 +142,7 @@ export const BREED_SHAPES: Record<CatBreed, BreedDefinition> = {
     furLength: 'long',
     traits: ['round-face', 'flat-nose', 'fluffy'],
   },
-  
+
   'maine-coon': {
     head: {
       topCurve: 0.5,
@@ -171,7 +171,7 @@ export const BREED_SHAPES: Record<CatBreed, BreedDefinition> = {
     furLength: 'long',
     traits: ['square-jaw', 'tufted-ears', 'rugged'],
   },
-  
+
   'british-shorthair': {
     head: {
       topCurve: 0.7,
@@ -200,8 +200,8 @@ export const BREED_SHAPES: Record<CatBreed, BreedDefinition> = {
     furLength: 'short',
     traits: ['chubby-cheeks', 'round-face', 'dense-fur'],
   },
-  
-  'ragdoll': {
+
+  ragdoll: {
     head: {
       topCurve: 0.6,
       cheekWidth: 1.0,
@@ -229,8 +229,8 @@ export const BREED_SHAPES: Record<CatBreed, BreedDefinition> = {
     furLength: 'long',
     traits: ['soft-features', 'fluffy-ears', 'gentle'],
   },
-  
-  'bengal': {
+
+  bengal: {
     head: {
       topCurve: 0.4,
       cheekWidth: 0.95,
@@ -258,8 +258,8 @@ export const BREED_SHAPES: Record<CatBreed, BreedDefinition> = {
     furLength: 'short',
     traits: ['athletic', 'wild-look', 'rosettes'],
   },
-  
-  'tabby': {
+
+  tabby: {
     head: {
       topCurve: 0.5,
       cheekWidth: 1.0,
@@ -287,8 +287,8 @@ export const BREED_SHAPES: Record<CatBreed, BreedDefinition> = {
     furLength: 'short',
     traits: ['standard', 'striped', 'friendly'],
   },
-  
-  'stray': {
+
+  stray: {
     head: {
       topCurve: 0.45,
       cheekWidth: 0.9,
@@ -329,15 +329,15 @@ export function getBreedShape(breed: CatBreed): BreedDefinition {
  * Interpolate between two breed shapes for hybrid cats
  */
 export function interpolateBreedShapes(
-  breed1: CatBreed, 
-  breed2: CatBreed, 
+  breed1: CatBreed,
+  breed2: CatBreed,
   ratio: number = 0.5
 ): BreedDefinition {
   const shape1 = getBreedShape(breed1);
   const shape2 = getBreedShape(breed2);
-  
+
   const lerp = (a: number, b: number) => a + (b - a) * ratio;
-  
+
   return {
     head: {
       topCurve: lerp(shape1.head.topCurve, shape2.head.topCurve),

@@ -11,17 +11,32 @@ import { CatDetailModal } from '@/components/game/CatDetailModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Cat } from '@/types/game';
-import { 
-  CatGroup, 
-  RelationshipEvent,
-  getRelationshipLevel,
-} from '@/types/relationships';
+import { CatGroup, RelationshipEvent, getRelationshipLevel } from '@/types/relationships';
 import { CatVisual } from '@/components/game/CatVisual';
-import { ArrowLeft, Settings, Volume2, VolumeX, Sun, Moon, Network, Users, User, History, Loader2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  Settings,
+  Volume2,
+  VolumeX,
+  Sun,
+  Moon,
+  Network,
+  Users,
+  User,
+  History,
+  Loader2,
+} from 'lucide-react';
 import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { useTheme } from 'next-themes';
 
@@ -31,7 +46,7 @@ export default function CatRelationships() {
   const { state, kittensBreed, relationshipSystem, actions } = useGameState(playSound);
   const { user } = useAuth();
   const { cloudLoad } = useCloudSave(user?.id);
-  
+
   const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
   const [detailCat, setDetailCat] = useState<Cat | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,7 +56,7 @@ export default function CatRelationships() {
   // Load saved game on mount
   useEffect(() => {
     if (hasLoadedCloud) return;
-    
+
     const loadSavedGame = async () => {
       if (user) {
         const { data } = await cloudLoad();
@@ -52,12 +67,16 @@ export default function CatRelationships() {
           return;
         }
       }
-      
+
       const saved = localStorage.getItem('cat-farm-save');
       if (saved) {
         try {
           const saveData = JSON.parse(saved);
-          actions.loadFromData?.(saveData.state, saveData.kittensBreek || 0, saveData.relationships);
+          actions.loadFromData?.(
+            saveData.state,
+            saveData.kittensBreek || 0,
+            saveData.relationships
+          );
         } catch (e) {
           console.error('Failed to load local save:', e);
         }
@@ -65,7 +84,7 @@ export default function CatRelationships() {
       setHasLoadedCloud(true);
       setIsLoading(false);
     };
-    
+
     loadSavedGame();
   }, [user, hasLoadedCloud, cloudLoad, actions]);
 
@@ -73,11 +92,11 @@ export default function CatRelationships() {
   const stats = useMemo(() => {
     const rels = relationshipSystem.relationships;
     return {
-      bestFriends: rels.filter(r => r.level === 'bestFriend').length,
-      friends: rels.filter(r => r.level === 'friend').length,
-      neutral: rels.filter(r => r.level === 'neutral').length,
-      rivals: rels.filter(r => r.level === 'rival').length,
-      enemies: rels.filter(r => r.level === 'enemy').length,
+      bestFriends: rels.filter((r) => r.level === 'bestFriend').length,
+      friends: rels.filter((r) => r.level === 'friend').length,
+      neutral: rels.filter((r) => r.level === 'neutral').length,
+      rivals: rels.filter((r) => r.level === 'rival').length,
+      enemies: rels.filter((r) => r.level === 'enemy').length,
       total: rels.length,
     };
   }, [relationshipSystem.relationships]);
@@ -86,12 +105,10 @@ export default function CatRelationships() {
   const filteredEvents = useMemo(() => {
     const events = relationshipSystem.events;
     if (eventFilter === 'all') return events;
-    return events.filter(e => e.type === eventFilter);
+    return events.filter((e) => e.type === eventFilter);
   }, [relationshipSystem.events, eventFilter]);
 
-  const selectedCat = selectedCatId 
-    ? state.cats.find(c => c.id === selectedCatId) 
-    : null;
+  const selectedCat = selectedCatId ? state.cats.find((c) => c.id === selectedCatId) : null;
 
   const handleTrain = (catId: string, trickId: string) => {
     actions.trainCat(catId, trickId as any);
@@ -124,36 +141,60 @@ export default function CatRelationships() {
               <DropdownMenuContent align="end" className="w-48 bg-popover">
                 <DropdownMenuLabel>Settings</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setEnabled(!isEnabled())} className="cursor-pointer">
-                  {isEnabled() ? <Volume2 className="h-4 w-4 mr-2" /> : <VolumeX className="h-4 w-4 mr-2" />}
+                <DropdownMenuItem
+                  onClick={() => setEnabled(!isEnabled())}
+                  className="cursor-pointer"
+                >
+                  {isEnabled() ? (
+                    <Volume2 className="h-4 w-4 mr-2" />
+                  ) : (
+                    <VolumeX className="h-4 w-4 mr-2" />
+                  )}
                   {isEnabled() ? 'Mute Sounds' : 'Unmute Sounds'}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="cursor-pointer">
-                  {theme === 'dark' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+                <DropdownMenuItem
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className="cursor-pointer"
+                >
+                  {theme === 'dark' ? (
+                    <Sun className="h-4 w-4 mr-2" />
+                  ) : (
+                    <Moon className="h-4 w-4 mr-2" />
+                  )}
                   {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <Link to="/collection">
-                  <DropdownMenuItem className="cursor-pointer">
-                    🎴 Cat Collection
-                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">🎴 Cat Collection</DropdownMenuItem>
                 </Link>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          
+
           {/* Stats badges */}
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-pink-50 text-pink-600 border-pink-200 dark:bg-pink-950/30 dark:text-pink-400 dark:border-pink-800">
+            <Badge
+              variant="outline"
+              className="bg-pink-50 text-pink-600 border-pink-200 dark:bg-pink-950/30 dark:text-pink-400 dark:border-pink-800"
+            >
               💕 {stats.bestFriends}
             </Badge>
-            <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800">
+            <Badge
+              variant="outline"
+              className="bg-green-50 text-green-600 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800"
+            >
               💚 {stats.friends}
             </Badge>
-            <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-800">
+            <Badge
+              variant="outline"
+              className="bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-800"
+            >
               😾 {stats.rivals}
             </Badge>
-            <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
+            <Badge
+              variant="outline"
+              className="bg-red-50 text-red-600 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800"
+            >
               💔 {stats.enemies}
             </Badge>
           </div>
@@ -208,7 +249,7 @@ export default function CatRelationships() {
                     relationships={relationshipSystem.relationships}
                     catCostumes={state.catCostumes}
                     onCatClick={(catId) => {
-                      const cat = state.cats.find(c => c.id === catId);
+                      const cat = state.cats.find((c) => c.id === catId);
                       if (cat) setDetailCat(cat);
                     }}
                   />
@@ -225,7 +266,7 @@ export default function CatRelationships() {
                 events={relationshipSystem.events}
                 currentDay={state.day}
                 onCatClick={(catId) => {
-                  const cat = state.cats.find(c => c.id === catId);
+                  const cat = state.cats.find((c) => c.id === catId);
                   if (cat) setDetailCat(cat);
                 }}
               />
@@ -242,25 +283,29 @@ export default function CatRelationships() {
                   <CardContent>
                     <ScrollArea className="h-[500px]">
                       <div className="space-y-2">
-                        {state.cats.map(cat => {
+                        {state.cats.map((cat) => {
                           const catRels = relationshipSystem.relationships.filter(
-                            r => r.catId1 === cat.id || r.catId2 === cat.id
+                            (r) => r.catId1 === cat.id || r.catId2 === cat.id
                           );
-                          const friendCount = catRels.filter(r => r.score >= 20).length;
-                          const enemyCount = catRels.filter(r => r.score <= -20).length;
-                          
+                          const friendCount = catRels.filter((r) => r.score >= 20).length;
+                          const enemyCount = catRels.filter((r) => r.score <= -20).length;
+
                           return (
                             <div
                               key={cat.id}
                               className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                                selectedCatId === cat.id 
-                                  ? 'bg-primary/10 border-primary' 
+                                selectedCatId === cat.id
+                                  ? 'bg-primary/10 border-primary'
                                   : 'bg-secondary/30 border-border hover:bg-secondary/50'
                               }`}
                               onClick={() => setSelectedCatId(cat.id)}
                             >
                               <div className="flex items-center gap-3">
-                                <CatVisual cat={cat} size="sm" equippedCostumeId={state.catCostumes[cat.id]} />
+                                <CatVisual
+                                  cat={cat}
+                                  size="sm"
+                                  equippedCostumeId={state.catCostumes[cat.id]}
+                                />
                                 <div className="flex-1 min-w-0">
                                   <p className="font-medium truncate">{cat.name}</p>
                                   <div className="flex gap-2 text-xs text-muted-foreground">
@@ -287,13 +332,15 @@ export default function CatRelationships() {
                       catCostumes={state.catCostumes}
                       currentDay={state.day}
                       onCatClick={(catId) => {
-                        const cat = state.cats.find(c => c.id === catId);
+                        const cat = state.cats.find((c) => c.id === catId);
                         if (cat) setDetailCat(cat);
                       }}
                     />
                   ) : (
                     <Card className="h-full flex items-center justify-center">
-                      <p className="text-muted-foreground">Select a cat to view their social profile</p>
+                      <p className="text-muted-foreground">
+                        Select a cat to view their social profile
+                      </p>
                     </Card>
                   )}
                 </div>
@@ -312,22 +359,22 @@ export default function CatRelationships() {
                       </p>
                     </div>
                     <div className="flex gap-1">
-                      <Badge 
-                        variant={eventFilter === 'all' ? 'default' : 'outline'} 
+                      <Badge
+                        variant={eventFilter === 'all' ? 'default' : 'outline'}
                         className="cursor-pointer"
                         onClick={() => setEventFilter('all')}
                       >
                         All
                       </Badge>
-                      <Badge 
-                        variant={eventFilter === 'positive' ? 'default' : 'outline'} 
+                      <Badge
+                        variant={eventFilter === 'positive' ? 'default' : 'outline'}
                         className="cursor-pointer bg-green-100 text-green-700 border-green-200 hover:bg-green-200"
                         onClick={() => setEventFilter('positive')}
                       >
                         Positive
                       </Badge>
-                      <Badge 
-                        variant={eventFilter === 'negative' ? 'default' : 'outline'} 
+                      <Badge
+                        variant={eventFilter === 'negative' ? 'default' : 'outline'}
                         className="cursor-pointer bg-red-100 text-red-700 border-red-200 hover:bg-red-200"
                         onClick={() => setEventFilter('negative')}
                       >
@@ -344,38 +391,57 @@ export default function CatRelationships() {
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {filteredEvents.map(event => {
-                          const cat1 = state.cats.find(c => c.id === event.catId1);
-                          const cat2 = state.cats.find(c => c.id === event.catId2);
-                          
+                        {filteredEvents.map((event) => {
+                          const cat1 = state.cats.find((c) => c.id === event.catId1);
+                          const cat2 = state.cats.find((c) => c.id === event.catId2);
+
                           return (
-                            <div 
+                            <div
                               key={event.id}
                               className={`p-4 rounded-lg border ${
-                                event.type === 'positive' ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800' :
-                                event.type === 'negative' ? 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800' :
-                                'bg-secondary/30 border-border'
+                                event.type === 'positive'
+                                  ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800'
+                                  : event.type === 'negative'
+                                    ? 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800'
+                                    : 'bg-secondary/30 border-border'
                               }`}
                             >
                               <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2">
-                                  {cat1 && <CatVisual cat={cat1} size="xs" equippedCostumeId={state.catCostumes[cat1.id]} />}
+                                  {cat1 && (
+                                    <CatVisual
+                                      cat={cat1}
+                                      size="xs"
+                                      equippedCostumeId={state.catCostumes[cat1.id]}
+                                    />
+                                  )}
                                   <span className="font-medium text-sm">{event.catName1}</span>
                                 </div>
                                 <span className="text-lg">
-                                  {event.type === 'positive' ? '💚' : event.type === 'negative' ? '💔' : '😐'}
+                                  {event.type === 'positive'
+                                    ? '💚'
+                                    : event.type === 'negative'
+                                      ? '💔'
+                                      : '😐'}
                                 </span>
                                 <div className="flex items-center gap-2">
                                   <span className="font-medium text-sm">{event.catName2}</span>
-                                  {cat2 && <CatVisual cat={cat2} size="xs" equippedCostumeId={state.catCostumes[cat2.id]} />}
+                                  {cat2 && (
+                                    <CatVisual
+                                      cat={cat2}
+                                      size="xs"
+                                      equippedCostumeId={state.catCostumes[cat2.id]}
+                                    />
+                                  )}
                                 </div>
-                                <Badge 
-                                  variant="outline" 
+                                <Badge
+                                  variant="outline"
                                   className={`ml-auto ${
                                     event.scoreChange > 0 ? 'text-green-600' : 'text-red-600'
                                   }`}
                                 >
-                                  {event.scoreChange > 0 ? '+' : ''}{event.scoreChange}
+                                  {event.scoreChange > 0 ? '+' : ''}
+                                  {event.scoreChange}
                                 </Badge>
                               </div>
                               <p className="mt-2 text-sm">{event.message}</p>
@@ -405,14 +471,16 @@ export default function CatRelationships() {
                   ) : (
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {relationshipSystem.groups.map((group: CatGroup) => {
-                        const leader = state.cats.find(c => c.id === group.leaderCatId);
+                        const leader = state.cats.find((c) => c.id === group.leaderCatId);
                         return (
-                          <div 
+                          <div
                             key={group.id}
                             className={`p-4 rounded-lg border ${
-                              group.type === 'friendly' ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800' :
-                              group.type === 'outcasts' ? 'bg-gray-50 border-gray-200 dark:bg-gray-950/20 dark:border-gray-800' :
-                              'bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800'
+                              group.type === 'friendly'
+                                ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800'
+                                : group.type === 'outcasts'
+                                  ? 'bg-gray-50 border-gray-200 dark:bg-gray-950/20 dark:border-gray-800'
+                                  : 'bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800'
                             }`}
                           >
                             <div className="flex items-center justify-between mb-3">
@@ -422,16 +490,20 @@ export default function CatRelationships() {
                               </Badge>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                              {group.memberIds.map(id => {
-                                const cat = state.cats.find(c => c.id === id);
+                              {group.memberIds.map((id) => {
+                                const cat = state.cats.find((c) => c.id === id);
                                 const isLeader = id === group.leaderCatId;
                                 return cat ? (
-                                  <div 
+                                  <div
                                     key={id}
                                     className="flex items-center gap-1 p-1 rounded bg-background/50"
                                   >
                                     {isLeader && <span className="text-xs">👑</span>}
-                                    <CatVisual cat={cat} size="xs" equippedCostumeId={state.catCostumes[cat.id]} />
+                                    <CatVisual
+                                      cat={cat}
+                                      size="xs"
+                                      equippedCostumeId={state.catCostumes[cat.id]}
+                                    />
                                     <span className="text-xs font-medium">{cat.name}</span>
                                   </div>
                                 ) : null;
@@ -458,7 +530,10 @@ export default function CatRelationships() {
         onClose={() => setDetailCat(null)}
         onComfort={actions.comfortCat}
         onHeal={actions.useMedicine}
-        onSell={(id) => { actions.sellCat(id); setDetailCat(null); }}
+        onSell={(id) => {
+          actions.sellCat(id);
+          setDetailCat(null);
+        }}
         onRest={actions.restCat}
         onTrain={handleTrain}
         onRename={actions.renameCat}

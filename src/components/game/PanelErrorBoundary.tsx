@@ -17,10 +17,10 @@ interface State {
 
 /**
  * PanelErrorBoundary - Lightweight error boundary for game panels
- * 
+ *
  * Catches errors in individual TabsContent panels to prevent
  * a single panel crash from taking down the entire game.
- * 
+ *
  * @example
  * ```tsx
  * <PanelErrorBoundary panelName="BreedingPanel">
@@ -49,8 +49,8 @@ export class PanelErrorBoundary extends Component<Props, State> {
       metadata: {
         componentStack: errorInfo.componentStack,
         errorName: error.name,
-        panelName: this.props.panelName
-      }
+        panelName: this.props.panelName,
+      },
     });
 
     console.error(`[PanelErrorBoundary] Error in ${this.props.panelName}:`, error, errorInfo);

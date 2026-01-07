@@ -1,6 +1,6 @@
 /**
  * Cat Vector Generator using Paper.js
- * 
+ *
  * Generates detailed vector cat avatars programmatically using Paper.js.
  * This creates high-quality, customizable cat faces that are consistent
  * across the entire application.
@@ -52,16 +52,16 @@ let paperScope: paper.PaperScope | null = null;
  */
 export function initializePaper(): paper.PaperScope {
   if (paperScope) return paperScope;
-  
+
   paperCanvas = document.createElement('canvas');
   paperCanvas.width = 256;
   paperCanvas.height = 256;
   paperCanvas.style.display = 'none';
   document.body.appendChild(paperCanvas);
-  
+
   paperScope = new paper.PaperScope();
   paperScope.setup(paperCanvas);
-  
+
   return paperScope;
 }
 
@@ -88,10 +88,10 @@ function generateHead(
   radius: number
 ): paper.Path {
   const { head } = breedShape;
-  
+
   // Create head based on shape characteristics
   let headPath: paper.Path;
-  
+
   if (head.topCurve > 0.7) {
     // Round head (Persian, British Shorthair)
     headPath = new scope.Path.Circle({
@@ -130,7 +130,7 @@ function generateHead(
       fillColor: color,
     });
   }
-  
+
   return headPath;
 }
 
@@ -147,17 +147,17 @@ function generateEars(
 ): paper.Group {
   const { ears } = breedShape;
   const earGroup = new scope.Group();
-  
+
   const earRadius = radius * ears.width;
   const earOffset = radius * 0.7;
-  
+
   // Left ear
   const leftEarPoints = [
     [centerX - earOffset - earRadius * 0.5, centerY - radius * 0.3],
     [centerX - earOffset, centerY - radius - earRadius * (ears.height / 1.5)],
     [centerX - earOffset + earRadius * 0.5, centerY - radius * 0.3],
   ];
-  
+
   const leftEar = new scope.Path({
     segments: leftEarPoints,
     closed: true,
@@ -168,19 +168,19 @@ function generateEars(
   } else {
     leftEar.smooth({ type: 'continuous' });
   }
-  
+
   // Left inner ear (pink)
   const leftInner = leftEar.clone();
   leftInner.scale(0.6);
   leftInner.fillColor = new scope.Color('#FFB6C1');
-  
+
   // Right ear
   const rightEarPoints = [
     [centerX + earOffset - earRadius * 0.5, centerY - radius * 0.3],
     [centerX + earOffset, centerY - radius - earRadius * (ears.height / 1.5)],
     [centerX + earOffset + earRadius * 0.5, centerY - radius * 0.3],
   ];
-  
+
   const rightEar = new scope.Path({
     segments: rightEarPoints,
     closed: true,
@@ -191,12 +191,12 @@ function generateEars(
   } else {
     rightEar.smooth({ type: 'continuous' });
   }
-  
+
   // Right inner ear (pink)
   const rightInner = rightEar.clone();
   rightInner.scale(0.6);
   rightInner.fillColor = new scope.Color('#FFB6C1');
-  
+
   // Apply rotation
   if (ears.angle !== 0) {
     leftEar.rotate(ears.angle, leftEar.bounds.bottomCenter);
@@ -204,7 +204,7 @@ function generateEars(
     rightEar.rotate(-ears.angle, rightEar.bounds.bottomCenter);
     rightInner.rotate(-ears.angle, rightInner.bounds.bottomCenter);
   }
-  
+
   earGroup.addChildren([leftEar, leftInner, rightEar, rightInner]);
   return earGroup;
 }
@@ -222,85 +222,91 @@ function generateEyes(
 ): paper.Group {
   const eyeGroup = new scope.Group();
   const { eyes } = breedShape;
-  
+
   const eyeRadius = radius * 0.18 * eyes.size;
   const eyeOffset = radius * 0.35;
   const eyeY = centerY - radius * 0.1;
-  
+
   const eyeColor = EYE_COLORS[appearance.eyeColor] || EYE_COLORS.green;
   const rightEyeColor = appearance.eyeColor === 'heterochromia' ? '#2196F3' : eyeColor;
-  
+
   // Eye white (sclera)
-  const leftSclera = eyes.shape === 'almond'
-    ? new scope.Path.Ellipse({
-        center: [centerX - eyeOffset, eyeY],
-        size: [eyeRadius * 2.2, eyeRadius * 1.6],
-        fillColor: 'white',
-      })
-    : new scope.Path.Circle({
-        center: [centerX - eyeOffset, eyeY],
-        radius: eyeRadius,
-        fillColor: 'white',
-      });
-  
-  const rightSclera = eyes.shape === 'almond'
-    ? new scope.Path.Ellipse({
-        center: [centerX + eyeOffset, eyeY],
-        size: [eyeRadius * 2.2, eyeRadius * 1.6],
-        fillColor: 'white',
-      })
-    : new scope.Path.Circle({
-        center: [centerX + eyeOffset, eyeY],
-        radius: eyeRadius,
-        fillColor: 'white',
-      });
-  
+  const leftSclera =
+    eyes.shape === 'almond'
+      ? new scope.Path.Ellipse({
+          center: [centerX - eyeOffset, eyeY],
+          size: [eyeRadius * 2.2, eyeRadius * 1.6],
+          fillColor: 'white',
+        })
+      : new scope.Path.Circle({
+          center: [centerX - eyeOffset, eyeY],
+          radius: eyeRadius,
+          fillColor: 'white',
+        });
+
+  const rightSclera =
+    eyes.shape === 'almond'
+      ? new scope.Path.Ellipse({
+          center: [centerX + eyeOffset, eyeY],
+          size: [eyeRadius * 2.2, eyeRadius * 1.6],
+          fillColor: 'white',
+        })
+      : new scope.Path.Circle({
+          center: [centerX + eyeOffset, eyeY],
+          radius: eyeRadius,
+          fillColor: 'white',
+        });
+
   // Iris
   const leftIris = new scope.Path.Circle({
     center: [centerX - eyeOffset, eyeY],
     radius: eyeRadius * 0.75,
     fillColor: eyeColor,
   });
-  
+
   const rightIris = new scope.Path.Circle({
     center: [centerX + eyeOffset, eyeY],
     radius: eyeRadius * 0.75,
     fillColor: rightEyeColor,
   });
-  
+
   // Pupils
   const leftPupil = new scope.Path.Ellipse({
     center: [centerX - eyeOffset, eyeY],
     size: [eyeRadius * 0.25, eyeRadius * 0.6],
     fillColor: 'black',
   });
-  
+
   const rightPupil = new scope.Path.Ellipse({
     center: [centerX + eyeOffset, eyeY],
     size: [eyeRadius * 0.25, eyeRadius * 0.6],
     fillColor: 'black',
   });
-  
+
   // Reflections
   const leftReflection = new scope.Path.Circle({
     center: [centerX - eyeOffset - eyeRadius * 0.2, eyeY - eyeRadius * 0.2],
     radius: eyeRadius * 0.15,
     fillColor: 'white',
   });
-  
+
   const rightReflection = new scope.Path.Circle({
     center: [centerX + eyeOffset - eyeRadius * 0.2, eyeY - eyeRadius * 0.2],
     radius: eyeRadius * 0.15,
     fillColor: 'white',
   });
-  
+
   eyeGroup.addChildren([
-    leftSclera, rightSclera,
-    leftIris, rightIris,
-    leftPupil, rightPupil,
-    leftReflection, rightReflection,
+    leftSclera,
+    rightSclera,
+    leftIris,
+    rightIris,
+    leftPupil,
+    rightPupil,
+    leftReflection,
+    rightReflection,
   ]);
-  
+
   return eyeGroup;
 }
 
@@ -317,7 +323,7 @@ function generateNose(
   const { nose } = breedShape;
   const noseY = centerY + radius * 0.15;
   const noseSize = radius * 0.12 * nose.size;
-  
+
   if (nose.shape === 'flat') {
     // Flat nose (Persian)
     return new scope.Path.Circle({
@@ -326,7 +332,7 @@ function generateNose(
       fillColor: '#FFB6C1',
     });
   }
-  
+
   // Triangle nose
   const nosePath = new scope.Path({
     segments: [
@@ -338,7 +344,7 @@ function generateNose(
     fillColor: '#FFB6C1',
   });
   nosePath.smooth({ type: 'continuous' });
-  
+
   return nosePath;
 }
 
@@ -354,7 +360,7 @@ function generateMouth(
   const mouthGroup = new scope.Group();
   const mouthY = centerY + radius * 0.35;
   const mouthWidth = radius * 0.2;
-  
+
   // Left curve
   const leftCurve = new scope.Path({
     segments: [
@@ -366,7 +372,7 @@ function generateMouth(
     strokeCap: 'round',
   });
   leftCurve.smooth();
-  
+
   // Right curve
   const rightCurve = new scope.Path({
     segments: [
@@ -378,7 +384,7 @@ function generateMouth(
     strokeCap: 'round',
   });
   rightCurve.smooth();
-  
+
   mouthGroup.addChildren([leftCurve, rightCurve]);
   return mouthGroup;
 }
@@ -396,13 +402,13 @@ function generateWhiskers(
   const whiskerGroup = new scope.Group();
   const whiskerY = centerY + radius * 0.2;
   const whiskerLength = radius * (longWhiskers ? 0.7 : 0.5);
-  
+
   const whiskerPositions = [
     { y: whiskerY - radius * 0.05, angle: -10 },
     { y: whiskerY, angle: 0 },
     { y: whiskerY + radius * 0.05, angle: 10 },
   ];
-  
+
   whiskerPositions.forEach(({ y, angle }) => {
     // Left whiskers
     const leftWhisker = new scope.Path.Line({
@@ -413,7 +419,7 @@ function generateWhiskers(
       strokeCap: 'round',
     });
     leftWhisker.rotate(angle, leftWhisker.firstSegment!.point);
-    
+
     // Right whiskers
     const rightWhisker = new scope.Path.Line({
       from: [centerX + radius * 0.25, y],
@@ -423,10 +429,10 @@ function generateWhiskers(
       strokeCap: 'round',
     });
     rightWhisker.rotate(-angle, rightWhisker.firstSegment!.point);
-    
+
     whiskerGroup.addChildren([leftWhisker, rightWhisker]);
   });
-  
+
   return whiskerGroup;
 }
 
@@ -441,11 +447,11 @@ function generatePattern(
   baseColor: string
 ): paper.Group | null {
   if (pattern === 'solid') return null;
-  
+
   const patternGroup = new scope.Group();
   const { center, width, height } = headBounds;
   const pColor = patternColor || darkenColor(baseColor, 30);
-  
+
   if (pattern === 'tabby') {
     // Tabby stripes on forehead
     for (let i = 0; i < 3; i++) {
@@ -509,7 +515,7 @@ function generatePattern(
       patternGroup.addChild(patch);
     });
   }
-  
+
   return patternGroup;
 }
 
@@ -520,8 +526,8 @@ function darkenColor(hex: string, percent: number): string {
   const num = parseInt(hex.replace('#', ''), 16);
   const amt = Math.round(2.55 * percent);
   const R = Math.max((num >> 16) - amt, 0);
-  const G = Math.max((num >> 8 & 0x00FF) - amt, 0);
-  const B = Math.max((num & 0x0000FF) - amt, 0);
+  const G = Math.max(((num >> 8) & 0x00ff) - amt, 0);
+  const B = Math.max((num & 0x0000ff) - amt, 0);
   return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
 }
 
@@ -536,17 +542,17 @@ export function generateCatAvatar(
   try {
     const scope = initializePaper();
     scope.project.clear();
-    
+
     const dim = SIZE_DIMENSIONS[size] || 64;
     scope.view.viewSize = new scope.Size(dim, dim);
-    
+
     const centerX = dim / 2;
     const centerY = dim / 2;
     const radius = dim * 0.38;
-    
+
     // Get breed shape or default
     const breedShape = getBreedShape(cat.breed);
-    
+
     // Get appearance with defaults
     const appearance: CatAppearance = cat.appearance || {
       furColor: 'orange',
@@ -556,24 +562,30 @@ export function generateCatAvatar(
       hairLength: 'short',
       facialFeature: 'normal',
     };
-    
+
     const furColor = FUR_COLORS[appearance.furColor] || FUR_COLORS.orange;
-    
+
     // Generate all parts (back to front order)
     const ears = generateEars(scope, breedShape, furColor, centerX, centerY, radius);
     const head = generateHead(scope, breedShape, furColor, centerX, centerY, radius);
-    const pattern = generatePattern(scope, appearance.pattern, appearance.patternColor, head.bounds, furColor);
+    const pattern = generatePattern(
+      scope,
+      appearance.pattern,
+      appearance.patternColor,
+      head.bounds,
+      furColor
+    );
     const eyes = generateEyes(scope, appearance, breedShape, centerX, centerY, radius);
     const nose = generateNose(scope, breedShape, centerX, centerY, radius);
     const mouth = generateMouth(scope, centerX, centerY, radius);
     const whiskers = generateWhiskers(
-      scope, 
-      centerX, 
-      centerY, 
+      scope,
+      centerX,
+      centerY,
       radius,
       appearance.facialFeature === 'whiskers_long'
     );
-    
+
     // Add tier-specific glow for rare cats
     const tier = getGradeTier(cat.grade);
     if (tier === 'ultraRare' || tier === 'veryRare') {
@@ -585,11 +597,11 @@ export function generateCatAvatar(
       });
       glow.sendToBack();
     }
-    
+
     // Export
     const svg = scope.project.exportSVG({ asString: true }) as string;
     const dataUrl = `data:image/svg+xml;base64,${btoa(svg)}`;
-    
+
     return { svg, dataUrl };
   } catch (error) {
     console.error('Paper.js generation failed:', error);

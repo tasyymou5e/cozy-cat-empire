@@ -4,7 +4,13 @@ import { COSTUMES, Costume, COSTUME_RARITY_COLORS, getCostumeById } from '@/type
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ShoppingBag, Shirt, Sparkles } from 'lucide-react';
 import { computeAppearanceHash } from '@/lib/portraitUtils';
@@ -21,16 +27,22 @@ interface CostumeShopPanelProps {
 }
 
 const catEmojis: Record<string, string> = {
-  'stray': '🐱', 'tabby': '🐈', 'persian': '😺', 'siamese': '😸',
-  'maine-coon': '🦁', 'british-shorthair': '🐾', 'ragdoll': '💫', 'bengal': '🐆',
+  stray: '🐱',
+  tabby: '🐈',
+  persian: '😺',
+  siamese: '😸',
+  'maine-coon': '🦁',
+  'british-shorthair': '🐾',
+  ragdoll: '💫',
+  bengal: '🐆',
 };
 
-export function CostumeShopPanel({ 
-  cats, 
-  money, 
-  ownedCostumes, 
-  catCostumes, 
-  onBuyCostume, 
+export function CostumeShopPanel({
+  cats,
+  money,
+  ownedCostumes,
+  catCostumes,
+  onBuyCostume,
   onEquipCostume,
   onPortraitOutdated,
 }: CostumeShopPanelProps) {
@@ -41,13 +53,15 @@ export function CostumeShopPanel({
   const categoryEmojis = { hat: '🎩', outfit: '👔', accessory: '💍', special: '✨' };
 
   const CostumeCard = ({ costume, owned }: { costume: Costume; owned: boolean }) => (
-    <div className={`p-3 rounded-lg border ${
-      owned 
-        ? 'border-green-400 bg-green-50/50 dark:bg-green-900/20' 
-        : costume.vipExclusive 
-          ? 'border-amber-400/50 bg-amber-50/30 dark:bg-amber-900/10' 
-          : 'border-border bg-card'
-    }`}>
+    <div
+      className={`p-3 rounded-lg border ${
+        owned
+          ? 'border-green-400 bg-green-50/50 dark:bg-green-900/20'
+          : costume.vipExclusive
+            ? 'border-amber-400/50 bg-amber-50/30 dark:bg-amber-900/10'
+            : 'border-border bg-card'
+      }`}
+    >
       <div className="flex items-center justify-between mb-2">
         <span className="text-2xl">{costume.emoji}</span>
         <div className="flex gap-1">
@@ -56,9 +70,7 @@ export function CostumeShopPanel({
               VIP
             </Badge>
           )}
-          <Badge className={COSTUME_RARITY_COLORS[costume.rarity]}>
-            {costume.rarity}
-          </Badge>
+          <Badge className={COSTUME_RARITY_COLORS[costume.rarity]}>{costume.rarity}</Badge>
         </div>
       </div>
       <h4 className="font-semibold text-sm">{costume.name}</h4>
@@ -88,10 +100,9 @@ export function CostumeShopPanel({
     </div>
   );
 
-  const selectedCat = selectedCatId ? cats.find(c => c.id === selectedCatId) : null;
-  const equippedCostume = selectedCat && catCostumes[selectedCat.id] 
-    ? getCostumeById(catCostumes[selectedCat.id]) 
-    : null;
+  const selectedCat = selectedCatId ? cats.find((c) => c.id === selectedCatId) : null;
+  const equippedCostume =
+    selectedCat && catCostumes[selectedCat.id] ? getCostumeById(catCostumes[selectedCat.id]) : null;
 
   return (
     <div className="space-y-4">
@@ -100,7 +111,9 @@ export function CostumeShopPanel({
           <ShoppingBag className="h-5 w-5 text-primary" />
           <h3 className="font-bold">Costume Shop</h3>
         </div>
-        <Badge variant="outline" className="font-bold">${money}</Badge>
+        <Badge variant="outline" className="font-bold">
+          ${money}
+        </Badge>
       </div>
 
       <Tabs defaultValue="shop" className="w-full">
@@ -116,41 +129,47 @@ export function CostumeShopPanel({
         <TabsContent value="shop" className="mt-3">
           <Tabs defaultValue="hat">
             <TabsList className="grid w-full grid-cols-4 h-8">
-              {categories.map(cat => (
+              {categories.map((cat) => (
                 <TabsTrigger key={cat} value={cat} className="text-xs px-1">
                   {categoryEmojis[cat]}
                 </TabsTrigger>
               ))}
             </TabsList>
 
-            {categories.map(category => (
+            {categories.map((category) => (
               <TabsContent key={category} value={category} className="mt-2">
                 <ScrollArea className="h-[280px]">
                   <div className="grid grid-cols-2 gap-2 pr-2">
-                    {COSTUMES.filter(c => c.category === category && !c.vipExclusive).map(costume => (
-                      <CostumeCard 
-                        key={costume.id} 
-                        costume={costume} 
-                        owned={ownedCostumes.includes(costume.id)} 
-                      />
-                    ))}
+                    {COSTUMES.filter((c) => c.category === category && !c.vipExclusive).map(
+                      (costume) => (
+                        <CostumeCard
+                          key={costume.id}
+                          costume={costume}
+                          owned={ownedCostumes.includes(costume.id)}
+                        />
+                      )
+                    )}
                   </div>
                   {/* VIP Exclusive Section */}
-                  {COSTUMES.filter(c => c.category === category && c.vipExclusive).length > 0 && (
+                  {COSTUMES.filter((c) => c.category === category && c.vipExclusive).length > 0 && (
                     <>
                       <div className="flex items-center gap-2 my-3">
                         <div className="flex-1 h-px bg-amber-500/30" />
-                        <span className="text-xs font-medium text-amber-600 dark:text-amber-400">✨ VIP Exclusive</span>
+                        <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                          ✨ VIP Exclusive
+                        </span>
                         <div className="flex-1 h-px bg-amber-500/30" />
                       </div>
                       <div className="grid grid-cols-2 gap-2 pr-2">
-                        {COSTUMES.filter(c => c.category === category && c.vipExclusive).map(costume => (
-                          <CostumeCard 
-                            key={costume.id} 
-                            costume={costume} 
-                            owned={ownedCostumes.includes(costume.id)} 
-                          />
-                        ))}
+                        {COSTUMES.filter((c) => c.category === category && c.vipExclusive).map(
+                          (costume) => (
+                            <CostumeCard
+                              key={costume.id}
+                              costume={costume}
+                              owned={ownedCostumes.includes(costume.id)}
+                            />
+                          )
+                        )}
                       </div>
                     </>
                   )}
@@ -170,13 +189,15 @@ export function CostumeShopPanel({
           ) : (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">Select a cat to dress up:</p>
-              
+
               <ScrollArea className="h-[200px]">
                 <div className="space-y-2 pr-2">
-                  {cats.map(cat => {
-                    const costume = catCostumes[cat.id] ? getCostumeById(catCostumes[cat.id]) : null;
+                  {cats.map((cat) => {
+                    const costume = catCostumes[cat.id]
+                      ? getCostumeById(catCostumes[cat.id])
+                      : null;
                     return (
-                      <div 
+                      <div
                         key={cat.id}
                         className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-colors
                           ${selectedCatId === cat.id ? 'border-primary bg-primary/10' : 'border-border hover:bg-accent'}`}
@@ -185,8 +206,13 @@ export function CostumeShopPanel({
                           setEquipDialogOpen(true);
                         }}
                       >
-                      <div className="relative">
-                          <CatVisual cat={cat} size="sm" equippedCostumeId={catCostumes[cat.id]} preferPortrait={true} />
+                        <div className="relative">
+                          <CatVisual
+                            cat={cat}
+                            size="sm"
+                            equippedCostumeId={catCostumes[cat.id]}
+                            preferPortrait={true}
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm truncate">{cat.name}</p>
@@ -213,7 +239,7 @@ export function CostumeShopPanel({
                       )}
                     </DialogTitle>
                   </DialogHeader>
-                  
+
                   {selectedCat && (
                     <div className="space-y-3">
                       {equippedCostume && (
@@ -223,9 +249,9 @@ export function CostumeShopPanel({
                             <span className="text-xl">{equippedCostume.emoji}</span>
                             <span>{equippedCostume.name}</span>
                           </div>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
+                          <Button
+                            size="sm"
+                            variant="outline"
                             className="mt-2 w-full"
                             onClick={() => {
                               // Check if portrait will become outdated
@@ -243,22 +269,28 @@ export function CostumeShopPanel({
                           </Button>
                         </div>
                       )}
-                      
+
                       <ScrollArea className="h-[200px]">
                         <div className="space-y-2 pr-2">
                           {ownedCostumes
-                            .filter(id => !catCostumes[selectedCat.id] || catCostumes[selectedCat.id] !== id)
-                            .map(id => {
+                            .filter(
+                              (id) =>
+                                !catCostumes[selectedCat.id] || catCostumes[selectedCat.id] !== id
+                            )
+                            .map((id) => {
                               const costume = getCostumeById(id);
                               if (!costume) return null;
                               return (
-                                <div 
+                                <div
                                   key={costume.id}
                                   className="flex items-center gap-3 p-2 rounded-lg border border-border hover:bg-accent cursor-pointer"
                                   onClick={() => {
                                     // Check if portrait will become outdated
                                     if (selectedCat.portraitUrl && selectedCat.appearanceHash) {
-                                      const newHash = computeAppearanceHash(selectedCat, costume.id);
+                                      const newHash = computeAppearanceHash(
+                                        selectedCat,
+                                        costume.id
+                                      );
                                       if (selectedCat.appearanceHash !== newHash) {
                                         onPortraitOutdated?.(selectedCat);
                                       }

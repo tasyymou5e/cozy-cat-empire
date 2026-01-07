@@ -21,10 +21,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Sparkles, Loader2, CheckCircle2, XCircle, Coins, AlertTriangle, ShoppingCart } from 'lucide-react';
+import {
+  Sparkles,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Coins,
+  AlertTriangle,
+  ShoppingCart,
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { getCostumeById } from '@/types/costumes';
-import { isPortraitOutdated, computeAppearanceHash, PORTRAIT_CREDIT_COST } from '@/lib/portraitUtils';
+import {
+  isPortraitOutdated,
+  computeAppearanceHash,
+  PORTRAIT_CREDIT_COST,
+} from '@/lib/portraitUtils';
 import { usePortraitCredits } from '@/hooks/usePortraitCredits';
 import { PortraitPurchaseDialog } from './PortraitPurchaseDialog';
 import { cn } from '@/lib/utils';
@@ -59,10 +71,16 @@ export function BatchPortraitGenerator({
   const [showResults, setShowResults] = useState(false);
   const abortRef = useRef(false);
 
-  const { credits, packageConfig, isPurchasing, purchaseCredits, refetch: refetchCredits } = usePortraitCredits();
+  const {
+    credits,
+    packageConfig,
+    isPurchasing,
+    purchaseCredits,
+    refetch: refetchCredits,
+  } = usePortraitCredits();
 
   // Find cats that need portraits (no portrait OR outdated)
-  const catsNeedingPortrait = cats.filter(cat => {
+  const catsNeedingPortrait = cats.filter((cat) => {
     const costumeId = catCostumes[cat.id];
     if (!cat.portraitUrl) return true;
     return isPortraitOutdated(cat, costumeId);
@@ -101,12 +119,14 @@ export function BatchPortraitGenerator({
               breed: cat.breed,
               personality: cat.personality,
               appearance: cat.appearance,
-              costume: costume ? {
-                id: costume.id,
-                name: costume.name,
-                emoji: costume.emoji,
-                category: costume.category,
-              } : undefined,
+              costume: costume
+                ? {
+                    id: costume.id,
+                    name: costume.name,
+                    emoji: costume.emoji,
+                    category: costume.category,
+                  }
+                : undefined,
             },
           },
         });
@@ -115,12 +135,15 @@ export function BatchPortraitGenerator({
         if (data?.error) {
           // Handle insufficient credits
           if (data.error === 'insufficient_credits') {
-            setResults(prev => [...prev, {
-              catId: cat.id,
-              catName: cat.name,
-              success: false,
-              error: 'No credits remaining',
-            }]);
+            setResults((prev) => [
+              ...prev,
+              {
+                catId: cat.id,
+                catName: cat.name,
+                success: false,
+                error: 'No credits remaining',
+              },
+            ]);
             break;
           }
           throw new Error(data.error);
@@ -129,26 +152,35 @@ export function BatchPortraitGenerator({
         if (data?.portraitUrl) {
           const hash = computeAppearanceHash(cat, costumeId);
           onPortraitGenerated(cat.id, data.portraitUrl, hash);
-          setResults(prev => [...prev, { catId: cat.id, catName: cat.name, success: true }]);
+          setResults((prev) => [...prev, { catId: cat.id, catName: cat.name, success: true }]);
         }
       } catch (err) {
         console.error(`Failed to generate portrait for ${cat.name}:`, err);
-        setResults(prev => [...prev, {
-          catId: cat.id,
-          catName: cat.name,
-          success: false,
-          error: err instanceof Error ? err.message : 'Unknown error',
-        }]);
+        setResults((prev) => [
+          ...prev,
+          {
+            catId: cat.id,
+            catName: cat.name,
+            success: false,
+            error: err instanceof Error ? err.message : 'Unknown error',
+          },
+        ]);
 
         // Stop on rate limit or credit errors
-        if (err instanceof Error && (err.message.includes('429') || err.message.includes('402') || err.message.includes('Rate limit') || err.message.includes('credit'))) {
+        if (
+          err instanceof Error &&
+          (err.message.includes('429') ||
+            err.message.includes('402') ||
+            err.message.includes('Rate limit') ||
+            err.message.includes('credit'))
+        ) {
           break;
         }
       }
 
       // Add delay between requests to avoid rate limits
       if (i < catsToGenerate.length - 1 && !abortRef.current) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
     }
 
@@ -174,8 +206,8 @@ export function BatchPortraitGenerator({
 
   if (catsNeedingPortrait.length === 0) return null;
 
-  const successCount = results.filter(r => r.success).length;
-  const failCount = results.filter(r => !r.success).length;
+  const successCount = results.filter((r) => r.success).length;
+  const failCount = results.filter((r) => !r.success).length;
 
   return (
     <>
@@ -183,7 +215,9 @@ export function BatchPortraitGenerator({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => creditsRemaining > 0 ? setShowConfirm(true) : setShowPurchaseDialog(true)}
+          onClick={() =>
+            creditsRemaining > 0 ? setShowConfirm(true) : setShowPurchaseDialog(true)
+          }
           className="gap-2"
         >
           <Sparkles className="h-4 w-4" />
@@ -192,15 +226,15 @@ export function BatchPortraitGenerator({
             {catsNeedingPortrait.length}
           </Badge>
         </Button>
-        
+
         {/* Credits indicator */}
-        <Badge 
-          variant={creditsRemaining > 0 ? "secondary" : "outline"}
+        <Badge
+          variant={creditsRemaining > 0 ? 'secondary' : 'outline'}
           className={cn(
-            "gap-1 cursor-pointer",
-            creditsRemaining > 0 
-              ? "bg-primary/10 text-primary" 
-              : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+            'gap-1 cursor-pointer',
+            creditsRemaining > 0
+              ? 'bg-primary/10 text-primary'
+              : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
           )}
           onClick={() => setShowPurchaseDialog(true)}
         >
@@ -223,12 +257,14 @@ export function BatchPortraitGenerator({
                   <div className="flex items-center gap-2 p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-700 dark:text-orange-300">
                     <AlertTriangle className="h-4 w-4 shrink-0" />
                     <span className="text-sm">
-                      You only have {creditsRemaining} credits. {catsNeedingPortrait.length - creditsRemaining} cats will be skipped.
+                      You only have {creditsRemaining} credits.{' '}
+                      {catsNeedingPortrait.length - creditsRemaining} cats will be skipped.
                     </span>
                   </div>
                 )}
                 <p>
-                  This will generate AI portraits for <strong>{catsCanGenerate}</strong> cat{catsCanGenerate !== 1 ? 's' : ''}.
+                  This will generate AI portraits for <strong>{catsCanGenerate}</strong> cat
+                  {catsCanGenerate !== 1 ? 's' : ''}.
                 </p>
                 <div className="space-y-2 text-sm bg-muted/50 rounded-lg p-3">
                   <div className="flex items-center justify-between">
@@ -248,7 +284,8 @@ export function BatchPortraitGenerator({
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Portraits are generated one at a time to ensure quality. This may take a few minutes.
+                  Portraits are generated one at a time to ensure quality. This may take a few
+                  minutes.
                 </p>
               </div>
             </AlertDialogDescription>
@@ -296,12 +333,12 @@ export function BatchPortraitGenerator({
               <div className="flex items-center justify-center gap-4 text-sm">
                 <span className="flex items-center gap-1 text-green-600">
                   <CheckCircle2 className="h-4 w-4" />
-                  {results.filter(r => r.success).length} success
+                  {results.filter((r) => r.success).length} success
                 </span>
-                {results.some(r => !r.success) && (
+                {results.some((r) => !r.success) && (
                   <span className="flex items-center gap-1 text-destructive">
                     <XCircle className="h-4 w-4" />
-                    {results.filter(r => !r.success).length} failed
+                    {results.filter((r) => !r.success).length} failed
                   </span>
                 )}
               </div>
@@ -336,15 +373,19 @@ export function BatchPortraitGenerator({
           </DialogHeader>
           {failCount > 0 && (
             <div className="max-h-40 overflow-y-auto space-y-2">
-              {results.filter(r => !r.success).map(r => (
-                <div
-                  key={r.catId}
-                  className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 rounded px-3 py-2"
-                >
-                  <XCircle className="h-4 w-4 shrink-0" />
-                  <span>{r.catName}: {r.error}</span>
-                </div>
-              ))}
+              {results
+                .filter((r) => !r.success)
+                .map((r) => (
+                  <div
+                    key={r.catId}
+                    className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 rounded px-3 py-2"
+                  >
+                    <XCircle className="h-4 w-4 shrink-0" />
+                    <span>
+                      {r.catName}: {r.error}
+                    </span>
+                  </div>
+                ))}
             </div>
           )}
           <DialogFooter>

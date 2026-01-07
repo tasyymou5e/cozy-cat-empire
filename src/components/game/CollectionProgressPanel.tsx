@@ -28,29 +28,35 @@ interface CollectionProgressPanelProps {
   trickProgress: CollectionSetProgress;
   overallProgress: number;
   completedSets: CollectionCategory[];
-  getSetReward: (category: CollectionCategory) => { coins?: number; title?: string; bonus?: string };
+  getSetReward: (category: CollectionCategory) => {
+    coins?: number;
+    title?: string;
+    bonus?: string;
+  };
 }
 
-function CollectionSet({ 
-  title, 
-  emoji, 
-  progress, 
+function CollectionSet({
+  title,
+  emoji,
+  progress,
   isComplete,
   reward,
-}: { 
-  title: string; 
-  emoji: string; 
+}: {
+  title: string;
+  emoji: string;
   progress: CollectionSetProgress;
   isComplete: boolean;
   reward: { coins?: number; title?: string; bonus?: string };
 }) {
   const percent = (progress.collected / progress.total) * 100;
-  
+
   return (
-    <div className={cn(
-      "p-3 rounded-lg border transition-all",
-      isComplete ? "bg-green-500/10 border-green-500/30" : "bg-card"
-    )}>
+    <div
+      className={cn(
+        'p-3 rounded-lg border transition-all',
+        isComplete ? 'bg-green-500/10 border-green-500/30' : 'bg-card'
+      )}
+    >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="text-xl">{emoji}</span>
@@ -66,20 +72,22 @@ function CollectionSet({
           </span>
         )}
       </div>
-      
+
       <Progress value={percent} className="h-2 mb-3" />
-      
+
       <div className="flex flex-wrap gap-1 mb-2">
         <TooltipProvider delayDuration={100}>
-          {progress.items.map(item => (
+          {progress.items.map((item) => (
             <Tooltip key={item.id}>
               <TooltipTrigger asChild>
-                <div className={cn(
-                  "w-8 h-8 rounded-md flex items-center justify-center text-sm border transition-all",
-                  item.collected 
-                    ? "bg-primary/10 border-primary/30" 
-                    : "bg-muted/50 border-muted opacity-50"
-                )}>
+                <div
+                  className={cn(
+                    'w-8 h-8 rounded-md flex items-center justify-center text-sm border transition-all',
+                    item.collected
+                      ? 'bg-primary/10 border-primary/30'
+                      : 'bg-muted/50 border-muted opacity-50'
+                  )}
+                >
                   {item.collected ? item.emoji : <Lock className="h-3 w-3" />}
                 </div>
               </TooltipTrigger>
@@ -93,12 +101,14 @@ function CollectionSet({
           ))}
         </TooltipProvider>
       </div>
-      
+
       {/* Reward preview */}
-      <div className={cn(
-        "text-xs p-2 rounded border-dashed border",
-        isComplete ? "border-green-500/30 bg-green-500/5" : "border-muted"
-      )}>
+      <div
+        className={cn(
+          'text-xs p-2 rounded border-dashed border',
+          isComplete ? 'border-green-500/30 bg-green-500/5' : 'border-muted'
+        )}
+      >
         <span className="font-medium">Reward: </span>
         {reward.coins && <span className="text-amber-600">+{reward.coins} coins</span>}
         {reward.title && <span className="text-purple-600 ml-1">"{reward.title}" title</span>}
@@ -129,9 +139,7 @@ export function CollectionProgressPanel({
             {overallProgress}%
           </Badge>
         </div>
-        <CardDescription>
-          Complete sets to earn rewards and bonuses!
-        </CardDescription>
+        <CardDescription>Complete sets to earn rewards and bonuses!</CardDescription>
       </CardHeader>
       <CardContent>
         {/* Overall progress */}
@@ -142,45 +150,45 @@ export function CollectionProgressPanel({
           </div>
           <Progress value={overallProgress} className="h-3" />
         </div>
-        
+
         <Separator className="my-4" />
-        
+
         <ScrollArea className="h-[400px] pr-2">
           <div className="space-y-3">
-            <CollectionSet 
-              title="Breeds" 
-              emoji="🐱" 
+            <CollectionSet
+              title="Breeds"
+              emoji="🐱"
               progress={breedProgress}
               isComplete={completedSets.includes('breeds')}
               reward={getSetReward('breeds')}
             />
-            
-            <CollectionSet 
-              title="Personalities" 
-              emoji="💭" 
+
+            <CollectionSet
+              title="Personalities"
+              emoji="💭"
               progress={personalityProgress}
               isComplete={completedSets.includes('personalities')}
               reward={getSetReward('personalities')}
             />
-            
-            <CollectionSet 
-              title="Costumes" 
-              emoji="👗" 
+
+            <CollectionSet
+              title="Costumes"
+              emoji="👗"
               progress={costumeProgress}
               isComplete={completedSets.includes('costumes')}
               reward={getSetReward('costumes')}
             />
-            
-            <CollectionSet 
-              title="Tricks" 
-              emoji="🎪" 
+
+            <CollectionSet
+              title="Tricks"
+              emoji="🎪"
               progress={trickProgress}
               isComplete={completedSets.includes('tricks')}
               reward={getSetReward('tricks')}
             />
           </div>
         </ScrollArea>
-        
+
         {completedSets.length === 4 && (
           <div className="mt-4 p-3 rounded-lg bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30 text-center">
             <Sparkles className="h-6 w-6 text-amber-500 mx-auto mb-1" />

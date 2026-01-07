@@ -73,7 +73,7 @@ export function AchievementShowcase({ unlockedCount }: AchievementShowcaseProps)
           {ACHIEVEMENT_DEFS.map((achievement, index) => {
             const isUnlocked = index < unlockedCount;
             const emoji = achievementEmojis[achievement.id] || '🏅';
-            
+
             return (
               <div
                 key={achievement.id}
@@ -85,9 +85,7 @@ export function AchievementShowcase({ unlockedCount }: AchievementShowcaseProps)
               >
                 <div className="text-center">
                   <span className="text-2xl">{isUnlocked ? emoji : '🔒'}</span>
-                  <div className="font-medium text-xs mt-1 truncate">
-                    {achievement.name}
-                  </div>
+                  <div className="font-medium text-xs mt-1 truncate">{achievement.name}</div>
                   <div className="text-[10px] text-muted-foreground truncate">
                     {achievement.description}
                   </div>

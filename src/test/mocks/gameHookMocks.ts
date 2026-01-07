@@ -1,9 +1,9 @@
 /**
  * @fileoverview Mock utilities for game domain hooks
- * 
+ *
  * Provides reusable mocks and factories for testing game hooks.
  * These mocks simulate the dependencies passed to domain hooks.
- * 
+ *
  * @module test/mocks/gameHookMocks
  */
 
@@ -82,7 +82,9 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
  * Creates a mock relationship system for testing
  * Returns a minimal mock that satisfies RelationshipSystem type
  */
-export function createMockRelationshipSystem(): ReturnType<typeof import('@/hooks/useRelationships').useRelationships> {
+export function createMockRelationshipSystem(): ReturnType<
+  typeof import('@/hooks/useRelationships').useRelationships
+> {
   return {
     relationships: [] as CatRelationship[],
     events: [] as RelationshipEvent[],
@@ -99,7 +101,9 @@ export function createMockRelationshipSystem(): ReturnType<typeof import('@/hook
     checkMaintenanceStreak: vi.fn(),
     detectGroups: vi.fn(),
     getHappinessModifier: vi.fn().mockReturnValue(0),
-    getBreedingCompatibility: vi.fn().mockReturnValue({ canBreed: true, bonus: 0, message: 'Compatible' }),
+    getBreedingCompatibility: vi
+      .fn()
+      .mockReturnValue({ canBreed: true, bonus: 0, message: 'Compatible' }),
     removeCatRelationships: vi.fn(),
     loadRelationships: vi.fn(),
     getRelationshipSaveData: vi.fn().mockReturnValue({
@@ -114,18 +118,18 @@ export function createMockRelationshipSystem(): ReturnType<typeof import('@/hook
 
 /**
  * Creates mock game hook dependencies for testing
- * 
+ *
  * @param initialState - Initial game state
  * @param stateRef - Optional ref to track state changes
  * @returns Mock dependencies object
- * 
+ *
  * @example
  * ```typescript
  * const { deps, getState, getMessages } = createMockDependencies();
  * const actions = useCatManagement(deps);
- * 
+ *
  * actions.addCat('stray');
- * 
+ *
  * expect(getState().cats).toHaveLength(1);
  * expect(getMessages()).toContain('Welcome');
  * ```
@@ -135,7 +139,7 @@ export function createMockDependencies(initialState?: Partial<GameState>) {
   const messages: Array<{ msg: string; type: string }> = [];
   const sounds: string[] = [];
   let kittensBreed = 0;
-  
+
   const setState = vi.fn().mockImplementation((updater) => {
     if (typeof updater === 'function') {
       state = updater(state);
@@ -143,17 +147,17 @@ export function createMockDependencies(initialState?: Partial<GameState>) {
       state = updater;
     }
   });
-  
+
   const showMessage = vi.fn().mockImplementation((msg: string, type = 'info') => {
     messages.push({ msg, type });
   });
-  
+
   const playSound = vi.fn().mockImplementation((sound: string) => {
     sounds.push(sound);
   });
-  
+
   const onChallengeProgress = vi.fn();
-  
+
   const setKittensBreed = vi.fn().mockImplementation((updater) => {
     if (typeof updater === 'function') {
       kittensBreed = updater(kittensBreed);
@@ -161,9 +165,9 @@ export function createMockDependencies(initialState?: Partial<GameState>) {
       kittensBreed = updater;
     }
   });
-  
+
   const checkAchievements = vi.fn().mockImplementation((newState: GameState) => newState);
-  
+
   const deps: GameHookDependencies = {
     state,
     setState,
@@ -175,7 +179,7 @@ export function createMockDependencies(initialState?: Partial<GameState>) {
     setKittensBreed,
     checkAchievements,
   };
-  
+
   return {
     deps,
     /** Get current state after mutations */
@@ -201,5 +205,5 @@ export function createMockDependencies(initialState?: Partial<GameState>) {
  * Helper to wait for state updates in tests
  */
 export async function waitForStateUpdate(): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 0));
 }

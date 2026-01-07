@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 /**
  * Props for the FloatingDecorations component
@@ -14,10 +14,10 @@ interface FloatingDecorationsProps {
 
 /**
  * FloatingDecorations - Floating emoji decorations overlay
- * 
+ *
  * Renders floating, animated emoji icons as decorative elements.
  * Use as an overlay on pages for visual flair.
- * 
+ *
  * @example
  * ```tsx
  * <div className="relative">
@@ -27,16 +27,16 @@ interface FloatingDecorationsProps {
  * ```
  */
 
-export function FloatingDecorations({ 
+export function FloatingDecorations({
   variant = 'paws',
   density = 'low',
-  className 
+  className,
 }: FloatingDecorationsProps) {
   const decorations = {
     paws: ['🐾', '🐱', '🐾'],
     hearts: ['💕', '❤️', '💖'],
     stars: ['✨', '⭐', '💫'],
-    cats: ['🐱', '😺', '😸', '😻', '🐾', '🧶', '🐟', '💜']
+    cats: ['🐱', '😺', '😸', '😻', '🐾', '🧶', '🐟', '💜'],
   };
 
   const items = decorations[variant];
@@ -44,20 +44,20 @@ export function FloatingDecorations({
   const opacity = variant === 'cats' ? 'opacity-40' : 'opacity-20';
 
   return (
-    <div className={cn("absolute inset-0 overflow-hidden pointer-events-none", className)}>
+    <div className={cn('absolute inset-0 overflow-hidden pointer-events-none', className)}>
       {Array.from({ length: count }).map((_, i) => (
         <span
           key={i}
           className={cn(
-            "absolute animate-float",
+            'absolute animate-float',
             opacity,
             variant === 'cats' ? 'text-2xl md:text-3xl' : 'text-xl'
           )}
           style={{
-            left: `${5 + (i * 23) % 85}%`,
-            top: `${10 + (i * 27) % 75}%`,
+            left: `${5 + ((i * 23) % 85)}%`,
+            top: `${10 + ((i * 27) % 75)}%`,
             animationDelay: `${i * 0.7}s`,
-            animationDuration: `${4 + (i % 4)}s`
+            animationDuration: `${4 + (i % 4)}s`,
           }}
         >
           {items[i % items.length]}

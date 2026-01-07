@@ -9,12 +9,24 @@ import { checkSpecializationEligibility } from '@/types/specializations';
 import type { BattlePassReward } from '@/types/battlePass';
 
 // Lazy load panels for performance
-const HallOfFamePanel = lazy(() => import('../HallOfFamePanel').then(m => ({ default: m.HallOfFamePanel })));
-const SpecializationPanel = lazy(() => import('../SpecializationPanel').then(m => ({ default: m.SpecializationPanel })));
-const BattlePassPanel = lazy(() => import('../BattlePassPanel').then(m => ({ default: m.BattlePassPanel })));
-const AchievementsPanel = lazy(() => import('../AchievementsPanel').then(m => ({ default: m.AchievementsPanel })));
-const GraphicsSettingsPanel = lazy(() => import('../GraphicsSettingsPanel').then(m => ({ default: m.GraphicsSettingsPanel })));
-const SaveLoadPanel = lazy(() => import('../SaveLoadPanel').then(m => ({ default: m.SaveLoadPanel })));
+const HallOfFamePanel = lazy(() =>
+  import('../HallOfFamePanel').then((m) => ({ default: m.HallOfFamePanel }))
+);
+const SpecializationPanel = lazy(() =>
+  import('../SpecializationPanel').then((m) => ({ default: m.SpecializationPanel }))
+);
+const BattlePassPanel = lazy(() =>
+  import('../BattlePassPanel').then((m) => ({ default: m.BattlePassPanel }))
+);
+const AchievementsPanel = lazy(() =>
+  import('../AchievementsPanel').then((m) => ({ default: m.AchievementsPanel }))
+);
+const GraphicsSettingsPanel = lazy(() =>
+  import('../GraphicsSettingsPanel').then((m) => ({ default: m.GraphicsSettingsPanel }))
+);
+const SaveLoadPanel = lazy(() =>
+  import('../SaveLoadPanel').then((m) => ({ default: m.SaveLoadPanel }))
+);
 
 /**
  * Legacy/Hall of Fame props grouped together
@@ -39,7 +51,11 @@ interface LegacyProps {
 interface SpecializationProps {
   kittensBred: number;
   onSpecialize: (catId: string, specializationId: string) => void;
-  canSpecialize: (cat: Cat, friendshipCount: number, kittenCount: number) => ReturnType<typeof checkSpecializationEligibility>;
+  canSpecialize: (
+    cat: Cat,
+    friendshipCount: number,
+    kittenCount: number
+  ) => ReturnType<typeof checkSpecializationEligibility>;
   getSpecialization: (cat: Cat) => CatSpecializationData | undefined;
   getActiveBonuses: () => {
     showScoreBonus: number;
@@ -168,19 +184,16 @@ export function UtilityPanels({
       <TabsContent value="more" className="mt-0 space-y-4">
         <PanelErrorBoundary panelName="MorePanels">
           <Suspense fallback={<PanelSkeleton rows={3} />}>
-            <AchievementsPanel 
-              achievements={achievements}
-              currentStats={stats} 
-            />
+            <AchievementsPanel achievements={achievements} currentStats={stats} />
           </Suspense>
           <Suspense fallback={<PanelSkeleton rows={2} showHeader={false} />}>
             <GraphicsSettingsPanel />
           </Suspense>
           <Suspense fallback={<PanelSkeleton rows={2} showHeader={false} />}>
-            <SaveLoadPanel 
-              onSave={saveLoad.onSave} 
-              onLoad={saveLoad.onLoad} 
-              hasSave={saveLoad.hasSave} 
+            <SaveLoadPanel
+              onSave={saveLoad.onSave}
+              onLoad={saveLoad.onLoad}
+              hasSave={saveLoad.hasSave}
               lastSaveDay={saveLoad.lastSaveDay}
               isLoggedIn={saveLoad.isLoggedIn}
               cloudSyncing={saveLoad.cloudSyncing}
@@ -194,4 +207,11 @@ export function UtilityPanels({
 }
 
 // Re-export types for external use
-export type { UtilityPanelsProps, LegacyProps, SpecializationProps, BattlePassProps, AchievementStats, SaveLoadProps };
+export type {
+  UtilityPanelsProps,
+  LegacyProps,
+  SpecializationProps,
+  BattlePassProps,
+  AchievementStats,
+  SaveLoadProps,
+};

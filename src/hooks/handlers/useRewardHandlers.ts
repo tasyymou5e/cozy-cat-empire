@@ -1,9 +1,9 @@
 /**
  * @fileoverview Reward claiming handlers for CatFarm
- * 
+ *
  * Handles all reward-related callbacks including daily rewards,
  * milestones, objectives, wheel prizes, and battle pass rewards.
- * 
+ *
  * @module hooks/handlers/useRewardHandlers
  */
 
@@ -139,10 +139,7 @@ export function useRewardHandlers({ farmState }: RewardHandlersDeps) {
   // Handle claiming battle pass rewards
   const handleClaimBPReward = useCallback(
     (reward: BattlePassReward) => {
-      const coins =
-        typeof reward.value === 'number' && reward.type === 'coins'
-          ? reward.value
-          : 0;
+      const coins = typeof reward.value === 'number' && reward.type === 'coins' ? reward.value : 0;
       const resources: Partial<Resources> = {};
 
       if (reward.type === 'treats' && typeof reward.value === 'number') {

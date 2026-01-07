@@ -1,6 +1,6 @@
 /**
  * @fileoverview Vitest setup file
- * 
+ *
  * Configures the test environment with necessary mocks and globals.
  */
 
@@ -9,7 +9,7 @@ import { vi } from 'vitest';
 // Mock window.matchMedia for components using media queries
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,

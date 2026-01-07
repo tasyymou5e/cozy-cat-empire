@@ -15,9 +15,7 @@ interface NotificationPreferences {
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
 
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
@@ -37,7 +35,7 @@ export function usePushNotifications(userId: string | undefined) {
     gifts: true,
     trades: true,
     rewards: true,
-    challenges: true
+    challenges: true,
   });
   const [loading, setLoading] = useState(true);
 
@@ -45,7 +43,7 @@ export function usePushNotifications(userId: string | undefined) {
   useEffect(() => {
     const supported = 'serviceWorker' in navigator && 'PushManager' in window;
     setIsSupported(supported);
-    
+
     if (supported) {
       setPermission(Notification.permission);
     }
@@ -61,7 +59,7 @@ export function usePushNotifications(userId: string | undefined) {
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
-      
+
       if (subscription) {
         // Check if subscription exists in database
         const { data } = await supabase
@@ -80,7 +78,7 @@ export function usePushNotifications(userId: string | undefined) {
               gifts: prefs.gifts ?? true,
               trades: prefs.trades ?? true,
               rewards: prefs.rewards ?? true,
-              challenges: prefs.challenges ?? true
+              challenges: prefs.challenges ?? true,
             });
           }
         } else {
@@ -119,9 +117,9 @@ export function usePushNotifications(userId: string | undefined) {
     if (!isSupported || !userId || !VAPID_PUBLIC_KEY) {
       if (!VAPID_PUBLIC_KEY) {
         toast({
-          title: "Configuration Required",
-          description: "Push notifications are not configured yet.",
-          variant: "destructive"
+          title: 'Configuration Required',
+          description: 'Push notifications are not configured yet.',
+          variant: 'destructive',
         });
       }
       return false;
@@ -133,9 +131,9 @@ export function usePushNotifications(userId: string | undefined) {
 
       if (permissionResult !== 'granted') {
         toast({
-          title: "Permission Denied",
-          description: "Please enable notifications in your browser settings.",
-          variant: "destructive"
+          title: 'Permission Denied',
+          description: 'Please enable notifications in your browser settings.',
+          variant: 'destructive',
         });
         return false;
       }
@@ -146,7 +144,7 @@ export function usePushNotifications(userId: string | undefined) {
       const applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: applicationServerKey as BufferSource
+        applicationServerKey: applicationServerKey as BufferSource,
       });
 
       const key = subscription.getKey('p256dh');
@@ -175,38 +173,38 @@ export function usePushNotifications(userId: string | undefined) {
           .update({
             p256dh: keyBase64,
             auth: authBase64,
-            notification_preferences: prefsJson
+            notification_preferences: prefsJson,
           })
           .eq('id', existing.id);
 
         if (error) throw error;
       } else {
         // Insert new
-        const { error } = await supabase
-          .from('push_subscriptions')
-          .insert([{
+        const { error } = await supabase.from('push_subscriptions').insert([
+          {
             user_id: userId,
             endpoint: subscription.endpoint,
             p256dh: keyBase64,
             auth: authBase64,
-            notification_preferences: prefsJson
-          }]);
+            notification_preferences: prefsJson,
+          },
+        ]);
 
         if (error) throw error;
       }
 
       setIsSubscribed(true);
       toast({
-        title: "🔔 Notifications Enabled",
-        description: "You'll receive push notifications for important events!"
+        title: '🔔 Notifications Enabled',
+        description: "You'll receive push notifications for important events!",
       });
       return true;
     } catch (error) {
       console.error('Error subscribing:', error);
       toast({
-        title: "Subscription Failed",
-        description: "Could not enable push notifications.",
-        variant: "destructive"
+        title: 'Subscription Failed',
+        description: 'Could not enable push notifications.',
+        variant: 'destructive',
       });
       return false;
     }
@@ -233,8 +231,8 @@ export function usePushNotifications(userId: string | undefined) {
 
       setIsSubscribed(false);
       toast({
-        title: "Notifications Disabled",
-        description: "You will no longer receive push notifications."
+        title: 'Notifications Disabled',
+        description: 'You will no longer receive push notifications.',
       });
       return true;
     } catch (error) {
@@ -244,26 +242,29 @@ export function usePushNotifications(userId: string | undefined) {
   }, [isSupported, userId]);
 
   // Update preferences
-  const updatePreferences = useCallback(async (newPreferences: Partial<NotificationPreferences>) => {
-    if (!userId) return false;
+  const updatePreferences = useCallback(
+    async (newPreferences: Partial<NotificationPreferences>) => {
+      if (!userId) return false;
 
-    const updatedPreferences = { ...preferences, ...newPreferences };
+      const updatedPreferences = { ...preferences, ...newPreferences };
 
-    try {
-      const { error } = await supabase
-        .from('push_subscriptions')
-        .update({ notification_preferences: updatedPreferences })
-        .eq('user_id', userId);
+      try {
+        const { error } = await supabase
+          .from('push_subscriptions')
+          .update({ notification_preferences: updatedPreferences })
+          .eq('user_id', userId);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      setPreferences(updatedPreferences);
-      return true;
-    } catch (error) {
-      console.error('Error updating preferences:', error);
-      return false;
-    }
-  }, [userId, preferences]);
+        setPreferences(updatedPreferences);
+        return true;
+      } catch (error) {
+        console.error('Error updating preferences:', error);
+        return false;
+      }
+    },
+    [userId, preferences]
+  );
 
   // Send test notification
   const sendTestNotification = useCallback(async () => {
@@ -275,15 +276,15 @@ export function usePushNotifications(userId: string | undefined) {
           userId,
           title: '🔔 Test Notification',
           body: 'Push notifications are working!',
-          icon: '/favicon.ico'
-        }
+          icon: '/favicon.ico',
+        },
       });
 
       if (error) throw error;
 
       toast({
-        title: "Test Sent",
-        description: "Check for your push notification!"
+        title: 'Test Sent',
+        description: 'Check for your push notification!',
       });
     } catch (error) {
       console.error('Error sending test:', error);
@@ -299,6 +300,6 @@ export function usePushNotifications(userId: string | undefined) {
     subscribe,
     unsubscribe,
     updatePreferences,
-    sendTestNotification
+    sendTestNotification,
   };
 }

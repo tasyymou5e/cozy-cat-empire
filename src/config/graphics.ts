@@ -1,6 +1,6 @@
 /**
  * Graphics Configuration
- * 
+ *
  * Centralized configuration for visual settings throughout the app.
  * This makes it easy to adjust graphics, effects, and visual behavior
  * without modifying individual components.
@@ -116,7 +116,8 @@ export const TIER_VISUALS = {
   uncommon: {
     borderColor: 'border-blue-400',
     bgGradient: 'bg-gradient-to-b from-blue-50 to-card dark:from-blue-950/30',
-    glowClass: 'shadow-[0_0_12px_2px_rgba(59,130,246,0.35)] hover:shadow-[0_0_18px_4px_rgba(59,130,246,0.5)]',
+    glowClass:
+      'shadow-[0_0_12px_2px_rgba(59,130,246,0.35)] hover:shadow-[0_0_18px_4px_rgba(59,130,246,0.5)]',
     textColor: 'text-blue-400',
   },
   rare: {
@@ -133,7 +134,8 @@ export const TIER_VISUALS = {
   },
   ultraRare: {
     borderColor: 'border-pink-400',
-    bgGradient: 'bg-gradient-to-br from-purple-100 via-pink-50 to-orange-100 dark:from-purple-950/50 dark:via-pink-950/30 dark:to-orange-950/50',
+    bgGradient:
+      'bg-gradient-to-br from-purple-100 via-pink-50 to-orange-100 dark:from-purple-950/50 dark:via-pink-950/30 dark:to-orange-950/50',
     glowClass: 'animate-rainbow-glow',
     textColor: 'text-pink-400',
     gradient: 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500',

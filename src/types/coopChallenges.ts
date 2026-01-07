@@ -1,11 +1,11 @@
 /**
  * Cooperative Friend Challenges Types
- * 
+ *
  * System for two friends to work together toward shared weekly goals
  * with bonus rewards for completing challenges cooperatively.
  */
 
-export type CoopChallengeType = 
+export type CoopChallengeType =
   | 'combined_show_wins'
   | 'combined_breeding'
   | 'combined_training'

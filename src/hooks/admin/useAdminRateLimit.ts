@@ -1,9 +1,9 @@
 /**
  * @fileoverview Admin rate limiting hook
- * 
+ *
  * Provides rate limiting for sensitive admin actions to prevent abuse.
  * Tracks action counts within time windows and enforces limits.
- * 
+ *
  * @module hooks/admin/useAdminRateLimit
  */
 
@@ -30,9 +30,9 @@ export const RATE_LIMITS: Record<string, RateLimitConfig> = {
 
 /**
  * Hook to enforce rate limits on admin actions
- * 
+ *
  * @returns Rate limit checking and recording functions
- * 
+ *
  * @example
  * ```tsx
  * const { enforceRateLimit } = useAdminRateLimit();
@@ -45,7 +45,9 @@ export function useAdminRateLimit() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const checkRateLimit = async (actionType: string): Promise<{
+  const checkRateLimit = async (
+    actionType: string
+  ): Promise<{
     allowed: boolean;
     remaining: number;
     resetAt: Date | null;

@@ -25,9 +25,12 @@ const categoryStyles = {
 };
 
 const versionBgStyles = {
-  major: 'bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800',
-  feature: 'bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border-blue-200 dark:border-blue-800',
-  improvement: 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800',
+  major:
+    'bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800',
+  feature:
+    'bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border-blue-200 dark:border-blue-800',
+  improvement:
+    'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800',
 };
 
 function getNewEntries(lastSeenVersion: string | null): ChangelogEntry[] {
@@ -36,18 +39,18 @@ function getNewEntries(lastSeenVersion: string | null): ChangelogEntry[] {
     return CHANGELOG.slice(0, 2);
   }
 
-  const lastSeenIndex = CHANGELOG.findIndex(entry => entry.version === lastSeenVersion);
-  
+  const lastSeenIndex = CHANGELOG.findIndex((entry) => entry.version === lastSeenVersion);
+
   if (lastSeenIndex === -1) {
     // Version not found - show all newer than oldest known
     return CHANGELOG.slice(0, 2);
   }
-  
+
   if (lastSeenIndex === 0) {
     // Already seen latest
     return [];
   }
-  
+
   // Return all entries newer than last seen
   return CHANGELOG.slice(0, lastSeenIndex);
 }
@@ -81,9 +84,7 @@ export function WhatsNewPopup({ open, onClose }: WhatsNewPopupProps) {
             <Sparkles className="h-5 w-5 text-yellow-500 animate-pulse" />
             What's New in Cat Farm!
           </DialogTitle>
-          <DialogDescription>
-            Here's what we've added since your last visit
-          </DialogDescription>
+          <DialogDescription>Here's what we've added since your last visit</DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="flex-1 pr-4 -mr-4">
@@ -100,11 +101,9 @@ export function WhatsNewPopup({ open, onClose }: WhatsNewPopupProps) {
                   <span className="text-2xl">{entry.emoji}</span>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-foreground">
-                        {entry.title}
-                      </h3>
-                      <Badge 
-                        variant="secondary" 
+                      <h3 className="font-semibold text-foreground">{entry.title}</h3>
+                      <Badge
+                        variant="secondary"
                         className={cn('text-[10px]', categoryStyles[entry.category])}
                       >
                         v{entry.version}
@@ -122,9 +121,7 @@ export function WhatsNewPopup({ open, onClose }: WhatsNewPopupProps) {
                     >
                       <span className="text-base flex-shrink-0">{highlight.emoji}</span>
                       <div>
-                        <span className="font-medium text-foreground">
-                          {highlight.title}
-                        </span>
+                        <span className="font-medium text-foreground">{highlight.title}</span>
                         <span className="text-muted-foreground"> — {highlight.description}</span>
                       </div>
                     </div>

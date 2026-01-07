@@ -1,9 +1,9 @@
 /**
  * @fileoverview Audio control handlers for CatFarm
- * 
+ *
  * Manages sound effects and music playback, volume controls,
  * and mood-based music updates.
- * 
+ *
  * @module hooks/handlers/useAudioHandlers
  */
 
@@ -34,16 +34,13 @@ export function useAudioHandlers({ farmState }: AudioHandlersDeps) {
 
   // Fire confetti on achievements
   useEffect(() => {
-    const unlockedCount = state.achievements.filter(a => a.unlocked).length;
+    const unlockedCount = state.achievements.filter((a) => a.unlocked).length;
     if (unlockedCount > ui.lastAchievementCount && ui.lastAchievementCount > 0) {
       confetti.fireStars();
       if (ui.musicOn) {
         sound.triggerCelebration();
         ui.setCurrentMoodLabel(MOOD_LABELS.celebration);
-        setTimeout(
-          () => ui.setCurrentMoodLabel(MOOD_LABELS[sound.getCurrentMood()]),
-          10000
-        );
+        setTimeout(() => ui.setCurrentMoodLabel(MOOD_LABELS[sound.getCurrentMood()]), 10000);
       }
     }
     ui.setLastAchievementCount(unlockedCount);
@@ -56,10 +53,7 @@ export function useAudioHandlers({ farmState }: AudioHandlersDeps) {
       if (ui.musicOn) {
         sound.triggerCelebration();
         ui.setCurrentMoodLabel(MOOD_LABELS.celebration);
-        setTimeout(
-          () => ui.setCurrentMoodLabel(MOOD_LABELS[sound.getCurrentMood()]),
-          10000
-        );
+        setTimeout(() => ui.setCurrentMoodLabel(MOOD_LABELS[sound.getCurrentMood()]), 10000);
       }
     }
   }, [message, fireCelebration, ui, sound]);
@@ -75,10 +69,7 @@ export function useAudioHandlers({ farmState }: AudioHandlersDeps) {
     ) {
       sound.triggerTense();
       ui.setCurrentMoodLabel(MOOD_LABELS.tense);
-      setTimeout(
-        () => ui.setCurrentMoodLabel(MOOD_LABELS[sound.getCurrentMood()]),
-        6000
-      );
+      setTimeout(() => ui.setCurrentMoodLabel(MOOD_LABELS[sound.getCurrentMood()]), 6000);
     }
   }, [message, ui.musicOn, sound, ui]);
 

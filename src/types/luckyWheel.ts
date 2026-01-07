@@ -18,27 +18,118 @@ export interface WheelPrize {
 
 export const WHEEL_PRIZES: WheelPrize[] = [
   // Common (60%)
-  { id: 'coins_25', name: '25 Coins', emoji: '🪙', rarity: 'common', probability: 20, reward: { coins: 25 } },
-  { id: 'coins_50', name: '50 Coins', emoji: '💰', rarity: 'common', probability: 20, reward: { coins: 50 } },
-  { id: 'coins_75', name: '75 Coins', emoji: '💵', rarity: 'common', probability: 20, reward: { coins: 75 } },
-  
+  {
+    id: 'coins_25',
+    name: '25 Coins',
+    emoji: '🪙',
+    rarity: 'common',
+    probability: 20,
+    reward: { coins: 25 },
+  },
+  {
+    id: 'coins_50',
+    name: '50 Coins',
+    emoji: '💰',
+    rarity: 'common',
+    probability: 20,
+    reward: { coins: 50 },
+  },
+  {
+    id: 'coins_75',
+    name: '75 Coins',
+    emoji: '💵',
+    rarity: 'common',
+    probability: 20,
+    reward: { coins: 75 },
+  },
+
   // Uncommon (25%)
-  { id: 'food_5', name: '5 Food', emoji: '🍖', rarity: 'uncommon', probability: 8, reward: { food: 5 } },
-  { id: 'treats_5', name: '5 Treats', emoji: '🍬', rarity: 'uncommon', probability: 8, reward: { treats: 5 } },
-  { id: 'toys_3', name: '3 Toys', emoji: '🎾', rarity: 'uncommon', probability: 5, reward: { toys: 3 } },
-  { id: 'medicine_2', name: '2 Medicine', emoji: '💊', rarity: 'uncommon', probability: 4, reward: { medicine: 2 } },
-  
+  {
+    id: 'food_5',
+    name: '5 Food',
+    emoji: '🍖',
+    rarity: 'uncommon',
+    probability: 8,
+    reward: { food: 5 },
+  },
+  {
+    id: 'treats_5',
+    name: '5 Treats',
+    emoji: '🍬',
+    rarity: 'uncommon',
+    probability: 8,
+    reward: { treats: 5 },
+  },
+  {
+    id: 'toys_3',
+    name: '3 Toys',
+    emoji: '🎾',
+    rarity: 'uncommon',
+    probability: 5,
+    reward: { toys: 3 },
+  },
+  {
+    id: 'medicine_2',
+    name: '2 Medicine',
+    emoji: '💊',
+    rarity: 'uncommon',
+    probability: 4,
+    reward: { medicine: 2 },
+  },
+
   // Rare (10%)
-  { id: 'coins_150', name: '150 Coins', emoji: '💎', rarity: 'rare', probability: 5, reward: { coins: 150 } },
-  { id: 'resource_bundle', name: 'Resource Bundle', emoji: '📦', rarity: 'rare', probability: 3, reward: { food: 10, treats: 5, toys: 3 } },
-  { id: 'coins_200', name: '200 Coins', emoji: '🏆', rarity: 'rare', probability: 2, reward: { coins: 200 } },
-  
+  {
+    id: 'coins_150',
+    name: '150 Coins',
+    emoji: '💎',
+    rarity: 'rare',
+    probability: 5,
+    reward: { coins: 150 },
+  },
+  {
+    id: 'resource_bundle',
+    name: 'Resource Bundle',
+    emoji: '📦',
+    rarity: 'rare',
+    probability: 3,
+    reward: { food: 10, treats: 5, toys: 3 },
+  },
+  {
+    id: 'coins_200',
+    name: '200 Coins',
+    emoji: '🏆',
+    rarity: 'rare',
+    probability: 2,
+    reward: { coins: 200 },
+  },
+
   // Ultra Rare (4%)
-  { id: 'coins_350', name: '350 Coins', emoji: '👑', rarity: 'ultra_rare', probability: 2, reward: { coins: 350 } },
-  { id: 'mega_bundle', name: 'Mega Bundle', emoji: '🎁', rarity: 'ultra_rare', probability: 2, reward: { food: 20, medicine: 5, toys: 5, treats: 10 } },
-  
+  {
+    id: 'coins_350',
+    name: '350 Coins',
+    emoji: '👑',
+    rarity: 'ultra_rare',
+    probability: 2,
+    reward: { coins: 350 },
+  },
+  {
+    id: 'mega_bundle',
+    name: 'Mega Bundle',
+    emoji: '🎁',
+    rarity: 'ultra_rare',
+    probability: 2,
+    reward: { food: 20, medicine: 5, toys: 5, treats: 10 },
+  },
+
   // Legendary (1%)
-  { id: 'jackpot', name: 'Jackpot!', emoji: '🌟', rarity: 'legendary', probability: 1, reward: { coins: 500 } },
+  {
+    id: 'jackpot',
+    name: 'Jackpot!',
+    emoji: '🌟',
+    rarity: 'legendary',
+    probability: 1,
+    reward: { coins: 500 },
+  },
 ];
 
 export const RARITY_COLORS: Record<PrizeRarity, string> = {
@@ -67,14 +158,14 @@ export interface WheelState {
 export function selectRandomPrize(): WheelPrize {
   const random = Math.random() * 100;
   let cumulative = 0;
-  
+
   for (const prize of WHEEL_PRIZES) {
     cumulative += prize.probability;
     if (random <= cumulative) {
       return prize;
     }
   }
-  
+
   return WHEEL_PRIZES[0]; // Fallback to first prize
 }
 

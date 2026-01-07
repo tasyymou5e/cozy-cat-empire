@@ -26,11 +26,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState } from 'react';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from 'recharts';
 
 const StatCard = ({
@@ -48,9 +44,7 @@ const StatCard = ({
 }) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between pb-2">
-      <CardTitle className="text-sm font-medium text-muted-foreground">
-        {title}
-      </CardTitle>
+      <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
       <Icon className={`h-5 w-5 ${color || 'text-muted-foreground'}`} />
     </CardHeader>
     <CardContent>
@@ -77,7 +71,12 @@ const statusBadgeVariants: Record<string, 'default' | 'destructive' | 'secondary
   credits_depleted: 'outline',
 };
 
-const PIE_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
+const PIE_COLORS = [
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+];
 
 export default function AdminAIMetrics() {
   const [page, setPage] = useState(1);
@@ -89,12 +88,14 @@ export default function AdminAIMetrics() {
     refetchLogs();
   };
 
-  const statusDistribution = stats ? [
-    { name: 'Success', value: stats.successCount, color: PIE_COLORS[0] },
-    { name: 'Error', value: stats.errorCount, color: PIE_COLORS[1] },
-    { name: 'Rate Limited', value: stats.rateLimitedCount, color: PIE_COLORS[2] },
-    { name: 'Credits Depleted', value: stats.creditsDepletedCount, color: PIE_COLORS[3] },
-  ].filter(item => item.value > 0) : [];
+  const statusDistribution = stats
+    ? [
+        { name: 'Success', value: stats.successCount, color: PIE_COLORS[0] },
+        { name: 'Error', value: stats.errorCount, color: PIE_COLORS[1] },
+        { name: 'Rate Limited', value: stats.rateLimitedCount, color: PIE_COLORS[2] },
+        { name: 'Credits Depleted', value: stats.creditsDepletedCount, color: PIE_COLORS[3] },
+      ].filter((item) => item.value > 0)
+    : [];
 
   return (
     <AdminLayout>
@@ -255,7 +256,14 @@ export default function AdminAIMetrics() {
               <ExportButton
                 data={logsData.logs}
                 filename="ai-usage-logs"
-                columns={['created_at', 'function_name', 'model', 'status', 'execution_time_ms', 'error_message']}
+                columns={[
+                  'created_at',
+                  'function_name',
+                  'model',
+                  'status',
+                  'execution_time_ms',
+                  'error_message',
+                ]}
               />
             )}
           </CardHeader>
@@ -285,9 +293,7 @@ export default function AdminAIMetrics() {
                         <TableCell className="text-sm text-muted-foreground">
                           {format(new Date(log.created_at), 'MMM d, HH:mm:ss')}
                         </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {log.function_name}
-                        </TableCell>
+                        <TableCell className="font-mono text-sm">{log.function_name}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {log.model.replace('google/', '')}
                         </TableCell>
@@ -316,7 +322,7 @@ export default function AdminAIMetrics() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page === 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
@@ -324,7 +330,7 @@ export default function AdminAIMetrics() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPage(p => Math.min(logsData.totalPages, p + 1))}
+                      onClick={() => setPage((p) => Math.min(logsData.totalPages, p + 1))}
                       disabled={page >= logsData.totalPages}
                     >
                       <ChevronRight className="h-4 w-4" />

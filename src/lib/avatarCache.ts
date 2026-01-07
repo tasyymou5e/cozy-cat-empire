@@ -1,6 +1,6 @@
 /**
  * Avatar Cache System
- * 
+ *
  * Caches generated Paper.js avatars to avoid regenerating them.
  * Uses localStorage with LRU eviction policy.
  */
@@ -39,7 +39,7 @@ interface CacheIndex {
  */
 export function generateAppearanceHash(cat: Cat): string {
   const appearance = (cat.appearance || {}) as CatAppearance;
-  
+
   // Create a deterministic string from appearance properties
   const hashData = [
     cat.breed,
@@ -48,18 +48,20 @@ export function generateAppearanceHash(cat: Cat): string {
     appearance.patternColor || '',
     appearance.eyeColor || 'default',
     appearance.hairLength || 'short',
-    Array.isArray(appearance.facialFeature) ? appearance.facialFeature.sort().join(',') : (appearance.facialFeature || ''),
+    Array.isArray(appearance.facialFeature)
+      ? appearance.facialFeature.sort().join(',')
+      : appearance.facialFeature || '',
     cat.grade, // Include grade for tier-specific effects
   ].join('|');
-  
+
   // Simple hash function
   let hash = 0;
   for (let i = 0; i < hashData.length; i++) {
     const char = hashData.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32bit integer
   }
-  
+
   return `v${CACHE_VERSION}_${Math.abs(hash).toString(36)}`;
 }
 
@@ -114,7 +116,7 @@ export function getCachedAvatar(hash: string): string | null {
       if (entry.version === CACHE_VERSION) {
         // Update access time in index
         const index = getCacheIndex();
-        const entryIndex = index.entries.findIndex(e => e.hash === hash);
+        const entryIndex = index.entries.findIndex((e) => e.hash === hash);
         if (entryIndex !== -1) {
           index.entries[entryIndex].timestamp = Date.now();
           saveCacheIndex(index);
@@ -134,7 +136,7 @@ export function getCachedAvatar(hash: string): string | null {
 export function setCachedAvatar(hash: string, svgData: string): void {
   try {
     const index = getCacheIndex();
-    
+
     // Check if we need to evict old entries
     while (index.entries.length >= MAX_CACHE_ENTRIES) {
       // Find oldest entry
@@ -144,7 +146,7 @@ export function setCachedAvatar(hash: string, svgData: string): void {
         localStorage.removeItem(CACHE_PREFIX + oldest.hash);
       }
     }
-    
+
     // Store the new entry
     const key = CACHE_PREFIX + hash;
     const entry: CacheEntry = {
@@ -153,9 +155,9 @@ export function setCachedAvatar(hash: string, svgData: string): void {
       version: CACHE_VERSION,
     };
     localStorage.setItem(key, JSON.stringify(entry));
-    
+
     // Update index
-    const existingIndex = index.entries.findIndex(e => e.hash === hash);
+    const existingIndex = index.entries.findIndex((e) => e.hash === hash);
     if (existingIndex !== -1) {
       index.entries[existingIndex].timestamp = Date.now();
     } else {
@@ -189,7 +191,7 @@ export function pruneAvatarCache(maxEntries: number = MAX_CACHE_ENTRIES): number
   try {
     const index = getCacheIndex();
     let pruned = 0;
-    
+
     while (index.entries.length > maxEntries) {
       index.entries.sort((a, b) => a.timestamp - b.timestamp);
       const oldest = index.entries.shift();
@@ -198,7 +200,7 @@ export function pruneAvatarCache(maxEntries: number = MAX_CACHE_ENTRIES): number
         pruned++;
       }
     }
-    
+
     saveCacheIndex(index);
     return pruned;
   } catch (e) {
@@ -223,5 +225,5 @@ export function getAvatarCacheStats(): { entries: number; maxEntries: number } {
  */
 export function isAvatarCached(hash: string): boolean {
   const index = getCacheIndex();
-  return index.entries.some(e => e.hash === hash);
+  return index.entries.some((e) => e.hash === hash);
 }

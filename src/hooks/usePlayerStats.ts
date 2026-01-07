@@ -32,7 +32,11 @@ export interface RewardStats {
 export function usePlayerStats(userId: string | undefined) {
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [categoryRanks, setCategoryRanks] = useState<CategoryRank[]>([]);
-  const [rewardStats, setRewardStats] = useState<RewardStats>({ totalRewardsClaimed: 0, totalCoinsEarned: 0, badges: [] });
+  const [rewardStats, setRewardStats] = useState<RewardStats>({
+    totalRewardsClaimed: 0,
+    totalCoinsEarned: 0,
+    badges: [],
+  });
   const [loading, setLoading] = useState(false);
 
   const fetchStats = useCallback(async () => {
@@ -53,7 +57,13 @@ export function usePlayerStats(userId: string | undefined) {
         setStats(statsData as PlayerStats);
 
         // Fetch ranks for each category
-        const categories: LeaderboardCategory[] = ['wins', 'cats', 'breeding', 'wealth', 'achievements'];
+        const categories: LeaderboardCategory[] = [
+          'wins',
+          'cats',
+          'breeding',
+          'wealth',
+          'achievements',
+        ];
         const categoryColumns: Record<LeaderboardCategory, string> = {
           wins: 'total_show_wins',
           cats: 'total_cats_owned',
@@ -79,7 +89,9 @@ export function usePlayerStats(userId: string | undefined) {
             .from('player_stats')
             .select('*', { count: 'exact', head: true });
 
-          const percentile = totalCount ? Math.round(((totalCount - rank + 1) / totalCount) * 100) : 0;
+          const percentile = totalCount
+            ? Math.round(((totalCount - rank + 1) / totalCount) * 100)
+            : 0;
 
           return {
             category: cat,
@@ -102,8 +114,10 @@ export function usePlayerStats(userId: string | undefined) {
 
       if (rewardsData) {
         const totalCoins = rewardsData.reduce((sum, r) => sum + (r.reward_coins || 0), 0);
-        const badges = [...new Set(rewardsData.map(r => r.reward_badge).filter(Boolean))] as string[];
-        
+        const badges = [
+          ...new Set(rewardsData.map((r) => r.reward_badge).filter(Boolean)),
+        ] as string[];
+
         setRewardStats({
           totalRewardsClaimed: rewardsData.length,
           totalCoinsEarned: totalCoins,

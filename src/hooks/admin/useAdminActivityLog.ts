@@ -1,10 +1,10 @@
 /**
  * @fileoverview Admin activity logging hook
- * 
+ *
  * Provides functionality to log admin actions and auth attempts
  * for audit trail and security monitoring. All admin actions should
  * be logged using this hook for accountability and debugging.
- * 
+ *
  * @module hooks/admin/useAdminActivityLog
  */
 
@@ -14,7 +14,7 @@ import { Json } from '@/integrations/supabase/types';
 
 /**
  * Parameters for logging an admin activity
- * 
+ *
  * @interface LogActivityParams
  * @property {string} actionType - Category of action (e.g., 'role_change', 'user_suspend', 'config_update')
  * @property {string} actionDescription - Human-readable description of what was done
@@ -34,7 +34,7 @@ interface LogActivityParams {
 
 /**
  * Parameters for logging an authentication attempt
- * 
+ *
  * @interface LogAuthAttemptParams
  * @property {string} email - Email address used in the attempt
  * @property {'admin_login' | 'admin_login_failed' | 'access_denied'} attemptType - Type of auth attempt
@@ -54,21 +54,21 @@ interface LogAuthAttemptParams {
 
 /**
  * Hook to log admin activities for audit trail
- * 
+ *
  * Provides a `logActivity` function that records admin actions to the
  * `admin_activity_log` table. This is essential for security auditing,
  * debugging issues, and maintaining accountability for admin operations.
- * 
+ *
  * @returns {Object} Object containing the logActivity function
- * 
+ *
  * @example
  * ```tsx
  * function UserManagement() {
  *   const { logActivity } = useAdminActivityLog();
- * 
+ *
  *   const handleRoleChange = async (userId: string, newRole: string) => {
  *     await updateUserRole(userId, newRole);
- *     
+ *
  *     await logActivity({
  *       actionType: 'role_change',
  *       actionDescription: `Changed user role to ${newRole}`,
@@ -76,21 +76,21 @@ interface LogAuthAttemptParams {
  *       metadata: { newRole, previousRole: 'user' }
  *     });
  *   };
- * 
+ *
  *   return <RoleChangeUI onRoleChange={handleRoleChange} />;
  * }
  * ```
- * 
+ *
  * @example
  * ```tsx
  * // Logging a user suspension
  * const { logActivity } = useAdminActivityLog();
- * 
+ *
  * await logActivity({
  *   actionType: 'user_suspend',
  *   actionDescription: 'Suspended user for policy violation',
  *   targetUserId: suspendedUserId,
- *   metadata: { 
+ *   metadata: {
  *     reason: 'Spam behavior',
  *     duration: '7 days'
  *   }
@@ -102,10 +102,10 @@ export function useAdminActivityLog() {
 
   /**
    * Logs an admin action to the activity log
-   * 
+   *
    * Records the action with the current admin's user ID, timestamp,
    * user agent, and any additional context provided.
-   * 
+   *
    * @param {LogActivityParams} params - Activity details to log
    * @returns {Promise<void>}
    */
@@ -120,16 +120,18 @@ export function useAdminActivityLog() {
     if (!user) return;
 
     try {
-      const { error } = await supabase.from('admin_activity_log').insert([{
-        admin_user_id: user.id,
-        action_type: actionType,
-        action_description: actionDescription,
-        target_user_id: targetUserId,
-        target_table: targetTable,
-        target_record_id: targetRecordId,
-        user_agent: navigator.userAgent,
-        metadata: metadata as Json,
-      }]);
+      const { error } = await supabase.from('admin_activity_log').insert([
+        {
+          admin_user_id: user.id,
+          action_type: actionType,
+          action_description: actionDescription,
+          target_user_id: targetUserId,
+          target_table: targetTable,
+          target_record_id: targetRecordId,
+          user_agent: navigator.userAgent,
+          metadata: metadata as Json,
+        },
+      ]);
 
       if (error) {
         console.error('Failed to log admin activity:', error);
@@ -139,29 +141,29 @@ export function useAdminActivityLog() {
     }
   };
 
-  return { 
+  return {
     /** Function to log admin activities */
-    logActivity 
+    logActivity,
   };
 }
 
 /**
  * Standalone function to log authentication attempts
- * 
+ *
  * Can be used without the hook context (e.g., in auth pages before
  * a user is fully authenticated). Records login attempts, failures,
  * and access denied events for security monitoring.
- * 
+ *
  * @param {LogAuthAttemptParams} params - Auth attempt details to log
  * @returns {Promise<void>}
- * 
+ *
  * @example
  * ```tsx
  * // In AdminAuth.tsx login handler
  * const handleLogin = async (email: string, password: string) => {
  *   try {
  *     const { user } = await signIn(email, password);
- *     
+ *
  *     await logAuthAttempt({
  *       email,
  *       attemptType: 'admin_login',
@@ -178,7 +180,7 @@ export function useAdminActivityLog() {
  *   }
  * };
  * ```
- * 
+ *
  * @example
  * ```tsx
  * // Logging an access denied event
@@ -194,15 +196,17 @@ export function useAdminActivityLog() {
  */
 export async function logAuthAttempt(params: LogAuthAttemptParams): Promise<void> {
   try {
-    const { error } = await supabase.from('auth_attempts_log').insert([{
-      email: params.email,
-      attempt_type: params.attemptType,
-      success: params.success,
-      user_id: params.userId,
-      error_message: params.errorMessage,
-      user_agent: navigator.userAgent,
-      metadata: (params.metadata || {}) as Json,
-    }]);
+    const { error } = await supabase.from('auth_attempts_log').insert([
+      {
+        email: params.email,
+        attempt_type: params.attemptType,
+        success: params.success,
+        user_id: params.userId,
+        error_message: params.errorMessage,
+        user_agent: navigator.userAgent,
+        metadata: (params.metadata || {}) as Json,
+      },
+    ]);
 
     if (error) {
       console.error('Failed to log auth attempt:', error);

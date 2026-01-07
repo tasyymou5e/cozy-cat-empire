@@ -20,7 +20,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
     subscribe,
     unsubscribe,
     updatePreferences,
-    sendTestNotification
+    sendTestNotification,
   } = usePushNotifications(userId);
 
   if (!isSupported) {
@@ -49,9 +49,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
             <Bell className="h-5 w-5 text-primary" />
             Push Notifications
           </CardTitle>
-          {permission === 'denied' && (
-            <Badge variant="destructive">Blocked</Badge>
-          )}
+          {permission === 'denied' && <Badge variant="destructive">Blocked</Badge>}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -70,7 +68,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
               </div>
               <Switch
                 checked={isSubscribed}
-                onCheckedChange={(checked) => checked ? subscribe() : unsubscribe()}
+                onCheckedChange={(checked) => (checked ? subscribe() : unsubscribe())}
                 disabled={loading}
               />
             </div>
@@ -79,14 +77,12 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
               <>
                 <div className="border-t border-border/50 pt-4 space-y-3">
                   <p className="text-sm font-medium">Notification Types</p>
-                  
+
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-normal">Friend Requests</Label>
                     <Switch
                       checked={preferences.friend_requests}
-                      onCheckedChange={(checked) => 
-                        updatePreferences({ friend_requests: checked })
-                      }
+                      onCheckedChange={(checked) => updatePreferences({ friend_requests: checked })}
                     />
                   </div>
 
@@ -94,9 +90,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
                     <Label className="text-sm font-normal">Cat Gifts</Label>
                     <Switch
                       checked={preferences.gifts}
-                      onCheckedChange={(checked) => 
-                        updatePreferences({ gifts: checked })
-                      }
+                      onCheckedChange={(checked) => updatePreferences({ gifts: checked })}
                     />
                   </div>
 
@@ -104,9 +98,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
                     <Label className="text-sm font-normal">Trade Offers</Label>
                     <Switch
                       checked={preferences.trades}
-                      onCheckedChange={(checked) => 
-                        updatePreferences({ trades: checked })
-                      }
+                      onCheckedChange={(checked) => updatePreferences({ trades: checked })}
                     />
                   </div>
 
@@ -114,9 +106,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
                     <Label className="text-sm font-normal">Leaderboard Rewards</Label>
                     <Switch
                       checked={preferences.rewards}
-                      onCheckedChange={(checked) => 
-                        updatePreferences({ rewards: checked })
-                      }
+                      onCheckedChange={(checked) => updatePreferences({ rewards: checked })}
                     />
                   </div>
 
@@ -124,9 +114,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
                     <Label className="text-sm font-normal">Challenge Completions</Label>
                     <Switch
                       checked={preferences.challenges}
-                      onCheckedChange={(checked) => 
-                        updatePreferences({ challenges: checked })
-                      }
+                      onCheckedChange={(checked) => updatePreferences({ challenges: checked })}
                     />
                   </div>
                 </div>

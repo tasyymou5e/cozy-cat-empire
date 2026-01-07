@@ -3,12 +3,27 @@ import { Cat } from '@/types/game';
 import { CatVisual } from './CatVisual';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Loader2, RefreshCw, AlertCircle, AlertTriangle, Star, Crown, Trophy, Coins, ShoppingCart } from 'lucide-react';
+import {
+  Sparkles,
+  Loader2,
+  RefreshCw,
+  AlertCircle,
+  AlertTriangle,
+  Star,
+  Crown,
+  Trophy,
+  Coins,
+  ShoppingCart,
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { getGradeTier, getGradeStars } from '@/types/grading';
 import { getCostumeById } from '@/types/costumes';
-import { isPortraitOutdated, computeAppearanceHash, PORTRAIT_CREDIT_COST } from '@/lib/portraitUtils';
+import {
+  isPortraitOutdated,
+  computeAppearanceHash,
+  PORTRAIT_CREDIT_COST,
+} from '@/lib/portraitUtils';
 import { usePortraitCredits } from '@/hooks/usePortraitCredits';
 import { PortraitPurchaseDialog } from './PortraitPurchaseDialog';
 import {
@@ -47,9 +62,9 @@ interface CatPortraitProps {
 
 type PortraitState = 'idle' | 'generating' | 'complete' | 'error';
 
-export function CatPortrait({ 
-  cat, 
-  equippedCostumeId, 
+export function CatPortrait({
+  cat,
+  equippedCostumeId,
   onPortraitGenerated,
   currentMoney = 0,
   onMoneyChange,
@@ -60,7 +75,14 @@ export function CatPortrait({
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
 
-  const { credits, packageConfig, isLoading: creditsLoading, isPurchasing, purchaseCredits, refetch: refetchCredits } = usePortraitCredits();
+  const {
+    credits,
+    packageConfig,
+    isLoading: creditsLoading,
+    isPurchasing,
+    purchaseCredits,
+    refetch: refetchCredits,
+  } = usePortraitCredits();
 
   // Check if portrait is outdated using appearance hash
   const isOutdated = useMemo(() => {
@@ -90,12 +112,14 @@ export function CatPortrait({
             breed: cat.breed,
             personality: cat.personality,
             appearance: cat.appearance,
-            costume: costume ? {
-              id: costume.id,
-              name: costume.name,
-              emoji: costume.emoji,
-              category: costume.category,
-            } : undefined,
+            costume: costume
+              ? {
+                  id: costume.id,
+                  name: costume.name,
+                  emoji: costume.emoji,
+                  category: costume.category,
+                }
+              : undefined,
           },
         },
       });
@@ -127,14 +151,17 @@ export function CatPortrait({
     } catch (err) {
       console.error('Portrait generation error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate portrait';
-      
+
       // Check for insufficient credits in error message
-      if (errorMessage.includes('insufficient_credits') || errorMessage.includes('portrait credits')) {
+      if (
+        errorMessage.includes('insufficient_credits') ||
+        errorMessage.includes('portrait credits')
+      ) {
         setShowPurchaseDialog(true);
         setState('idle');
         return;
       }
-      
+
       setError(errorMessage);
       setState('error');
     }
@@ -173,7 +200,8 @@ export function CatPortrait({
   };
 
   const tierGradeColors = {
-    ultraRare: 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent',
+    ultraRare:
+      'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent',
     veryRare: 'text-yellow-300',
     rare: 'text-purple-300',
     uncommon: 'text-blue-300',
@@ -185,13 +213,13 @@ export function CatPortrait({
       {/* Credits Badge */}
       {!creditsLoading && (
         <div className="absolute -top-2 -right-2 z-30">
-          <Badge 
-            variant={hasCredits ? "secondary" : "outline"} 
+          <Badge
+            variant={hasCredits ? 'secondary' : 'outline'}
             className={cn(
-              "text-xs gap-1 cursor-pointer transition-colors",
-              hasCredits 
-                ? "bg-primary/10 text-primary hover:bg-primary/20" 
-                : "bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-300"
+              'text-xs gap-1 cursor-pointer transition-colors',
+              hasCredits
+                ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                : 'bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-300'
             )}
             onClick={() => setShowPurchaseDialog(true)}
           >
@@ -202,18 +230,21 @@ export function CatPortrait({
       )}
 
       {/* Portrait Container */}
-      <div className={cn(
-        "relative w-48 h-48 rounded-2xl overflow-hidden",
-        "bg-gradient-to-br from-muted/50 to-muted",
-        "border-4 shadow-lg",
-        tier === 'ultraRare' && "border-pink-400 animate-rainbow",
-        tier === 'veryRare' && "border-yellow-400 animate-grade-glow [--grade-color:hsl(45,90%,50%)]",
-        tier === 'rare' && "border-purple-400",
-        tier === 'uncommon' && "border-blue-400",
-        tier === 'common' && "border-primary/20",
-        state === 'generating' && "animate-pulse",
-        isOutdated && "ring-2 ring-orange-400 ring-offset-2 ring-offset-background"
-      )}>
+      <div
+        className={cn(
+          'relative w-48 h-48 rounded-2xl overflow-hidden',
+          'bg-gradient-to-br from-muted/50 to-muted',
+          'border-4 shadow-lg',
+          tier === 'ultraRare' && 'border-pink-400 animate-rainbow',
+          tier === 'veryRare' &&
+            'border-yellow-400 animate-grade-glow [--grade-color:hsl(45,90%,50%)]',
+          tier === 'rare' && 'border-purple-400',
+          tier === 'uncommon' && 'border-blue-400',
+          tier === 'common' && 'border-primary/20',
+          state === 'generating' && 'animate-pulse',
+          isOutdated && 'ring-2 ring-orange-400 ring-offset-2 ring-offset-background'
+        )}
+      >
         {/* Outdated Badge */}
         {isOutdated && state === 'complete' && (
           <div className="absolute top-2 left-2 z-20">
@@ -230,25 +261,24 @@ export function CatPortrait({
               {/* Grade Badge with Tier Icon */}
               <div className="flex items-center gap-1.5">
                 <TierIcon tier={tier} className="h-5 w-5 drop-shadow-lg" />
-                <span className={cn(
-                  "font-extrabold text-lg drop-shadow-lg",
-                  tierGradeColors[tier]
-                )}>
+                <span
+                  className={cn('font-extrabold text-lg drop-shadow-lg', tierGradeColors[tier])}
+                >
                   {cat.grade}
                 </span>
               </div>
-              
+
               {/* Stars Display */}
               {stars > 0 && (
                 <div className="flex gap-0.5">
                   {Array.from({ length: stars }).map((_, i) => (
-                    <Star 
-                      key={i} 
+                    <Star
+                      key={i}
                       className={cn(
-                        "h-4 w-4 drop-shadow-lg",
+                        'h-4 w-4 drop-shadow-lg',
                         tierStarColors[tier],
-                        tier === 'ultraRare' && "animate-star-spin"
-                      )} 
+                        tier === 'ultraRare' && 'animate-star-spin'
+                      )}
                     />
                   ))}
                 </div>
@@ -283,9 +313,7 @@ export function CatPortrait({
         {state === 'generating' && (
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
-            <p className="text-sm text-muted-foreground font-medium">
-              Creating portrait...
-            </p>
+            <p className="text-sm text-muted-foreground font-medium">Creating portrait...</p>
           </div>
         )}
 
@@ -329,8 +357,7 @@ export function CatPortrait({
               <ShoppingCart className="w-4 h-4" />
               Buy {packageConfig.portraits} Portraits
               <Badge variant="secondary" className="ml-1 gap-1 text-xs">
-                <Coins className="w-3 h-3" />
-                ${packageConfig.cost.toLocaleString()}
+                <Coins className="w-3 h-3" />${packageConfig.cost.toLocaleString()}
               </Badge>
             </Button>
           )}
@@ -338,12 +365,7 @@ export function CatPortrait({
       )}
 
       {state === 'error' && (
-        <Button
-          onClick={handleGenerateClick}
-          variant="outline"
-          size="sm"
-          className="gap-2"
-        >
+        <Button onClick={handleGenerateClick} variant="outline" size="sm" className="gap-2">
           <RefreshCw className="w-4 h-4" />
           Try Again
         </Button>
@@ -398,15 +420,11 @@ export function CatPortrait({
                     <Sparkles className="w-5 h-5 text-primary" />
                     <span className="font-medium">Cost:</span>
                   </div>
-                  <Badge variant="secondary">
-                    {PORTRAIT_CREDIT_COST} credit
-                  </Badge>
+                  <Badge variant="secondary">{PORTRAIT_CREDIT_COST} credit</Badge>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <span className="text-muted-foreground">Your credits:</span>
-                  <span className="font-bold text-primary">
-                    {credits?.creditsRemaining || 0}
-                  </span>
+                  <span className="font-bold text-primary">{credits?.creditsRemaining || 0}</span>
                 </div>
                 {isOutdated && (
                   <p className="text-sm text-orange-600 dark:text-orange-400">
@@ -418,10 +436,12 @@ export function CatPortrait({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              setShowConfirmDialog(false);
-              generatePortrait();
-            }}>
+            <AlertDialogAction
+              onClick={() => {
+                setShowConfirmDialog(false);
+                generatePortrait();
+              }}
+            >
               <Sparkles className="w-4 h-4 mr-2" />
               Generate Portrait
             </AlertDialogAction>

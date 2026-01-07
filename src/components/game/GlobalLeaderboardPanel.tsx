@@ -1,5 +1,13 @@
 import { useMemo } from 'react';
-import { useGlobalLeaderboard, LeaderboardCategory, LeaderboardEntry, LeaderboardViewMode, LeaderboardTimePeriod, RankChange, ScrollMode } from '@/hooks/useGlobalLeaderboard';
+import {
+  useGlobalLeaderboard,
+  LeaderboardCategory,
+  LeaderboardEntry,
+  LeaderboardViewMode,
+  LeaderboardTimePeriod,
+  RankChange,
+  ScrollMode,
+} from '@/hooks/useGlobalLeaderboard';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useFriends } from '@/hooks/useFriends';
 import { useLeaderboardRewards } from '@/hooks/useLeaderboardRewards';
@@ -7,7 +15,26 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Trophy, Cat, Heart, Coins, Award, RefreshCw, Globe, Users, ArrowUp, ArrowDown, Sparkles, Calendar, Gift, ChevronLeft, ChevronRight, Loader2, Rows3, List } from 'lucide-react';
+import {
+  Trophy,
+  Cat,
+  Heart,
+  Coins,
+  Award,
+  RefreshCw,
+  Globe,
+  Users,
+  ArrowUp,
+  ArrowDown,
+  Sparkles,
+  Calendar,
+  Gift,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Rows3,
+  List,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LeaderboardHistoryChart } from './LeaderboardHistoryChart';
@@ -17,7 +44,10 @@ interface GlobalLeaderboardPanelProps {
   userId: string | undefined;
 }
 
-const categoryConfig: Record<LeaderboardCategory, { label: string; icon: typeof Trophy; scoreKey: keyof LeaderboardEntry }> = {
+const categoryConfig: Record<
+  LeaderboardCategory,
+  { label: string; icon: typeof Trophy; scoreKey: keyof LeaderboardEntry }
+> = {
   wins: { label: 'Show Wins', icon: Trophy, scoreKey: 'total_show_wins' },
   cats: { label: 'Cats Owned', icon: Cat, scoreKey: 'total_cats_owned' },
   breeding: { label: 'Kittens Bred', icon: Heart, scoreKey: 'total_kittens_bred' },
@@ -47,16 +77,14 @@ function RankChangeIndicator({ rankChange }: { rankChange?: RankChange }) {
   if (rankChange.direction === 'up') {
     return (
       <span className="inline-flex items-center gap-0.5 text-xs font-medium text-green-500 animate-fade-in">
-        <ArrowUp className="h-3 w-3" />
-        +{rankChange.amount}
+        <ArrowUp className="h-3 w-3" />+{rankChange.amount}
       </span>
     );
   }
 
   return (
     <span className="inline-flex items-center gap-0.5 text-xs font-medium text-red-500 animate-fade-in">
-      <ArrowDown className="h-3 w-3" />
-      -{rankChange.amount}
+      <ArrowDown className="h-3 w-3" />-{rankChange.amount}
     </span>
   );
 }
@@ -64,9 +92,9 @@ function RankChangeIndicator({ rankChange }: { rankChange?: RankChange }) {
 export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) {
   const { friends } = useFriends(userId);
   // Memoize friendIds to prevent unnecessary re-fetches
-  const friendIds = useMemo(() => friends.map(f => f.id), [friends]);
+  const friendIds = useMemo(() => friends.map((f) => f.id), [friends]);
   const { unclaimedCount } = useLeaderboardRewards(userId);
-  
+
   const {
     leaderboard,
     userRank,
@@ -113,7 +141,11 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
     } else {
       pages.push(1);
       if (currentPage > 3) pages.push('ellipsis');
-      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      for (
+        let i = Math.max(2, currentPage - 1);
+        i <= Math.min(totalPages - 1, currentPage + 1);
+        i++
+      ) {
         pages.push(i);
       }
       if (currentPage < totalPages - 2) pages.push('ellipsis');
@@ -156,7 +188,8 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
       return (
         <>
           <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          No activity {timePeriod === 'daily' ? 'today' : timePeriod === 'weekly' ? 'this week' : 'this month'}.
+          No activity{' '}
+          {timePeriod === 'daily' ? 'today' : timePeriod === 'weekly' ? 'this week' : 'this month'}.
           <br />
           <span className="text-sm">Play to appear on the leaderboard!</span>
         </>
@@ -177,11 +210,7 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            {viewMode === 'global' ? (
-              <Globe className="h-5 w-5" />
-            ) : (
-              <Users className="h-5 w-5" />
-            )}
+            {viewMode === 'global' ? <Globe className="h-5 w-5" /> : <Users className="h-5 w-5" />}
             {viewMode === 'global' ? 'Global Leaderboard' : 'Friends Leaderboard'}
             {isLive && (
               <span className="flex items-center gap-1 text-xs font-normal text-green-600">
@@ -201,10 +230,10 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
               </Badge>
             )}
             {userId && (
-              <LeaderboardHistoryChart 
-                userId={userId} 
-                category={category} 
-                currentRank={userRank || undefined} 
+              <LeaderboardHistoryChart
+                userId={userId}
+                category={category}
+                currentRank={userRank || undefined}
               />
             )}
             <Button variant="ghost" size="icon" onClick={fetchLeaderboard} disabled={loading}>
@@ -212,7 +241,7 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
             </Button>
           </div>
         </div>
-        
+
         {/* View Mode, Scroll Mode, and Time Period Toggles */}
         <div className="mt-2 flex flex-wrap gap-2">
           <TooltipProvider>
@@ -226,12 +255,12 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
                 <Globe className="h-4 w-4" />
                 <span className="hidden sm:inline">Global</span>
               </ToggleGroupItem>
-              <ToggleGroupItem 
-                value="friends" 
-                aria-label="Friends leaderboard" 
+              <ToggleGroupItem
+                value="friends"
+                aria-label="Friends leaderboard"
                 className="gap-1"
                 disabled={!userId}
-                title={!userId ? "Log in to view friends leaderboard" : undefined}
+                title={!userId ? 'Log in to view friends leaderboard' : undefined}
               >
                 <Users className="h-4 w-4" />
                 <span className="hidden sm:inline">Friends</span>
@@ -246,10 +275,20 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
             onValueChange={(v) => v && setScrollMode(v as ScrollMode)}
             className="justify-start"
           >
-            <ToggleGroupItem value="pagination" aria-label="Pagination mode" className="gap-1" title="Pagination">
+            <ToggleGroupItem
+              value="pagination"
+              aria-label="Pagination mode"
+              className="gap-1"
+              title="Pagination"
+            >
               <Rows3 className="h-4 w-4" />
             </ToggleGroupItem>
-            <ToggleGroupItem value="infinite" aria-label="Infinite scroll mode" className="gap-1" title="Infinite Scroll">
+            <ToggleGroupItem
+              value="infinite"
+              aria-label="Infinite scroll mode"
+              className="gap-1"
+              title="Infinite Scroll"
+            >
               <List className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
@@ -288,13 +327,12 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
                   Loading leaderboard...
                 </div>
               ) : displayEntries.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  {getEmptyMessage()}
-                </div>
+                <div className="text-center py-8 text-muted-foreground">{getEmptyMessage()}</div>
               ) : (
                 <div className="space-y-2">
                   {displayEntries.map((entry, index) => {
-                    const isLastElement = scrollMode === 'infinite' && index === displayEntries.length - 1;
+                    const isLastElement =
+                      scrollMode === 'infinite' && index === displayEntries.length - 1;
                     return (
                       <div
                         key={entry.id}
@@ -306,9 +344,7 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
                         } ${entry.rankChange?.direction === 'up' ? 'animate-fade-in' : ''}`}
                         style={{ animationDelay: `${index * 50}ms` }}
                       >
-                        <div className="w-12 text-center">
-                          {getRankBadge(entry.rank || 0)}
-                        </div>
+                        <div className="w-12 text-center">{getRankBadge(entry.rank || 0)}</div>
                         <div className="text-2xl">{entry.avatar_emoji}</div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium truncate flex items-center gap-2">
@@ -349,7 +385,8 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
                 <div className="mt-4 pt-4 border-t">
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">
-                      Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalCount)} of {totalCount} players
+                      Showing {(currentPage - 1) * pageSize + 1}-
+                      {Math.min(currentPage * pageSize, totalCount)} of {totalCount} players
                     </div>
                     <div className="flex items-center gap-1">
                       <Button
@@ -360,9 +397,11 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
                       >
                         <ChevronLeft className="h-4 w-4" />
                       </Button>
-                      {getPageNumbers().map((page, idx) => 
+                      {getPageNumbers().map((page, idx) =>
                         page === 'ellipsis' ? (
-                          <span key={`ellipsis-${idx}`} className="px-2 text-muted-foreground">...</span>
+                          <span key={`ellipsis-${idx}`} className="px-2 text-muted-foreground">
+                            ...
+                          </span>
                         ) : (
                           <Button
                             key={page}
@@ -389,38 +428,41 @@ export function GlobalLeaderboardPanel({ userId }: GlobalLeaderboardPanelProps) 
               )}
 
               {/* User's rank if not visible (global only) */}
-              {viewMode === 'global' && userStats && userRank && !displayEntries.find(e => e.user_id === userId) && (
-                <div className="mt-4 pt-4 border-t">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">Your Ranking</span>
-                    {scrollMode === 'pagination' && userRank > pageSize && (
-                      <Button 
-                        variant="link" 
-                        size="sm" 
-                        className="text-xs h-auto p-0"
-                        onClick={() => goToPage(Math.ceil(userRank / pageSize))}
-                      >
-                        Jump to my rank
-                      </Button>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 p-2 rounded-lg bg-primary/10 border border-primary/30">
-                    <div className="w-12 text-center">
-                      <Badge variant="outline">#{userRank}</Badge>
+              {viewMode === 'global' &&
+                userStats &&
+                userRank &&
+                !displayEntries.find((e) => e.user_id === userId) && (
+                  <div className="mt-4 pt-4 border-t">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-muted-foreground">Your Ranking</span>
+                      {scrollMode === 'pagination' && userRank > pageSize && (
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="text-xs h-auto p-0"
+                          onClick={() => goToPage(Math.ceil(userRank / pageSize))}
+                        >
+                          Jump to my rank
+                        </Button>
+                      )}
                     </div>
-                    <div className="text-2xl">{userStats.avatar_emoji}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">
-                        {userStats.display_name || 'Anonymous Player'}
-                        <span className="text-xs text-primary ml-2">(You)</span>
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-primary/10 border border-primary/30">
+                      <div className="w-12 text-center">
+                        <Badge variant="outline">#{userRank}</Badge>
+                      </div>
+                      <div className="text-2xl">{userStats.avatar_emoji}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">
+                          {userStats.display_name || 'Anonymous Player'}
+                          <span className="text-xs text-primary ml-2">(You)</span>
+                        </div>
+                      </div>
+                      <div className="text-right font-bold text-lg">
+                        {(userStats[config.scoreKey] as number).toLocaleString()}
                       </div>
                     </div>
-                    <div className="text-right font-bold text-lg">
-                      {(userStats[config.scoreKey] as number).toLocaleString()}
-                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {!userId && (
                 <div className="mt-4 p-3 bg-muted/50 rounded-lg text-center text-sm text-muted-foreground">

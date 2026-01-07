@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Cat } from '@/types/game';
-import { 
-  CatRelationship, 
-  getDecayInfo, 
+import {
+  CatRelationship,
+  getDecayInfo,
   getDecayWarningColor,
   getDecayWarningText,
   getRelationshipEmoji,
@@ -30,15 +30,15 @@ interface RelationshipWithDecay extends CatRelationship {
   decayInfo: ReturnType<typeof getDecayInfo>;
 }
 
-function RelationshipSection({ 
-  title, 
+function RelationshipSection({
+  title,
   icon: Icon,
-  items, 
-  cats, 
+  items,
+  cats,
   catCostumes,
   colorClass,
   onQuickSocialize,
-}: { 
+}: {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   items: RelationshipWithDecay[];
@@ -48,22 +48,22 @@ function RelationshipSection({
   onQuickSocialize?: (cat1Id: string, cat2Id: string) => void;
 }) {
   const { toast } = useToast();
-  const getCatName = (catId: string) => cats.find(c => c.id === catId)?.name || 'Unknown';
-  const getCat = (catId: string) => cats.find(c => c.id === catId);
-  
+  const getCatName = (catId: string) => cats.find((c) => c.id === catId)?.name || 'Unknown';
+  const getCat = (catId: string) => cats.find((c) => c.id === catId);
+
   if (items.length === 0) return null;
 
   const handleQuickSocialize = (rel: RelationshipWithDecay) => {
     if (onQuickSocialize) {
       onQuickSocialize(rel.catId1, rel.catId2);
       toast({
-        title: "🤝 Quick Socialize",
+        title: '🤝 Quick Socialize',
         description: `${getCatName(rel.catId1)} and ${getCatName(rel.catId2)} are ready to bond!`,
         duration: 3000,
       });
     }
   };
-  
+
   return (
     <div className="mb-6">
       <div className={`flex items-center gap-2 mb-3 ${colorClass}`}>
@@ -74,30 +74,37 @@ function RelationshipSection({
         </Badge>
       </div>
       <div className="space-y-2">
-        {items.map(rel => {
+        {items.map((rel) => {
           const cat1 = getCat(rel.catId1);
           const cat2 = getCat(rel.catId2);
           const showQuickSocialize = onQuickSocialize && rel.decayInfo.daysSinceInteraction >= 2;
-          
+
           return (
-            <div 
+            <div
               key={`${rel.catId1}-${rel.catId2}`}
               className={`p-3 rounded-lg border ${getDecayWarningColor(rel.decayInfo.decayLevel) || 'bg-secondary/30 border-border'}`}
             >
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  {cat1 && <CatVisual cat={cat1} size="xs" equippedCostumeId={catCostumes?.[rel.catId1]} />}
+                  {cat1 && (
+                    <CatVisual cat={cat1} size="xs" equippedCostumeId={catCostumes?.[rel.catId1]} />
+                  )}
                   <span className="font-medium text-sm truncate">{getCatName(rel.catId1)}</span>
                 </div>
                 <span className="text-lg">{getRelationshipEmoji(rel.level)}</span>
                 <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
                   <span className="font-medium text-sm truncate">{getCatName(rel.catId2)}</span>
-                  {cat2 && <CatVisual cat={cat2} size="xs" equippedCostumeId={catCostumes?.[rel.catId2]} />}
+                  {cat2 && (
+                    <CatVisual cat={cat2} size="xs" equippedCostumeId={catCostumes?.[rel.catId2]} />
+                  )}
                 </div>
               </div>
               <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
                 <span>
-                  Last interaction: {rel.decayInfo.daysSinceInteraction === 0 ? 'Today' : `${rel.decayInfo.daysSinceInteraction} day${rel.decayInfo.daysSinceInteraction > 1 ? 's' : ''} ago`}
+                  Last interaction:{' '}
+                  {rel.decayInfo.daysSinceInteraction === 0
+                    ? 'Today'
+                    : `${rel.decayInfo.daysSinceInteraction} day${rel.decayInfo.daysSinceInteraction > 1 ? 's' : ''} ago`}
                 </span>
                 {rel.decayInfo.isDecaying && (
                   <span className="font-medium">
@@ -126,41 +133,39 @@ function RelationshipSection({
 
 /**
  * SocialCalendarPanel - Dedicated view for relationship maintenance
- * 
+ *
  * Shows all cat relationships sorted by urgency, helping players identify
  * which relationships need attention before they decay.
  */
-export function SocialCalendarPanel({ 
-  cats, 
-  relationships, 
-  currentDay, 
+export function SocialCalendarPanel({
+  cats,
+  relationships,
+  currentDay,
   catCostumes,
   onQuickSocialize,
 }: SocialCalendarPanelProps) {
   // Sort relationships by days since interaction (most neglected first)
   const sortedRelationships = useMemo(() => {
     return [...relationships]
-      .map(rel => ({
+      .map((rel) => ({
         ...rel,
         decayInfo: getDecayInfo(rel, currentDay),
       }))
       .sort((a, b) => b.decayInfo.daysSinceInteraction - a.decayInfo.daysSinceInteraction);
   }, [relationships, currentDay]);
-  
+
   // Group by urgency
-  const urgent = sortedRelationships.filter(r => r.decayInfo.decayLevel === 'severe');
-  const warning = sortedRelationships.filter(r => r.decayInfo.decayLevel === 'moderate');
-  const attention = sortedRelationships.filter(r => r.decayInfo.decayLevel === 'light');
-  const healthy = sortedRelationships.filter(r => r.decayInfo.decayLevel === 'none');
-  
+  const urgent = sortedRelationships.filter((r) => r.decayInfo.decayLevel === 'severe');
+  const warning = sortedRelationships.filter((r) => r.decayInfo.decayLevel === 'moderate');
+  const attention = sortedRelationships.filter((r) => r.decayInfo.decayLevel === 'light');
+  const healthy = sortedRelationships.filter((r) => r.decayInfo.decayLevel === 'none');
+
   const totalNeeds = urgent.length + warning.length + attention.length;
-  
+
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2">
-          📅 Social Calendar
-        </CardTitle>
+        <CardTitle className="text-lg flex items-center gap-2">📅 Social Calendar</CardTitle>
         <p className="text-sm text-muted-foreground">
           Keep your cats connected! Relationships fade without regular interaction.
         </p>
@@ -190,7 +195,7 @@ export function SocialCalendarPanel({
             {healthy.length} Healthy
           </Badge>
         </div>
-        
+
         {relationships.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Heart className="h-12 w-12 mx-auto mb-4 opacity-20" />
@@ -207,37 +212,37 @@ export function SocialCalendarPanel({
           </div>
         ) : (
           <ScrollArea className="h-72">
-            <RelationshipSection 
-              title="🚨 Urgent (7+ days)" 
+            <RelationshipSection
+              title="🚨 Urgent (7+ days)"
               icon={AlertTriangle}
-              items={urgent} 
+              items={urgent}
               cats={cats}
               catCostumes={catCostumes}
               colorClass="text-red-600"
               onQuickSocialize={onQuickSocialize}
             />
-            <RelationshipSection 
-              title="⚠️ Warning (5-6 days)" 
+            <RelationshipSection
+              title="⚠️ Warning (5-6 days)"
               icon={Clock}
-              items={warning} 
+              items={warning}
               cats={cats}
               catCostumes={catCostumes}
               colorClass="text-orange-600"
               onQuickSocialize={onQuickSocialize}
             />
-            <RelationshipSection 
-              title="💭 Needs Attention (3-4 days)" 
+            <RelationshipSection
+              title="💭 Needs Attention (3-4 days)"
               icon={Clock}
-              items={attention} 
+              items={attention}
               cats={cats}
               catCostumes={catCostumes}
               colorClass="text-yellow-600"
               onQuickSocialize={onQuickSocialize}
             />
-            <RelationshipSection 
-              title="✅ Healthy (0-2 days)" 
+            <RelationshipSection
+              title="✅ Healthy (0-2 days)"
               icon={CheckCircle}
-              items={healthy} 
+              items={healthy}
               cats={cats}
               catCostumes={catCostumes}
               colorClass="text-green-600"

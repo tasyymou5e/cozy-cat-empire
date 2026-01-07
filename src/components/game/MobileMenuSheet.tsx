@@ -1,10 +1,5 @@
 import { Link } from 'react-router-dom';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -29,12 +24,12 @@ const EXTERNAL_LINKS = [
   { href: '/leaderboard', icon: <Globe className="h-5 w-5" />, label: 'Global Leaderboard' },
 ];
 
-export function MobileMenuSheet({ 
-  open, 
-  onOpenChange, 
-  activeTab, 
+export function MobileMenuSheet({
+  open,
+  onOpenChange,
+  activeTab,
   onTabChange,
-  badges 
+  badges,
 }: MobileMenuSheetProps) {
   const handleTabClick = (tabId: string) => {
     onTabChange(tabId);
@@ -47,7 +42,7 @@ export function MobileMenuSheet({
         <SheetHeader className="pb-4">
           <SheetTitle>Navigation</SheetTitle>
         </SheetHeader>
-        
+
         <ScrollArea className="h-[calc(80vh-80px)]">
           <div className="space-y-6 pb-20">
             {/* All Tabs by Category */}
@@ -68,8 +63,8 @@ export function MobileMenuSheet({
                         onClick={() => handleTabClick(tab.id)}
                         className={cn(
                           'relative flex flex-col items-center justify-center p-3 rounded-lg border transition-all',
-                          isActive 
-                            ? 'bg-primary text-primary-foreground border-primary' 
+                          isActive
+                            ? 'bg-primary text-primary-foreground border-primary'
                             : 'bg-muted/50 border-border hover:bg-muted'
                         )}
                       >
@@ -80,7 +75,7 @@ export function MobileMenuSheet({
                           {tab.label}
                         </span>
                         {badgeCount > 0 && (
-                          <Badge 
+                          <Badge
                             variant={isActive ? 'secondary' : 'destructive'}
                             className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px]"
                           >

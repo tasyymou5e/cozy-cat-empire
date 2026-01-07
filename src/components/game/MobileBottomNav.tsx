@@ -16,11 +16,11 @@ const MOBILE_CATEGORIES = [
   { id: 'progress', icon: '📈', label: 'Progress' },
 ];
 
-export function MobileBottomNav({ 
-  activeCategory, 
-  onCategoryChange, 
+export function MobileBottomNav({
+  activeCategory,
+  onCategoryChange,
   onOpenMenu,
-  badges 
+  badges,
 }: MobileBottomNavProps) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border">
@@ -41,8 +41,8 @@ export function MobileBottomNav({
               <span className="text-xl">{category.icon}</span>
               <span className="text-[10px] font-medium">{category.label}</span>
               {badgeCount > 0 && (
-                <Badge 
-                  variant="destructive" 
+                <Badge
+                  variant="destructive"
                   className="absolute top-1 right-1/4 h-4 min-w-4 px-1 text-[10px] flex items-center justify-center"
                 >
                   {badgeCount > 9 ? '9+' : badgeCount}

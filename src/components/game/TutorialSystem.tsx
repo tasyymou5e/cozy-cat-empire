@@ -16,7 +16,8 @@ interface TutorialStep {
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
     title: 'Welcome to Cat Farm!',
-    content: 'Build your cat empire from a small apartment to a 100-acre farm! Let\'s learn the basics.',
+    content:
+      "Build your cat empire from a small apartment to a 100-acre farm! Let's learn the basics.",
     emoji: '👋',
     category: 'basics',
   },
@@ -29,7 +30,8 @@ const TUTORIAL_STEPS: TutorialStep[] = [
   },
   {
     title: 'Caring for Your Cats',
-    content: 'Keep cats happy and healthy by buying food, toys, and medicine from the Supplies tab.',
+    content:
+      'Keep cats happy and healthy by buying food, toys, and medicine from the Supplies tab.',
     emoji: '❤️',
     highlight: 'supplies',
     category: 'basics',
@@ -50,14 +52,16 @@ const TUTORIAL_STEPS: TutorialStep[] = [
   },
   {
     title: 'Dress Up Your Cats',
-    content: 'Buy costumes to make your cats look amazing! Costumes also give bonuses in cat shows.',
+    content:
+      'Buy costumes to make your cats look amazing! Costumes also give bonuses in cat shows.',
     emoji: '👗',
     highlight: 'costumes',
     category: 'cats',
   },
   {
     title: 'Breeding Kittens',
-    content: 'Breed two cats to get kittens! Best friends have higher success rates and better offspring.',
+    content:
+      'Breed two cats to get kittens! Best friends have higher success rates and better offspring.',
     emoji: '💕',
     highlight: 'breeding',
     category: 'cats',
@@ -71,40 +75,46 @@ const TUTORIAL_STEPS: TutorialStep[] = [
   },
   {
     title: 'Bulk Actions',
-    content: 'Save time with bulk actions! Heal all sick cats, rest tired ones, or train everyone at once.',
+    content:
+      'Save time with bulk actions! Heal all sick cats, rest tired ones, or train everyone at once.',
     emoji: '⚡',
     highlight: 'bulk',
     category: 'features',
   },
   {
     title: 'Make Friends & Trade',
-    content: 'Add friends to gift cats or trade with other players. Check the Friends and Trading tabs!',
+    content:
+      'Add friends to gift cats or trade with other players. Check the Friends and Trading tabs!',
     emoji: '🎁',
     highlight: 'friends',
     category: 'social',
   },
   {
     title: 'Weekly Challenges',
-    content: 'Complete weekly challenges for bonus rewards. Keep your streak going for extra perks!',
+    content:
+      'Complete weekly challenges for bonus rewards. Keep your streak going for extra perks!',
     emoji: '🎯',
     highlight: 'challenges',
     category: 'social',
   },
   {
     title: 'Photo Booth & Portraits',
-    content: 'Take custom photos of your cats! You can even generate AI portraits that show their look.',
+    content:
+      'Take custom photos of your cats! You can even generate AI portraits that show their look.',
     emoji: '📸',
     category: 'features',
   },
   {
     title: 'Cat Collection',
-    content: 'View your cats as beautiful trading cards! Click the grid icon in the header to explore.',
+    content:
+      'View your cats as beautiful trading cards! Click the grid icon in the header to explore.',
     emoji: '🃏',
     category: 'features',
   },
   {
     title: 'Save Your Progress',
-    content: 'Sign in to save your game to the cloud! Your cats will be safe across all your devices.',
+    content:
+      'Sign in to save your game to the cloud! Your cats will be safe across all your devices.',
     emoji: '☁️',
     category: 'features',
   },
@@ -116,8 +126,9 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     category: 'basics',
   },
   {
-    title: 'You\'re Ready!',
-    content: 'Explore all the tabs, care for your cats, and build your empire. Good luck, cat farmer!',
+    title: "You're Ready!",
+    content:
+      'Explore all the tabs, care for your cats, and build your empire. Good luck, cat farmer!',
     emoji: '🎉',
   },
 ];
@@ -156,7 +167,7 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
 
   const handleNext = () => {
     if (currentStep < TUTORIAL_STEPS.length - 1) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep((prev) => prev + 1);
     } else {
       handleComplete();
     }
@@ -164,7 +175,7 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
 
   const handlePrev = () => {
     if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+      setCurrentStep((prev) => prev - 1);
     }
   };
 
@@ -207,10 +218,12 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
             <div className="flex flex-col gap-1">
               <h3 className="text-lg font-bold leading-tight">{step.title}</h3>
               {step.category && (
-                <span className={cn(
-                  "text-xs px-2 py-0.5 rounded-full font-medium w-fit",
-                  categoryStyles[step.category]
-                )}>
+                <span
+                  className={cn(
+                    'text-xs px-2 py-0.5 rounded-full font-medium w-fit',
+                    categoryStyles[step.category]
+                  )}
+                >
                   {step.category}
                 </span>
               )}
@@ -224,16 +237,16 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
         {/* Progress */}
         <div className="mb-4">
           <div className="flex justify-between text-xs text-muted-foreground mb-1">
-            <span>Step {currentStep + 1} of {TUTORIAL_STEPS.length}</span>
+            <span>
+              Step {currentStep + 1} of {TUTORIAL_STEPS.length}
+            </span>
             <span>{Math.round(progress)}%</span>
           </div>
           <Progress value={progress} className="h-2" />
         </div>
 
         {/* Content */}
-        <p className="text-muted-foreground mb-6 min-h-[60px]">
-          {step.content}
-        </p>
+        <p className="text-muted-foreground mb-6 min-h-[60px]">{step.content}</p>
 
         {/* Highlight hint */}
         {step.highlight && (
@@ -244,14 +257,10 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
 
         {/* Navigation */}
         <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={handlePrev}
-            disabled={currentStep === 0}
-          >
+          <Button variant="outline" onClick={handlePrev} disabled={currentStep === 0}>
             <ChevronLeft className="h-4 w-4 mr-1" /> Back
           </Button>
-          
+
           <div className="flex gap-1 flex-wrap justify-center max-w-[120px]">
             {TUTORIAL_STEPS.map((_, i) => (
               <button
@@ -268,7 +277,9 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
             {currentStep === TUTORIAL_STEPS.length - 1 ? (
               <>Start Playing! 🎮</>
             ) : (
-              <>Next <ChevronRight className="h-4 w-4 ml-1" /></>
+              <>
+                Next <ChevronRight className="h-4 w-4 ml-1" />
+              </>
             )}
           </Button>
         </div>

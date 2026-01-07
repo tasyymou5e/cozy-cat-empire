@@ -8,16 +8,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { 
-  Gamepad2, 
-  BarChart3, 
-  LayoutGrid, 
-  Heart, 
-  Camera, 
-  Image, 
-  Globe, 
+import {
+  Gamepad2,
+  BarChart3,
+  LayoutGrid,
+  Heart,
+  Camera,
+  Image,
+  Globe,
   Settings,
-  Clock
+  Clock,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 

@@ -98,7 +98,10 @@ export default function AdminAnnouncements() {
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['admin-announcements'] });
-      logActivity({ actionType: 'create_announcement', actionDescription: `Created announcement: ${result.title}` });
+      logActivity({
+        actionType: 'create_announcement',
+        actionDescription: `Created announcement: ${result.title}`,
+      });
       toast.success('Announcement created');
       closeDialog();
     },
@@ -123,7 +126,10 @@ export default function AdminAnnouncements() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-announcements'] });
-      logActivity({ actionType: 'update_announcement', actionDescription: `Updated announcement: ${formData.title}` });
+      logActivity({
+        actionType: 'update_announcement',
+        actionDescription: `Updated announcement: ${formData.title}`,
+      });
       toast.success('Announcement updated');
       closeDialog();
     },
@@ -210,9 +216,7 @@ export default function AdminAnnouncements() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Announcements</h1>
-            <p className="text-muted-foreground">
-              Create and manage announcements for all players
-            </p>
+            <p className="text-muted-foreground">Create and manage announcements for all players</p>
           </div>
           <Button onClick={openCreateDialog}>
             <Plus className="h-4 w-4 mr-2" />
@@ -250,14 +254,10 @@ export default function AdminAnnouncements() {
                 <TableBody>
                   {announcements?.map((announcement) => (
                     <TableRow key={announcement.id}>
-                      <TableCell className="font-medium">
-                        {announcement.title}
-                      </TableCell>
+                      <TableCell className="font-medium">{announcement.title}</TableCell>
                       <TableCell>{getTypeBadge(announcement.type)}</TableCell>
                       <TableCell>
-                        <Badge
-                          variant={announcement.is_active ? 'default' : 'secondary'}
-                        >
+                        <Badge variant={announcement.is_active ? 'default' : 'secondary'}>
                           {announcement.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
@@ -306,9 +306,7 @@ export default function AdminAnnouncements() {
                 <Input
                   id="title"
                   value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="Announcement title"
                 />
               </div>
@@ -317,9 +315,7 @@ export default function AdminAnnouncements() {
                 <Textarea
                   id="message"
                   value={formData.message}
-                  onChange={(e) =>
-                    setFormData({ ...formData, message: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   placeholder="Announcement message"
                   rows={3}
                 />
@@ -329,9 +325,7 @@ export default function AdminAnnouncements() {
                   <Label>Type</Label>
                   <Select
                     value={formData.type}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, type: value })
-                    }
+                    onValueChange={(value) => setFormData({ ...formData, type: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -351,9 +345,7 @@ export default function AdminAnnouncements() {
                     id="expires"
                     type="datetime-local"
                     value={formData.expires_at}
-                    onChange={(e) =>
-                      setFormData({ ...formData, expires_at: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
                   />
                 </div>
               </div>
@@ -361,9 +353,7 @@ export default function AdminAnnouncements() {
                 <Switch
                   id="active"
                   checked={formData.is_active}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, is_active: checked })
-                  }
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
                 />
                 <Label htmlFor="active">Active</Label>
               </div>

@@ -39,10 +39,10 @@ interface TrainingPanelProps {
 
 /**
  * TrainingPanel - Cat training interface
- * 
+ *
  * Allows players to train cats to learn tricks and improve their grade.
  * Shows trick progress, rest levels, and show eligibility.
- * 
+ *
  * @example
  * ```tsx
  * <TrainingPanel
@@ -56,12 +56,20 @@ interface TrainingPanelProps {
  * ```
  */
 
-export function TrainingPanel({ cats, treats, toys, day, onTrain, onRest, catCostumes }: TrainingPanelProps) {
+export function TrainingPanel({
+  cats,
+  treats,
+  toys,
+  day,
+  onTrain,
+  onRest,
+  catCostumes,
+}: TrainingPanelProps) {
   const [selectedCatId, setSelectedCatId] = useState<string>('');
-  
-  const selectedCat = cats.find(c => c.id === selectedCatId);
+
+  const selectedCat = cats.find((c) => c.id === selectedCatId);
   const canTrain = selectedCat && treats >= 1 && toys >= 1 && selectedCat.lastTrainingDay < day;
-  
+
   // Get next trainable trick for selected cat
   const getNextTrick = (cat: Cat): TrickId | null => {
     for (const trick of TRICKS) {
@@ -73,7 +81,7 @@ export function TrainingPanel({ cats, treats, toys, day, onTrain, onRest, catCos
   };
 
   const nextTrick = selectedCat ? getNextTrick(selectedCat) : null;
-  const nextTrickInfo = nextTrick ? TRICKS.find(t => t.id === nextTrick) : null;
+  const nextTrickInfo = nextTrick ? TRICKS.find((t) => t.id === nextTrick) : null;
 
   return (
     <Card className="border-accent/30">
@@ -88,9 +96,7 @@ export function TrainingPanel({ cats, treats, toys, day, onTrain, onRest, catCos
       </CardHeader>
       <CardContent className="space-y-3">
         {cats.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            No cats to train yet.
-          </p>
+          <p className="text-sm text-muted-foreground text-center py-4">No cats to train yet.</p>
         ) : (
           <>
             <div className="space-y-2">
@@ -100,7 +106,7 @@ export function TrainingPanel({ cats, treats, toys, day, onTrain, onRest, catCos
                   <SelectValue placeholder="Choose a cat to train" />
                 </SelectTrigger>
                 <SelectContent>
-                  {cats.map(cat => (
+                  {cats.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
                       <div className="flex items-center gap-2">
                         <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
@@ -129,11 +135,11 @@ export function TrainingPanel({ cats, treats, toys, day, onTrain, onRest, catCos
                 <div className="space-y-2">
                   <span className="text-xs font-medium">Tricks Learned</span>
                   <div className="flex flex-wrap gap-1">
-                    {TRICKS.map(trick => {
+                    {TRICKS.map((trick) => {
                       const learned = selectedCat.tricksLearned.includes(trick.id);
                       const progress = selectedCat.trickProgress[trick.id] || 0;
                       return (
-                        <Badge 
+                        <Badge
                           key={trick.id}
                           variant={learned ? 'default' : 'outline'}
                           className={`text-xs ${learned ? 'bg-green-500' : progress > 0 ? 'border-primary/50' : ''}`}
@@ -166,9 +172,9 @@ export function TrainingPanel({ cats, treats, toys, day, onTrain, onRest, catCos
                         +{nextTrickInfo.gradeBonus} grade
                       </Badge>
                     </div>
-                    <Progress 
-                      value={selectedCat.trickProgress[nextTrickInfo.id] || 0} 
-                      className="h-2 mb-2" 
+                    <Progress
+                      value={selectedCat.trickProgress[nextTrickInfo.id] || 0}
+                      className="h-2 mb-2"
                     />
                     <Button
                       size="sm"
@@ -176,8 +182,8 @@ export function TrainingPanel({ cats, treats, toys, day, onTrain, onRest, catCos
                       disabled={!canTrain}
                       onClick={() => onTrain(selectedCat.id, nextTrickInfo.id)}
                     >
-                      {selectedCat.lastTrainingDay >= day 
-                        ? '⏳ Already trained today' 
+                      {selectedCat.lastTrainingDay >= day
+                        ? '⏳ Already trained today'
                         : `🎾 Train (1 treat + 1 toy)`}
                     </Button>
                   </div>
@@ -202,8 +208,10 @@ export function TrainingPanel({ cats, treats, toys, day, onTrain, onRest, catCos
                 </Button>
 
                 {/* Show Eligibility */}
-                <div className={`text-xs p-2 rounded ${selectedCat.grade >= MIN_SHOW_GRADE ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-                  {selectedCat.grade >= MIN_SHOW_GRADE 
+                <div
+                  className={`text-xs p-2 rounded ${selectedCat.grade >= MIN_SHOW_GRADE ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}
+                >
+                  {selectedCat.grade >= MIN_SHOW_GRADE
                     ? `✅ Show eligible (Grade ${MIN_SHOW_GRADE}+ required)`
                     : `⚠️ Needs Grade ${MIN_SHOW_GRADE}+ for shows (current: ${selectedCat.grade})`}
                 </div>

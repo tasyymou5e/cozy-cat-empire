@@ -1,4 +1,11 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Gift, Check, X, Sparkles, Heart } from 'lucide-react';
@@ -23,7 +30,12 @@ interface GiftReceivedDialogProps {
   onClose: () => void;
 }
 
-export function GiftReceivedDialog({ gift, onAccept, onDecline, onClose }: GiftReceivedDialogProps) {
+export function GiftReceivedDialog({
+  gift,
+  onAccept,
+  onDecline,
+  onClose,
+}: GiftReceivedDialogProps) {
   if (!gift) return null;
 
   const breed = BREEDS[gift.cat_data.breed];
@@ -34,14 +46,14 @@ export function GiftReceivedDialog({ gift, onAccept, onDecline, onClose }: GiftR
         {/* Floating sparkles */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {[...Array(6)].map((_, i) => (
-            <Sparkles 
-              key={i} 
+            <Sparkles
+              key={i}
               className="absolute text-yellow-400 animate-gift-sparkle"
               style={{
-                left: `${15 + (i * 15)}%`,
+                left: `${15 + i * 15}%`,
                 top: `${10 + (i % 3) * 25}%`,
                 animationDelay: `${i * 0.3}s`,
-                opacity: 0.7
+                opacity: 0.7,
               }}
               size={16}
             />
@@ -57,9 +69,7 @@ export function GiftReceivedDialog({ gift, onAccept, onDecline, onClose }: GiftR
             You Received a Gift!
             <Heart className="w-5 h-5 text-pink-500 animate-pulse" />
           </DialogTitle>
-          <DialogDescription>
-            {gift.sender_name || 'Someone'} sent you a cat!
-          </DialogDescription>
+          <DialogDescription>{gift.sender_name || 'Someone'} sent you a cat!</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col items-center gap-4 py-4 relative z-10">
@@ -74,13 +84,13 @@ export function GiftReceivedDialog({ gift, onAccept, onDecline, onClose }: GiftR
             </div>
             {/* Floating hearts */}
             {[...Array(3)].map((_, i) => (
-              <Heart 
+              <Heart
                 key={i}
                 className="absolute text-pink-400 animate-float-heart"
                 style={{
                   right: `${-10 + i * 20}%`,
                   bottom: '60%',
-                  animationDelay: `${i * 0.5}s`
+                  animationDelay: `${i * 0.5}s`,
                 }}
                 size={12}
               />
@@ -97,17 +107,15 @@ export function GiftReceivedDialog({ gift, onAccept, onDecline, onClose }: GiftR
           {gift.message && (
             <div className="w-full p-3 bg-muted rounded-lg text-center">
               <p className="text-sm italic">"{gift.message}"</p>
-              <p className="text-xs text-muted-foreground mt-1">— {gift.sender_name || 'Anonymous'}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                — {gift.sender_name || 'Anonymous'}
+              </p>
             </div>
           )}
         </div>
 
         <DialogFooter className="flex gap-2 sm:gap-2 relative z-10">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => onDecline(gift.id)}
-          >
+          <Button variant="outline" className="flex-1" onClick={() => onDecline(gift.id)}>
             <X className="w-4 h-4 mr-2" />
             Decline
           </Button>

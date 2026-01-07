@@ -12,28 +12,28 @@ interface ChallengeProgressAnimationProps {
   onAnimationComplete: (id: string) => void;
 }
 
-export function ChallengeProgressAnimation({ 
-  animations, 
-  onAnimationComplete 
+export function ChallengeProgressAnimation({
+  animations,
+  onAnimationComplete,
 }: ChallengeProgressAnimationProps) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       {animations.map((anim) => (
-        <FloatingNumber 
-          key={anim.id} 
-          animation={anim} 
-          onComplete={() => onAnimationComplete(anim.id)} 
+        <FloatingNumber
+          key={anim.id}
+          animation={anim}
+          onComplete={() => onAnimationComplete(anim.id)}
         />
       ))}
     </div>
   );
 }
 
-function FloatingNumber({ 
-  animation, 
-  onComplete 
-}: { 
-  animation: ProgressAnimation; 
+function FloatingNumber({
+  animation,
+  onComplete,
+}: {
+  animation: ProgressAnimation;
   onComplete: () => void;
 }) {
   useEffect(() => {
@@ -63,12 +63,12 @@ export function useProgressAnimations() {
     // Random position near center
     const x = 100 + Math.random() * 100;
     const y = 50 + Math.random() * 50;
-    
-    setAnimations(prev => [...prev, { id, value, x, y }]);
+
+    setAnimations((prev) => [...prev, { id, value, x, y }]);
   };
 
   const clearAnimation = (id: string) => {
-    setAnimations(prev => prev.filter(a => a.id !== id));
+    setAnimations((prev) => prev.filter((a) => a.id !== id));
   };
 
   return { animations, triggerAnimation, clearAnimation };

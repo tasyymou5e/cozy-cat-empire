@@ -47,7 +47,18 @@ import {
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Search, ChevronLeft, ChevronRight, Shield, User as UserIcon, Trash2, Eye, Ban, CheckCircle, AlertTriangle } from 'lucide-react';
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Shield,
+  User as UserIcon,
+  Trash2,
+  Eye,
+  Ban,
+  CheckCircle,
+  AlertTriangle,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -81,7 +92,7 @@ export default function AdminUsers() {
   const [suspensionReason, setSuspensionReason] = useState('');
   const [isSuspending, setIsSuspending] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
-  
+
   const { data, isLoading } = useAdminUsers({ search, page, pageSize: 10 });
   const { logActivity } = useAdminActivityLog();
   const { toast } = useToast();
@@ -109,16 +120,21 @@ export default function AdminUsers() {
 
   const handleBulkRoleChange = async (role: string) => {
     const userIds = Array.from(selectedUsers);
-    
+
     try {
       // Delete existing roles
       await supabase.from('user_roles').delete().in('user_id', userIds);
-      
+
       // Insert new roles if not 'user'
       if (role !== 'user') {
-        const { error } = await supabase.from('user_roles').insert(
-          userIds.map((userId) => ({ user_id: userId, role: role as 'admin' | 'moderator' | 'user' }))
-        );
+        const { error } = await supabase
+          .from('user_roles')
+          .insert(
+            userIds.map((userId) => ({
+              user_id: userId,
+              role: role as 'admin' | 'moderator' | 'user',
+            }))
+          );
         if (error) throw error;
       }
 
@@ -128,7 +144,10 @@ export default function AdminUsers() {
         metadata: { userIds, newRole: role },
       });
 
-      toast({ title: 'Roles Updated', description: `${userIds.length} user(s) updated to ${role}` });
+      toast({
+        title: 'Roles Updated',
+        description: `${userIds.length} user(s) updated to ${role}`,
+      });
       setSelectedUsers(new Set());
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
     } catch (error: any) {
@@ -138,7 +157,7 @@ export default function AdminUsers() {
 
   const handleBulkSuspend = async (reason: string) => {
     const userIds = Array.from(selectedUsers);
-    
+
     try {
       const { error } = await supabase
         .from('profiles')
@@ -166,7 +185,7 @@ export default function AdminUsers() {
 
   const handleBulkUnsuspend = async () => {
     const userIds = Array.from(selectedUsers);
-    
+
     try {
       const { error } = await supabase
         .from('profiles')
@@ -195,7 +214,7 @@ export default function AdminUsers() {
   const handleBulkDelete = async () => {
     const userIds = Array.from(selectedUsers);
     let successCount = 0;
-    
+
     for (const userId of userIds) {
       try {
         const response = await supabase.functions.invoke('admin-delete-user', {
@@ -223,18 +242,16 @@ export default function AdminUsers() {
 
   const handleBulkNotify = async (title: string, body: string) => {
     const userIds = Array.from(selectedUsers);
-    
+
     try {
       // Insert notification record
-      const { error: notifError } = await supabase
-        .from('admin_notifications')
-        .insert({
-          title,
-          body,
-          target: 'specific',
-          target_user_ids: userIds,
-          status: 'sent',
-        });
+      const { error: notifError } = await supabase.from('admin_notifications').insert({
+        title,
+        body,
+        target: 'specific',
+        target_user_ids: userIds,
+        status: 'sent',
+      });
 
       if (notifError) throw notifError;
 
@@ -259,16 +276,10 @@ export default function AdminUsers() {
 
     try {
       if (newRole === 'user') {
-        await supabase
-          .from('user_roles')
-          .delete()
-          .eq('user_id', selectedUser.id);
+        await supabase.from('user_roles').delete().eq('user_id', selectedUser.id);
       } else {
-        await supabase
-          .from('user_roles')
-          .delete()
-          .eq('user_id', selectedUser.id);
-        
+        await supabase.from('user_roles').delete().eq('user_id', selectedUser.id);
+
         const { error } = await supabase
           .from('user_roles')
           .insert([{ user_id: selectedUser.id, role: newRole as 'admin' | 'moderator' | 'user' }]);
@@ -317,7 +328,9 @@ export default function AdminUsers() {
 
     setIsDeleting(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         throw new Error('Not authenticated');
       }
@@ -335,7 +348,7 @@ export default function AdminUsers() {
         actionDescription: `Deleted user: ${getDisplayName(userToDelete)}`,
         targetUserId: userToDelete.id,
         targetTable: 'profiles',
-        metadata: { 
+        metadata: {
           deleted_user_email: userToDelete.email,
           deleted_user_display_name: userToDelete.display_name,
         },
@@ -461,9 +474,7 @@ export default function AdminUsers() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">User Management</h1>
-          <p className="text-muted-foreground">
-            View and manage all registered users
-          </p>
+          <p className="text-muted-foreground">View and manage all registered users</p>
         </div>
 
         <Card>
@@ -495,9 +506,7 @@ export default function AdminUsers() {
                     <TableHead className="w-10">
                       <Checkbox
                         checked={
-                          data?.users.length
-                            ? selectedUsers.size === data.users.length
-                            : false
+                          data?.users.length ? selectedUsers.size === data.users.length : false
                         }
                         onCheckedChange={toggleSelectAll}
                       />
@@ -542,11 +551,13 @@ export default function AdminUsers() {
                           <div className="flex items-center gap-2">
                             <span className="text-2xl">{user.avatar_emoji || '😺'}</span>
                             <div className="flex items-center gap-1">
-                              <span className="font-medium">
-                                {getDisplayName(user)}
-                              </span>
+                              <span className="font-medium">{getDisplayName(user)}</span>
                               {!user.display_name && (
-                                <Badge variant="destructive" className="h-5 px-1.5 text-[10px]" title="Missing display name">
+                                <Badge
+                                  variant="destructive"
+                                  className="h-5 px-1.5 text-[10px]"
+                                  title="Missing display name"
+                                >
                                   <AlertTriangle className="h-3 w-3" />
                                 </Badge>
                               )}
@@ -560,13 +571,13 @@ export default function AdminUsers() {
                           {user.suspended_at ? (
                             <Badge variant="destructive">Suspended</Badge>
                           ) : (
-                            <Badge variant="outline" className="text-green-600 border-green-600">Active</Badge>
+                            <Badge variant="outline" className="text-green-600 border-green-600">
+                              Active
+                            </Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {user.created_at
-                            ? format(new Date(user.created_at), 'MMM d, yyyy')
-                            : '-'}
+                          {user.created_at ? format(new Date(user.created_at), 'MMM d, yyyy') : '-'}
                         </TableCell>
                         <TableCell>{user.stats?.total_cats_owned ?? 0}</TableCell>
                         <TableCell>{user.stats?.total_show_wins ?? 0}</TableCell>
@@ -713,9 +724,10 @@ export default function AdminUsers() {
             <AlertDialogDescription>
               Are you sure you want to permanently delete{' '}
               <strong>{userToDelete ? getDisplayName(userToDelete) : ''}</strong>?
-              <br /><br />
-              This action cannot be undone. All user data, including their profile, 
-              game saves, and statistics will be permanently removed.
+              <br />
+              <br />
+              This action cannot be undone. All user data, including their profile, game saves, and
+              statistics will be permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -753,14 +765,14 @@ export default function AdminUsers() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSuspendDialogOpen(false)} disabled={isSuspending}>
-              Cancel
-            </Button>
             <Button
-              variant="destructive"
-              onClick={handleSuspendUser}
+              variant="outline"
+              onClick={() => setSuspendDialogOpen(false)}
               disabled={isSuspending}
             >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleSuspendUser} disabled={isSuspending}>
               {isSuspending ? 'Suspending...' : 'Suspend User'}
             </Button>
           </DialogFooter>

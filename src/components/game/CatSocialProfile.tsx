@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Cat } from '@/types/game';
-import { 
-  CatRelationship, 
+import {
+  CatRelationship,
   RelationshipLevel,
   getRelationshipEmoji,
   getRelationshipColor,
@@ -15,7 +15,15 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Heart, HeartCrack, Users, Sparkles, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import {
+  Heart,
+  HeartCrack,
+  Users,
+  Sparkles,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+} from 'lucide-react';
 
 interface CatSocialProfileProps {
   cat: Cat;
@@ -37,8 +45,8 @@ export function CatSocialProfile({
   // Get all relationships for this cat
   const catRelationships = useMemo(() => {
     return relationships
-      .filter(r => r.catId1 === cat.id || r.catId2 === cat.id)
-      .map(r => ({
+      .filter((r) => r.catId1 === cat.id || r.catId2 === cat.id)
+      .map((r) => ({
         ...r,
         otherCatId: r.catId1 === cat.id ? r.catId2 : r.catId1,
         decayInfo: getDecayInfo(r, currentDay),
@@ -48,14 +56,17 @@ export function CatSocialProfile({
 
   // Calculate stats
   const stats = useMemo(() => {
-    const friends = catRelationships.filter(r => r.level === 'friend' || r.level === 'bestFriend');
-    const enemies = catRelationships.filter(r => r.level === 'enemy' || r.level === 'rival');
-    const bestFriend = catRelationships.find(r => r.level === 'bestFriend');
-    const worstEnemy = catRelationships.find(r => r.level === 'enemy');
-    
-    const avgScore = catRelationships.length > 0
-      ? catRelationships.reduce((sum, r) => sum + r.score, 0) / catRelationships.length
-      : 0;
+    const friends = catRelationships.filter(
+      (r) => r.level === 'friend' || r.level === 'bestFriend'
+    );
+    const enemies = catRelationships.filter((r) => r.level === 'enemy' || r.level === 'rival');
+    const bestFriend = catRelationships.find((r) => r.level === 'bestFriend');
+    const worstEnemy = catRelationships.find((r) => r.level === 'enemy');
+
+    const avgScore =
+      catRelationships.length > 0
+        ? catRelationships.reduce((sum, r) => sum + r.score, 0) / catRelationships.length
+        : 0;
 
     // Calculate happiness modifier based on relationships
     const friendBonus = friends.length * 2;
@@ -63,7 +74,9 @@ export function CatSocialProfile({
     const happinessModifier = Math.max(-20, Math.min(20, friendBonus - enemyPenalty));
 
     // Count relationships needing attention
-    const needsAttention = catRelationships.filter(r => r.decayInfo.daysSinceInteraction >= 2).length;
+    const needsAttention = catRelationships.filter(
+      (r) => r.decayInfo.daysSinceInteraction >= 2
+    ).length;
 
     return {
       totalRelationships: catRelationships.length,
@@ -80,13 +93,14 @@ export function CatSocialProfile({
   // Calculate breeding compatibility with other cats
   const compatibilityList = useMemo(() => {
     return allCats
-      .filter(c => c.id !== cat.id)
-      .map(otherCat => {
-        const relationship = catRelationships.find(r => r.otherCatId === otherCat.id);
-        const personalityBonus = PERSONALITY_COMPATIBILITY[cat.personality]?.[otherCat.personality] || 0;
+      .filter((c) => c.id !== cat.id)
+      .map((otherCat) => {
+        const relationship = catRelationships.find((r) => r.otherCatId === otherCat.id);
+        const personalityBonus =
+          PERSONALITY_COMPATIBILITY[cat.personality]?.[otherCat.personality] || 0;
         const relationshipBonus = relationship ? relationship.score / 10 : 0;
         const compatibility = Math.min(100, Math.max(0, 50 + personalityBonus + relationshipBonus));
-        
+
         return {
           cat: otherCat,
           compatibility,
@@ -97,8 +111,8 @@ export function CatSocialProfile({
       .sort((a, b) => b.compatibility - a.compatibility);
   }, [allCats, cat, catRelationships]);
 
-  const getCatName = (catId: string) => allCats.find(c => c.id === catId)?.name || 'Unknown';
-  const getCat = (catId: string) => allCats.find(c => c.id === catId);
+  const getCatName = (catId: string) => allCats.find((c) => c.id === catId)?.name || 'Unknown';
+  const getCat = (catId: string) => allCats.find((c) => c.id === catId);
 
   const bestFriendCat = stats.bestFriend ? getCat(stats.bestFriend.otherCatId) : null;
   const worstEnemyCat = stats.worstEnemy ? getCat(stats.worstEnemy.otherCatId) : null;
@@ -137,19 +151,25 @@ export function CatSocialProfile({
                   <p className="text-xl font-bold text-red-600">{stats.enemyCount}</p>
                   <p className="text-xs text-muted-foreground">Enemies</p>
                 </div>
-                <div className={`rounded-lg p-3 text-center ${
-                  stats.happinessModifier >= 0 
-                    ? 'bg-green-100 dark:bg-green-950/30' 
-                    : 'bg-red-100 dark:bg-red-950/30'
-                }`}>
-                  {stats.happinessModifier >= 0 
-                    ? <TrendingUp className="h-5 w-5 mx-auto mb-1 text-green-600" />
-                    : <TrendingDown className="h-5 w-5 mx-auto mb-1 text-red-600" />
-                  }
-                  <p className={`text-xl font-bold ${
-                    stats.happinessModifier >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {stats.happinessModifier > 0 ? '+' : ''}{stats.happinessModifier}
+                <div
+                  className={`rounded-lg p-3 text-center ${
+                    stats.happinessModifier >= 0
+                      ? 'bg-green-100 dark:bg-green-950/30'
+                      : 'bg-red-100 dark:bg-red-950/30'
+                  }`}
+                >
+                  {stats.happinessModifier >= 0 ? (
+                    <TrendingUp className="h-5 w-5 mx-auto mb-1 text-green-600" />
+                  ) : (
+                    <TrendingDown className="h-5 w-5 mx-auto mb-1 text-red-600" />
+                  )}
+                  <p
+                    className={`text-xl font-bold ${
+                      stats.happinessModifier >= 0 ? 'text-green-600' : 'text-red-600'
+                    }`}
+                  >
+                    {stats.happinessModifier > 0 ? '+' : ''}
+                    {stats.happinessModifier}
                   </p>
                   <p className="text-xs text-muted-foreground">Happiness</p>
                 </div>
@@ -160,7 +180,8 @@ export function CatSocialProfile({
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-100 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800">
                   <AlertTriangle className="h-5 w-5 text-yellow-600" />
                   <span className="text-sm text-yellow-700 dark:text-yellow-400">
-                    {stats.needsAttention} relationship{stats.needsAttention > 1 ? 's need' : ' needs'} attention
+                    {stats.needsAttention} relationship
+                    {stats.needsAttention > 1 ? 's need' : ' needs'} attention
                   </span>
                 </div>
               )}
@@ -168,16 +189,22 @@ export function CatSocialProfile({
               {/* Best Friend & Worst Enemy */}
               <div className="grid sm:grid-cols-2 gap-4">
                 {bestFriendCat ? (
-                  <div 
+                  <div
                     className="bg-pink-50 dark:bg-pink-950/20 border border-pink-200 dark:border-pink-800 rounded-lg p-4 cursor-pointer hover:bg-pink-100 dark:hover:bg-pink-950/30 transition-colors"
                     onClick={() => onCatClick?.(bestFriendCat.id)}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-lg">💕</span>
-                      <span className="font-medium text-pink-700 dark:text-pink-400">Best Friend</span>
+                      <span className="font-medium text-pink-700 dark:text-pink-400">
+                        Best Friend
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <CatVisual cat={bestFriendCat} size="sm" equippedCostumeId={catCostumes?.[bestFriendCat.id]} />
+                      <CatVisual
+                        cat={bestFriendCat}
+                        size="sm"
+                        equippedCostumeId={catCostumes?.[bestFriendCat.id]}
+                      />
                       <div>
                         <p className="font-medium">{bestFriendCat.name}</p>
                         <Badge variant="outline" className="text-xs text-pink-600">
@@ -187,8 +214,9 @@ export function CatSocialProfile({
                     </div>
                     {stats.bestFriend && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        Last played: {stats.bestFriend.decayInfo.daysSinceInteraction === 0 
-                          ? 'Today' 
+                        Last played:{' '}
+                        {stats.bestFriend.decayInfo.daysSinceInteraction === 0
+                          ? 'Today'
                           : `${stats.bestFriend.decayInfo.daysSinceInteraction} day${stats.bestFriend.decayInfo.daysSinceInteraction > 1 ? 's' : ''} ago`}
                       </p>
                     )}
@@ -204,16 +232,22 @@ export function CatSocialProfile({
                 )}
 
                 {worstEnemyCat ? (
-                  <div 
+                  <div
                     className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-4 cursor-pointer hover:bg-red-100 dark:hover:bg-red-950/30 transition-colors"
                     onClick={() => onCatClick?.(worstEnemyCat.id)}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-lg">💔</span>
-                      <span className="font-medium text-red-700 dark:text-red-400">Worst Enemy</span>
+                      <span className="font-medium text-red-700 dark:text-red-400">
+                        Worst Enemy
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <CatVisual cat={worstEnemyCat} size="sm" equippedCostumeId={catCostumes?.[worstEnemyCat.id]} />
+                      <CatVisual
+                        cat={worstEnemyCat}
+                        size="sm"
+                        equippedCostumeId={catCostumes?.[worstEnemyCat.id]}
+                      />
                       <div>
                         <p className="font-medium">{worstEnemyCat.name}</p>
                         <Badge variant="outline" className="text-xs text-red-600">
@@ -223,8 +257,9 @@ export function CatSocialProfile({
                     </div>
                     {stats.worstEnemy && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        Last interaction: {stats.worstEnemy.decayInfo.daysSinceInteraction === 0 
-                          ? 'Today' 
+                        Last interaction:{' '}
+                        {stats.worstEnemy.decayInfo.daysSinceInteraction === 0
+                          ? 'Today'
                           : `${stats.worstEnemy.decayInfo.daysSinceInteraction} day${stats.worstEnemy.decayInfo.daysSinceInteraction > 1 ? 's' : ''} ago`}
                       </p>
                     )}
@@ -252,31 +287,35 @@ export function CatSocialProfile({
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    {catRelationships.map(rel => {
+                    {catRelationships.map((rel) => {
                       const otherCat = getCat(rel.otherCatId);
                       if (!otherCat) return null;
                       const showWarning = rel.decayInfo.daysSinceInteraction >= 2;
-                      
+
                       return (
-                        <div 
+                        <div
                           key={rel.otherCatId}
                           className="flex items-center gap-3 p-2 rounded-lg bg-secondary/30 hover:bg-secondary/50 cursor-pointer transition-colors"
                           onClick={() => onCatClick?.(rel.otherCatId)}
                         >
-                          <CatVisual cat={otherCat} size="xs" equippedCostumeId={catCostumes?.[otherCat.id]} />
+                          <CatVisual
+                            cat={otherCat}
+                            size="xs"
+                            equippedCostumeId={catCostumes?.[otherCat.id]}
+                          />
                           <div className="flex-1 min-w-0">
                             <span className="font-medium">{otherCat.name}</span>
                             <p className="text-xs text-muted-foreground">
-                              {rel.decayInfo.daysSinceInteraction === 0 
-                                ? 'Played today' 
+                              {rel.decayInfo.daysSinceInteraction === 0
+                                ? 'Played today'
                                 : `${rel.decayInfo.daysSinceInteraction}d ago`}
                             </p>
                           </div>
                           {showWarning && (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Badge 
-                                  variant="outline" 
+                                <Badge
+                                  variant="outline"
                                   className={`text-xs gap-0.5 ${getDecayWarningColor(rel.decayInfo.decayLevel)}`}
                                 >
                                   <AlertTriangle className="h-3 w-3" />
@@ -286,8 +325,12 @@ export function CatSocialProfile({
                             </Tooltip>
                           )}
                           <span>{getRelationshipEmoji(rel.level)}</span>
-                          <Badge variant="outline" className={`text-xs ${getRelationshipColor(rel.level)}`}>
-                            {rel.score > 0 ? '+' : ''}{rel.score}
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${getRelationshipColor(rel.level)}`}
+                          >
+                            {rel.score > 0 ? '+' : ''}
+                            {rel.score}
                           </Badge>
                         </div>
                       );
@@ -303,24 +346,35 @@ export function CatSocialProfile({
                   Breeding Compatibility
                 </h4>
                 <div className="space-y-2">
-                  {compatibilityList.slice(0, 5).map(({ cat: otherCat, compatibility, personalityBonus }) => (
-                    <div 
-                      key={otherCat.id}
-                      className="flex items-center gap-3 p-2 rounded-lg bg-secondary/30"
-                    >
-                      <CatVisual cat={otherCat} size="xs" equippedCostumeId={catCostumes?.[otherCat.id]} />
-                      <span className="font-medium flex-1">{otherCat.name}</span>
-                      <div className="flex items-center gap-2 w-32">
-                        <Progress value={compatibility} className="h-2" />
-                        <span className="text-xs font-medium w-10">{Math.round(compatibility)}%</span>
+                  {compatibilityList
+                    .slice(0, 5)
+                    .map(({ cat: otherCat, compatibility, personalityBonus }) => (
+                      <div
+                        key={otherCat.id}
+                        className="flex items-center gap-3 p-2 rounded-lg bg-secondary/30"
+                      >
+                        <CatVisual
+                          cat={otherCat}
+                          size="xs"
+                          equippedCostumeId={catCostumes?.[otherCat.id]}
+                        />
+                        <span className="font-medium flex-1">{otherCat.name}</span>
+                        <div className="flex items-center gap-2 w-32">
+                          <Progress value={compatibility} className="h-2" />
+                          <span className="text-xs font-medium w-10">
+                            {Math.round(compatibility)}%
+                          </span>
+                        </div>
+                        {personalityBonus > 10 && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400"
+                          >
+                            Great match
+                          </Badge>
+                        )}
                       </div>
-                      {personalityBonus > 10 && (
-                        <Badge variant="outline" className="text-xs bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400">
-                          Great match
-                        </Badge>
-                      )}
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             </div>

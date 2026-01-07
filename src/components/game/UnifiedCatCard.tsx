@@ -1,25 +1,41 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Cat, BREEDS, CatBreed, CatPersonality } from '@/types/game';
 import { CatRelationship, getRelationshipLevel } from '@/types/relationships';
-import { getGradeTier, getGradeStars, getGradeBorderClass, TRICKS, MAX_GRADE } from '@/types/grading';
+import {
+  getGradeTier,
+  getGradeStars,
+  getGradeBorderClass,
+  TRICKS,
+  MAX_GRADE,
+} from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
 import { CatVisual } from './CatVisual';
 import { CatAvatar } from './CatAvatar';
 import { ComfortButton } from './ComfortButton';
 import { CatCardReaction } from './CatCardReaction';
 import { CatReaction } from '@/contexts/CatReactionContext';
-import { 
-  getCatRelationships, 
-  getFriendRelationships, 
-  getEnemyRelationships, 
+import {
+  getCatRelationships,
+  getFriendRelationships,
+  getEnemyRelationships,
   getBestFriend,
-  needsSocialAttention 
+  needsSocialAttention,
 } from '@/lib/relationshipUtils';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Pencil, Check, X, Shuffle, Star, Heart, HeartCrack, Trophy, RotateCcw } from 'lucide-react';
+import {
+  Pencil,
+  Check,
+  X,
+  Shuffle,
+  Star,
+  Heart,
+  HeartCrack,
+  Trophy,
+  RotateCcw,
+} from 'lucide-react';
 import { useSound } from '@/contexts/SoundContext';
 import { cn } from '@/lib/utils';
 import { GRAPHICS_CONFIG, getTierVisuals } from '@/config/graphics';
@@ -74,41 +90,46 @@ export interface UnifiedCatCardProps {
 import { generateRandomCatName } from '@/types/catNames';
 
 const personalityEmojis: Record<string, string> = {
-  'lazy': '😴', 'playful': '🎮', 'affectionate': '💗', 'independent': '😎', 'curious': '🔍', 'shy': '🙈',
+  lazy: '😴',
+  playful: '🎮',
+  affectionate: '💗',
+  independent: '😎',
+  curious: '🔍',
+  shy: '🙈',
 };
 
 const typeLabels: Record<string, { label: string; color: string }> = {
-  'stray': { label: 'Stray', color: 'bg-gray-500' },
-  'adopted': { label: 'Adopted', color: 'bg-blue-500' },
-  'pure': { label: 'Purebred', color: 'bg-purple-500' },
+  stray: { label: 'Stray', color: 'bg-gray-500' },
+  adopted: { label: 'Adopted', color: 'bg-blue-500' },
+  pure: { label: 'Purebred', color: 'bg-purple-500' },
 };
 
 /**
  * UnifiedCatCard - The single source of truth for cat display
- * 
+ *
  * This component provides consistent cat display across the entire application.
  * It supports multiple display variants while maintaining visual consistency.
- * 
+ *
  * Variants:
  * - minimal: Just the avatar and name
  * - compact: Small card for lists
  * - card: Standard card with stats and actions
  * - trading: Trading card style with flip animation
  * - detail: Detailed view for modals
- * 
+ *
  * @example
  * ```tsx
  * // Standard card
- * <UnifiedCatCard 
- *   cat={myCat} 
+ * <UnifiedCatCard
+ *   cat={myCat}
  *   variant="card"
  *   onSell={handleSell}
  *   onHeal={handleHeal}
  * />
- * 
+ *
  * // Trading card with flip
- * <UnifiedCatCard 
- *   cat={myCat} 
+ * <UnifiedCatCard
+ *   cat={myCat}
  *   variant="trading"
  *   showFlip
  *   onClick={handleClick}
@@ -163,7 +184,8 @@ export function UnifiedCatCard({
   const bestFriend = getBestFriend(cat.id, relationships, allCats);
 
   // Check if cat needs comforting
-  const needsComfort = cat.happiness < 50 || needsSocialAttention(cat.id, relationships) || cat.health < 50;
+  const needsComfort =
+    cat.happiness < 50 || needsSocialAttention(cat.id, relationships) || cat.health < 50;
   const moodEmoji = cat.happiness < 30 ? '😿' : cat.happiness < 50 ? '😾' : null;
 
   // Focus input when editing
@@ -212,16 +234,17 @@ export function UnifiedCatCard({
     setEditName(generateRandomCatName(cat.breed, cat.personality));
   };
 
-  const glowColor = reaction?.type === 'positive' 
-    ? 'rgba(236, 72, 153, 0.4)' 
-    : reaction?.type === 'negative' 
-    ? 'rgba(239, 68, 68, 0.4)' 
-    : undefined;
+  const glowColor =
+    reaction?.type === 'positive'
+      ? 'rgba(236, 72, 153, 0.4)'
+      : reaction?.type === 'negative'
+        ? 'rgba(239, 68, 68, 0.4)'
+        : undefined;
 
   // Render based on variant
   if (variant === 'minimal') {
     return (
-      <div className={cn("flex items-center gap-2", className)} onClick={onClick}>
+      <div className={cn('flex items-center gap-2', className)} onClick={onClick}>
         <CatVisual cat={cat} size="sm" equippedCostumeId={equippedCostumeId} />
         <span className="font-medium text-sm truncate">{cat.name}</span>
       </div>
@@ -230,7 +253,7 @@ export function UnifiedCatCard({
 
   if (variant === 'compact') {
     return (
-      <div className={cn("cat-card-compact", className)} onClick={onClick}>
+      <div className={cn('cat-card-compact', className)} onClick={onClick}>
         <CatVisual cat={cat} size="sm" equippedCostumeId={equippedCostumeId} />
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm truncate">{cat.name}</p>
@@ -263,22 +286,25 @@ export function UnifiedCatCard({
 
   // Default 'card' variant
   return (
-    <div 
+    <div
       className={cn(
-        "cat-card relative overflow-visible transition-all duration-300",
+        'cat-card relative overflow-visible transition-all duration-300',
         gradeBorder,
         !isHealthy && 'border-destructive/50',
         reaction && 'animate-card-glow',
         className
       )}
-      style={glowColor ? { '--glow-color': glowColor } as React.CSSProperties : undefined}
+      style={glowColor ? ({ '--glow-color': glowColor } as React.CSSProperties) : undefined}
       onClick={onClick}
     >
       {/* Ultra rare sparkle overlay */}
       {tier === 'ultraRare' && GRAPHICS_CONFIG.enableSparkles && (
         <>
           <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl z-10">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
+            <div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"
+              style={{ backgroundSize: '200% 100%' }}
+            />
           </div>
           <div className="absolute -inset-2 pointer-events-none z-0">
             {[...Array(6)].map((_, i) => (
@@ -286,8 +312,8 @@ export function UnifiedCatCard({
                 key={i}
                 className="absolute text-sm animate-sparkle"
                 style={{
-                  left: `${15 + (i * 14)}%`,
-                  top: `${10 + ((i % 3) * 35)}%`,
+                  left: `${15 + i * 14}%`,
+                  top: `${10 + (i % 3) * 35}%`,
                   animationDelay: `${i * 0.3}s`,
                 }}
               >
@@ -303,10 +329,10 @@ export function UnifiedCatCard({
       {/* Header with avatar and grade */}
       <div className="flex items-start justify-between w-full mb-2">
         <div className="flex items-center gap-1">
-          <CatVisual 
-            cat={cat} 
-            size="md" 
-            equippedCostumeId={equippedCostumeId} 
+          <CatVisual
+            cat={cat}
+            size="md"
+            equippedCostumeId={equippedCostumeId}
             animated={shouldAnimate}
             preferPortrait={shouldShowPortrait}
           />
@@ -328,16 +354,38 @@ export function UnifiedCatCard({
               className="h-6 text-sm font-bold px-1 py-0 flex-1"
               onClick={(e) => e.stopPropagation()}
             />
-            <Button size="icon" variant="ghost" className="h-5 w-5 text-purple-600 hover:bg-purple-100"
-              onClick={(e) => { e.stopPropagation(); generateRandomName(); }} title="Generate random name">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-5 w-5 text-purple-600 hover:bg-purple-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                generateRandomName();
+              }}
+              title="Generate random name"
+            >
               <Shuffle className="h-3 w-3" />
             </Button>
-            <Button size="icon" variant="ghost" className="h-5 w-5 text-green-600 hover:bg-green-100"
-              onClick={(e) => { e.stopPropagation(); handleConfirmRename(); }}>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-5 w-5 text-green-600 hover:bg-green-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleConfirmRename();
+              }}
+            >
               <Check className="h-3 w-3" />
             </Button>
-            <Button size="icon" variant="ghost" className="h-5 w-5 text-red-600 hover:bg-red-100"
-              onClick={(e) => { e.stopPropagation(); handleCancelRename(); }}>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-5 w-5 text-red-600 hover:bg-red-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCancelRename();
+              }}
+            >
               <X className="h-3 w-3" />
             </Button>
           </div>
@@ -345,9 +393,13 @@ export function UnifiedCatCard({
           <>
             <h3 className="font-bold text-foreground truncate">{cat.name}</h3>
             {onRename && (
-              <Button size="icon" variant="ghost" 
+              <Button
+                size="icon"
+                variant="ghost"
                 className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={handleStartEdit} title="Rename cat">
+                onClick={handleStartEdit}
+                title="Rename cat"
+              >
                 <Pencil className="h-3 w-3" />
               </Button>
             )}
@@ -361,40 +413,56 @@ export function UnifiedCatCard({
       </p>
 
       {/* Relationship Badges */}
-      {shouldShowRelationships && (friends.length > 0 || enemies.length > 0 || cat.tricksLearned.length > 0) && (
-        <div className="flex gap-1 flex-wrap mb-2 w-full">
-          {friends.length > 0 && (
-            <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-200">
-              💚 {friends.length}
-            </Badge>
-          )}
-          {enemies.length > 0 && (
-            <Badge variant="outline" className="text-xs bg-red-50 text-red-600 border-red-200">
-              😾 {enemies.length}
-            </Badge>
-          )}
-          {cat.tricksLearned.length > 0 && (
-            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-200">
-              🎯 {cat.tricksLearned.length} tricks
-            </Badge>
-          )}
-        </div>
-      )}
+      {shouldShowRelationships &&
+        (friends.length > 0 || enemies.length > 0 || cat.tricksLearned.length > 0) && (
+          <div className="flex gap-1 flex-wrap mb-2 w-full">
+            {friends.length > 0 && (
+              <Badge
+                variant="outline"
+                className="text-xs bg-green-50 text-green-600 border-green-200"
+              >
+                💚 {friends.length}
+              </Badge>
+            )}
+            {enemies.length > 0 && (
+              <Badge variant="outline" className="text-xs bg-red-50 text-red-600 border-red-200">
+                😾 {enemies.length}
+              </Badge>
+            )}
+            {cat.tricksLearned.length > 0 && (
+              <Badge
+                variant="outline"
+                className="text-xs bg-purple-50 text-purple-600 border-purple-200"
+              >
+                🎯 {cat.tricksLearned.length} tricks
+              </Badge>
+            )}
+          </div>
+        )}
 
       {/* Stats */}
       {shouldShowStats && (
         <div className="w-full space-y-1.5 mb-3">
           <div className="stat-row">
             <span className="text-xs">❤️</span>
-            <Progress value={cat.health} className={cn("h-1.5 flex-1", cat.health < 50 && 'bg-destructive/20')} />
+            <Progress
+              value={cat.health}
+              className={cn('h-1.5 flex-1', cat.health < 50 && 'bg-destructive/20')}
+            />
           </div>
           <div className="stat-row">
             <span className="text-xs">😊</span>
-            <Progress value={cat.happiness} className={cn("h-1.5 flex-1", cat.happiness < 50 && 'bg-amber-500/30')} />
+            <Progress
+              value={cat.happiness}
+              className={cn('h-1.5 flex-1', cat.happiness < 50 && 'bg-amber-500/30')}
+            />
           </div>
           <div className="stat-row">
             <span className="text-xs">🍖</span>
-            <Progress value={cat.hunger} className={cn("h-1.5 flex-1", cat.hunger < 30 && 'bg-amber-500/30')} />
+            <Progress
+              value={cat.hunger}
+              className={cn('h-1.5 flex-1', cat.hunger < 30 && 'bg-amber-500/30')}
+            />
           </div>
         </div>
       )}
@@ -416,13 +484,22 @@ export function UnifiedCatCard({
       {shouldShowActions && (
         <div className="flex gap-1 w-full">
           {!isHealthy && onHeal && (
-            <Button variant="outline" size="sm" onClick={() => onHeal(cat.id)} className="flex-1 text-xs">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onHeal(cat.id)}
+              className="flex-1 text-xs"
+            >
               💊 Heal
             </Button>
           )}
           {onSell && (
-            <Button variant="ghost" size="sm" onClick={() => onSell(cat.id)}
-              className="flex-1 text-xs hover:bg-destructive/10 hover:text-destructive">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onSell(cat.id)}
+              className="flex-1 text-xs hover:bg-destructive/10 hover:text-destructive"
+            >
               Sell
             </Button>
           )}
@@ -438,16 +515,51 @@ export function UnifiedCatCard({
 function getVariantDefaults(variant: CatCardVariant) {
   switch (variant) {
     case 'minimal':
-      return { showPortrait: false, showStats: false, showRelationships: false, showActions: false, showFlip: false, animated: false };
+      return {
+        showPortrait: false,
+        showStats: false,
+        showRelationships: false,
+        showActions: false,
+        showFlip: false,
+        animated: false,
+      };
     case 'compact':
-      return { showPortrait: false, showStats: false, showRelationships: false, showActions: false, showFlip: false, animated: false };
+      return {
+        showPortrait: false,
+        showStats: false,
+        showRelationships: false,
+        showActions: false,
+        showFlip: false,
+        animated: false,
+      };
     case 'trading':
-      return { showPortrait: false, showStats: true, showRelationships: true, showActions: false, showFlip: true, animated: true };
+      return {
+        showPortrait: false,
+        showStats: true,
+        showRelationships: true,
+        showActions: false,
+        showFlip: true,
+        animated: true,
+      };
     case 'detail':
-      return { showPortrait: true, showStats: true, showRelationships: true, showActions: true, showFlip: false, animated: true };
+      return {
+        showPortrait: true,
+        showStats: true,
+        showRelationships: true,
+        showActions: true,
+        showFlip: false,
+        animated: true,
+      };
     case 'card':
     default:
-      return { showPortrait: true, showStats: true, showRelationships: true, showActions: true, showFlip: false, animated: true };
+      return {
+        showPortrait: true,
+        showStats: true,
+        showRelationships: true,
+        showActions: true,
+        showFlip: false,
+        animated: true,
+      };
   }
 }
 
@@ -485,14 +597,17 @@ function TradingCardView({
 }) {
   const cardBorders: Record<string, string> = {
     common: 'border-2 border-border',
-    uncommon: 'border-2 border-blue-400 shadow-[0_0_12px_2px_rgba(59,130,246,0.35)] hover:shadow-[0_0_18px_4px_rgba(59,130,246,0.5)]',
+    uncommon:
+      'border-2 border-blue-400 shadow-[0_0_12px_2px_rgba(59,130,246,0.35)] hover:shadow-[0_0_18px_4px_rgba(59,130,246,0.5)]',
     rare: 'border-2 border-purple-400 animate-purple-glow',
     veryRare: 'border-2 border-yellow-400 animate-golden-glow',
     ultraRare: 'border-2 animate-rainbow-glow',
   };
 
   const CardFront = (
-    <div className={cn(tierVisuals.bgGradient, "rounded-lg p-3 h-full flex flex-col backface-hidden")}>
+    <div
+      className={cn(tierVisuals.bgGradient, 'rounded-lg p-3 h-full flex flex-col backface-hidden')}
+    >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <span className="text-lg">{personalityEmojis[cat.personality]}</span>
@@ -502,7 +617,13 @@ function TradingCardView({
       </div>
 
       <div className="relative flex-shrink-0 h-24 flex items-center justify-center mb-2 rounded-md bg-gradient-to-b from-background/50 to-transparent">
-        <CatVisual cat={cat} size="lg" equippedCostumeId={equippedCostumeId} preferPortrait={true} animated={tier === 'ultraRare' || tier === 'veryRare'} />
+        <CatVisual
+          cat={cat}
+          size="lg"
+          equippedCostumeId={equippedCostumeId}
+          preferPortrait={true}
+          animated={tier === 'ultraRare' || tier === 'veryRare'}
+        />
         {tier === 'ultraRare' && (
           <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/30 animate-shimmer rounded-md" />
         )}
@@ -517,7 +638,7 @@ function TradingCardView({
 
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-medium capitalize">{cat.breed.replace('-', ' ')}</span>
-        <Badge className={cn(typeLabels[cat.type].color, "text-white text-[10px] px-1.5 py-0")}>
+        <Badge className={cn(typeLabels[cat.type].color, 'text-white text-[10px] px-1.5 py-0')}>
           {typeLabels[cat.type].label}
         </Badge>
       </div>
@@ -543,9 +664,11 @@ function TradingCardView({
       </div>
 
       {showFlip && (
-        <button onClick={onFlip}
+        <button
+          onClick={onFlip}
           className="absolute bottom-2 right-2 p-1 rounded-full bg-background/80 hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
-          title="Flip card">
+          title="Flip card"
+        >
           <RotateCcw className="h-3 w-3" />
         </button>
       )}
@@ -553,10 +676,17 @@ function TradingCardView({
   );
 
   const CardBack = (
-    <div className={cn(tierVisuals.bgGradient, "rounded-lg p-3 h-full flex flex-col backface-hidden rotate-y-180")}>
+    <div
+      className={cn(
+        tierVisuals.bgGradient,
+        'rounded-lg p-3 h-full flex flex-col backface-hidden rotate-y-180'
+      )}
+    >
       <div className="flex items-center justify-between mb-3">
         <span className="font-bold text-sm">{cat.name}</span>
-        <Badge variant="outline" className="text-[10px]">Stats</Badge>
+        <Badge variant="outline" className="text-[10px]">
+          Stats
+        </Badge>
       </div>
 
       <div className="space-y-2 text-xs flex-grow">
@@ -567,7 +697,9 @@ function TradingCardView({
           </div>
           <div className="p-2 rounded bg-accent/30">
             <div className="text-muted-foreground">Grade</div>
-            <div className="font-bold">{cat.grade}/{MAX_GRADE}</div>
+            <div className="font-bold">
+              {cat.grade}/{MAX_GRADE}
+            </div>
           </div>
         </div>
 
@@ -582,12 +714,20 @@ function TradingCardView({
         </div>
 
         <div className="p-2 rounded bg-accent/30">
-          <div className="text-muted-foreground mb-1">Tricks ({cat.tricksLearned.length}/{TRICKS.length})</div>
+          <div className="text-muted-foreground mb-1">
+            Tricks ({cat.tricksLearned.length}/{TRICKS.length})
+          </div>
           <div className="flex flex-wrap gap-1">
             {cat.tricksLearned.length > 0 ? (
-              cat.tricksLearned.map(trickId => {
-                const trick = TRICKS.find(t => t.id === trickId);
-                return trick && <span key={trickId} title={trick.name}>{trick.emoji}</span>;
+              cat.tricksLearned.map((trickId) => {
+                const trick = TRICKS.find((t) => t.id === trickId);
+                return (
+                  trick && (
+                    <span key={trickId} title={trick.name}>
+                      {trick.emoji}
+                    </span>
+                  )
+                );
               })
             ) : (
               <span className="text-muted-foreground">None yet</span>
@@ -605,16 +745,16 @@ function TradingCardView({
               <HeartCrack className="h-3 w-3" /> {enemies.length}
             </span>
           </div>
-          {bestFriend && (
-            <div className="mt-1 text-pink-500">💕 BFF: {bestFriend.name}</div>
-          )}
+          {bestFriend && <div className="mt-1 text-pink-500">💕 BFF: {bestFriend.name}</div>}
         </div>
       </div>
 
       {showFlip && (
-        <button onClick={onFlip}
+        <button
+          onClick={onFlip}
           className="absolute bottom-2 right-2 p-1 rounded-full bg-background/80 hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
-          title="Flip card">
+          title="Flip card"
+        >
           <RotateCcw className="h-3 w-3" />
         </button>
       )}
@@ -622,30 +762,42 @@ function TradingCardView({
   );
 
   return (
-    <div 
+    <div
       onClick={onClick}
       className={cn(
-        "cursor-pointer transition-all duration-300 hover:scale-105 hover:-translate-y-1 rounded-lg overflow-hidden perspective-1000",
+        'cursor-pointer transition-all duration-300 hover:scale-105 hover:-translate-y-1 rounded-lg overflow-hidden perspective-1000',
         cardBorders[tier],
         className
       )}
       style={{ perspective: '1000px' }}
     >
-      <div className="relative w-full h-[320px] transition-transform duration-500"
-        style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
+      <div
+        className="relative w-full h-[320px] transition-transform duration-500"
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+        }}
+      >
         <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden' }}>
           {tier === 'ultraRare' ? (
             <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-[2px] rounded-lg h-full">
               {CardFront}
             </div>
-          ) : CardFront}
+          ) : (
+            CardFront
+          )}
         </div>
-        <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+        <div
+          className="absolute inset-0"
+          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+        >
           {tier === 'ultraRare' ? (
             <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-[2px] rounded-lg h-full">
               {CardBack}
             </div>
-          ) : CardBack}
+          ) : (
+            CardBack
+          )}
         </div>
       </div>
     </div>

@@ -12,13 +12,13 @@ interface KeyboardShortcutsHelpProps {
 // Group shortcuts by category
 const SHORTCUT_GROUPS = {
   'Core Actions': ['F', 'N', 'S'],
-  'Navigation': ['H', 'C', 'G', 'P', 'R', 'L'],
+  Navigation: ['H', 'C', 'G', 'P', 'R', 'L'],
   'Quick Tabs': ['T', 'B', 'M', 'O', 'W'],
-  'Other': ['1-8', '?'],
+  Other: ['1-8', '?'],
 };
 
 export function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcutsHelpProps) {
-  const shortcutMap = new Map(SHORTCUTS.map(s => [s.key, s.description]));
+  const shortcutMap = new Map(SHORTCUTS.map((s) => [s.key, s.description]));
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
@@ -29,7 +29,7 @@ export function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcutsHelpPr
             Keyboard Shortcuts
           </DialogTitle>
         </DialogHeader>
-        
+
         <ScrollArea className="max-h-[60vh] pr-4">
           <div className="space-y-4">
             {Object.entries(SHORTCUT_GROUPS).map(([group, keys], index) => (
@@ -54,9 +54,10 @@ export function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcutsHelpPr
             ))}
           </div>
         </ScrollArea>
-        
+
         <p className="text-xs text-muted-foreground text-center mt-2">
-          Press <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">?</kbd> anytime to show this help
+          Press <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">?</kbd> anytime to show
+          this help
         </p>
       </DialogContent>
     </Dialog>

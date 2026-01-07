@@ -1,4 +1,11 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeftRight, Check, X, Sparkles, Coins, Package } from 'lucide-react';
@@ -29,14 +36,21 @@ interface TradeReceivedDialogProps {
   onClose: () => void;
 }
 
-export function TradeReceivedDialog({ trade, onAccept, onDecline, onClose }: TradeReceivedDialogProps) {
+export function TradeReceivedDialog({
+  trade,
+  onAccept,
+  onDecline,
+  onClose,
+}: TradeReceivedDialogProps) {
   if (!trade) return null;
 
   const hasOfferedCats = trade.offered_cats && trade.offered_cats.length > 0;
   const hasOfferedMoney = trade.offered_money > 0;
-  const hasOfferedResources = trade.offered_resources && Object.keys(trade.offered_resources).length > 0;
+  const hasOfferedResources =
+    trade.offered_resources && Object.keys(trade.offered_resources).length > 0;
   const hasRequestedMoney = trade.requested_money > 0;
-  const hasRequestedResources = trade.requested_resources && Object.keys(trade.requested_resources).length > 0;
+  const hasRequestedResources =
+    trade.requested_resources && Object.keys(trade.requested_resources).length > 0;
 
   return (
     <Dialog open={!!trade} onOpenChange={(open) => !open && onClose()}>
@@ -84,9 +98,13 @@ export function TradeReceivedDialog({ trade, onAccept, onDecline, onClose }: Tra
               )}
               {hasOfferedResources && (
                 <div className="text-xs text-muted-foreground">
-                  {Object.entries(trade.offered_resources).map(([key, value]) => (
-                    value ? <div key={key}>{key}: {value}</div> : null
-                  ))}
+                  {Object.entries(trade.offered_resources).map(([key, value]) =>
+                    value ? (
+                      <div key={key}>
+                        {key}: {value}
+                      </div>
+                    ) : null
+                  )}
                 </div>
               )}
               {!hasOfferedCats && !hasOfferedMoney && !hasOfferedResources && (
@@ -110,9 +128,13 @@ export function TradeReceivedDialog({ trade, onAccept, onDecline, onClose }: Tra
               )}
               {hasRequestedResources && (
                 <div className="text-xs text-muted-foreground">
-                  {Object.entries(trade.requested_resources).map(([key, value]) => (
-                    value ? <div key={key}>{key}: {value}</div> : null
-                  ))}
+                  {Object.entries(trade.requested_resources).map(([key, value]) =>
+                    value ? (
+                      <div key={key}>
+                        {key}: {value}
+                      </div>
+                    ) : null
+                  )}
                 </div>
               )}
               {!hasRequestedMoney && !hasRequestedResources && (
@@ -125,23 +147,18 @@ export function TradeReceivedDialog({ trade, onAccept, onDecline, onClose }: Tra
         {trade.message && (
           <div className="w-full p-3 bg-muted rounded-lg text-center">
             <p className="text-sm italic">"{trade.message}"</p>
-            <p className="text-xs text-muted-foreground mt-1">— {trade.sender_name || 'Anonymous'}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              — {trade.sender_name || 'Anonymous'}
+            </p>
           </div>
         )}
 
         <DialogFooter className="flex gap-2 sm:gap-2">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => onDecline(trade.id)}
-          >
+          <Button variant="outline" className="flex-1" onClick={() => onDecline(trade.id)}>
             <X className="w-4 h-4 mr-2" />
             Decline
           </Button>
-          <Button
-            className="flex-1"
-            onClick={() => onAccept(trade.id)}
-          >
+          <Button className="flex-1" onClick={() => onAccept(trade.id)}>
             <Check className="w-4 h-4 mr-2" />
             Accept Trade
           </Button>

@@ -5,7 +5,18 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Users, User, Gift, ArrowLeftRight, Target, ListTodo, Dices, BookOpen, Scroll, Handshake } from 'lucide-react';
+import {
+  Users,
+  User,
+  Gift,
+  ArrowLeftRight,
+  Target,
+  ListTodo,
+  Dices,
+  BookOpen,
+  Scroll,
+  Handshake,
+} from 'lucide-react';
 
 export interface CategoryDefinition {
   id: string;
@@ -46,7 +57,12 @@ export const CATEGORIES: CategoryDefinition[] = [
       { id: 'breeding', icon: '💕', label: 'Breeding', description: 'Pair cats to create kittens' },
       { id: 'training', icon: '💪', label: 'Training', description: 'Teach tricks, rest cats' },
       { id: 'costumes', icon: '👗', label: 'Costumes', description: 'Dress up your cats' },
-      { id: 'specializations', icon: '✨', label: 'Specializations', description: 'Specialize cats for bonuses' },
+      {
+        id: 'specializations',
+        icon: '✨',
+        label: 'Specializations',
+        description: 'Specialize cats for bonuses',
+      },
     ],
   },
   {
@@ -56,10 +72,30 @@ export const CATEGORIES: CategoryDefinition[] = [
     description: 'Friends, gifts, and trading',
     tabs: [
       { id: 'social', icon: '🤝', label: 'Socialize', description: 'Build cat relationships' },
-      { id: 'friends', icon: <Users className="h-4 w-4" />, label: 'Friends', description: 'Manage player friends' },
-      { id: 'gifts', icon: <Gift className="h-4 w-4" />, label: 'Gifts', description: 'Send and receive cat gifts' },
-      { id: 'trading', icon: <ArrowLeftRight className="h-4 w-4" />, label: 'Trading', description: 'Trade cats with players' },
-      { id: 'coop', icon: <Handshake className="h-4 w-4" />, label: 'Co-op', description: 'Cooperative challenges' },
+      {
+        id: 'friends',
+        icon: <Users className="h-4 w-4" />,
+        label: 'Friends',
+        description: 'Manage player friends',
+      },
+      {
+        id: 'gifts',
+        icon: <Gift className="h-4 w-4" />,
+        label: 'Gifts',
+        description: 'Send and receive cat gifts',
+      },
+      {
+        id: 'trading',
+        icon: <ArrowLeftRight className="h-4 w-4" />,
+        label: 'Trading',
+        description: 'Trade cats with players',
+      },
+      {
+        id: 'coop',
+        icon: <Handshake className="h-4 w-4" />,
+        label: 'Co-op',
+        description: 'Cooperative challenges',
+      },
     ],
   },
   {
@@ -69,12 +105,37 @@ export const CATEGORIES: CategoryDefinition[] = [
     description: 'Challenges, achievements, and rewards',
     tabs: [
       { id: 'leaderboard', icon: '🏆', label: 'Leaderboard', description: 'Cat rankings' },
-      { id: 'challenges', icon: <Target className="h-4 w-4" />, label: 'Challenges', description: 'Weekly challenges' },
-      { id: 'objectives', icon: <ListTodo className="h-4 w-4" />, label: 'Objectives', description: 'Daily tasks' },
-      { id: 'battlepass', icon: <Scroll className="h-4 w-4" />, label: 'Season Pass', description: 'Season pass rewards' },
-      { id: 'collection', icon: <BookOpen className="h-4 w-4" />, label: 'Collection', description: 'Track collection progress' },
+      {
+        id: 'challenges',
+        icon: <Target className="h-4 w-4" />,
+        label: 'Challenges',
+        description: 'Weekly challenges',
+      },
+      {
+        id: 'objectives',
+        icon: <ListTodo className="h-4 w-4" />,
+        label: 'Objectives',
+        description: 'Daily tasks',
+      },
+      {
+        id: 'battlepass',
+        icon: <Scroll className="h-4 w-4" />,
+        label: 'Season Pass',
+        description: 'Season pass rewards',
+      },
+      {
+        id: 'collection',
+        icon: <BookOpen className="h-4 w-4" />,
+        label: 'Collection',
+        description: 'Track collection progress',
+      },
       { id: 'legacy', icon: '👑', label: 'Hall of Fame', description: 'Retired legendary cats' },
-      { id: 'wheel', icon: <Dices className="h-4 w-4" />, label: 'Lucky Wheel', description: 'Spin for prizes' },
+      {
+        id: 'wheel',
+        icon: <Dices className="h-4 w-4" />,
+        label: 'Lucky Wheel',
+        description: 'Spin for prizes',
+      },
     ],
   },
   {
@@ -83,8 +144,18 @@ export const CATEGORIES: CategoryDefinition[] = [
     label: 'Settings',
     description: 'Profile and game settings',
     tabs: [
-      { id: 'profile', icon: <User className="h-4 w-4" />, label: 'Profile', description: 'Edit your profile' },
-      { id: 'more', icon: '⚙️', label: 'Settings', description: 'Achievements, graphics, save/load' },
+      {
+        id: 'profile',
+        icon: <User className="h-4 w-4" />,
+        label: 'Profile',
+        description: 'Edit your profile',
+      },
+      {
+        id: 'more',
+        icon: '⚙️',
+        label: 'Settings',
+        description: 'Achievements, graphics, save/load',
+      },
     ],
   },
 ];
@@ -92,7 +163,7 @@ export const CATEGORIES: CategoryDefinition[] = [
 // Get category for a tab
 export function getCategoryForTab(tabId: string): string {
   for (const category of CATEGORIES) {
-    if (category.tabs.some(tab => tab.id === tabId)) {
+    if (category.tabs.some((tab) => tab.id === tabId)) {
       return category.id;
     }
   }
@@ -101,7 +172,7 @@ export function getCategoryForTab(tabId: string): string {
 
 // Get all tab IDs
 export function getAllTabIds(): string[] {
-  return CATEGORIES.flatMap(cat => cat.tabs.map(tab => tab.id));
+  return CATEGORIES.flatMap((cat) => cat.tabs.map((tab) => tab.id));
 }
 
 interface CategoryTabBarProps {
@@ -111,10 +182,15 @@ interface CategoryTabBarProps {
   badges: Record<string, number>;
 }
 
-export function CategoryTabBar({ activeTab, onTabChange, highlightedTab, badges }: CategoryTabBarProps) {
+export function CategoryTabBar({
+  activeTab,
+  onTabChange,
+  highlightedTab,
+  badges,
+}: CategoryTabBarProps) {
   const isMobile = useIsMobile();
   const [activeCategory, setActiveCategory] = useState(() => getCategoryForTab(activeTab));
-  
+
   // Remember last visited tab per category in localStorage
   const [lastTabPerCategory, setLastTabPerCategory] = useState<Record<string, string>>(() => {
     try {
@@ -129,9 +205,9 @@ export function CategoryTabBar({ activeTab, onTabChange, highlightedTab, badges 
   useEffect(() => {
     const category = getCategoryForTab(activeTab);
     setActiveCategory(category);
-    
+
     // Save last visited tab for this category
-    setLastTabPerCategory(prev => {
+    setLastTabPerCategory((prev) => {
       const updated = { ...prev, [category]: activeTab };
       localStorage.setItem('cat-farm-last-tab-per-category', JSON.stringify(updated));
       return updated;
@@ -152,12 +228,12 @@ export function CategoryTabBar({ activeTab, onTabChange, highlightedTab, badges 
   }, [badges]);
 
   // Get current category's tabs
-  const currentCategory = CATEGORIES.find(c => c.id === activeCategory) || CATEGORIES[0];
+  const currentCategory = CATEGORIES.find((c) => c.id === activeCategory) || CATEGORIES[0];
 
   const handleCategoryClick = (categoryId: string) => {
     setActiveCategory(categoryId);
     // Switch to last visited tab in this category, or first tab
-    const category = CATEGORIES.find(c => c.id === categoryId);
+    const category = CATEGORIES.find((c) => c.id === categoryId);
     if (category) {
       const lastTab = lastTabPerCategory[categoryId] || category.tabs[0].id;
       onTabChange(lastTab);
@@ -172,7 +248,7 @@ export function CategoryTabBar({ activeTab, onTabChange, highlightedTab, badges 
           {CATEGORIES.map((category) => {
             const isActive = category.id === activeCategory;
             const badgeCount = categoryBadges[category.id];
-            
+
             return (
               <Tooltip key={category.id}>
                 <TooltipTrigger asChild>
@@ -185,11 +261,15 @@ export function CategoryTabBar({ activeTab, onTabChange, highlightedTab, badges 
                       isActive && 'shadow-md'
                     )}
                   >
-                    <span className="text-base">{typeof category.icon === 'string' ? category.icon : category.icon}</span>
-                    {!isMobile && <span className="text-xs font-medium hidden sm:inline">{category.label}</span>}
+                    <span className="text-base">
+                      {typeof category.icon === 'string' ? category.icon : category.icon}
+                    </span>
+                    {!isMobile && (
+                      <span className="text-xs font-medium hidden sm:inline">{category.label}</span>
+                    )}
                     {badgeCount > 0 && (
-                      <Badge 
-                        variant="destructive" 
+                      <Badge
+                        variant="destructive"
                         className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] flex items-center justify-center"
                       >
                         {badgeCount > 9 ? '9+' : badgeCount}
@@ -227,11 +307,7 @@ export function CategoryTabBar({ activeTab, onTabChange, highlightedTab, badges 
                   )}
                 >
                   <span className="flex items-center gap-1.5">
-                    {typeof tab.icon === 'string' ? (
-                      <span>{tab.icon}</span>
-                    ) : (
-                      tab.icon
-                    )}
+                    {typeof tab.icon === 'string' ? <span>{tab.icon}</span> : tab.icon}
                     {!isMobile && <span className="text-xs hidden sm:inline">{tab.label}</span>}
                   </span>
                   {badgeCount > 0 && (

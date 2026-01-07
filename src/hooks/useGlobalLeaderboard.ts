@@ -40,19 +40,19 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
   const [isLive, setIsLive] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  
+
   // Infinite scroll state
   const [scrollMode, setScrollMode] = useState<ScrollMode>(() => {
     const saved = localStorage.getItem('leaderboard-scroll-mode');
-    return (saved === 'infinite' || saved === 'pagination') ? saved : 'pagination';
+    return saved === 'infinite' || saved === 'pagination' ? saved : 'pagination';
   });
   const [allEntries, setAllEntries] = useState<LeaderboardEntry[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  
+
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoad = useRef(true);
-  
+
   // Use refs to track leaderboard state without causing re-renders
   const previousLeaderboardRef = useRef<LeaderboardEntry[]>([]);
   const leaderboardRef = useRef<LeaderboardEntry[]>([]);
@@ -66,12 +66,18 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
 
   const getCategoryColumn = (cat: LeaderboardCategory): string => {
     switch (cat) {
-      case 'wins': return 'total_show_wins';
-      case 'cats': return 'total_cats_owned';
-      case 'breeding': return 'total_kittens_bred';
-      case 'wealth': return 'total_money_earned';
-      case 'achievements': return 'achievements_unlocked';
-      default: return 'total_show_wins';
+      case 'wins':
+        return 'total_show_wins';
+      case 'cats':
+        return 'total_cats_owned';
+      case 'breeding':
+        return 'total_kittens_bred';
+      case 'wealth':
+        return 'total_money_earned';
+      case 'achievements':
+        return 'achievements_unlocked';
+      default:
+        return 'total_show_wins';
     }
   };
 
@@ -80,12 +86,12 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     previous: LeaderboardEntry[]
   ): LeaderboardEntry[] => {
     if (previous.length === 0) {
-      return current.map(entry => ({ ...entry, rankChange: undefined }));
+      return current.map((entry) => ({ ...entry, rankChange: undefined }));
     }
 
-    return current.map(entry => {
-      const previousEntry = previous.find(p => p.user_id === entry.user_id);
-      
+    return current.map((entry) => {
+      const previousEntry = previous.find((p) => p.user_id === entry.user_id);
+
       if (!previousEntry) {
         return { ...entry, rankChange: { direction: 'new' as const, amount: 0 } };
       }
@@ -119,110 +125,115 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     }
   };
 
-  const fetchLeaderboard = useCallback(async (page: number = currentPage, isLoadMore: boolean = false) => {
-    if (isLoadMore) {
-      setLoadingMore(true);
-    } else {
-      setLoading(true);
-    }
-    try {
-      const column = getCategoryColumn(category);
-      const periodStart = getPeriodStart(timePeriod);
-      
-      // Calculate range for pagination
-      const from = (page - 1) * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
-      
-      let query = supabase
-        .from('player_stats')
-        .select('*', { count: 'exact' })
-        .order(column, { ascending: false })
-        .range(from, to);
-
-      // Filter to friends only when in friends mode
-      if (viewMode === 'friends' && userId) {
-        const friendIdsWithUser = [...(friendIds || []), userId];
-        query = query.in('user_id', friendIdsWithUser);
+  const fetchLeaderboard = useCallback(
+    async (page: number = currentPage, isLoadMore: boolean = false) => {
+      if (isLoadMore) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
       }
+      try {
+        const column = getCategoryColumn(category);
+        const periodStart = getPeriodStart(timePeriod);
 
-      // For time periods, filter by last_updated within the period
-      if (periodStart && timePeriod !== 'all') {
-        query = query.gte('last_updated', periodStart.toISOString());
-      }
+        // Calculate range for pagination
+        const from = (page - 1) * PAGE_SIZE;
+        const to = from + PAGE_SIZE - 1;
 
-      const { data, error, count } = await query;
+        let query = supabase
+          .from('player_stats')
+          .select('*', { count: 'exact' })
+          .order(column, { ascending: false })
+          .range(from, to);
 
-      if (error) throw error;
-
-      // Update total count for pagination
-      setTotalCount(count || 0);
-
-      // Calculate rank with page offset
-      const ranked = (data || []).map((entry, index) => ({
-        ...entry,
-        rank: from + index + 1,
-      }));
-
-      // Calculate rank changes (only after initial load)
-      const withRankChanges = isInitialLoad.current 
-        ? ranked 
-        : calculateRankChanges(ranked, previousLeaderboardRef.current);
-
-      // Store current as previous for next comparison
-      if (!isInitialLoad.current) {
-        previousLeaderboardRef.current = leaderboardRef.current;
-      }
-      isInitialLoad.current = false;
-      
-      // Update refs
-      leaderboardRef.current = withRankChanges;
-      setLeaderboard(withRankChanges);
-
-      // Handle infinite scroll mode
-      if (scrollMode === 'infinite') {
-        if (isLoadMore) {
-          setAllEntries(prev => [...prev, ...withRankChanges]);
-        } else {
-          setAllEntries(withRankChanges);
+        // Filter to friends only when in friends mode
+        if (viewMode === 'friends' && userId) {
+          const friendIdsWithUser = [...(friendIds || []), userId];
+          query = query.in('user_id', friendIdsWithUser);
         }
-        setHasMore(withRankChanges.length === PAGE_SIZE && (count || 0) > from + withRankChanges.length);
-      }
 
-      // Find current user's rank
-      if (userId) {
-        const userEntry = withRankChanges.find(e => e.user_id === userId);
-        if (userEntry) {
-          setUserRank(userEntry.rank || null);
-          setUserStats(userEntry);
-        } else if (viewMode === 'global') {
-          // User not on current page, fetch their stats separately (only for global)
-          const { data: userData } = await supabase
-            .from('player_stats')
-            .select('*')
-            .eq('user_id', userId)
-            .maybeSingle();
+        // For time periods, filter by last_updated within the period
+        if (periodStart && timePeriod !== 'all') {
+          query = query.gte('last_updated', periodStart.toISOString());
+        }
 
-          if (userData) {
-            setUserStats(userData);
-            // Calculate rank by counting how many have higher scores
-            const { count } = await supabase
-              .from('player_stats')
-              .select('*', { count: 'exact', head: true })
-              .gt(column, userData[column as keyof typeof userData] || 0);
-            setUserRank((count || 0) + 1);
+        const { data, error, count } = await query;
+
+        if (error) throw error;
+
+        // Update total count for pagination
+        setTotalCount(count || 0);
+
+        // Calculate rank with page offset
+        const ranked = (data || []).map((entry, index) => ({
+          ...entry,
+          rank: from + index + 1,
+        }));
+
+        // Calculate rank changes (only after initial load)
+        const withRankChanges = isInitialLoad.current
+          ? ranked
+          : calculateRankChanges(ranked, previousLeaderboardRef.current);
+
+        // Store current as previous for next comparison
+        if (!isInitialLoad.current) {
+          previousLeaderboardRef.current = leaderboardRef.current;
+        }
+        isInitialLoad.current = false;
+
+        // Update refs
+        leaderboardRef.current = withRankChanges;
+        setLeaderboard(withRankChanges);
+
+        // Handle infinite scroll mode
+        if (scrollMode === 'infinite') {
+          if (isLoadMore) {
+            setAllEntries((prev) => [...prev, ...withRankChanges]);
+          } else {
+            setAllEntries(withRankChanges);
           }
-        } else {
-          setUserRank(null);
-          setUserStats(null);
+          setHasMore(
+            withRankChanges.length === PAGE_SIZE && (count || 0) > from + withRankChanges.length
+          );
         }
+
+        // Find current user's rank
+        if (userId) {
+          const userEntry = withRankChanges.find((e) => e.user_id === userId);
+          if (userEntry) {
+            setUserRank(userEntry.rank || null);
+            setUserStats(userEntry);
+          } else if (viewMode === 'global') {
+            // User not on current page, fetch their stats separately (only for global)
+            const { data: userData } = await supabase
+              .from('player_stats')
+              .select('*')
+              .eq('user_id', userId)
+              .maybeSingle();
+
+            if (userData) {
+              setUserStats(userData);
+              // Calculate rank by counting how many have higher scores
+              const { count } = await supabase
+                .from('player_stats')
+                .select('*', { count: 'exact', head: true })
+                .gt(column, userData[column as keyof typeof userData] || 0);
+              setUserRank((count || 0) + 1);
+            }
+          } else {
+            setUserRank(null);
+            setUserStats(null);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch leaderboard:', err);
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-    } catch (err) {
-      console.error('Failed to fetch leaderboard:', err);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [category, userId, viewMode, friendIds, timePeriod, currentPage, scrollMode]);
+    },
+    [category, userId, viewMode, friendIds, timePeriod, currentPage, scrollMode]
+  );
 
   // Load more function for infinite scroll
   const loadMore = useCallback(() => {
@@ -232,21 +243,24 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
   }, [loadingMore, hasMore, allEntries.length, fetchLeaderboard]);
 
   // Pagination functions
-  const goToPage = useCallback((page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  }, [totalPages]);
+  const goToPage = useCallback(
+    (page: number) => {
+      if (page >= 1 && page <= totalPages) {
+        setCurrentPage(page);
+      }
+    },
+    [totalPages]
+  );
 
   const nextPage = useCallback(() => {
     if (currentPage < totalPages) {
-      setCurrentPage(prev => prev + 1);
+      setCurrentPage((prev) => prev + 1);
     }
   }, [currentPage, totalPages]);
 
   const prevPage = useCallback(() => {
     if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
+      setCurrentPage((prev) => prev - 1);
     }
   }, [currentPage]);
 
@@ -282,7 +296,7 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
         {
           event: '*',
           schema: 'public',
-          table: 'player_stats'
+          table: 'player_stats',
         },
         () => {
           // Debounce to prevent excessive refreshes
@@ -306,37 +320,40 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
     };
   }, []);
 
-  const syncPlayerStats = useCallback(async (
-    gameState: GameState,
-    kittensBreed: number,
-    displayName?: string,
-    avatarEmoji?: string
-  ) => {
-    if (!userId) return;
+  const syncPlayerStats = useCallback(
+    async (
+      gameState: GameState,
+      kittensBreed: number,
+      displayName?: string,
+      avatarEmoji?: string
+    ) => {
+      if (!userId) return;
 
-    try {
-      const stats = {
-        user_id: userId,
-        display_name: displayName || null,
-        avatar_emoji: avatarEmoji || '😺',
-        total_show_wins: gameState.cats.reduce((sum, cat) => sum + (cat.showWins || 0), 0),
-        total_cats_owned: gameState.cats.length,
-        total_kittens_bred: kittensBreed,
-        highest_cat_grade: Math.max(...gameState.cats.map(c => c.grade || 1), 1),
-        total_money_earned: gameState.money,
-        achievements_unlocked: gameState.achievements.filter(a => a.unlocked).length,
-        last_updated: new Date().toISOString(),
-      };
+      try {
+        const stats = {
+          user_id: userId,
+          display_name: displayName || null,
+          avatar_emoji: avatarEmoji || '😺',
+          total_show_wins: gameState.cats.reduce((sum, cat) => sum + (cat.showWins || 0), 0),
+          total_cats_owned: gameState.cats.length,
+          total_kittens_bred: kittensBreed,
+          highest_cat_grade: Math.max(...gameState.cats.map((c) => c.grade || 1), 1),
+          total_money_earned: gameState.money,
+          achievements_unlocked: gameState.achievements.filter((a) => a.unlocked).length,
+          last_updated: new Date().toISOString(),
+        };
 
-      const { error } = await supabase
-        .from('player_stats')
-        .upsert(stats, { onConflict: 'user_id' });
+        const { error } = await supabase
+          .from('player_stats')
+          .upsert(stats, { onConflict: 'user_id' });
 
-      if (error) throw error;
-    } catch (err) {
-      console.error('Failed to sync player stats:', err);
-    }
-  }, [userId]);
+        if (error) throw error;
+      } catch (err) {
+        console.error('Failed to sync player stats:', err);
+      }
+    },
+    [userId]
+  );
 
   return {
     leaderboard,

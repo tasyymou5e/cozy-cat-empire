@@ -1,6 +1,10 @@
 import { useMemo } from 'react';
 import { Cat, BREEDS } from '@/types/game';
-import { PERSONALITY_COMPATIBILITY, CatRelationship, getRelationshipEmoji } from '@/types/relationships';
+import {
+  PERSONALITY_COMPATIBILITY,
+  CatRelationship,
+  getRelationshipEmoji,
+} from '@/types/relationships';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -23,7 +27,13 @@ interface MatchSuggestion {
   reason: string;
 }
 
-export function MatchmakingPanel({ cats, relationships, onSocialize, treats, catCostumes }: MatchmakingPanelProps) {
+export function MatchmakingPanel({
+  cats,
+  relationships,
+  onSocialize,
+  treats,
+  catCostumes,
+}: MatchmakingPanelProps) {
   const suggestions = useMemo(() => {
     if (cats.length < 2) return [];
 
@@ -33,12 +43,14 @@ export function MatchmakingPanel({ cats, relationships, onSocialize, treats, cat
       for (let j = i + 1; j < cats.length; j++) {
         const cat1 = cats[i];
         const cat2 = cats[j];
-        
+
         const compatibility = PERSONALITY_COMPATIBILITY[cat1.personality][cat2.personality];
-        const currentRel = relationships.find(
-          r => (r.catId1 === cat1.id && r.catId2 === cat2.id) ||
-               (r.catId1 === cat2.id && r.catId2 === cat1.id)
-        ) || null;
+        const currentRel =
+          relationships.find(
+            (r) =>
+              (r.catId1 === cat1.id && r.catId2 === cat2.id) ||
+              (r.catId1 === cat2.id && r.catId2 === cat1.id)
+          ) || null;
 
         // Generate reason based on personalities
         let reason = '';
@@ -64,13 +76,13 @@ export function MatchmakingPanel({ cats, relationships, onSocialize, treats, cat
 
     // Sort by: 1) No existing strong relationship, 2) High compatibility
     return matches
-      .filter(m => !m.currentRelationship || m.currentRelationship.score < 60) // Not already best friends
+      .filter((m) => !m.currentRelationship || m.currentRelationship.score < 60) // Not already best friends
       .sort((a, b) => {
         // Prioritize pairs without relationships or with low relationships
         const aHasRel = a.currentRelationship ? 1 : 0;
         const bHasRel = b.currentRelationship ? 1 : 0;
         if (aHasRel !== bHasRel) return aHasRel - bHasRel;
-        
+
         // Then sort by compatibility
         return b.compatibility - a.compatibility;
       })
@@ -78,9 +90,12 @@ export function MatchmakingPanel({ cats, relationships, onSocialize, treats, cat
   }, [cats, relationships]);
 
   const getCompatibilityBadge = (compat: number) => {
-    if (compat >= 15) return { label: 'Excellent', className: 'bg-green-100 text-green-700 border-green-200' };
-    if (compat >= 5) return { label: 'Good', className: 'bg-blue-100 text-blue-700 border-blue-200' };
-    if (compat >= 0) return { label: 'Neutral', className: 'bg-gray-100 text-gray-700 border-gray-200' };
+    if (compat >= 15)
+      return { label: 'Excellent', className: 'bg-green-100 text-green-700 border-green-200' };
+    if (compat >= 5)
+      return { label: 'Good', className: 'bg-blue-100 text-blue-700 border-blue-200' };
+    if (compat >= 0)
+      return { label: 'Neutral', className: 'bg-gray-100 text-gray-700 border-gray-200' };
     return { label: 'Risky', className: 'bg-orange-100 text-orange-700 border-orange-200' };
   };
 
@@ -112,29 +127,38 @@ export function MatchmakingPanel({ cats, relationships, onSocialize, treats, cat
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <CatVisual cat={match.cat1} size="xs" equippedCostumeId={catCostumes?.[match.cat1.id]} />
+                        <CatVisual
+                          cat={match.cat1}
+                          size="xs"
+                          equippedCostumeId={catCostumes?.[match.cat1.id]}
+                        />
                         <span className="font-medium text-sm">{match.cat1.name}</span>
                         <span className="text-pink-500">💕</span>
                         <span className="font-medium text-sm">{match.cat2.name}</span>
-                        <CatVisual cat={match.cat2} size="xs" equippedCostumeId={catCostumes?.[match.cat2.id]} />
+                        <CatVisual
+                          cat={match.cat2}
+                          size="xs"
+                          equippedCostumeId={catCostumes?.[match.cat2.id]}
+                        />
                       </div>
                       <Badge variant="outline" className={`text-xs ${badge.className}`}>
                         {badge.label}
                       </Badge>
                     </div>
-                    
+
                     <p className="text-xs text-muted-foreground mb-2">{match.reason}</p>
-                    
+
                     <div className="flex items-center justify-between">
                       {match.currentRelationship && (
                         <span className="text-xs text-muted-foreground">
-                          Current: {getRelationshipEmoji(match.currentRelationship.level)} {match.currentRelationship.level}
+                          Current: {getRelationshipEmoji(match.currentRelationship.level)}{' '}
+                          {match.currentRelationship.level}
                         </span>
                       )}
                       {!match.currentRelationship && (
                         <span className="text-xs text-muted-foreground">No relationship yet</span>
                       )}
-                      
+
                       <button
                         onClick={() => onSocialize(match.cat1.id, match.cat2.id)}
                         disabled={treats < 2}

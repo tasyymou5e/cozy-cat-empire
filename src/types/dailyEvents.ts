@@ -86,7 +86,7 @@ export const DAILY_EVENTS: DailyEvent[] = [
     catEffect: { healthChange: 5, happinessChange: 5 },
     rarity: 4,
   },
-  
+
   // Negative Events
   {
     id: 'rainy_day',
@@ -133,7 +133,7 @@ export const DAILY_EVENTS: DailyEvent[] = [
     resourceChange: { treats: -2 },
     rarity: 5,
   },
-  
+
   // Neutral Events
   {
     id: 'visitor',
@@ -165,16 +165,16 @@ export const DAILY_EVENTS: DailyEvent[] = [
 export function getRandomDailyEvent(day: number): DailyEvent | null {
   // 60% chance of an event happening
   if (Math.random() > 0.6) return null;
-  
+
   // Weight events by rarity (lower rarity = more common)
   const weightedEvents: DailyEvent[] = [];
-  DAILY_EVENTS.forEach(event => {
+  DAILY_EVENTS.forEach((event) => {
     const weight = 11 - event.rarity; // Inverse rarity for weight
     for (let i = 0; i < weight; i++) {
       weightedEvents.push(event);
     }
   });
-  
+
   // Use day as seed modifier for variety
   const index = Math.floor(Math.random() * weightedEvents.length);
   return weightedEvents[index];

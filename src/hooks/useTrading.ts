@@ -1,10 +1,10 @@
 /**
  * @fileoverview Player-to-player trading system hook
- * 
+ *
  * Provides functionality for creating, accepting, declining, and cancelling
  * trade offers between players. Supports trading cats, money, and resources.
  * Includes real-time updates via Supabase subscriptions.
- * 
+ *
  * @module hooks/useTrading
  */
 
@@ -16,7 +16,7 @@ import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
 /**
  * Trade offer data structure
- * 
+ *
  * @interface TradeOffer
  * @property {string} id - Unique trade offer ID
  * @property {string} sender_id - ID of the player who created the trade
@@ -54,7 +54,7 @@ interface TradeOffer {
 
 /**
  * Data required to create a new trade offer
- * 
+ *
  * @interface TradeData
  * @property {string} recipientId - ID of the player to send the trade to
  * @property {Cat[]} offeredCats - Cats to offer in the trade
@@ -76,7 +76,7 @@ interface TradeData {
 
 /**
  * Result of a trade operation
- * 
+ *
  * @interface TradeResult
  * @property {boolean} success - Whether the operation succeeded
  * @property {string} [error] - Error message if operation failed
@@ -88,20 +88,20 @@ interface TradeResult {
 
 /**
  * Hook for managing player-to-player trading
- * 
+ *
  * Provides functionality to:
  * - Fetch incoming and outgoing trade offers
  * - Create new trade offers with cats, money, and resources
  * - Accept incoming trades (returns the traded cats)
  * - Decline or cancel trades
  * - Real-time notifications for new incoming trades
- * 
+ *
  * Trade offers automatically expire after 7 days.
  * All operations show toast notifications and log to player activity.
- * 
+ *
  * @param {string | undefined} userId - The current user's ID (undefined if not logged in)
  * @returns {Object} Trading state and functions
- * 
+ *
  * @example
  * ```tsx
  * function TradingPanel() {
@@ -117,7 +117,7 @@ interface TradeResult {
  *     newTradeAlert,
  *     clearNewTrade
  *   } = useTrading(user?.id);
- * 
+ *
  *   // Create a trade offering a cat for 500 coins
  *   const handleCreateTrade = async (friendId: string, cat: Cat) => {
  *     const result = await createTrade({
@@ -129,13 +129,13 @@ interface TradeResult {
  *       requestedResources: {},
  *       message: 'Want to trade?'
  *     });
- *     
+ *
  *     if (result.success) {
  *       // Cat should be removed from sender's inventory
  *       removeCatFromState(cat.id);
  *     }
  *   };
- * 
+ *
  *   // Accept an incoming trade
  *   const handleAccept = async (tradeId: string) => {
  *     const trade = await acceptTrade(tradeId);
@@ -146,14 +146,14 @@ interface TradeResult {
  *       addMoney(trade.offered_money - trade.requested_money);
  *     }
  *   };
- * 
+ *
  *   // Show popup when new trade arrives
  *   useEffect(() => {
  *     if (newTradeAlert) {
  *       showTradePopup(newTradeAlert);
  *     }
  *   }, [newTradeAlert]);
- * 
+ *
  *   return (
  *     <div>
  *       <h2>Incoming ({incomingTrades.length})</h2>
@@ -172,19 +172,19 @@ interface TradeResult {
 export function useTrading(userId: string | undefined) {
   /** List of pending incoming trade offers */
   const [incomingTrades, setIncomingTrades] = useState<TradeOffer[]>([]);
-  
+
   /** List of all outgoing trade offers (any status) */
   const [outgoingTrades, setOutgoingTrades] = useState<TradeOffer[]>([]);
-  
+
   /** Whether data is currently being fetched */
   const [loading, setLoading] = useState(true);
-  
+
   /** New trade alert for popup notification */
   const [newTradeAlert, setNewTradeAlert] = useState<TradeOffer | null>(null);
 
   /**
    * Fetches all incoming and outgoing trades from the database
-   * 
+   *
    * @internal
    * @returns {Promise<void>}
    */
@@ -215,10 +215,12 @@ export function useTrading(userId: string | undefined) {
       if (outgoingError) throw outgoingError;
 
       // Get sender/recipient names for display
-      const userIds = [...new Set([
-        ...(incoming || []).map(t => t.sender_id),
-        ...(outgoing || []).map(t => t.recipient_id)
-      ])];
+      const userIds = [
+        ...new Set([
+          ...(incoming || []).map((t) => t.sender_id),
+          ...(outgoing || []).map((t) => t.recipient_id),
+        ]),
+      ];
 
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
@@ -226,27 +228,31 @@ export function useTrading(userId: string | undefined) {
           .select('id, display_name')
           .in('id', userIds);
 
-        const nameMap = new Map(profiles?.map(p => [p.id, p.display_name]) || []);
+        const nameMap = new Map(profiles?.map((p) => [p.id, p.display_name]) || []);
 
-        setIncomingTrades((incoming || []).map(t => ({
-          ...t,
-          offered_cats: (t.offered_cats || []) as unknown as Cat[],
-          offered_resources: (t.offered_resources || {}) as unknown as Partial<Resources>,
-          requested_cats: (t.requested_cats || []) as unknown as Cat[],
-          requested_resources: (t.requested_resources || {}) as unknown as Partial<Resources>,
-          status: t.status as TradeOffer['status'],
-          sender_name: nameMap.get(t.sender_id) || 'Unknown'
-        })));
+        setIncomingTrades(
+          (incoming || []).map((t) => ({
+            ...t,
+            offered_cats: (t.offered_cats || []) as unknown as Cat[],
+            offered_resources: (t.offered_resources || {}) as unknown as Partial<Resources>,
+            requested_cats: (t.requested_cats || []) as unknown as Cat[],
+            requested_resources: (t.requested_resources || {}) as unknown as Partial<Resources>,
+            status: t.status as TradeOffer['status'],
+            sender_name: nameMap.get(t.sender_id) || 'Unknown',
+          }))
+        );
 
-        setOutgoingTrades((outgoing || []).map(t => ({
-          ...t,
-          offered_cats: (t.offered_cats || []) as unknown as Cat[],
-          offered_resources: (t.offered_resources || {}) as unknown as Partial<Resources>,
-          requested_cats: (t.requested_cats || []) as unknown as Cat[],
-          requested_resources: (t.requested_resources || {}) as unknown as Partial<Resources>,
-          status: t.status as TradeOffer['status'],
-          recipient_name: nameMap.get(t.recipient_id) || 'Unknown'
-        })));
+        setOutgoingTrades(
+          (outgoing || []).map((t) => ({
+            ...t,
+            offered_cats: (t.offered_cats || []) as unknown as Cat[],
+            offered_resources: (t.offered_resources || {}) as unknown as Partial<Resources>,
+            requested_cats: (t.requested_cats || []) as unknown as Cat[],
+            requested_resources: (t.requested_resources || {}) as unknown as Partial<Resources>,
+            status: t.status as TradeOffer['status'],
+            recipient_name: nameMap.get(t.recipient_id) || 'Unknown',
+          }))
+        );
       } else {
         setIncomingTrades([]);
         setOutgoingTrades([]);
@@ -275,24 +281,24 @@ export function useTrading(userId: string | undefined) {
           event: '*',
           schema: 'public',
           table: 'trade_offers',
-          filter: `recipient_id=eq.${userId}`
+          filter: `recipient_id=eq.${userId}`,
         },
         async (payload) => {
           if (payload.eventType === 'INSERT') {
             // Fetch sender name for the popup
             const newTrade = payload.new as any;
             let senderName = 'Unknown';
-            
+
             const { data: profile } = await supabase
               .from('public_profiles')
               .select('display_name')
               .eq('id', newTrade.sender_id)
               .maybeSingle();
-            
+
             if (profile?.display_name) {
               senderName = profile.display_name;
             }
-            
+
             setNewTradeAlert({
               ...newTrade,
               offered_cats: (newTrade.offered_cats || []) as Cat[],
@@ -300,7 +306,7 @@ export function useTrading(userId: string | undefined) {
               requested_cats: (newTrade.requested_cats || []) as Cat[],
               requested_resources: (newTrade.requested_resources || {}) as Partial<Resources>,
               status: newTrade.status as TradeOffer['status'],
-              sender_name: senderName
+              sender_name: senderName,
             });
           }
           fetchTrades();
@@ -315,14 +321,14 @@ export function useTrading(userId: string | undefined) {
 
   /**
    * Creates a new trade offer
-   * 
+   *
    * Sends a trade offer to another player. The offered cats should be
    * removed from the sender's inventory when the trade is created.
    * Trade offers expire after 7 days if not acted upon.
-   * 
+   *
    * @param {TradeData} tradeData - The trade offer details
    * @returns {Promise<TradeResult>} Result with success status and optional error
-   * 
+   *
    * @example
    * ```ts
    * const result = await createTrade({
@@ -340,9 +346,8 @@ export function useTrading(userId: string | undefined) {
     if (!userId) return { success: false, error: 'Not logged in' };
 
     try {
-      const { error } = await supabase
-        .from('trade_offers')
-        .insert([{
+      const { error } = await supabase.from('trade_offers').insert([
+        {
           sender_id: userId,
           recipient_id: tradeData.recipientId,
           offered_cats: JSON.parse(JSON.stringify(tradeData.offeredCats)),
@@ -350,8 +355,9 @@ export function useTrading(userId: string | undefined) {
           offered_resources: JSON.parse(JSON.stringify(tradeData.offeredResources)),
           requested_money: tradeData.requestedMoney,
           requested_resources: JSON.parse(JSON.stringify(tradeData.requestedResources)),
-          message: tradeData.message || null
-        }]);
+          message: tradeData.message || null,
+        },
+      ]);
 
       if (error) throw error;
 
@@ -360,15 +366,15 @@ export function useTrading(userId: string | undefined) {
         activityType: 'trade_created',
         activityDescription: `Created a trade offer with ${tradeData.offeredCats.length} cat(s)`,
         metadata: {
-          offered_cats: tradeData.offeredCats.map(c => c.name),
+          offered_cats: tradeData.offeredCats.map((c) => c.name),
           offered_money: tradeData.offeredMoney,
-          recipient_id: tradeData.recipientId
-        }
+          recipient_id: tradeData.recipientId,
+        },
       });
 
       toast({
-        title: "Trade Offer Sent! 📦",
-        description: "Your trade offer has been sent!",
+        title: 'Trade Offer Sent! 📦',
+        description: 'Your trade offer has been sent!',
       });
 
       fetchTrades();
@@ -376,9 +382,9 @@ export function useTrading(userId: string | undefined) {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create trade';
       toast({
-        title: "Error",
+        title: 'Error',
         description: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
       return { success: false, error: errorMessage };
     }
@@ -386,13 +392,13 @@ export function useTrading(userId: string | undefined) {
 
   /**
    * Accepts an incoming trade offer
-   * 
+   *
    * Marks the trade as accepted and returns the trade details.
    * The caller should handle adding received cats and money to inventory.
-   * 
+   *
    * @param {string} tradeId - The ID of the trade to accept
    * @returns {Promise<TradeOffer | null>} The accepted trade, or null if failed
-   * 
+   *
    * @example
    * ```ts
    * const trade = await acceptTrade(tradeId);
@@ -408,9 +414,9 @@ export function useTrading(userId: string | undefined) {
    */
   const acceptTrade = async (tradeId: string): Promise<TradeOffer | null> => {
     if (!userId) return null;
-    
+
     try {
-      const trade = incomingTrades.find(t => t.id === tradeId);
+      const trade = incomingTrades.find((t) => t.id === tradeId);
       if (!trade) return null;
 
       const { error } = await supabase
@@ -426,15 +432,15 @@ export function useTrading(userId: string | undefined) {
         activityDescription: 'Completed a trade',
         metadata: {
           trade_id: tradeId,
-          received_cats: trade.offered_cats.map(c => c.name),
+          received_cats: trade.offered_cats.map((c) => c.name),
           received_money: trade.offered_money,
-          sender_id: trade.sender_id
-        }
+          sender_id: trade.sender_id,
+        },
       });
 
       toast({
-        title: "Trade Accepted! 🤝",
-        description: "The trade has been completed!",
+        title: 'Trade Accepted! 🤝',
+        description: 'The trade has been completed!',
       });
 
       fetchTrades();
@@ -442,9 +448,9 @@ export function useTrading(userId: string | undefined) {
     } catch (error) {
       console.error('Error accepting trade:', error);
       toast({
-        title: "Error",
-        description: "Failed to accept trade",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to accept trade',
+        variant: 'destructive',
       });
       return null;
     }
@@ -452,9 +458,9 @@ export function useTrading(userId: string | undefined) {
 
   /**
    * Declines an incoming trade offer
-   * 
+   *
    * Marks the trade as declined. The sender will see this in their outgoing trades.
-   * 
+   *
    * @param {string} tradeId - The ID of the trade to decline
    * @returns {Promise<boolean>} Whether the operation succeeded
    */
@@ -468,8 +474,8 @@ export function useTrading(userId: string | undefined) {
       if (error) throw error;
 
       toast({
-        title: "Trade Declined",
-        description: "The trade offer has been declined.",
+        title: 'Trade Declined',
+        description: 'The trade offer has been declined.',
       });
 
       fetchTrades();
@@ -482,9 +488,9 @@ export function useTrading(userId: string | undefined) {
 
   /**
    * Cancels an outgoing trade offer
-   * 
+   *
    * Marks the trade as cancelled. Only the sender can cancel their own trades.
-   * 
+   *
    * @param {string} tradeId - The ID of the trade to cancel
    * @returns {Promise<boolean>} Whether the operation succeeded
    */
@@ -498,8 +504,8 @@ export function useTrading(userId: string | undefined) {
       if (error) throw error;
 
       toast({
-        title: "Trade Cancelled",
-        description: "Your trade offer has been cancelled.",
+        title: 'Trade Cancelled',
+        description: 'Your trade offer has been cancelled.',
       });
 
       fetchTrades();
@@ -512,7 +518,7 @@ export function useTrading(userId: string | undefined) {
 
   /**
    * Clears the new trade alert popup
-   * 
+   *
    * @returns {void}
    */
   const clearNewTrade = useCallback(() => {
@@ -539,6 +545,6 @@ export function useTrading(userId: string | undefined) {
     /** New trade alert for popup (real-time) */
     newTradeAlert,
     /** Clear the new trade alert */
-    clearNewTrade
+    clearNewTrade,
   };
 }

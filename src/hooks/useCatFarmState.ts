@@ -1,9 +1,9 @@
 /**
  * @fileoverview Consolidated state management hook for CatFarm component
- * 
+ *
  * Combines all game-related hooks into a single state object to reduce
  * CatFarm.tsx complexity and improve maintainability.
- * 
+ *
  * @module hooks/useCatFarmState
  */
 
@@ -38,9 +38,9 @@ export { TAB_LABELS } from '@/constants/tabs';
 
 /**
  * Consolidated state hook for CatFarm component
- * 
+ *
  * @returns All state values, actions, and hook results needed by CatFarm
- * 
+ *
  * @example
  * ```tsx
  * const farmState = useCatFarmState();
@@ -52,13 +52,13 @@ export function useCatFarmState() {
   const systems = useCatFarmSystems();
   const { sound, confetti, haptics, auth } = systems;
   const { playSound } = sound;
-  
+
   // UI state (extracted)
   const ui = useCatFarmUIState();
-  
+
   // Player activity logging
   const { logActivity } = usePlayerActivityLog(auth.user?.id);
-  
+
   // Weekly challenges (needs sound for notifications)
   const weeklyChallenges = useWeeklyChallenges(
     auth.user?.id,
@@ -66,15 +66,23 @@ export function useCatFarmState() {
     confetti.fireChallengeBurst,
     haptics
   );
-  
+
   // Core game state
   const gameState = useGameState(playSound, weeklyChallenges.updateProgress, logActivity);
-  const { state, message, messageType, kittensBreed, currentDailyEvent, relationshipSystem, actions } = gameState;
-  
+  const {
+    state,
+    message,
+    messageType,
+    kittensBreed,
+    currentDailyEvent,
+    relationshipSystem,
+    actions,
+  } = gameState;
+
   // Unified message system
   const messageSystem = useGameMessages();
   const lastMessageRef = useRef<string>('');
-  
+
   // Sync game state messages to the queue system
   useEffect(() => {
     if (message && message !== lastMessageRef.current) {
@@ -82,12 +90,12 @@ export function useCatFarmState() {
       messageSystem.showMessage(message, messageType);
     }
   }, [message, messageType, messageSystem]);
-  
+
   // Cloud and profile
   const cloudSave = useCloudSave(auth.user?.id);
   const leaderboard = useGlobalLeaderboard(auth.user?.id);
   const profile = usePlayerProfile(auth.user?.id);
-  
+
   // Daily rewards
   const dailyRewards = useDailyLoginRewards(
     auth.user?.id,
@@ -95,12 +103,12 @@ export function useCatFarmState() {
     haptics.vibrateAchievement,
     confetti.fireConfetti
   );
-  
+
   // Gift and trade systems
   const gifts = useCatGifts(auth.user?.id);
   const trading = useTrading(auth.user?.id);
   const { showOutdatedToast } = usePortraitOutdatedToast();
-  
+
   // Relationship reminders
   const relationshipReminders = useRelationshipReminders(
     relationshipSystem.relationships,
@@ -108,28 +116,28 @@ export function useCatFarmState() {
     state.day,
     true
   );
-  
+
   // Milestone and objectives
   const milestones = useMilestones();
   const objectives = useDailyObjectives(auth.user?.id);
-  
+
   // Collection and wheel
   const collection = useCollectionProgress(state.cats, state.ownedCostumes);
   const luckyWheel = useLuckyWheel(dailyRewards.isVIP);
-  
+
   // Legacy/Hall of Fame
   const legacy = useLegacy(auth.user?.id);
-  
+
   // Specializations
   const specializations = useSpecializations();
-  
+
   // Battle Pass
   const battlePass = useBattlePass(auth.user?.id);
-  
+
   // Friends and coop
   const friends = useFriends(auth.user?.id);
   const coopChallenges = useCoopChallenges(auth.user?.id, friends.friends, playSound);
-  
+
   // Badge counts
   const badgeCounts = useBadgeCounts({
     state,
@@ -138,7 +146,7 @@ export function useCatFarmState() {
     canSpin: luckyWheel.canSpin,
     spinsRemaining: luckyWheel.spinsRemaining,
     retiredCatsCount: legacy.retiredCats.length,
-    specializationsCount: state.cats.filter(c => c.specialization).length,
+    specializationsCount: state.cats.filter((c) => c.specialization).length,
     getUnclaimedRewards: battlePass.getUnclaimedRewards,
     getCoopActiveCount: coopChallenges.getActiveCount,
     getCoopPendingCount: coopChallenges.getPendingCount,
@@ -159,7 +167,7 @@ export function useCatFarmState() {
     theme: systems.theme,
     isMobile: systems.isMobile,
     getCatReaction: systems.getCatReaction,
-    
+
     // Game state
     gameState,
     state,
@@ -170,12 +178,12 @@ export function useCatFarmState() {
     message,
     messageType,
     messageSystem,
-    
+
     // Cloud & profile
     cloudSave,
     leaderboard,
     profile,
-    
+
     // Systems
     weeklyChallenges,
     dailyRewards,
@@ -193,7 +201,7 @@ export function useCatFarmState() {
     friends,
     coopChallenges,
     badgeCounts,
-    
+
     // UI State (from useCatFarmUIState)
     ui,
   };

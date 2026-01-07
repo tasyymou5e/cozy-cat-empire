@@ -46,11 +46,11 @@ export function LuckyWheelPanel({
     if (isSpinning) {
       // Random extra rotations (3-5 full spins) plus landing position
       const extraSpins = 3 + Math.random() * 2;
-      const prizeIndex = lastPrize 
-        ? DISPLAY_PRIZES.findIndex(p => p.id === lastPrize.id) 
+      const prizeIndex = lastPrize
+        ? DISPLAY_PRIZES.findIndex((p) => p.id === lastPrize.id)
         : Math.floor(Math.random() * WHEEL_SEGMENTS);
-      const targetAngle = extraSpins * 360 + (prizeIndex * SEGMENT_ANGLE) + (SEGMENT_ANGLE / 2);
-      setRotation(prev => prev + targetAngle);
+      const targetAngle = extraSpins * 360 + prizeIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
+      setRotation((prev) => prev + targetAngle);
     }
   }, [isSpinning, lastPrize]);
 
@@ -58,16 +58,17 @@ export function LuckyWheelPanel({
   useEffect(() => {
     if (lastPrize && !isSpinning) {
       setShowPrizeDialog(true);
-      
+
       // Fire confetti for rare+ prizes
       if (['rare', 'ultra_rare', 'legendary'].includes(lastPrize.rarity)) {
         confetti({
           particleCount: lastPrize.rarity === 'legendary' ? 150 : 75,
           spread: 70,
           origin: { y: 0.6 },
-          colors: lastPrize.rarity === 'legendary' 
-            ? ['#ffd700', '#ffec8b', '#daa520'] 
-            : ['#4ecdc4', '#45b7d1', '#6c5ce7'],
+          colors:
+            lastPrize.rarity === 'legendary'
+              ? ['#ffd700', '#ffec8b', '#daa520']
+              : ['#4ecdc4', '#45b7d1', '#6c5ce7'],
         });
       }
     }
@@ -87,7 +88,9 @@ export function LuckyWheelPanel({
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(0, 0, 0, 0);
   const hoursUntilReset = Math.floor((tomorrow.getTime() - now.getTime()) / (1000 * 60 * 60));
-  const minutesUntilReset = Math.floor(((tomorrow.getTime() - now.getTime()) % (1000 * 60 * 60)) / (1000 * 60));
+  const minutesUntilReset = Math.floor(
+    ((tomorrow.getTime() - now.getTime()) % (1000 * 60 * 60)) / (1000 * 60)
+  );
 
   return (
     <>
@@ -110,9 +113,7 @@ export function LuckyWheelPanel({
               </Badge>
             </div>
           </div>
-          <CardDescription>
-            Spin daily for free rewards!
-          </CardDescription>
+          <CardDescription>Spin daily for free rewards!</CardDescription>
         </CardHeader>
         <CardContent>
           {/* Wheel */}
@@ -121,30 +122,35 @@ export function LuckyWheelPanel({
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-10">
               <div className="w-0 h-0 border-l-[12px] border-r-[12px] border-t-[20px] border-l-transparent border-r-transparent border-t-primary drop-shadow-lg" />
             </div>
-            
+
             {/* Wheel container */}
-            <div 
+            <div
               ref={wheelRef}
               className="w-full h-full rounded-full border-4 border-primary shadow-lg overflow-hidden"
               style={{
                 transform: `rotate(${rotation}deg)`,
-                transition: isSpinning ? 'transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
+                transition: isSpinning
+                  ? 'transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99)'
+                  : 'none',
               }}
             >
               {DISPLAY_PRIZES.map((prize, index) => {
                 const angle = index * SEGMENT_ANGLE;
                 const bgColors = [
-                  'bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400',
-                  'bg-teal-400', 'bg-blue-400', 'bg-indigo-400', 'bg-purple-400'
+                  'bg-red-400',
+                  'bg-orange-400',
+                  'bg-yellow-400',
+                  'bg-green-400',
+                  'bg-teal-400',
+                  'bg-blue-400',
+                  'bg-indigo-400',
+                  'bg-purple-400',
                 ];
-                
+
                 return (
                   <div
                     key={prize.id}
-                    className={cn(
-                      "absolute w-1/2 h-1/2 origin-bottom-right",
-                      bgColors[index]
-                    )}
+                    className={cn('absolute w-1/2 h-1/2 origin-bottom-right', bgColors[index])}
                     style={{
                       transform: `rotate(${angle}deg) skewY(${90 - SEGMENT_ANGLE}deg)`,
                       transformOrigin: 'bottom right',
@@ -152,7 +158,7 @@ export function LuckyWheelPanel({
                       top: 0,
                     }}
                   >
-                    <span 
+                    <span
                       className="absolute text-xl"
                       style={{
                         transform: `skewY(${-(90 - SEGMENT_ANGLE)}deg) rotate(${SEGMENT_ANGLE / 2}deg)`,
@@ -165,16 +171,16 @@ export function LuckyWheelPanel({
                   </div>
                 );
               })}
-              
+
               {/* Center circle */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-background border-2 border-primary flex items-center justify-center shadow-lg">
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
             </div>
           </div>
-          
+
           {/* Spin button */}
-          <Button 
+          <Button
             onClick={onSpin}
             disabled={!canSpin}
             className="w-full bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90"
@@ -197,53 +203,63 @@ export function LuckyWheelPanel({
               </>
             )}
           </Button>
-          
+
           {/* Stats */}
           <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
             <span>Total spins: {totalSpins}</span>
             <span>Resets at midnight</span>
           </div>
-          
+
           {/* Prize odds info */}
           <div className="mt-4 p-3 bg-muted/50 rounded-lg">
             <p className="text-xs font-medium mb-2">Prize Odds:</p>
             <div className="flex flex-wrap gap-1">
-              <Badge variant="outline" className="text-xs bg-gray-100">Common 60%</Badge>
-              <Badge variant="outline" className="text-xs bg-green-100">Uncommon 25%</Badge>
-              <Badge variant="outline" className="text-xs bg-blue-100">Rare 10%</Badge>
-              <Badge variant="outline" className="text-xs bg-purple-100">Ultra Rare 4%</Badge>
-              <Badge variant="outline" className="text-xs bg-amber-100">Legendary 1%</Badge>
+              <Badge variant="outline" className="text-xs bg-gray-100">
+                Common 60%
+              </Badge>
+              <Badge variant="outline" className="text-xs bg-green-100">
+                Uncommon 25%
+              </Badge>
+              <Badge variant="outline" className="text-xs bg-blue-100">
+                Rare 10%
+              </Badge>
+              <Badge variant="outline" className="text-xs bg-purple-100">
+                Ultra Rare 4%
+              </Badge>
+              <Badge variant="outline" className="text-xs bg-amber-100">
+                Legendary 1%
+              </Badge>
             </div>
           </div>
         </CardContent>
       </Card>
-      
+
       {/* Prize Won Dialog */}
       <Dialog open={showPrizeDialog} onOpenChange={setShowPrizeDialog}>
         <DialogContent className="sm:max-w-md text-center">
           <DialogHeader>
-            <DialogTitle className="text-center">
-              🎉 You Won!
-            </DialogTitle>
+            <DialogTitle className="text-center">🎉 You Won!</DialogTitle>
           </DialogHeader>
-          
+
           {lastPrize && (
             <div className="py-6 space-y-4">
-              <div className={cn(
-                "text-7xl mx-auto w-24 h-24 rounded-full flex items-center justify-center",
-                RARITY_COLORS[lastPrize.rarity],
-                RARITY_GLOW[lastPrize.rarity]
-              )}>
+              <div
+                className={cn(
+                  'text-7xl mx-auto w-24 h-24 rounded-full flex items-center justify-center',
+                  RARITY_COLORS[lastPrize.rarity],
+                  RARITY_GLOW[lastPrize.rarity]
+                )}
+              >
                 {lastPrize.emoji}
               </div>
-              
+
               <div>
                 <h3 className="text-2xl font-bold">{lastPrize.name}</h3>
-                <Badge className={cn("mt-1", RARITY_COLORS[lastPrize.rarity])}>
+                <Badge className={cn('mt-1', RARITY_COLORS[lastPrize.rarity])}>
                   {lastPrize.rarity.replace('_', ' ').toUpperCase()}
                 </Badge>
               </div>
-              
+
               {/* Prize details */}
               <div className="flex flex-wrap justify-center gap-2">
                 {lastPrize.reward.coins && (
@@ -274,7 +290,7 @@ export function LuckyWheelPanel({
               </div>
             </div>
           )}
-          
+
           <Button onClick={handleClaim} className="w-full" size="lg">
             <Gift className="h-5 w-5 mr-2" />
             Claim Prize!

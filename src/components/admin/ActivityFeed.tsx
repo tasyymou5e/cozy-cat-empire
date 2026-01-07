@@ -86,10 +86,12 @@ export function ActivityFeed() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('player_activity_log')
-        .select(`
+        .select(
+          `
           *,
           profile:profiles!player_activity_log_user_id_fkey(display_name, avatar_emoji)
-        `)
+        `
+        )
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -129,7 +131,7 @@ export function ActivityFeed() {
         },
         async (payload) => {
           const newActivity = payload.new as ActivityItem;
-          
+
           // Fetch profile info
           const { data: profile } = await supabase
             .from('public_profiles')
@@ -203,24 +205,17 @@ export function ActivityFeed() {
                   key={activity.id}
                   className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 animate-in slide-in-from-top-2 duration-300"
                 >
-                  <div
-                    className={`p-2 rounded-full ${getActivityColor(activity.activity_type)}`}
-                  >
+                  <div className={`p-2 rounded-full ${getActivityColor(activity.activity_type)}`}>
                     {getActivityIcon(activity.activity_type)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">
-                        {activity.profile?.avatar_emoji || '👤'}
-                      </span>
+                      <span className="text-lg">{activity.profile?.avatar_emoji || '👤'}</span>
                       <span className="font-medium truncate">
-                        {activity.profile?.display_name ||
-                          activity.user_id.slice(0, 8) + '...'}
+                        {activity.profile?.display_name || activity.user_id.slice(0, 8) + '...'}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {activity.activity_description}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{activity.activity_description}</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {formatDistanceToNow(new Date(activity.created_at), {
                         addSuffix: true,

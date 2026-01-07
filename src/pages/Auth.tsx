@@ -7,10 +7,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
-import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardDescription, GlassCardContent } from '@/components/ui/GlassCard';
+import {
+  GlassCard,
+  GlassCardHeader,
+  GlassCardTitle,
+  GlassCardDescription,
+  GlassCardContent,
+} from '@/components/ui/GlassCard';
 import { LoadingCat } from '@/components/ui/LoadingCat';
 import { FloatingDecorations } from '@/components/ui/FloatingDecorations';
-import { Mail, Lock, PawPrint, User, AtSign, Shuffle, Loader2, Check, AlertCircle } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  PawPrint,
+  User,
+  AtSign,
+  Shuffle,
+  Loader2,
+  Check,
+  AlertCircle,
+} from 'lucide-react';
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: 'Invalid email address' }),
@@ -20,19 +36,22 @@ const authSchema = z.object({
 const signupSchema = z.object({
   email: z.string().trim().email({ message: 'Invalid email address' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
-  displayName: z.string()
+  displayName: z
+    .string()
     .trim()
     .min(3, { message: 'Display name must be at least 3 characters' })
     .max(30, { message: 'Display name must be 30 characters or less' })
-    .regex(/^[a-zA-Z0-9\s_-]+$/, { 
-      message: 'Only letters, numbers, spaces, underscores, and hyphens allowed' 
+    .regex(/^[a-zA-Z0-9\s_-]+$/, {
+      message: 'Only letters, numbers, spaces, underscores, and hyphens allowed',
     }),
-  username: z.string()
+  username: z
+    .string()
     .trim()
     .min(3, { message: 'Username must be at least 3 characters' })
     .max(20, { message: 'Username must be 20 characters or less' })
-    .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, { 
-      message: 'Username must start with a letter and contain only letters, numbers, and underscores' 
+    .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, {
+      message:
+        'Username must start with a letter and contain only letters, numbers, and underscores',
     }),
 });
 
@@ -40,13 +59,15 @@ const emailSchema = z.object({
   email: z.string().trim().email({ message: 'Invalid email address' }),
 });
 
-const passwordUpdateSchema = z.object({
-  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const passwordUpdateSchema = z
+  .object({
+    password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 type AuthMode = 'login' | 'signup' | 'forgot-password' | 'update-password';
 
@@ -62,19 +83,19 @@ export default function Auth() {
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [avatarEmoji, setAvatarEmoji] = useState('😺');
-  
+
   // Display name validation state
   const [nameSuggestions, setNameSuggestions] = useState<string[]>([]);
   const [isCheckingName, setIsCheckingName] = useState(false);
   const [nameError, setNameError] = useState('');
   const [nameAvailable, setNameAvailable] = useState<boolean | null>(null);
-  
+
   // Username validation state
   const [usernameSuggestions, setUsernameSuggestions] = useState<string[]>([]);
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
-  
+
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,71 +107,76 @@ export default function Auth() {
     const handleRecovery = async () => {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const queryParams = new URLSearchParams(window.location.search);
-      
+
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
       const code = queryParams.get('code');
       const tokenHash = queryParams.get('token_hash') || hashParams.get('token_hash');
       const hashType = hashParams.get('type');
       const queryType = queryParams.get('type');
-      
+
       const hasRecoveryTokens = (accessToken && refreshToken) || code || tokenHash;
       const isRecoveryType = hashType === 'recovery' || queryType === 'recovery';
-      
+
       if (!hasRecoveryTokens && !isRecoveryType) return;
-      
+
       setIsRecoveryFlow(true);
       setIsProcessingRecovery(true);
       setError('');
-      
+
       try {
         if (accessToken && refreshToken) {
           const { error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
-          
+
           if (error) throw error;
-          
-          const { data: { session } } = await supabase.auth.getSession();
+
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
           if (!session) throw new Error('Failed to establish session');
-          
+
           setMode('update-password');
           window.history.replaceState(null, '', window.location.pathname);
           return;
         }
-        
+
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
-          
+
           if (error) throw error;
-          
-          const { data: { session } } = await supabase.auth.getSession();
+
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
           if (!session) throw new Error('Failed to establish session');
-          
+
           setMode('update-password');
           window.history.replaceState(null, '', window.location.pathname);
           return;
         }
-        
+
         if (tokenHash) {
           const { error } = await supabase.auth.verifyOtp({
             type: 'recovery',
             token_hash: tokenHash,
           });
-          
+
           if (error) throw error;
-          
-          const { data: { session } } = await supabase.auth.getSession();
+
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
           if (!session) throw new Error('Failed to establish session');
-          
+
           setMode('update-password');
           window.history.replaceState(null, '', window.location.pathname);
           return;
         }
-        
+
         throw new Error('Invalid or expired password reset link');
-        
       } catch (err: any) {
         console.error('Recovery error:', err);
         setError('Password reset link is invalid or expired. Please request a new one.');
@@ -159,10 +185,12 @@ export default function Auth() {
         setIsProcessingRecovery(false);
       }
     };
-    
+
     handleRecovery();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setMode('update-password');
         setIsRecoveryFlow(true);
@@ -189,7 +217,7 @@ export default function Auth() {
       setNameSuggestions([]);
       return;
     }
-    
+
     // Client-side format validation first
     const formatResult = signupSchema.shape.displayName.safeParse(sanitized);
     if (!formatResult.success) {
@@ -198,18 +226,18 @@ export default function Auth() {
       setNameSuggestions([]);
       return;
     }
-    
+
     setIsCheckingName(true);
     setNameError('');
     setNameSuggestions([]);
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('validate-display-name', {
-        body: { displayName: sanitized, action: 'validate' }
+        body: { displayName: sanitized, action: 'validate' },
       });
-      
+
       if (error) throw error;
-      
+
       if (data.profanityViolation) {
         setNameError('Display name contains inappropriate content');
         setNameAvailable(false);
@@ -232,7 +260,7 @@ export default function Auth() {
         .select('display_name')
         .ilike('display_name', sanitized)
         .limit(1);
-      
+
       const isAvailable = !data || data.length === 0;
       setNameAvailable(isAvailable);
       if (!isAvailable) {
@@ -253,7 +281,7 @@ export default function Auth() {
       setUsernameSuggestions([]);
       return;
     }
-    
+
     // Client-side format validation first
     const formatResult = signupSchema.shape.username.safeParse(sanitized);
     if (!formatResult.success) {
@@ -262,18 +290,18 @@ export default function Auth() {
       setUsernameSuggestions([]);
       return;
     }
-    
+
     setIsCheckingUsername(true);
     setUsernameError('');
     setUsernameSuggestions([]);
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('validate-display-name', {
-        body: { username: sanitized, action: 'validate_username' }
+        body: { username: sanitized, action: 'validate_username' },
       });
-      
+
       if (error) throw error;
-      
+
       if (data.profanityViolation) {
         setUsernameError('Username contains inappropriate content');
         setUsernameAvailable(false);
@@ -296,7 +324,7 @@ export default function Auth() {
         .select('username')
         .ilike('username', sanitized)
         .limit(1);
-      
+
       const isAvailable = !data || data.length === 0;
       setUsernameAvailable(isAvailable);
       if (!isAvailable) {
@@ -312,20 +340,20 @@ export default function Auth() {
   const generateNameSuggestions = (baseName: string): string[] => {
     const suggestions: string[] = [];
     const clean = baseName.replace(/[^a-zA-Z0-9]/g, '');
-    
+
     if (clean.length < 2) return suggestions;
-    
+
     suggestions.push(`${clean}${Math.floor(Math.random() * 999)}`);
     suggestions.push(`${clean}_${Math.floor(Math.random() * 99)}`);
-    
+
     const suffixes = ['Cat', 'Meow', 'Paws', 'Kitty', 'Whiskers', 'Furry'];
     suggestions.push(`${clean}${suffixes[Math.floor(Math.random() * suffixes.length)]}`);
-    
+
     const prefixes = ['Sir', 'Lady', 'Captain', 'Chief', 'Master'];
     suggestions.push(`${prefixes[Math.floor(Math.random() * prefixes.length)]}${clean}`);
-    
+
     suggestions.push(`${clean}${new Date().getFullYear()}`);
-    
+
     return suggestions.slice(0, 5);
   };
 
@@ -333,17 +361,17 @@ export default function Auth() {
   const generateUsernameSuggestions = (baseName: string): string[] => {
     const suggestions: string[] = [];
     const clean = baseName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    
+
     if (clean.length < 2) return suggestions;
-    
+
     const base = /^[a-zA-Z]/.test(clean) ? clean : `cat${clean}`;
-    
+
     suggestions.push(`${base}${Math.floor(Math.random() * 999)}`);
     suggestions.push(`${base}_${Math.floor(Math.random() * 99)}`);
     suggestions.push(`${base}_cat`);
     suggestions.push(`meow_${base}`);
     suggestions.push(`${base}${new Date().getFullYear()}`);
-    
+
     return suggestions.slice(0, 5);
   };
 
@@ -403,14 +431,16 @@ export default function Auth() {
 
       setIsSubmitting(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (!session) {
           setError('Session expired. Please request a new password reset link.');
           setIsRecoveryFlow(false);
           setMode('forgot-password');
           return;
         }
-        
+
         const { error } = await supabase.auth.updateUser({ password });
         if (error) {
           if (error.message.includes('session')) {
@@ -481,11 +511,11 @@ export default function Auth() {
     }
 
     // Signup mode - validate with signup schema
-    const result = signupSchema.safeParse({ 
-      email, 
-      password, 
+    const result = signupSchema.safeParse({
+      email,
+      password,
       displayName,
-      username: username.toLowerCase() 
+      username: username.toLowerCase(),
     });
     if (!result.success) {
       setError(result.error.errors[0].message);
@@ -499,20 +529,20 @@ export default function Auth() {
     }
 
     setIsSubmitting(true);
-    
+
     try {
       // Final validation via edge function
       const { data: nameCheck } = await supabase.functions.invoke('validate-display-name', {
-        body: { displayName: displayName.trim(), action: 'validate' }
+        body: { displayName: displayName.trim(), action: 'validate' },
       });
-      
+
       if (nameCheck?.profanityViolation) {
         setNameError('Display name contains inappropriate content');
         setNameAvailable(false);
         setIsSubmitting(false);
         return;
       }
-      
+
       if (!nameCheck?.available) {
         setNameError('This name is already taken');
         setNameSuggestions(nameCheck?.suggestions || generateNameSuggestions(displayName));
@@ -520,18 +550,18 @@ export default function Auth() {
         setIsSubmitting(false);
         return;
       }
-      
+
       const { data: usernameCheck } = await supabase.functions.invoke('validate-display-name', {
-        body: { username: username.trim().toLowerCase(), action: 'validate_username' }
+        body: { username: username.trim().toLowerCase(), action: 'validate_username' },
       });
-      
+
       if (usernameCheck?.profanityViolation) {
         setUsernameError('Username contains inappropriate content');
         setUsernameAvailable(false);
         setIsSubmitting(false);
         return;
       }
-      
+
       if (!usernameCheck?.available) {
         setUsernameError('This username is already taken');
         setUsernameSuggestions(usernameCheck?.suggestions || generateUsernameSuggestions(username));
@@ -581,33 +611,47 @@ export default function Auth() {
   if (loading || isProcessingRecovery) {
     return (
       <AnimatedBackground variant="cozy" className="flex items-center justify-center">
-        <LoadingCat size="lg" text={isProcessingRecovery ? "Verifying reset link..." : "Preparing your cozy kingdom..."} />
+        <LoadingCat
+          size="lg"
+          text={isProcessingRecovery ? 'Verifying reset link...' : 'Preparing your cozy kingdom...'}
+        />
       </AnimatedBackground>
     );
   }
 
   const getTitle = () => {
     switch (mode) {
-      case 'login': return 'Welcome back to your cozy cat kingdom!';
-      case 'signup': return 'Create your cat empire profile!';
-      case 'forgot-password': return "Don't worry, we'll help you get back in";
-      case 'update-password': return 'Almost there! Set your new password';
+      case 'login':
+        return 'Welcome back to your cozy cat kingdom!';
+      case 'signup':
+        return 'Create your cat empire profile!';
+      case 'forgot-password':
+        return "Don't worry, we'll help you get back in";
+      case 'update-password':
+        return 'Almost there! Set your new password';
     }
   };
 
-  const hasSignupErrors = nameError || usernameError || nameAvailable === false || usernameAvailable === false;
+  const hasSignupErrors =
+    nameError || usernameError || nameAvailable === false || usernameAvailable === false;
 
   return (
     <AnimatedBackground variant="cozy" className="flex items-center justify-center p-4">
       <FloatingDecorations variant="cats" density="medium" />
-      
+
       <div className="w-full max-w-md space-y-6 animate-fade-in-up">
         {/* Hero Section */}
         <div className="text-center space-y-3">
           <div className="flex justify-center items-end gap-1">
-            <span className="text-4xl animate-bounce" style={{ animationDelay: '0s' }}>😺</span>
-            <span className="text-5xl animate-bounce" style={{ animationDelay: '0.1s' }}>🐱</span>
-            <span className="text-4xl animate-bounce" style={{ animationDelay: '0.2s' }}>😸</span>
+            <span className="text-4xl animate-bounce" style={{ animationDelay: '0s' }}>
+              😺
+            </span>
+            <span className="text-5xl animate-bounce" style={{ animationDelay: '0.1s' }}>
+              🐱
+            </span>
+            <span className="text-4xl animate-bounce" style={{ animationDelay: '0.2s' }}>
+              😸
+            </span>
           </div>
           <p className="text-muted-foreground text-sm">Build your purr-fect cat empire 🐾</p>
         </div>
@@ -617,7 +661,7 @@ export default function Auth() {
           {/* Cat Ears */}
           <div className="absolute -top-3 left-8 w-6 h-6 bg-primary/20 rotate-[-30deg] rounded-tl-full rounded-tr-full border-2 border-primary/30" />
           <div className="absolute -top-3 right-8 w-6 h-6 bg-primary/20 rotate-[30deg] rounded-tl-full rounded-tr-full border-2 border-primary/30" />
-          
+
           <GlassCard className="border-primary/20 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.2)]">
             <GlassCardHeader className="text-center pb-4">
               <GlassCardTitle className="text-gradient-primary text-2xl">
@@ -630,9 +674,7 @@ export default function Auth() {
                 {/* Avatar Selection - Signup Only */}
                 {mode === 'signup' && (
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      Choose your avatar
-                    </Label>
+                    <Label className="flex items-center gap-2">Choose your avatar</Label>
                     <div className="flex flex-wrap gap-2 justify-center">
                       {AVATAR_OPTIONS.map((emoji) => (
                         <button
@@ -676,26 +718,34 @@ export default function Auth() {
                         required
                         maxLength={30}
                         className={`bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20 pr-10 ${
-                          nameError ? 'border-destructive' : nameAvailable === true ? 'border-green-500' : ''
+                          nameError
+                            ? 'border-destructive'
+                            : nameAvailable === true
+                              ? 'border-green-500'
+                              : ''
                         }`}
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {isCheckingName && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                        {isCheckingName && (
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
                         {nameAvailable === true && <Check className="h-4 w-4 text-green-500" />}
-                        {nameAvailable === false && <AlertCircle className="h-4 w-4 text-destructive" />}
+                        {nameAvailable === false && (
+                          <AlertCircle className="h-4 w-4 text-destructive" />
+                        )}
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Shown on leaderboards (3-30 chars, letters, numbers, spaces, _ -)
                     </p>
-                    
+
                     {/* Name Error */}
                     {nameError && (
                       <p className="text-sm text-destructive flex items-center gap-1">
                         <span>😿</span> {nameError}
                       </p>
                     )}
-                    
+
                     {/* Name Suggestions */}
                     {nameSuggestions.length > 0 && (
                       <div className="space-y-2">
@@ -756,26 +806,34 @@ export default function Auth() {
                         required
                         maxLength={20}
                         className={`bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20 pl-8 pr-10 ${
-                          usernameError ? 'border-destructive' : usernameAvailable === true ? 'border-green-500' : ''
+                          usernameError
+                            ? 'border-destructive'
+                            : usernameAvailable === true
+                              ? 'border-green-500'
+                              : ''
                         }`}
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {isCheckingUsername && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                        {isCheckingUsername && (
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
                         {usernameAvailable === true && <Check className="h-4 w-4 text-green-500" />}
-                        {usernameAvailable === false && <AlertCircle className="h-4 w-4 text-destructive" />}
+                        {usernameAvailable === false && (
+                          <AlertCircle className="h-4 w-4 text-destructive" />
+                        )}
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       For @mentions (3-20 chars, starts with letter, a-z, 0-9, _)
                     </p>
-                    
+
                     {/* Username Error */}
                     {usernameError && (
                       <p className="text-sm text-destructive flex items-center gap-1">
                         <span>😿</span> {usernameError}
                       </p>
                     )}
-                    
+
                     {/* Username Suggestions */}
                     {usernameSuggestions.length > 0 && (
                       <div className="space-y-2">
@@ -878,21 +936,21 @@ export default function Auth() {
                   </div>
                 )}
 
-                <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/20" 
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/20"
                   disabled={isSubmitting || (mode === 'signup' && !!hasSignupErrors)}
                 >
                   <PawPrint className="h-4 w-4 mr-2" />
                   {isSubmitting
                     ? 'Please wait...'
                     : mode === 'login'
-                    ? 'Log In'
-                    : mode === 'signup'
-                    ? 'Create Account'
-                    : mode === 'update-password'
-                    ? 'Update Password'
-                    : 'Send Reset Email'}
+                      ? 'Log In'
+                      : mode === 'signup'
+                        ? 'Create Account'
+                        : mode === 'update-password'
+                          ? 'Update Password'
+                          : 'Send Reset Email'}
                 </Button>
               </form>
 
@@ -941,11 +999,21 @@ export default function Auth() {
         {/* Footer Decoration */}
         <div className="text-center space-y-2">
           <div className="flex justify-center gap-2 text-xl">
-            <span className="animate-float" style={{ animationDelay: '0s' }}>🐱</span>
-            <span className="animate-float" style={{ animationDelay: '0.2s' }}>😺</span>
-            <span className="animate-float" style={{ animationDelay: '0.4s' }}>🐈‍⬛</span>
-            <span className="animate-float" style={{ animationDelay: '0.6s' }}>😻</span>
-            <span className="animate-float" style={{ animationDelay: '0.8s' }}>😸</span>
+            <span className="animate-float" style={{ animationDelay: '0s' }}>
+              🐱
+            </span>
+            <span className="animate-float" style={{ animationDelay: '0.2s' }}>
+              😺
+            </span>
+            <span className="animate-float" style={{ animationDelay: '0.4s' }}>
+              🐈‍⬛
+            </span>
+            <span className="animate-float" style={{ animationDelay: '0.6s' }}>
+              😻
+            </span>
+            <span className="animate-float" style={{ animationDelay: '0.8s' }}>
+              😸
+            </span>
           </div>
           <p className="text-muted-foreground text-xs">Made with 💜 for cat lovers</p>
         </div>

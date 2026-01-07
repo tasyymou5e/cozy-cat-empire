@@ -37,9 +37,27 @@ import {
 } from 'lucide-react';
 import { useMemo } from 'react';
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
-const WEALTH_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
-const STREAK_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))', 'hsl(var(--primary))'];
+const COLORS = [
+  'hsl(var(--primary))',
+  'hsl(var(--secondary))',
+  'hsl(var(--accent))',
+  'hsl(var(--muted))',
+];
+const WEALTH_COLORS = [
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+];
+const STREAK_COLORS = [
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+  'hsl(var(--primary))',
+];
 
 export default function AdminStatistics() {
   const { data: stats, isLoading: statsLoading } = useAdminStats();
@@ -52,23 +70,25 @@ export default function AdminStatistics() {
     { name: 'Show Wins', value: stats?.totalShowWins ?? 0 },
   ];
 
-  const topPlayersByWins = usersData?.users
-    .filter((u) => u.stats?.total_show_wins)
-    .sort((a, b) => (b.stats?.total_show_wins ?? 0) - (a.stats?.total_show_wins ?? 0))
-    .slice(0, 5)
-    .map((u) => ({
-      name: u.display_name || 'Anonymous',
-      wins: u.stats?.total_show_wins ?? 0,
-    })) || [];
+  const topPlayersByWins =
+    usersData?.users
+      .filter((u) => u.stats?.total_show_wins)
+      .sort((a, b) => (b.stats?.total_show_wins ?? 0) - (a.stats?.total_show_wins ?? 0))
+      .slice(0, 5)
+      .map((u) => ({
+        name: u.display_name || 'Anonymous',
+        wins: u.stats?.total_show_wins ?? 0,
+      })) || [];
 
-  const topPlayersByCats = usersData?.users
-    .filter((u) => u.stats?.total_cats_owned)
-    .sort((a, b) => (b.stats?.total_cats_owned ?? 0) - (a.stats?.total_cats_owned ?? 0))
-    .slice(0, 5)
-    .map((u) => ({
-      name: u.display_name || 'Anonymous',
-      cats: u.stats?.total_cats_owned ?? 0,
-    })) || [];
+  const topPlayersByCats =
+    usersData?.users
+      .filter((u) => u.stats?.total_cats_owned)
+      .sort((a, b) => (b.stats?.total_cats_owned ?? 0) - (a.stats?.total_cats_owned ?? 0))
+      .slice(0, 5)
+      .map((u) => ({
+        name: u.display_name || 'Anonymous',
+        cats: u.stats?.total_cats_owned ?? 0,
+      })) || [];
 
   // Economy Data
   const economyData = useMemo(() => {
@@ -86,9 +106,7 @@ export default function AdminStatistics() {
       }));
 
     // Top earners
-    const topEarners = [...usersWithMoney]
-      .sort((a, b) => b.money - a.money)
-      .slice(0, 10);
+    const topEarners = [...usersWithMoney].sort((a, b) => b.money - a.money).slice(0, 10);
 
     // Wealth distribution buckets
     const wealthBuckets = [
@@ -107,9 +125,12 @@ export default function AdminStatistics() {
     // Calculate stats
     const totalMoney = usersWithMoney.reduce((sum, u) => sum + u.money, 0);
     const avgMoney = usersWithMoney.length > 0 ? totalMoney / usersWithMoney.length : 0;
-    const medianMoney = usersWithMoney.length > 0
-      ? [...usersWithMoney].sort((a, b) => a.money - b.money)[Math.floor(usersWithMoney.length / 2)]?.money ?? 0
-      : 0;
+    const medianMoney =
+      usersWithMoney.length > 0
+        ? ([...usersWithMoney].sort((a, b) => a.money - b.money)[
+            Math.floor(usersWithMoney.length / 2)
+          ]?.money ?? 0)
+        : 0;
 
     // Top 10% wealth share (Gini-like indicator)
     const top10Percent = Math.ceil(usersWithMoney.length * 0.1);
@@ -120,20 +141,24 @@ export default function AdminStatistics() {
     const top10Share = totalMoney > 0 ? (top10Wealth / totalMoney) * 100 : 0;
 
     // Potential exploits detection
-    const avgWinnings = usersWithMoney.length > 0
-      ? usersWithMoney.reduce((sum, u) => sum + u.money, 0) / usersWithMoney.length
-      : 0;
+    const avgWinnings =
+      usersWithMoney.length > 0
+        ? usersWithMoney.reduce((sum, u) => sum + u.money, 0) / usersWithMoney.length
+        : 0;
     const stdDev = Math.sqrt(
-      usersWithMoney.reduce((sum, u) => sum + Math.pow(u.money - avgWinnings, 2), 0) / usersWithMoney.length
+      usersWithMoney.reduce((sum, u) => sum + Math.pow(u.money - avgWinnings, 2), 0) /
+        usersWithMoney.length
     );
-    const exploitThreshold = avgWinnings + (stdDev * 3); // 3 standard deviations
+    const exploitThreshold = avgWinnings + stdDev * 3; // 3 standard deviations
 
     const potentialExploits = usersWithMoney
       .filter((u) => {
         // Flag if money is unusually high relative to activity
         const moneyPerWin = u.wins > 0 ? u.money / u.wins : u.money;
-        const expectedMoneyPerWin = avgWinnings / (usersWithMoney.reduce((sum, x) => sum + x.wins, 0) / usersWithMoney.length || 1);
-        
+        const expectedMoneyPerWin =
+          avgWinnings /
+          (usersWithMoney.reduce((sum, x) => sum + x.wins, 0) / usersWithMoney.length || 1);
+
         return u.money > exploitThreshold || moneyPerWin > expectedMoneyPerWin * 5;
       })
       .slice(0, 5);
@@ -449,7 +474,10 @@ export default function AdminStatistics() {
                         <Tooltip />
                         <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
                           {economyData.wealthBuckets.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={WEALTH_COLORS[index % WEALTH_COLORS.length]} />
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={WEALTH_COLORS[index % WEALTH_COLORS.length]}
+                            />
                           ))}
                         </Bar>
                       </BarChart>
@@ -480,7 +508,9 @@ export default function AdminStatistics() {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis type="number" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`} />
                         <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 12 }} />
-                        <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, 'Earnings']} />
+                        <Tooltip
+                          formatter={(value: number) => [`$${value.toLocaleString()}`, 'Earnings']}
+                        />
                         <Bar dataKey="money" fill="hsl(var(--chart-1))" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -501,7 +531,8 @@ export default function AdminStatistics() {
                   Potential Exploit Detection
                 </CardTitle>
                 <CardDescription>
-                  Players with unusual wealth patterns (3+ standard deviations or high money-per-win ratio)
+                  Players with unusual wealth patterns (3+ standard deviations or high money-per-win
+                  ratio)
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -533,10 +564,16 @@ export default function AdminStatistics() {
                           <TableCell>{player.wins}</TableCell>
                           <TableCell>{player.cats}</TableCell>
                           <TableCell className="font-mono">
-                            ${player.wins > 0 ? Math.round(player.money / player.wins).toLocaleString() : player.money.toLocaleString()}
+                            $
+                            {player.wins > 0
+                              ? Math.round(player.money / player.wins).toLocaleString()
+                              : player.money.toLocaleString()}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/30">
+                            <Badge
+                              variant="outline"
+                              className="bg-yellow-500/10 text-yellow-600 border-yellow-500/30"
+                            >
                               Review
                             </Badge>
                           </TableCell>
@@ -585,7 +622,9 @@ export default function AdminStatistics() {
                         <TableRow key={player.id}>
                           <TableCell>
                             {index < 3 ? (
-                              <span className={`text-lg ${index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-amber-600'}`}>
+                              <span
+                                className={`text-lg ${index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-amber-600'}`}
+                              >
                                 {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
                               </span>
                             ) : (
@@ -617,9 +656,7 @@ export default function AdminStatistics() {
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    DAU
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">DAU</CardTitle>
                   <Activity className="h-4 w-4 text-green-500" />
                 </CardHeader>
                 <CardContent>
@@ -637,9 +674,7 @@ export default function AdminStatistics() {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    WAU
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">WAU</CardTitle>
                   <CalendarDays className="h-4 w-4 text-blue-500" />
                 </CardHeader>
                 <CardContent>
@@ -657,9 +692,7 @@ export default function AdminStatistics() {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    MAU
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">MAU</CardTitle>
                   <Users className="h-4 w-4 text-purple-500" />
                 </CardHeader>
                 <CardContent>
@@ -687,7 +720,9 @@ export default function AdminStatistics() {
                     <Skeleton className="h-8 w-16" />
                   ) : (
                     <>
-                      <div className="text-2xl font-bold">{(retentionData?.avgStreak ?? 0).toFixed(1)}</div>
+                      <div className="text-2xl font-bold">
+                        {(retentionData?.avgStreak ?? 0).toFixed(1)}
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         Max: {retentionData?.maxStreak ?? 0} days
                       </p>
@@ -719,7 +754,10 @@ export default function AdminStatistics() {
                         <Tooltip />
                         <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
                           {retentionData.streakDistribution.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={STREAK_COLORS[index % STREAK_COLORS.length]} />
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={STREAK_COLORS[index % STREAK_COLORS.length]}
+                            />
                           ))}
                         </Bar>
                       </BarChart>
@@ -756,18 +794,25 @@ export default function AdminStatistics() {
                       </div>
                       <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                         <span className="text-sm">Total Logins (All Time)</span>
-                        <span className="font-bold">{(retentionData?.totalLogins ?? 0).toLocaleString()}</span>
+                        <span className="font-bold">
+                          {(retentionData?.totalLogins ?? 0).toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                         <span className="text-sm">DAU/MAU Ratio</span>
-                        <Badge variant={
-                          (retentionData?.dau && retentionData?.mau && retentionData.mau > 0)
-                            ? (retentionData.dau / retentionData.mau) > 0.2 ? 'default' : 'secondary'
-                            : 'secondary'
-                        }>
+                        <Badge
+                          variant={
+                            retentionData?.dau && retentionData?.mau && retentionData.mau > 0
+                              ? retentionData.dau / retentionData.mau > 0.2
+                                ? 'default'
+                                : 'secondary'
+                              : 'secondary'
+                          }
+                        >
                           {retentionData?.mau && retentionData.mau > 0
                             ? ((retentionData.dau / retentionData.mau) * 100).toFixed(1)
-                            : 0}%
+                            : 0}
+                          %
                         </Badge>
                       </div>
                       <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
@@ -779,7 +824,9 @@ export default function AdminStatistics() {
                       </div>
                       <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                         <span className="text-sm">Avg Login Streak</span>
-                        <span className="font-bold">{(retentionData?.avgStreak ?? 0).toFixed(1)} days</span>
+                        <span className="font-bold">
+                          {(retentionData?.avgStreak ?? 0).toFixed(1)} days
+                        </span>
                       </div>
                     </>
                   )}

@@ -1,13 +1,25 @@
 import { useState } from 'react';
 import { Cat } from '@/types/game';
-import { 
-  SHOW_TIERS, ShowTier, ShowTierInfo, 
-  getSeason, getCurrentSeasonalEvent, getSpecialEvent, getAvailableTiers, SEASONS 
+import {
+  SHOW_TIERS,
+  ShowTier,
+  ShowTierInfo,
+  getSeason,
+  getCurrentSeasonalEvent,
+  getSpecialEvent,
+  getAvailableTiers,
+  SEASONS,
 } from '@/types/showEvents';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Trophy, Star, Sparkles } from 'lucide-react';
 
@@ -20,7 +32,14 @@ interface CatShowPanelProps {
   onEnterShow: (tier: ShowTier) => void;
 }
 
-export function CatShowPanel({ day, totalShowWins, showCooldown, cats, money, onEnterShow }: CatShowPanelProps) {
+export function CatShowPanel({
+  day,
+  totalShowWins,
+  showCooldown,
+  cats,
+  money,
+  onEnterShow,
+}: CatShowPanelProps) {
   const [selectedTier, setSelectedTier] = useState<ShowTier>('local');
   const [isOpen, setIsOpen] = useState(false);
 
@@ -31,13 +50,13 @@ export function CatShowPanel({ day, totalShowWins, showCooldown, cats, money, on
   const availableTiers = getAvailableTiers(totalShowWins);
   const showAvailable = showCooldown === 0;
 
-  const eligibleCats = cats.filter(c => c.health >= 70 && c.happiness >= 60);
-  
+  const eligibleCats = cats.filter((c) => c.health >= 70 && c.happiness >= 60);
+
   const getEligibleForTier = (tier: ShowTierInfo) => {
-    return eligibleCats.filter(c => c.grade >= tier.minGrade);
+    return eligibleCats.filter((c) => c.grade >= tier.minGrade);
   };
 
-  const currentTier = SHOW_TIERS.find(t => t.id === selectedTier)!;
+  const currentTier = SHOW_TIERS.find((t) => t.id === selectedTier)!;
   const eligibleForSelected = getEligibleForTier(currentTier);
   const canAffordEntry = money >= currentTier.entryFee;
 
@@ -54,10 +73,7 @@ export function CatShowPanel({ day, totalShowWins, showCooldown, cats, money, on
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button 
-          disabled={!showAvailable || eligibleCats.length === 0}
-          className="cat-show-button"
-        >
+        <Button disabled={!showAvailable || eligibleCats.length === 0} className="cat-show-button">
           {showAvailable ? (
             <span className="flex items-center gap-2">
               🎪 Cat Show
@@ -120,12 +136,12 @@ export function CatShowPanel({ day, totalShowWins, showCooldown, cats, money, on
           </h4>
           <Tabs value={selectedTier} onValueChange={(v) => setSelectedTier(v as ShowTier)}>
             <TabsList className="grid w-full grid-cols-4">
-              {SHOW_TIERS.map(tier => {
-                const unlocked = availableTiers.find(t => t.id === tier.id);
+              {SHOW_TIERS.map((tier) => {
+                const unlocked = availableTiers.find((t) => t.id === tier.id);
                 const eligible = getEligibleForTier(tier).length;
                 return (
-                  <TabsTrigger 
-                    key={tier.id} 
+                  <TabsTrigger
+                    key={tier.id}
                     value={tier.id}
                     disabled={!unlocked}
                     className="relative"
@@ -137,15 +153,13 @@ export function CatShowPanel({ day, totalShowWins, showCooldown, cats, money, on
                         {eligible}
                       </Badge>
                     )}
-                    {!unlocked && (
-                      <span className="absolute -top-1 -right-1 text-[10px]">🔒</span>
-                    )}
+                    {!unlocked && <span className="absolute -top-1 -right-1 text-[10px]">🔒</span>}
                   </TabsTrigger>
                 );
               })}
             </TabsList>
 
-            {SHOW_TIERS.map(tier => (
+            {SHOW_TIERS.map((tier) => (
               <TabsContent key={tier.id} value={tier.id} className="mt-4">
                 <Card>
                   <CardHeader className="pb-2">
@@ -156,7 +170,7 @@ export function CatShowPanel({ day, totalShowWins, showCooldown, cats, money, on
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <p className="text-sm text-muted-foreground">{tier.description}</p>
-                    
+
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="p-2 rounded bg-accent/30">
                         <p className="text-muted-foreground text-xs">Min Grade</p>
@@ -186,8 +200,10 @@ export function CatShowPanel({ day, totalShowWins, showCooldown, cats, money, on
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         Base {tier.rewardMultiplier}x
-                        {seasonalEvent && ` × ${seasonalEvent.bonusMultiplier}x (${seasonalEvent.name})`}
-                        {specialEvent && ` × ${specialEvent.bonusMultiplier}x (${specialEvent.name})`}
+                        {seasonalEvent &&
+                          ` × ${seasonalEvent.bonusMultiplier}x (${seasonalEvent.name})`}
+                        {specialEvent &&
+                          ` × ${specialEvent.bonusMultiplier}x (${specialEvent.name})`}
                       </p>
                     </div>
                   </CardContent>
@@ -202,7 +218,7 @@ export function CatShowPanel({ day, totalShowWins, showCooldown, cats, money, on
           <div className="text-sm text-muted-foreground">
             Your wins: <span className="font-bold">{totalShowWins}</span>
           </div>
-          <Button 
+          <Button
             onClick={handleEnterShow}
             disabled={eligibleForSelected.length === 0 || !canAffordEntry}
             className="min-w-[150px]"

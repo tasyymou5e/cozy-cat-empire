@@ -4,15 +4,29 @@ import { PanelErrorBoundary } from '../PanelErrorBoundary';
 import { PanelSkeleton } from '../PanelSkeleton';
 import { Cat, Resources } from '@/types/game';
 import type { Friend } from '@/hooks/useFriends';
-import type { ActiveCoopChallenge, CoopChallengeInvite, CoopChallenge } from '@/types/coopChallenges';
+import type {
+  ActiveCoopChallenge,
+  CoopChallengeInvite,
+  CoopChallenge,
+} from '@/types/coopChallenges';
 import { GameAction, GameActions, GameActionPayloads } from '@/types/gameEvents';
 
 // Lazy load panels for performance
-const FriendsPanel = lazy(() => import('../FriendsPanel').then(m => ({ default: m.FriendsPanel })));
-const PlayerProfilePanel = lazy(() => import('../PlayerProfilePanel').then(m => ({ default: m.PlayerProfilePanel })));
-const CatGiftingPanel = lazy(() => import('../CatGiftingPanel').then(m => ({ default: m.CatGiftingPanel })));
-const TradingPanel = lazy(() => import('../TradingPanel').then(m => ({ default: m.TradingPanel })));
-const CoopChallengesPanel = lazy(() => import('../CoopChallengesPanel').then(m => ({ default: m.CoopChallengesPanel })));
+const FriendsPanel = lazy(() =>
+  import('../FriendsPanel').then((m) => ({ default: m.FriendsPanel }))
+);
+const PlayerProfilePanel = lazy(() =>
+  import('../PlayerProfilePanel').then((m) => ({ default: m.PlayerProfilePanel }))
+);
+const CatGiftingPanel = lazy(() =>
+  import('../CatGiftingPanel').then((m) => ({ default: m.CatGiftingPanel }))
+);
+const TradingPanel = lazy(() =>
+  import('../TradingPanel').then((m) => ({ default: m.TradingPanel }))
+);
+const CoopChallengesPanel = lazy(() =>
+  import('../CoopChallengesPanel').then((m) => ({ default: m.CoopChallengesPanel }))
+);
 
 interface SocialFeaturesPanelsProps {
   userId?: string;
@@ -31,7 +45,9 @@ interface SocialFeaturesPanelsProps {
   onAcceptCoopInvite: (inviteId: string) => boolean | Promise<boolean>;
   onDeclineCoopInvite: (inviteId: string) => boolean | Promise<boolean>;
   onCancelCoopInvite: (inviteId: string) => boolean | Promise<boolean>;
-  onClaimCoopReward: (challengeId: string) => { coins: number; bonus: number } | null | Promise<{ coins: number; bonus: number } | null>;
+  onClaimCoopReward: (
+    challengeId: string
+  ) => { coins: number; bonus: number } | null | Promise<{ coins: number; bonus: number } | null>;
 }
 
 /**
@@ -76,8 +92,8 @@ export function SocialFeaturesPanels({
       <TabsContent value="gifts" className="mt-0">
         <PanelErrorBoundary panelName="CatGiftingPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
-            <CatGiftingPanel 
-              userId={userId} 
+            <CatGiftingPanel
+              userId={userId}
               cats={cats}
               onGiftSent={(catId) => dispatchAction(GameActions.SELL_CAT, { catId })}
               onGiftReceived={onGiftReceived}
@@ -89,14 +105,14 @@ export function SocialFeaturesPanels({
       <TabsContent value="trading" className="mt-0">
         <PanelErrorBoundary panelName="TradingPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
-            <TradingPanel 
+            <TradingPanel
               userId={userId}
               cats={cats}
               money={money}
               resources={resources}
               onTradeComplete={(removeCats, addCats) => {
-                removeCats.forEach(catId => dispatchAction(GameActions.SELL_CAT, { catId }));
-                addCats.forEach(cat => onGiftReceived(cat));
+                removeCats.forEach((catId) => dispatchAction(GameActions.SELL_CAT, { catId }));
+                addCats.forEach((cat) => onGiftReceived(cat));
               }}
               catCostumes={catCostumes}
             />

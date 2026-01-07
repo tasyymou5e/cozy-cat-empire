@@ -1,9 +1,9 @@
 /**
  * @fileoverview UI state management for CatFarm component
- * 
+ *
  * Manages all local UI state including tabs, audio toggles,
  * modals, and transient visual states.
- * 
+ *
  * @module hooks/useCatFarmUIState
  */
 
@@ -12,9 +12,9 @@ import { TAB_LABELS } from '@/constants/tabs';
 
 /**
  * UI state hook for CatFarm component
- * 
+ *
  * @returns All UI state values and setters
- * 
+ *
  * @example
  * ```tsx
  * const ui = useCatFarmUIState();
@@ -24,12 +24,14 @@ import { TAB_LABELS } from '@/constants/tabs';
 export function useCatFarmUIState() {
   // Tab state
   const [sideTab, setSideTab] = useState('actions');
-  const [recentTabs, setRecentTabs] = useState<Array<{
-    tab: string;
-    label: string;
-    icon: string;
-    timestamp: number;
-  }>>(() => {
+  const [recentTabs, setRecentTabs] = useState<
+    Array<{
+      tab: string;
+      label: string;
+      icon: string;
+      timestamp: number;
+    }>
+  >(() => {
     try {
       const saved = localStorage.getItem('cat-farm-recent-tabs');
       return saved ? JSON.parse(saved) : [];
@@ -68,8 +70,8 @@ export function useCatFarmUIState() {
     const tabInfo = TAB_LABELS[sideTab];
     if (!tabInfo) return;
 
-    setRecentTabs(prev => {
-      const filtered = prev.filter(t => t.tab !== sideTab);
+    setRecentTabs((prev) => {
+      const filtered = prev.filter((t) => t.tab !== sideTab);
       const updated = [
         { tab: sideTab, label: tabInfo.label, icon: tabInfo.icon, timestamp: Date.now() },
         ...filtered,

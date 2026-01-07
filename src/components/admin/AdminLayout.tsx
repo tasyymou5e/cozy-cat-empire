@@ -113,9 +113,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
           {/* Right Side */}
           <div className="ml-auto flex items-center gap-3">
-            <span className="text-sm text-muted-foreground hidden sm:inline">
-              {user?.email}
-            </span>
+            <span className="text-sm text-muted-foreground hidden sm:inline">{user?.email}</span>
             <Button
               variant="ghost"
               size="sm"
@@ -130,9 +128,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="p-4 md:p-6 max-w-7xl mx-auto">
-        {children}
-      </main>
+      <main className="p-4 md:p-6 max-w-7xl mx-auto">{children}</main>
     </div>
   );
 }

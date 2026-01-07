@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Cat, BREEDS } from '@/types/game';
-import { CatRelationship, getRelationshipLevel, getRelationshipEmoji, getRelationshipColor } from '@/types/relationships';
+import {
+  CatRelationship,
+  getRelationshipLevel,
+  getRelationshipEmoji,
+  getRelationshipColor,
+} from '@/types/relationships';
 import { TRICKS, MIN_SHOW_GRADE } from '@/types/grading';
 import { GradeBadge } from './GradeBadge';
 import { CatVisual } from './CatVisual';
@@ -13,7 +18,20 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, HeartCrack, Trophy, Zap, DollarSign, Sparkles, Moon, Dumbbell, Palette, Pencil, Check, X } from 'lucide-react';
+import {
+  Heart,
+  HeartCrack,
+  Trophy,
+  Zap,
+  DollarSign,
+  Sparkles,
+  Moon,
+  Dumbbell,
+  Palette,
+  Pencil,
+  Check,
+  X,
+} from 'lucide-react';
 
 interface CatDetailModalProps {
   cat: Cat | null;
@@ -35,36 +53,55 @@ interface CatDetailModalProps {
 }
 
 const catEmojis: Record<string, string> = {
-  'stray': '🐱', 'tabby': '🐈', 'persian': '😺', 'siamese': '😸',
-  'maine-coon': '🦁', 'british-shorthair': '🐾', 'ragdoll': '💫', 'bengal': '🐆',
+  stray: '🐱',
+  tabby: '🐈',
+  persian: '😺',
+  siamese: '😸',
+  'maine-coon': '🦁',
+  'british-shorthair': '🐾',
+  ragdoll: '💫',
+  bengal: '🐆',
 };
 
 const personalityDescriptions: Record<string, string> = {
-  'lazy': 'Loves to nap and relax. Low energy but easy to care for.',
-  'playful': 'Full of energy! Needs lots of toys and attention.',
-  'affectionate': 'Very loving and bonds quickly with others.',
-  'independent': 'Self-sufficient but can be stubborn.',
-  'curious': 'Always exploring. Learns tricks faster!',
-  'shy': 'Takes time to warm up but loyal once bonded.',
+  lazy: 'Loves to nap and relax. Low energy but easy to care for.',
+  playful: 'Full of energy! Needs lots of toys and attention.',
+  affectionate: 'Very loving and bonds quickly with others.',
+  independent: 'Self-sufficient but can be stubborn.',
+  curious: 'Always exploring. Learns tricks faster!',
+  shy: 'Takes time to warm up but loyal once bonded.',
 };
 
-export function CatDetailModal({ 
-  cat, relationships, allCats, open, onClose, 
-  onComfort, onHeal, onSell, onRest, onTrain, onRename, treats, equippedCostumeId, onPortraitGenerated,
-  currentMoney = 0, onMoneyChange
+export function CatDetailModal({
+  cat,
+  relationships,
+  allCats,
+  open,
+  onClose,
+  onComfort,
+  onHeal,
+  onSell,
+  onRest,
+  onTrain,
+  onRename,
+  treats,
+  equippedCostumeId,
+  onPortraitGenerated,
+  currentMoney = 0,
+  onMoneyChange,
 }: CatDetailModalProps) {
   const [activeTab, setActiveTab] = useState('stats');
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState('');
-  
+
   if (!cat) return null;
 
-  const catRelationships = relationships.filter(r => r.catId1 === cat.id || r.catId2 === cat.id);
-  const friends = catRelationships.filter(r => {
+  const catRelationships = relationships.filter((r) => r.catId1 === cat.id || r.catId2 === cat.id);
+  const friends = catRelationships.filter((r) => {
     const level = getRelationshipLevel(r.score);
     return level === 'friend' || level === 'bestFriend';
   });
-  const enemies = catRelationships.filter(r => {
+  const enemies = catRelationships.filter((r) => {
     const level = getRelationshipLevel(r.score);
     return level === 'enemy' || level === 'rival';
   });
@@ -113,10 +150,20 @@ export function CatDetailModal({
                   className="w-32 h-8"
                   autoFocus
                 />
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleConfirmRename}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={handleConfirmRename}
+                >
                   <Check className="h-4 w-4 text-green-500" />
                 </Button>
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleCancelRename}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={handleCancelRename}
+                >
                   <X className="h-4 w-4 text-red-500" />
                 </Button>
               </div>
@@ -124,7 +171,13 @@ export function CatDetailModal({
               <>
                 <span>{cat.name}</span>
                 {onRename && (
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleStartRename} title="Rename cat">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    onClick={handleStartRename}
+                    title="Rename cat"
+                  >
                     <Pencil className="h-4 w-4" />
                   </Button>
                 )}
@@ -136,8 +189,8 @@ export function CatDetailModal({
 
         {/* AI Portrait Section */}
         <div className="flex justify-center py-4 border-b border-border/50">
-          <CatPortrait 
-            cat={cat} 
+          <CatPortrait
+            cat={cat}
             equippedCostumeId={equippedCostumeId}
             onPortraitGenerated={onPortraitGenerated}
             currentMoney={currentMoney}
@@ -227,12 +280,14 @@ export function CatDetailModal({
                     <p className="text-sm text-muted-foreground">No tricks learned yet</p>
                   ) : (
                     <div className="flex flex-wrap gap-2">
-                      {cat.tricksLearned.map(trickId => {
-                        const trick = TRICKS.find(t => t.id === trickId);
-                        return trick && (
-                          <Badge key={trickId} variant="secondary">
-                            {trick.emoji} {trick.name}
-                          </Badge>
+                      {cat.tricksLearned.map((trickId) => {
+                        const trick = TRICKS.find((t) => t.id === trickId);
+                        return (
+                          trick && (
+                            <Badge key={trickId} variant="secondary">
+                              {trick.emoji} {trick.name}
+                            </Badge>
+                          )
                         );
                       })}
                     </div>
@@ -242,12 +297,14 @@ export function CatDetailModal({
                 <div>
                   <h4 className="font-semibold mb-2">Trick Progress</h4>
                   <div className="space-y-2">
-                    {TRICKS.map(trick => {
+                    {TRICKS.map((trick) => {
                       const progress = cat.trickProgress[trick.id] || 0;
                       const learned = cat.tricksLearned.includes(trick.id);
                       return (
                         <div key={trick.id} className="flex items-center gap-2">
-                          <span className="w-20 text-sm">{trick.emoji} {trick.name}</span>
+                          <span className="w-20 text-sm">
+                            {trick.emoji} {trick.name}
+                          </span>
                           <Progress value={learned ? 100 : progress} className="h-2 flex-1" />
                           <span className="text-xs w-10">{learned ? '✓' : `${progress}%`}</span>
                         </div>
@@ -273,13 +330,16 @@ export function CatDetailModal({
                   {catRelationships.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No relationships yet</p>
                   ) : (
-                    catRelationships.map(rel => {
+                    catRelationships.map((rel) => {
                       const otherId = rel.catId1 === cat.id ? rel.catId2 : rel.catId1;
-                      const other = allCats.find(c => c.id === otherId);
+                      const other = allCats.find((c) => c.id === otherId);
                       if (!other) return null;
                       const level = getRelationshipLevel(rel.score);
                       return (
-                        <div key={otherId} className="flex items-center justify-between p-2 rounded bg-accent/20">
+                        <div
+                          key={otherId}
+                          className="flex items-center justify-between p-2 rounded bg-accent/20"
+                        >
                           <div className="flex items-center gap-2">
                             <span>{catEmojis[other.breed]}</span>
                             <span className="font-medium">{other.name}</span>
@@ -301,14 +361,19 @@ export function CatDetailModal({
                 {needsComfort && (
                   <ComfortButton catId={cat.id} catName={cat.name} onComfort={onComfort} />
                 )}
-                
+
                 {cat.health < 70 && (
                   <Button onClick={() => onHeal(cat.id)} className="w-full" variant="outline">
                     💊 Heal Cat
                   </Button>
                 )}
 
-                <Button onClick={() => onRest(cat.id)} className="w-full" variant="outline" disabled={cat.restLevel >= 100}>
+                <Button
+                  onClick={() => onRest(cat.id)}
+                  className="w-full"
+                  variant="outline"
+                  disabled={cat.restLevel >= 100}
+                >
                   <Moon className="h-4 w-4 mr-2" /> Rest Cat
                 </Button>
 
@@ -317,7 +382,7 @@ export function CatDetailModal({
                     <Dumbbell className="h-4 w-4" /> Train Trick ({treats} treats)
                   </p>
                   <div className="grid grid-cols-2 gap-2">
-                    {TRICKS.filter(t => !cat.tricksLearned.includes(t.id)).map(trick => (
+                    {TRICKS.filter((t) => !cat.tricksLearned.includes(t.id)).map((trick) => (
                       <Button
                         key={trick.id}
                         size="sm"
@@ -353,7 +418,6 @@ export function CatDetailModal({
                 <Button onClick={() => onSell(cat.id)} variant="destructive" className="w-full">
                   💰 Sell for ${cat.value}
                 </Button>
-
               </TabsContent>
             </Tabs>
           </div>

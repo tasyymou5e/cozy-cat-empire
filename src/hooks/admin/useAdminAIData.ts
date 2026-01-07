@@ -19,20 +19,40 @@ export function useAdminAIStats() {
         avgTimeByStatusResult,
       ] = await Promise.all([
         supabase.from('ai_usage_log').select('id', { count: 'exact', head: true }),
-        supabase.from('ai_usage_log').select('id', { count: 'exact', head: true }).eq('status', 'success'),
-        supabase.from('ai_usage_log').select('id', { count: 'exact', head: true }).eq('status', 'error'),
-        supabase.from('ai_usage_log').select('id', { count: 'exact', head: true }).eq('status', 'rate_limited'),
-        supabase.from('ai_usage_log').select('id', { count: 'exact', head: true }).eq('status', 'credits_depleted'),
-        supabase.from('ai_usage_log')
+        supabase
+          .from('ai_usage_log')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'success'),
+        supabase
+          .from('ai_usage_log')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'error'),
+        supabase
+          .from('ai_usage_log')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'rate_limited'),
+        supabase
+          .from('ai_usage_log')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'credits_depleted'),
+        supabase
+          .from('ai_usage_log')
           .select('id', { count: 'exact', head: true })
           .neq('status', 'success')
           .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
-        supabase.from('ai_usage_log')
+        supabase
+          .from('ai_usage_log')
           .select('id', { count: 'exact', head: true })
           .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
-        supabase.from('ai_usage_log').select('execution_time_ms').not('execution_time_ms', 'is', null),
+        supabase
+          .from('ai_usage_log')
+          .select('execution_time_ms')
+          .not('execution_time_ms', 'is', null),
         supabase.from('ai_usage_log').select('user_id').not('user_id', 'is', null),
-        supabase.from('ai_usage_log').select('status, execution_time_ms').not('execution_time_ms', 'is', null),
+        supabase
+          .from('ai_usage_log')
+          .select('status, execution_time_ms')
+          .not('execution_time_ms', 'is', null),
       ]);
 
       const totalGenerations = totalResult.count || 0;
@@ -45,13 +65,14 @@ export function useAdminAIStats() {
 
       // Calculate average execution time
       const times = avgTimeResult.data || [];
-      const avgExecutionTime = times.length > 0
-        ? times.reduce((sum, t) => sum + (t.execution_time_ms || 0), 0) / times.length
-        : 0;
+      const avgExecutionTime =
+        times.length > 0
+          ? times.reduce((sum, t) => sum + (t.execution_time_ms || 0), 0) / times.length
+          : 0;
 
       // Count unique users
       const userIds = uniqueUsersResult.data || [];
-      const uniqueUsers = new Set(userIds.map(u => u.user_id)).size;
+      const uniqueUsers = new Set(userIds.map((u) => u.user_id)).size;
 
       // Calculate success rate
       const successRate = totalGenerations > 0 ? (successCount / totalGenerations) * 100 : 0;
@@ -59,7 +80,7 @@ export function useAdminAIStats() {
       // Calculate avg time by status
       const statusTimes = avgTimeByStatusResult.data || [];
       const timesByStatus: Record<string, number[]> = {};
-      statusTimes.forEach(item => {
+      statusTimes.forEach((item) => {
         if (!timesByStatus[item.status]) {
           timesByStatus[item.status] = [];
         }

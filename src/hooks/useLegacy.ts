@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Cat } from '@/types/game';
-import { 
-  LegacyCat, 
+import {
+  LegacyCat,
   LegacyTrait,
-  checkRetirementEligibility, 
-  determineLegacyTrait, 
+  checkRetirementEligibility,
+  determineLegacyTrait,
   calculateLegacyBonus,
 } from '@/types/legacy';
 
@@ -53,7 +53,7 @@ export function useLegacy(userId?: string): UseLegacyReturn {
         }
 
         if (data && data.length > 0) {
-          const legacyCats: LegacyCat[] = data.map(row => ({
+          const legacyCats: LegacyCat[] = data.map((row) => ({
             id: row.id,
             cat: row.cat_data as unknown as Cat,
             retiredAt: row.retired_at_day,
@@ -66,17 +66,15 @@ export function useLegacy(userId?: string): UseLegacyReturn {
         } else if (retiredCats.length > 0) {
           // Migrate local data to cloud
           for (const legacy of retiredCats) {
-            await supabase
-              .from('retired_cats')
-              .insert({
-                user_id: userId,
-                cat_data: JSON.parse(JSON.stringify(legacy.cat)),
-                retired_at_day: legacy.retiredAt,
-                retired_date: legacy.retiredDate,
-                achievements: legacy.achievements,
-                legacy_bonus: legacy.legacyBonus,
-                legacy_trait: legacy.legacyTrait,
-              });
+            await supabase.from('retired_cats').insert({
+              user_id: userId,
+              cat_data: JSON.parse(JSON.stringify(legacy.cat)),
+              retired_at_day: legacy.retiredAt,
+              retired_date: legacy.retiredDate,
+              achievements: legacy.achievements,
+              legacy_bonus: legacy.legacyBonus,
+              legacy_trait: legacy.legacyTrait,
+            });
           }
         }
       } catch (e) {
@@ -101,15 +99,18 @@ export function useLegacy(userId?: string): UseLegacyReturn {
 
   // Get all active legacy traits
   const activeLegacyTraits = useMemo(() => {
-    return [...new Set(retiredCats.map(l => l.legacyTrait))];
+    return [...new Set(retiredCats.map((l) => l.legacyTrait))];
   }, [retiredCats]);
 
   // Check if cat can be retired
-  const canRetire = useCallback((cat: Cat): boolean => {
-    if (retiredCats.some(l => l.cat.id === cat.id)) return false;
-    const eligibility = checkRetirementEligibility(cat);
-    return eligibility.isEligible;
-  }, [retiredCats]);
+  const canRetire = useCallback(
+    (cat: Cat): boolean => {
+      if (retiredCats.some((l) => l.cat.id === cat.id)) return false;
+      const eligibility = checkRetirementEligibility(cat);
+      return eligibility.isEligible;
+    },
+    [retiredCats]
+  );
 
   // Get detailed eligibility
   const getEligibility = useCallback((cat: Cat) => {
@@ -117,60 +118,63 @@ export function useLegacy(userId?: string): UseLegacyReturn {
   }, []);
 
   // Retire a cat
-  const retireCat = useCallback(async (cat: Cat, gameDay: number): Promise<LegacyCat | null> => {
-    if (!canRetire(cat)) return null;
+  const retireCat = useCallback(
+    async (cat: Cat, gameDay: number): Promise<LegacyCat | null> => {
+      if (!canRetire(cat)) return null;
 
-    const eligibility = checkRetirementEligibility(cat);
-    const legacyTrait = determineLegacyTrait(eligibility);
-    const legacyBonus = calculateLegacyBonus(eligibility);
+      const eligibility = checkRetirementEligibility(cat);
+      const legacyTrait = determineLegacyTrait(eligibility);
+      const legacyBonus = calculateLegacyBonus(eligibility);
 
-    const achievements: LegacyCat['achievements'] = [];
-    if (eligibility.meetsShowWins) achievements.push('show_champion');
-    if (eligibility.meetsGrade) achievements.push('perfect_grade');
-    if (eligibility.meetsAge) achievements.push('elder');
-    if (eligibility.meetsTricks) achievements.push('trick_master');
-    if (eligibility.achievementCount === 4) achievements.push('legendary');
+      const achievements: LegacyCat['achievements'] = [];
+      if (eligibility.meetsShowWins) achievements.push('show_champion');
+      if (eligibility.meetsGrade) achievements.push('perfect_grade');
+      if (eligibility.meetsAge) achievements.push('elder');
+      if (eligibility.meetsTricks) achievements.push('trick_master');
+      if (eligibility.achievementCount === 4) achievements.push('legendary');
 
-    const legacyCat: LegacyCat = {
-      id: `legacy_${cat.id}_${Date.now()}`,
-      cat: { ...cat },
-      retiredAt: gameDay,
-      retiredDate: new Date().toISOString(),
-      achievements,
-      legacyBonus,
-      legacyTrait,
-    };
+      const legacyCat: LegacyCat = {
+        id: `legacy_${cat.id}_${Date.now()}`,
+        cat: { ...cat },
+        retiredAt: gameDay,
+        retiredDate: new Date().toISOString(),
+        achievements,
+        legacyBonus,
+        legacyTrait,
+      };
 
-    // Save to cloud if logged in
-    if (userId) {
-      try {
-        const { data, error } = await supabase
-          .from('retired_cats')
-          .insert({
-            user_id: userId,
-            cat_data: JSON.parse(JSON.stringify(legacyCat.cat)),
-            retired_at_day: legacyCat.retiredAt,
-            retired_date: legacyCat.retiredDate,
-            achievements: legacyCat.achievements,
-            legacy_bonus: legacyCat.legacyBonus,
-            legacy_trait: legacyCat.legacyTrait,
-          })
-          .select()
-          .single();
+      // Save to cloud if logged in
+      if (userId) {
+        try {
+          const { data, error } = await supabase
+            .from('retired_cats')
+            .insert({
+              user_id: userId,
+              cat_data: JSON.parse(JSON.stringify(legacyCat.cat)),
+              retired_at_day: legacyCat.retiredAt,
+              retired_date: legacyCat.retiredDate,
+              achievements: legacyCat.achievements,
+              legacy_bonus: legacyCat.legacyBonus,
+              legacy_trait: legacyCat.legacyTrait,
+            })
+            .select()
+            .single();
 
-        if (error) {
-          console.error('Error saving retired cat to cloud:', error);
-        } else if (data) {
-          legacyCat.id = data.id;
+          if (error) {
+            console.error('Error saving retired cat to cloud:', error);
+          } else if (data) {
+            legacyCat.id = data.id;
+          }
+        } catch (e) {
+          console.error('Failed to save retired cat to cloud:', e);
         }
-      } catch (e) {
-        console.error('Failed to save retired cat to cloud:', e);
       }
-    }
 
-    setRetiredCats(prev => [...prev, legacyCat]);
-    return legacyCat;
-  }, [canRetire, userId]);
+      setRetiredCats((prev) => [...prev, legacyCat]);
+      return legacyCat;
+    },
+    [canRetire, userId]
+  );
 
   // Calculate kitten bonuses based on legacy traits
   const getKittenBonuses = useCallback(() => {

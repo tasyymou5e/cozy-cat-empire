@@ -10,19 +10,19 @@ export interface LegacyCat {
   legacyTrait: LegacyTrait;
 }
 
-export type LegacyAchievement = 
-  | 'show_champion'    // 20+ show wins
-  | 'perfect_grade'    // Grade 18+
-  | 'elder'            // Age 100+ days
-  | 'trick_master'     // All 5 tricks learned
-  | 'legendary';       // All of the above
+export type LegacyAchievement =
+  | 'show_champion' // 20+ show wins
+  | 'perfect_grade' // Grade 18+
+  | 'elder' // Age 100+ days
+  | 'trick_master' // All 5 tricks learned
+  | 'legendary'; // All of the above
 
-export type LegacyTrait = 
-  | 'show_lineage'     // +2 grade for kittens
-  | 'healthy_genes'    // +10% starting health for kittens
-  | 'quick_learner'    // +20% training speed for kittens
-  | 'social_nature'    // +5 starting relationship score
-  | 'golden_legacy';   // All bonuses combined
+export type LegacyTrait =
+  | 'show_lineage' // +2 grade for kittens
+  | 'healthy_genes' // +10% starting health for kittens
+  | 'quick_learner' // +20% training speed for kittens
+  | 'social_nature' // +5 starting relationship score
+  | 'golden_legacy'; // All bonuses combined
 
 export interface RetirementRequirements {
   minShowWins: number;
@@ -52,13 +52,13 @@ export function checkRetirementEligibility(cat: Cat): RetirementEligibility {
   const meetsGrade = cat.grade >= RETIREMENT_REQUIREMENTS.minGrade;
   const meetsAge = cat.age >= RETIREMENT_REQUIREMENTS.minAge;
   const meetsTricks = (cat.tricksLearned?.length || 0) >= RETIREMENT_REQUIREMENTS.minTricks;
-  
+
   const achievements = [meetsShowWins, meetsGrade, meetsAge, meetsTricks];
   const achievementCount = achievements.filter(Boolean).length;
-  
+
   // Need at least 2 achievements to retire
   const isEligible = achievementCount >= 2;
-  
+
   return {
     isEligible,
     meetsShowWins,
@@ -71,25 +71,28 @@ export function checkRetirementEligibility(cat: Cat): RetirementEligibility {
 
 export function determineLegacyTrait(eligibility: RetirementEligibility): LegacyTrait {
   const { meetsShowWins, meetsGrade, meetsAge, meetsTricks, achievementCount } = eligibility;
-  
+
   // All 4 achievements = golden legacy
   if (achievementCount === 4) return 'golden_legacy';
-  
+
   // Prioritize based on what they achieved
   if (meetsShowWins && meetsGrade) return 'show_lineage';
   if (meetsTricks) return 'quick_learner';
   if (meetsAge) return 'healthy_genes';
   if (meetsShowWins) return 'social_nature';
-  
+
   return 'healthy_genes'; // default
 }
 
 export function calculateLegacyBonus(eligibility: RetirementEligibility): number {
   // 1% base + 0.5% per achievement
-  return 0.01 + (eligibility.achievementCount * 0.005);
+  return 0.01 + eligibility.achievementCount * 0.005;
 }
 
-export const LEGACY_TRAIT_INFO: Record<LegacyTrait, { name: string; description: string; emoji: string }> = {
+export const LEGACY_TRAIT_INFO: Record<
+  LegacyTrait,
+  { name: string; description: string; emoji: string }
+> = {
   show_lineage: {
     name: 'Show Lineage',
     description: '+2 starting grade for kittens',

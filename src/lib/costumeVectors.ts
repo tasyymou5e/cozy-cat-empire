@@ -1,6 +1,6 @@
 /**
  * Costume Vector Library
- * 
+ *
  * SVG path definitions for costumes to render as vector graphics
  * instead of emoji overlays.
  */
@@ -319,7 +319,11 @@ const astronautVector: VectorCostume = {
   stroke: '#B0B0B0',
   strokeWidth: 1.5,
   decorations: [
-    { path: 'M-15,-18 Q-18,-5 -18,5 Q-18,18 0,20 Q18,18 18,5 Q18,-5 15,-18 Q8,-22 0,-22 Q-8,-22 -15,-18 Z', fill: '#87CEEB', stroke: '#4682B4' }, // Visor
+    {
+      path: 'M-15,-18 Q-18,-5 -18,5 Q-18,18 0,20 Q18,18 18,5 Q18,-5 15,-18 Q8,-22 0,-22 Q-8,-22 -15,-18 Z',
+      fill: '#87CEEB',
+      stroke: '#4682B4',
+    }, // Visor
     { path: 'M-8,-12 Q-5,-8 -8,-4', fill: 'none', stroke: '#FFFFFF' }, // Visor reflection
     { path: 'M0,-38 L0,-32 M-3,-35 L3,-35', fill: 'none', stroke: '#B0B0B0' }, // Antenna
     { path: 'M-22,10 L-28,10 L-28,15 L-22,15 Z', fill: '#FF4500' }, // Left panel
@@ -423,25 +427,25 @@ const vipGoldCrownVector: VectorCostume = {
  * Map of costume IDs to vector definitions
  */
 export const COSTUME_VECTORS: Record<string, VectorCostume> = {
-  'crown': crownVector,
-  'wizard_hat': wizardHatVector,
-  'party_hat': partyHatVector,
-  'top_hat': topHatVector,
-  'bow_tie': bowTieVector,
-  'sunglasses': sunglassesVector,
-  'superhero': superheroVector,
-  'pirate': pirateVector,
-  'sweater': sweaterVector,
-  'tuxedo': tuxedoVector,
-  'necklace': necklaceVector,
-  'scarf': scarfVector,
-  'angel_wings': angelWingsVector,
-  'dragon': dragonVector,
-  'astronaut': astronautVector,
-  'unicorn': unicornVector,
-  'vip_bronze_collar': vipBronzeCollarVector,
-  'vip_silver_cape': vipSilverCapeVector,
-  'vip_gold_crown': vipGoldCrownVector,
+  crown: crownVector,
+  wizard_hat: wizardHatVector,
+  party_hat: partyHatVector,
+  top_hat: topHatVector,
+  bow_tie: bowTieVector,
+  sunglasses: sunglassesVector,
+  superhero: superheroVector,
+  pirate: pirateVector,
+  sweater: sweaterVector,
+  tuxedo: tuxedoVector,
+  necklace: necklaceVector,
+  scarf: scarfVector,
+  angel_wings: angelWingsVector,
+  dragon: dragonVector,
+  astronaut: astronautVector,
+  unicorn: unicornVector,
+  vip_bronze_collar: vipBronzeCollarVector,
+  vip_silver_cape: vipSilverCapeVector,
+  vip_gold_crown: vipGoldCrownVector,
 };
 
 /**

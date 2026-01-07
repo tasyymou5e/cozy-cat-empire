@@ -12,7 +12,7 @@ export default function Leaderboard() {
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
   const { setVolume } = useSound();
-  
+
   const [soundOn, setSoundOn] = useState(true);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function Leaderboard() {
           <div className="flex items-center gap-4">
             <Breadcrumbs items={[{ label: 'Global Leaderboard' }]} />
           </div>
-          
+
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="icon">

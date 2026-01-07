@@ -41,9 +41,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {isLast || !item.href ? (
-                  <BreadcrumbPage className="max-w-[200px] truncate">
-                    {item.label}
-                  </BreadcrumbPage>
+                  <BreadcrumbPage className="max-w-[200px] truncate">{item.label}</BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
                     <Link to={item.href}>{item.label}</Link>

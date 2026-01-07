@@ -1,8 +1,8 @@
 /**
  * @fileoverview Barrel export for admin hooks
- * 
+ *
  * Usage: import { useAdminAuth, useAdminData } from '@/hooks/admin';
- * 
+ *
  * @module hooks/admin
  */
 

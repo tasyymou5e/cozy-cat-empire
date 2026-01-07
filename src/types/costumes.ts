@@ -29,7 +29,7 @@ export const COSTUMES: Costume[] = [
     id: 'top_hat',
     name: 'Fancy Top Hat',
     emoji: '🎩',
-    description: 'A distinguished gentleman\'s hat.',
+    description: "A distinguished gentleman's hat.",
     price: 100,
     rarity: 'uncommon',
     showBonus: 10,
@@ -58,7 +58,7 @@ export const COSTUMES: Costume[] = [
     happinessBonus: 4,
     category: 'hat',
   },
-  
+
   // Outfits
   {
     id: 'sweater',
@@ -104,7 +104,7 @@ export const COSTUMES: Costume[] = [
     happinessBonus: 6,
     category: 'outfit',
   },
-  
+
   // Accessories
   {
     id: 'bow_tie',
@@ -150,7 +150,7 @@ export const COSTUMES: Costume[] = [
     happinessBonus: 4,
     category: 'accessory',
   },
-  
+
   // Special
   {
     id: 'angel_wings',
@@ -196,7 +196,7 @@ export const COSTUMES: Costume[] = [
     happinessBonus: 9,
     category: 'special',
   },
-  
+
   // VIP Exclusive Costumes
   {
     id: 'vip_bronze_collar',
@@ -243,9 +243,10 @@ export const COSTUME_RARITY_COLORS: Record<Costume['rarity'], string> = {
   common: 'bg-secondary text-secondary-foreground',
   uncommon: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
   rare: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-  legendary: 'bg-gradient-to-r from-yellow-200 to-orange-200 text-orange-700 dark:from-yellow-900/50 dark:to-orange-900/50 dark:text-orange-300',
+  legendary:
+    'bg-gradient-to-r from-yellow-200 to-orange-200 text-orange-700 dark:from-yellow-900/50 dark:to-orange-900/50 dark:text-orange-300',
 };
 
 export function getCostumeById(id: string): Costume | undefined {
-  return COSTUMES.find(c => c.id === id);
+  return COSTUMES.find((c) => c.id === id);
 }

@@ -23,10 +23,10 @@ interface AchievementsPanelProps {
 
 /**
  * AchievementsPanel - Achievement tracking interface
- * 
+ *
  * Displays all game achievements with unlock status and progress.
  * Shows progress bars for incomplete achievements.
- * 
+ *
  * @example
  * ```tsx
  * <AchievementsPanel
@@ -39,7 +39,7 @@ interface AchievementsPanelProps {
 export function AchievementsPanel({ achievements, currentStats }: AchievementsPanelProps) {
   const getProgress = (achievement: Achievement) => {
     if (achievement.unlocked) return 100;
-    
+
     let current = 0;
     switch (achievement.id) {
       case 'first_cat':
@@ -76,7 +76,7 @@ export function AchievementsPanel({ achievements, currentStats }: AchievementsPa
     return Math.min(100, (current / achievement.target) * 100);
   };
 
-  const unlockedCount = achievements.filter(a => a.unlocked).length;
+  const unlockedCount = achievements.filter((a) => a.unlocked).length;
 
   return (
     <Card className="border-accent/30">
@@ -89,28 +89,24 @@ export function AchievementsPanel({ achievements, currentStats }: AchievementsPa
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
-        {achievements.map(achievement => {
+        {achievements.map((achievement) => {
           const progress = getProgress(achievement);
           return (
-            <div 
+            <div
               key={achievement.id}
               className={`p-3 rounded-lg border transition-colors ${
-                achievement.unlocked 
-                  ? 'bg-accent/20 border-accent' 
-                  : 'bg-muted/50 border-muted'
+                achievement.unlocked ? 'bg-accent/20 border-accent' : 'bg-muted/50 border-muted'
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className={`font-medium ${achievement.unlocked ? 'text-accent-foreground' : 'text-muted-foreground'}`}>
+                <span
+                  className={`font-medium ${achievement.unlocked ? 'text-accent-foreground' : 'text-muted-foreground'}`}
+                >
                   {achievement.unlocked ? '✅' : '🔒'} {achievement.name}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mb-2">
-                {achievement.description}
-              </p>
-              {!achievement.unlocked && (
-                <Progress value={progress} className="h-1.5" />
-              )}
+              <p className="text-xs text-muted-foreground mb-2">{achievement.description}</p>
+              {!achievement.unlocked && <Progress value={progress} className="h-1.5" />}
               {achievement.unlocked && achievement.unlockedAt && (
                 <p className="text-xs text-accent-foreground">
                   Unlocked on Day {achievement.unlockedAt}

@@ -25,7 +25,7 @@ const difficultyColors: Record<ChallengeDifficulty, string> = {
   easy: 'bg-green-500/20 text-green-400 border-green-500/30',
   medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
   hard: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  expert: 'bg-red-500/20 text-red-400 border-red-500/30'
+  expert: 'bg-red-500/20 text-red-400 border-red-500/30',
 };
 
 const CHALLENGE_ACHIEVEMENTS = [
@@ -44,7 +44,7 @@ export function WeeklyChallengesPanel({
   onProgressAnimationComplete,
   totalChallengesCompleted = 0,
   currentStreak = 0,
-  longestStreak = 0
+  longestStreak = 0,
 }: WeeklyChallengesPanelProps) {
   const { animations, triggerAnimation, clearAnimation } = useProgressAnimations();
 
@@ -89,24 +89,23 @@ export function WeeklyChallengesPanel({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-sm">No active challenges this week. Check back soon!</p>
+          <p className="text-muted-foreground text-sm">
+            No active challenges this week. Check back soon!
+          </p>
         </CardContent>
       </Card>
     );
   }
 
   // Calculate next achievement milestone
-  const nextAchievement = CHALLENGE_ACHIEVEMENTS.find(a => totalChallengesCompleted < a.target);
-  const achievementProgress = nextAchievement 
-    ? (totalChallengesCompleted / nextAchievement.target) * 100 
+  const nextAchievement = CHALLENGE_ACHIEVEMENTS.find((a) => totalChallengesCompleted < a.target);
+  const achievementProgress = nextAchievement
+    ? (totalChallengesCompleted / nextAchievement.target) * 100
     : 100;
 
   return (
     <Card className="bg-card/50 border-border/50 relative overflow-hidden">
-      <ChallengeProgressAnimation 
-        animations={animations} 
-        onAnimationComplete={clearAnimation} 
-      />
+      <ChallengeProgressAnimation animations={animations} onAnimationComplete={clearAnimation} />
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
@@ -120,7 +119,7 @@ export function WeeklyChallengesPanel({
             </Badge>
           )}
         </div>
-        
+
         {/* Streak Display */}
         {currentStreak > 0 && (
           <div className="mt-3 p-3 rounded-lg bg-orange-500/10 border border-orange-500/30">
@@ -150,11 +149,11 @@ export function WeeklyChallengesPanel({
             </div>
             <div className="flex gap-1">
               {CHALLENGE_ACHIEVEMENTS.map((achievement) => (
-                <span 
+                <span
                   key={achievement.target}
                   className={`text-lg transition-all ${
-                    totalChallengesCompleted >= achievement.target 
-                      ? 'opacity-100 animate-progress-pop' 
+                    totalChallengesCompleted >= achievement.target
+                      ? 'opacity-100 animate-progress-pop'
                       : 'opacity-30 grayscale'
                   }`}
                   title={`${achievement.name}: Complete ${achievement.target} challenges`}
@@ -188,10 +187,10 @@ export function WeeklyChallengesPanel({
                     isCompleted && !isClaimed
                       ? 'bg-primary/10 border-primary/50 animate-glow-pulse'
                       : isClaimed
-                      ? 'bg-muted/30 border-muted opacity-60'
-                      : percentage > 80
-                      ? 'bg-muted/50 border-primary/30'
-                      : 'bg-muted/50 border-border/50'
+                        ? 'bg-muted/30 border-muted opacity-60'
+                        : percentage > 80
+                          ? 'bg-muted/50 border-primary/30'
+                          : 'bg-muted/50 border-border/50'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
@@ -220,7 +219,9 @@ export function WeeklyChallengesPanel({
                   <div className="flex items-center justify-between mt-3">
                     <div className="flex items-center gap-2 text-xs">
                       <Gift className="h-3 w-3 text-primary" />
-                      <span className="text-primary font-medium">{challenge.reward_coins} coins</span>
+                      <span className="text-primary font-medium">
+                        {challenge.reward_coins} coins
+                      </span>
                       {challenge.reward_badge && (
                         <Badge variant="secondary" className="text-xs">
                           {challenge.reward_badge}

@@ -17,12 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,10 +63,7 @@ export default function AdminProfileRepair() {
           .from('profiles')
           .select('id', { count: 'exact', head: true })
           .or('display_name.is.null,display_name.eq.'),
-        supabase
-          .from('profiles')
-          .select('id', { count: 'exact', head: true })
-          .is('username', null),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).is('username', null),
         supabase
           .from('profiles')
           .select('id', { count: 'exact', head: true })
@@ -125,19 +117,28 @@ export default function AdminProfileRepair() {
 
   const generateNameFromEmail = (email: string | null): string => {
     if (!email) {
-      const catNames = ['Whiskers', 'Mittens', 'Shadow', 'Luna', 'Simba', 'Nala', 'Felix', 'Garfield'];
+      const catNames = [
+        'Whiskers',
+        'Mittens',
+        'Shadow',
+        'Luna',
+        'Simba',
+        'Nala',
+        'Felix',
+        'Garfield',
+      ];
       return `${catNames[Math.floor(Math.random() * catNames.length)]}${Math.floor(Math.random() * 999)}`;
     }
 
     const localPart = email.split('@')[0];
     // Clean the local part
     let clean = localPart.replace(/[^a-zA-Z0-9]/g, '');
-    
+
     // Ensure minimum length
     if (clean.length < 3) {
       clean = `Cat${clean}`;
     }
-    
+
     // Truncate if too long
     if (clean.length > 25) {
       clean = clean.substring(0, 25);
@@ -148,33 +149,34 @@ export default function AdminProfileRepair() {
 
   const handleAutoGenerate = async () => {
     if (!usersNeedingRepair) return;
-    
+
     setIsGenerating(true);
     const newGeneratedNames: Record<string, string> = {};
-    const usersToGenerate = selectedUsers.size > 0 
-      ? usersNeedingRepair.filter((u) => selectedUsers.has(u.id))
-      : usersNeedingRepair;
+    const usersToGenerate =
+      selectedUsers.size > 0
+        ? usersNeedingRepair.filter((u) => selectedUsers.has(u.id))
+        : usersNeedingRepair;
 
     // Check for conflicts
     const allExistingNames = new Set<string>();
-    
+
     for (const user of usersToGenerate) {
       let name = generateNameFromEmail(user.email);
       let attempts = 0;
-      
+
       // Ensure uniqueness within this batch
       while (allExistingNames.has(name.toLowerCase()) && attempts < 10) {
         name = generateNameFromEmail(user.email);
         attempts++;
       }
-      
+
       allExistingNames.add(name.toLowerCase());
       newGeneratedNames[user.id] = name;
     }
 
     setGeneratedNames(newGeneratedNames);
     setIsGenerating(false);
-    
+
     toast({
       title: 'Names Generated',
       description: `Generated ${Object.keys(newGeneratedNames).length} display names`,
@@ -220,7 +222,7 @@ export default function AdminProfileRepair() {
     setSelectedUsers(new Set());
     setConfirmApplyOpen(false);
     setIsApplying(false);
-    
+
     queryClient.invalidateQueries({ queryKey: ['admin-users-needing-repair'] });
     queryClient.invalidateQueries({ queryKey: ['admin-profile-stats'] });
   };
@@ -241,9 +243,7 @@ export default function AdminProfileRepair() {
             <Wrench className="h-8 w-8" />
             Profile Repair Tool
           </h1>
-          <p className="text-muted-foreground">
-            Repair user profiles with missing or invalid data
-          </p>
+          <p className="text-muted-foreground">Repair user profiles with missing or invalid data</p>
         </div>
 
         {/* Statistics */}
@@ -389,16 +389,10 @@ export default function AdminProfileRepair() {
                           )}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {user.created_at
-                            ? format(new Date(user.created_at), 'PP')
-                            : 'Unknown'}
+                          {user.created_at ? format(new Date(user.created_at), 'PP') : 'Unknown'}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setEditingUser(user)}
-                          >
+                          <Button variant="ghost" size="sm" onClick={() => setEditingUser(user)}>
                             <UserCog className="h-4 w-4 mr-1" />
                             Edit
                           </Button>
@@ -441,8 +435,8 @@ export default function AdminProfileRepair() {
           <AlertDialogHeader>
             <AlertDialogTitle>Apply Generated Names?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will update {Object.keys(generatedNames).length} user profiles with auto-generated display names.
-              This action will be logged.
+              This will update {Object.keys(generatedNames).length} user profiles with
+              auto-generated display names. This action will be logged.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

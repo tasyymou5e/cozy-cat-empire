@@ -22,7 +22,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
     };
   }
 
@@ -42,8 +42,8 @@ export class ErrorBoundary extends Component<Props, State> {
       route: window.location.pathname,
       metadata: {
         componentStack: errorInfo.componentStack,
-        errorName: error.name
-      }
+        errorName: error.name,
+      },
     });
 
     // Also log to console
@@ -81,7 +81,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <p className="text-sm text-muted-foreground text-center">
                 An unexpected error occurred. The error has been logged and we'll look into it.
               </p>
-              
+
               {process.env.NODE_ENV === 'development' && this.state.error && (
                 <details className="text-xs bg-muted p-3 rounded-lg">
                   <summary className="cursor-pointer font-medium mb-2">Error Details</summary>
@@ -123,7 +123,9 @@ export function withErrorBoundary<P extends object>(
 ) {
   return function WithErrorBoundaryWrapper(props: P) {
     return (
-      <ErrorBoundary componentName={componentName || WrappedComponent.displayName || WrappedComponent.name}>
+      <ErrorBoundary
+        componentName={componentName || WrappedComponent.displayName || WrappedComponent.name}
+      >
         <WrappedComponent {...props} />
       </ErrorBoundary>
     );

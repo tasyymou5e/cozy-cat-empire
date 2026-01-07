@@ -1,6 +1,6 @@
 /**
  * Panel Props Types
- * 
+ *
  * Grouped prop interfaces for panel components to reduce prop drilling.
  * Props are organized by domain to make passing data cleaner.
  */
@@ -71,7 +71,11 @@ export interface CollectionProps {
   trickProgress: CollectionSetProgress;
   overallProgress: number;
   completedSets: CollectionCategory[];
-  getSetReward: (category: CollectionCategory) => { coins?: number; title?: string; bonus?: string };
+  getSetReward: (category: CollectionCategory) => {
+    coins?: number;
+    title?: string;
+    bonus?: string;
+  };
 }
 
 /**

@@ -50,13 +50,13 @@ export const RELATIONSHIP_THRESHOLDS = {
 
 // Relationship decay constants
 export const RELATIONSHIP_DECAY = {
-  GRACE_PERIOD_DAYS: 3,        // Days before decay starts
-  MODERATE_THRESHOLD_DAYS: 5,  // Days for moderate decay
-  SEVERE_THRESHOLD_DAYS: 7,    // Days for severe decay
-  LIGHT_DECAY: 1,              // Points lost per day (3-4 days)
-  MODERATE_DECAY: 2,           // Points lost per day (5-6 days)
-  SEVERE_DECAY: 3,             // Points lost per day (7+ days)
-  MIN_DECAY_SCORE: -20,        // Don't decay below rival level
+  GRACE_PERIOD_DAYS: 3, // Days before decay starts
+  MODERATE_THRESHOLD_DAYS: 5, // Days for moderate decay
+  SEVERE_THRESHOLD_DAYS: 7, // Days for severe decay
+  LIGHT_DECAY: 1, // Points lost per day (3-4 days)
+  MODERATE_DECAY: 2, // Points lost per day (5-6 days)
+  SEVERE_DECAY: 3, // Points lost per day (7+ days)
+  MIN_DECAY_SCORE: -20, // Don't decay below rival level
 };
 
 export function getRelationshipLevel(score: number): RelationshipLevel {
@@ -69,21 +69,31 @@ export function getRelationshipLevel(score: number): RelationshipLevel {
 
 export function getRelationshipEmoji(level: RelationshipLevel): string {
   switch (level) {
-    case 'enemy': return '💔';
-    case 'rival': return '😾';
-    case 'neutral': return '😐';
-    case 'friend': return '💚';
-    case 'bestFriend': return '💕';
+    case 'enemy':
+      return '💔';
+    case 'rival':
+      return '😾';
+    case 'neutral':
+      return '😐';
+    case 'friend':
+      return '💚';
+    case 'bestFriend':
+      return '💕';
   }
 }
 
 export function getRelationshipColor(level: RelationshipLevel): string {
   switch (level) {
-    case 'enemy': return 'text-red-500';
-    case 'rival': return 'text-orange-500';
-    case 'neutral': return 'text-muted-foreground';
-    case 'friend': return 'text-green-500';
-    case 'bestFriend': return 'text-pink-500';
+    case 'enemy':
+      return 'text-red-500';
+    case 'rival':
+      return 'text-orange-500';
+    case 'neutral':
+      return 'text-muted-foreground';
+    case 'friend':
+      return 'text-green-500';
+    case 'bestFriend':
+      return 'text-pink-500';
   }
 }
 
@@ -97,11 +107,14 @@ export interface RelationshipDecayInfo {
   daysUntilDecay: number;
 }
 
-export function getDecayInfo(relationship: CatRelationship, currentDay: number): RelationshipDecayInfo {
+export function getDecayInfo(
+  relationship: CatRelationship,
+  currentDay: number
+): RelationshipDecayInfo {
   const daysSinceInteraction = currentDay - relationship.lastInteraction;
   const isInGracePeriod = daysSinceInteraction < RELATIONSHIP_DECAY.GRACE_PERIOD_DAYS;
   const daysUntilDecay = Math.max(0, RELATIONSHIP_DECAY.GRACE_PERIOD_DAYS - daysSinceInteraction);
-  
+
   let decayLevel: 'none' | 'light' | 'moderate' | 'severe' = 'none';
   if (daysSinceInteraction >= RELATIONSHIP_DECAY.SEVERE_THRESHOLD_DAYS) {
     decayLevel = 'severe';
@@ -110,7 +123,7 @@ export function getDecayInfo(relationship: CatRelationship, currentDay: number):
   } else if (daysSinceInteraction >= RELATIONSHIP_DECAY.GRACE_PERIOD_DAYS) {
     decayLevel = 'light';
   }
-  
+
   return {
     daysSinceInteraction,
     isInGracePeriod,
@@ -122,18 +135,26 @@ export function getDecayInfo(relationship: CatRelationship, currentDay: number):
 
 export function getDecayWarningColor(decayLevel: 'none' | 'light' | 'moderate' | 'severe'): string {
   switch (decayLevel) {
-    case 'severe': return 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400';
-    case 'moderate': return 'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400';
-    case 'light': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-400';
-    default: return '';
+    case 'severe':
+      return 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400';
+    case 'moderate':
+      return 'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400';
+    case 'light':
+      return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-400';
+    default:
+      return '';
   }
 }
 
 export function getDecayWarningText(decayLevel: 'none' | 'light' | 'moderate' | 'severe'): string {
   switch (decayLevel) {
-    case 'severe': return 'Losing 3 points/day';
-    case 'moderate': return 'Losing 2 points/day';
-    case 'light': return 'Losing 1 point/day';
-    default: return '';
+    case 'severe':
+      return 'Losing 3 points/day';
+    case 'moderate':
+      return 'Losing 2 points/day';
+    case 'light':
+      return 'Losing 1 point/day';
+    default:
+      return '';
   }
 }

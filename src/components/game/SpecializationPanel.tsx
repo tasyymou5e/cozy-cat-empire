@@ -5,7 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Cat, CatSpecializationData } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
@@ -28,7 +35,11 @@ interface SpecializationPanelProps {
   relationships: CatRelationship[];
   kittensBred: number;
   onSpecialize: (catId: string, type: SpecializationType) => void;
-  canSpecialize: (cat: Cat, friendshipCount: number, kittenCount: number) => ReturnType<typeof checkSpecializationEligibility>;
+  canSpecialize: (
+    cat: Cat,
+    friendshipCount: number,
+    kittenCount: number
+  ) => ReturnType<typeof checkSpecializationEligibility>;
   getSpecialization: (cat: Cat) => CatSpecializationData | undefined;
   getActiveBonuses: () => {
     showScoreBonus: number;
@@ -75,12 +86,14 @@ function SpecializedCatCard({
       <div className="flex items-start gap-3">
         <div className="relative">
           <CatAvatar cat={cat} equippedCostumeId={catCostumes[cat.id]} size="md" />
-          <div className={cn(
-            'absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs',
-            spec.type === 'show_star' && 'bg-amber-500',
-            spec.type === 'social_butterfly' && 'bg-pink-500',
-            spec.type === 'dynasty_builder' && 'bg-purple-500',
-          )}>
+          <div
+            className={cn(
+              'absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs',
+              spec.type === 'show_star' && 'bg-amber-500',
+              spec.type === 'social_butterfly' && 'bg-pink-500',
+              spec.type === 'dynasty_builder' && 'bg-purple-500'
+            )}
+          >
             <Icon className="h-3 w-3" />
           </div>
         </div>
@@ -97,16 +110,16 @@ function SpecializedCatCard({
             <Badge variant="secondary" className="text-xs">
               {mastery.name} (Lv.{mastery.level})
             </Badge>
-            <span className="text-xs text-muted-foreground">
-              {spec.xp} XP
-            </span>
+            <span className="text-xs text-muted-foreground">{spec.xp} XP</span>
           </div>
 
           {nextMastery && (
             <div className="mt-2">
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
                 <span>Next: {nextMastery.name}</span>
-                <span>{spec.xp}/{nextMastery.xpRequired} XP</span>
+                <span>
+                  {spec.xp}/{nextMastery.xpRequired} XP
+                </span>
               </div>
               <Progress value={xpProgress} className="h-1.5" />
             </div>
@@ -171,7 +184,7 @@ function EligibleCatCard({
             </div>
 
             <div className="flex flex-wrap gap-1 mt-2">
-              {eligibility.eligiblePaths.map(path => {
+              {eligibility.eligiblePaths.map((path) => {
                 const spec = SPECIALIZATIONS[path];
                 const Icon = SPEC_ICONS[path];
                 return (
@@ -207,7 +220,8 @@ function EligibleCatCard({
               )}
             </DialogTitle>
             <DialogDescription>
-              This is a permanent choice. {cat.name} will gain unique bonuses based on this specialization.
+              This is a permanent choice. {cat.name} will gain unique bonuses based on this
+              specialization.
             </DialogDescription>
           </DialogHeader>
 
@@ -225,7 +239,8 @@ function EligibleCatCard({
               <div className="p-3 bg-muted/50 rounded-lg text-xs">
                 <p className="font-medium mb-1">Mastery Progression:</p>
                 <p className="text-muted-foreground">
-                  Earn XP through related activities to unlock higher mastery levels with increased bonuses (up to 2×).
+                  Earn XP through related activities to unlock higher mastery levels with increased
+                  bonuses (up to 2×).
                 </p>
               </div>
             </div>
@@ -239,7 +254,7 @@ function EligibleCatCard({
               className={cn(
                 selectedPath === 'show_star' && 'bg-amber-500 hover:bg-amber-600',
                 selectedPath === 'social_butterfly' && 'bg-pink-500 hover:bg-pink-600',
-                selectedPath === 'dynasty_builder' && 'bg-purple-500 hover:bg-purple-600',
+                selectedPath === 'dynasty_builder' && 'bg-purple-500 hover:bg-purple-600'
               )}
               onClick={handleConfirm}
             >
@@ -267,28 +282,29 @@ export function SpecializationPanel({
 
   // Count friendships per cat
   const getFriendshipCount = (catId: string) => {
-    return relationships.filter(
-      r => (r.catId1 === catId || r.catId2 === catId) && r.score >= 20
-    ).length;
+    return relationships.filter((r) => (r.catId1 === catId || r.catId2 === catId) && r.score >= 20)
+      .length;
   };
 
   // Find eligible cats
-  const eligibleCats = cats.filter(cat => {
+  const eligibleCats = cats.filter((cat) => {
     if (getSpecialization(cat)) return false;
     const eligibility = canSpecialize(cat, getFriendshipCount(cat.id), kittensBred);
     return eligibility.isEligible;
   });
 
   // Find almost eligible cats (Grade 10-11)
-  const almostEligibleCats = cats.filter(cat => {
-    if (getSpecialization(cat)) return false;
-    return cat.grade >= 10 && cat.grade < SPECIALIZATION_MIN_GRADE;
-  }).slice(0, 3);
+  const almostEligibleCats = cats
+    .filter((cat) => {
+      if (getSpecialization(cat)) return false;
+      return cat.grade >= 10 && cat.grade < SPECIALIZATION_MIN_GRADE;
+    })
+    .slice(0, 3);
 
   // Specialized cats
-  const specializedCats = cats.filter(cat => getSpecialization(cat));
+  const specializedCats = cats.filter((cat) => getSpecialization(cat));
 
-  const hasAnyBonuses = Object.values(bonuses).some(v => v > 0);
+  const hasAnyBonuses = Object.values(bonuses).some((v) => v > 0);
 
   return (
     <Card className="border-accent/30">
@@ -318,38 +334,33 @@ export function SpecializationPanel({
             <div className="grid grid-cols-2 gap-2 text-xs">
               {bonuses.showScoreBonus > 0 && (
                 <div className="flex items-center gap-1 text-amber-600">
-                  <Star className="h-3 w-3" />
-                  +{bonuses.showScoreBonus.toFixed(0)}% show score
+                  <Star className="h-3 w-3" />+{bonuses.showScoreBonus.toFixed(0)}% show score
                 </div>
               )}
               {bonuses.showMoneyBonus > 0 && (
                 <div className="flex items-center gap-1 text-amber-600">
-                  <Trophy className="h-3 w-3" />
-                  +{bonuses.showMoneyBonus.toFixed(0)}% show money
+                  <Trophy className="h-3 w-3" />+{bonuses.showMoneyBonus.toFixed(0)}% show money
                 </div>
               )}
               {bonuses.relationshipBonus > 0 && (
                 <div className="flex items-center gap-1 text-pink-600">
-                  <Heart className="h-3 w-3" />
-                  +{bonuses.relationshipBonus.toFixed(0)}% relationship
+                  <Heart className="h-3 w-3" />+{bonuses.relationshipBonus.toFixed(0)}% relationship
                 </div>
               )}
               {bonuses.kittenGradeBonus > 0 && (
                 <div className="flex items-center gap-1 text-purple-600">
-                  <Crown className="h-3 w-3" />
-                  +{bonuses.kittenGradeBonus.toFixed(0)} kitten grade
+                  <Crown className="h-3 w-3" />+{bonuses.kittenGradeBonus.toFixed(0)} kitten grade
                 </div>
               )}
               {bonuses.kittenHealthBonus > 0 && (
                 <div className="flex items-center gap-1 text-green-600">
-                  <Zap className="h-3 w-3" />
-                  +{bonuses.kittenHealthBonus.toFixed(0)}% kitten health
+                  <Zap className="h-3 w-3" />+{bonuses.kittenHealthBonus.toFixed(0)}% kitten health
                 </div>
               )}
               {bonuses.breedingSuccessBonus > 0 && (
                 <div className="flex items-center gap-1 text-purple-600">
-                  <Sparkles className="h-3 w-3" />
-                  +{bonuses.breedingSuccessBonus.toFixed(0)}% breeding
+                  <Sparkles className="h-3 w-3" />+{bonuses.breedingSuccessBonus.toFixed(0)}%
+                  breeding
                 </div>
               )}
             </div>
@@ -366,7 +377,7 @@ export function SpecializationPanel({
               Ready to Specialize ({eligibleCats.length})
             </h4>
             <div className="space-y-2">
-              {eligibleCats.map(cat => (
+              {eligibleCats.map((cat) => (
                 <EligibleCatCard
                   key={cat.id}
                   cat={cat}
@@ -384,8 +395,11 @@ export function SpecializationPanel({
           <div className="space-y-2">
             <h4 className="text-sm font-medium text-muted-foreground">Almost Ready</h4>
             <div className="space-y-2">
-              {almostEligibleCats.map(cat => (
-                <div key={cat.id} className="p-2 rounded border bg-muted/30 flex items-center gap-2">
+              {almostEligibleCats.map((cat) => (
+                <div
+                  key={cat.id}
+                  className="p-2 rounded border bg-muted/30 flex items-center gap-2"
+                >
                   <CatAvatar cat={cat} equippedCostumeId={catCostumes[cat.id]} size="sm" />
                   <div className="flex-1">
                     <span className="text-sm font-medium">{cat.name}</span>
@@ -393,22 +407,26 @@ export function SpecializationPanel({
                       Grade {cat.grade} → needs Grade {SPECIALIZATION_MIN_GRADE}
                     </p>
                   </div>
-                  <Badge variant="outline">{SPECIALIZATION_MIN_GRADE - cat.grade} grades to go</Badge>
+                  <Badge variant="outline">
+                    {SPECIALIZATION_MIN_GRADE - cat.grade} grades to go
+                  </Badge>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {eligibleCats.length === 0 && almostEligibleCats.length === 0 && specializedCats.length === 0 && (
-          <div className="text-center py-6 text-muted-foreground">
-            <Sparkles className="h-12 w-12 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">No cats ready for specialization yet</p>
-            <p className="text-xs mt-1">
-              Train cats to Grade {SPECIALIZATION_MIN_GRADE}+ and meet path requirements
-            </p>
-          </div>
-        )}
+        {eligibleCats.length === 0 &&
+          almostEligibleCats.length === 0 &&
+          specializedCats.length === 0 && (
+            <div className="text-center py-6 text-muted-foreground">
+              <Sparkles className="h-12 w-12 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">No cats ready for specialization yet</p>
+              <p className="text-xs mt-1">
+                Train cats to Grade {SPECIALIZATION_MIN_GRADE}+ and meet path requirements
+              </p>
+            </div>
+          )}
 
         <Separator />
 
@@ -422,7 +440,7 @@ export function SpecializationPanel({
           {specializedCats.length > 0 ? (
             <ScrollArea className="h-[250px] pr-2">
               <div className="space-y-2">
-                {specializedCats.map(cat => {
+                {specializedCats.map((cat) => {
                   const spec = getSpecialization(cat)!;
                   return (
                     <SpecializedCatCard
@@ -449,15 +467,21 @@ export function SpecializationPanel({
           <div className="space-y-1 text-muted-foreground">
             <div className="flex items-center gap-2">
               <Star className="h-3 w-3 text-amber-500" />
-              <span><strong>Show Star:</strong> 5+ wins • Show bonuses</span>
+              <span>
+                <strong>Show Star:</strong> 5+ wins • Show bonuses
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Heart className="h-3 w-3 text-pink-500" />
-              <span><strong>Social Butterfly:</strong> 3+ friends • Relationship bonuses</span>
+              <span>
+                <strong>Social Butterfly:</strong> 3+ friends • Relationship bonuses
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Crown className="h-3 w-3 text-purple-500" />
-              <span><strong>Dynasty Builder:</strong> 2+ kittens • Breeding bonuses</span>
+              <span>
+                <strong>Dynasty Builder:</strong> 2+ kittens • Breeding bonuses
+              </span>
             </div>
           </div>
         </div>

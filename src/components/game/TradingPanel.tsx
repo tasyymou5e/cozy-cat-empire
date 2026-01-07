@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -39,10 +45,10 @@ interface TradingPanelProps {
 
 /**
  * TradingPanel - Player-to-player trading interface
- * 
+ *
  * Allows players to create, send, and manage trade offers with friends.
  * Supports trading cats and money. Shows incoming and outgoing trades.
- * 
+ *
  * @example
  * ```tsx
  * <TradingPanel
@@ -55,8 +61,23 @@ interface TradingPanelProps {
  * ```
  */
 
-export function TradingPanel({ userId, cats, money, resources, onTradeComplete, catCostumes }: TradingPanelProps) {
-  const { incomingTrades, outgoingTrades, loading, createTrade, acceptTrade, declineTrade, cancelTrade } = useTrading(userId);
+export function TradingPanel({
+  userId,
+  cats,
+  money,
+  resources,
+  onTradeComplete,
+  catCostumes,
+}: TradingPanelProps) {
+  const {
+    incomingTrades,
+    outgoingTrades,
+    loading,
+    createTrade,
+    acceptTrade,
+    declineTrade,
+    cancelTrade,
+  } = useTrading(userId);
   const { friends } = useFriends(userId);
   const [selectedFriend, setSelectedFriend] = useState<string>('');
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
@@ -65,21 +86,19 @@ export function TradingPanel({ userId, cats, money, resources, onTradeComplete, 
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
 
-  const acceptedFriends = friends.filter(f => f.status === 'accepted');
+  const acceptedFriends = friends.filter((f) => f.status === 'accepted');
 
   const handleCatToggle = (catId: string) => {
-    setSelectedCats(prev => 
-      prev.includes(catId) 
-        ? prev.filter(id => id !== catId)
-        : [...prev, catId]
+    setSelectedCats((prev) =>
+      prev.includes(catId) ? prev.filter((id) => id !== catId) : [...prev, catId]
     );
   };
 
   const handleCreateTrade = async () => {
     if (!selectedFriend || (selectedCats.length === 0 && offerMoney === 0)) return;
 
-    const offeredCats = cats.filter(c => selectedCats.includes(c.id));
-    
+    const offeredCats = cats.filter((c) => selectedCats.includes(c.id));
+
     setSending(true);
     const result = await createTrade({
       recipientId: selectedFriend,
@@ -88,7 +107,7 @@ export function TradingPanel({ userId, cats, money, resources, onTradeComplete, 
       offeredResources: {},
       requestedMoney: requestMoney,
       requestedResources: {},
-      message
+      message,
     });
 
     if (result.success) {
@@ -107,12 +126,7 @@ export function TradingPanel({ userId, cats, money, resources, onTradeComplete, 
     const trade = await acceptTrade(tradeId);
     if (trade) {
       // Add offered cats, remove requested money
-      onTradeComplete(
-        [],
-        trade.offered_cats,
-        trade.offered_money - trade.requested_money,
-        {}
-      );
+      onTradeComplete([], trade.offered_cats, trade.offered_money - trade.requested_money, {});
     }
   };
 
@@ -173,7 +187,7 @@ export function TradingPanel({ userId, cats, money, resources, onTradeComplete, 
                       <SelectValue placeholder="Choose a friend..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {acceptedFriends.map(friend => (
+                      {acceptedFriends.map((friend) => (
                         <SelectItem key={friend.friend_id} value={friend.friend_id}>
                           {friend.display_name || 'Unknown'}
                         </SelectItem>
@@ -185,7 +199,7 @@ export function TradingPanel({ userId, cats, money, resources, onTradeComplete, 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Your Offer</label>
                   <div className="grid grid-cols-2 gap-2 max-h-[120px] overflow-y-auto p-2 border rounded">
-                    {cats.map(cat => (
+                    {cats.map((cat) => (
                       <label
                         key={cat.id}
                         className="flex items-center gap-2 p-2 border rounded cursor-pointer hover:bg-accent"
@@ -209,7 +223,9 @@ export function TradingPanel({ userId, cats, money, resources, onTradeComplete, 
                       min={0}
                       max={money}
                       value={offerMoney}
-                      onChange={(e) => setOfferMoney(Math.min(money, parseInt(e.target.value) || 0))}
+                      onChange={(e) =>
+                        setOfferMoney(Math.min(money, parseInt(e.target.value) || 0))
+                      }
                     />
                     <p className="text-[10px] text-muted-foreground">Max: ${money}</p>
                   </div>
@@ -237,7 +253,9 @@ export function TradingPanel({ userId, cats, money, resources, onTradeComplete, 
                 <Button
                   className="w-full"
                   onClick={handleCreateTrade}
-                  disabled={!selectedFriend || (selectedCats.length === 0 && offerMoney === 0) || sending}
+                  disabled={
+                    !selectedFriend || (selectedCats.length === 0 && offerMoney === 0) || sending
+                  }
                 >
                   <ArrowLeftRight className="w-4 h-4 mr-2" />
                   {sending ? 'Sending...' : 'Send Trade Offer'}
@@ -256,20 +274,20 @@ export function TradingPanel({ userId, cats, money, resources, onTradeComplete, 
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {incomingTrades.map(trade => (
+                  {incomingTrades.map((trade) => (
                     <div key={trade.id} className="p-3 border rounded-lg bg-card">
                       <div className="flex items-center justify-between mb-2">
                         <p className="font-medium text-sm">From: {trade.sender_name}</p>
                         <Badge variant="secondary">pending</Badge>
                       </div>
-                      
+
                       <div className="text-xs space-y-1 mb-2">
                         <p className="font-medium">They offer:</p>
                         {trade.offered_cats.length > 0 && (
-                          <p>🐱 {trade.offered_cats.map(c => c.name).join(', ')}</p>
+                          <p>🐱 {trade.offered_cats.map((c) => c.name).join(', ')}</p>
                         )}
                         {trade.offered_money > 0 && <p>💰 ${trade.offered_money}</p>}
-                        
+
                         {trade.requested_money > 0 && (
                           <>
                             <p className="font-medium mt-2">They want:</p>
@@ -319,23 +337,29 @@ export function TradingPanel({ userId, cats, money, resources, onTradeComplete, 
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {outgoingTrades.map(trade => (
+                  {outgoingTrades.map((trade) => (
                     <div key={trade.id} className="p-3 border rounded-lg bg-card">
                       <div className="flex items-center justify-between mb-2">
                         <p className="font-medium text-sm">To: {trade.recipient_name}</p>
-                        <Badge variant={
-                          trade.status === 'accepted' ? 'default' :
-                          trade.status === 'declined' ? 'destructive' :
-                          trade.status === 'cancelled' ? 'outline' : 'secondary'
-                        }>
+                        <Badge
+                          variant={
+                            trade.status === 'accepted'
+                              ? 'default'
+                              : trade.status === 'declined'
+                                ? 'destructive'
+                                : trade.status === 'cancelled'
+                                  ? 'outline'
+                                  : 'secondary'
+                          }
+                        >
                           {trade.status}
                         </Badge>
                       </div>
-                      
+
                       <div className="text-xs space-y-1">
                         <p className="font-medium">You offered:</p>
                         {trade.offered_cats.length > 0 && (
-                          <p>🐱 {trade.offered_cats.map(c => c.name).join(', ')}</p>
+                          <p>🐱 {trade.offered_cats.map((c) => c.name).join(', ')}</p>
                         )}
                         {trade.offered_money > 0 && <p>💰 ${trade.offered_money}</p>}
                       </div>

@@ -66,7 +66,7 @@ export function useLeaderboardHistory(userId: string | undefined, category?: Lea
         const latest = typedData[0].rank;
         const previous = typedData[1].rank;
         const change = previous - latest; // Positive = improved (lower rank is better)
-        
+
         setTrend({
           direction: change > 0 ? 'up' : change < 0 ? 'down' : 'stable',
           change: Math.abs(change),
@@ -75,7 +75,7 @@ export function useLeaderboardHistory(userId: string | undefined, category?: Lea
 
       // Calculate best rank
       if (typedData.length > 0) {
-        const best = Math.min(...typedData.map(h => h.rank));
+        const best = Math.min(...typedData.map((h) => h.rank));
         setBestRank(best);
       }
 
@@ -89,7 +89,7 @@ export function useLeaderboardHistory(userId: string | undefined, category?: Lea
         .limit(30);
 
       if (!wealthError && wealthData) {
-        const wealthPoints: WealthDataPoint[] = wealthData.map(d => ({
+        const wealthPoints: WealthDataPoint[] = wealthData.map((d) => ({
           date: d.recorded_at,
           wealth: d.score,
         }));
@@ -106,21 +106,21 @@ export function useLeaderboardHistory(userId: string | undefined, category?: Lea
       if (!ranksError && allRanks) {
         // Group by date and category
         const progressionMap = new Map<string, RankProgressionData>();
-        
-        allRanks.forEach(entry => {
+
+        allRanks.forEach((entry) => {
           const dateKey = new Date(entry.recorded_at).toISOString().split('T')[0];
           const existing = progressionMap.get(dateKey) || { date: entry.recorded_at };
           // Use type-safe assignment
           const key = entry.category as keyof RankProgressionData;
           if (key !== 'date') {
-            (existing as { [K in keyof RankProgressionData]?: RankProgressionData[K] })[key] = entry.rank;
+            (existing as { [K in keyof RankProgressionData]?: RankProgressionData[K] })[key] =
+              entry.rank;
           }
           progressionMap.set(dateKey, existing);
         });
 
         setRankProgression(Array.from(progressionMap.values()));
       }
-
     } catch (error) {
       console.error('Error fetching leaderboard history:', error);
     } finally {
@@ -128,44 +128,42 @@ export function useLeaderboardHistory(userId: string | undefined, category?: Lea
     }
   }, [userId, category]);
 
-  const recordRank = useCallback(async (categoryToRecord: LeaderboardCategory, rank: number, score: number) => {
-    if (!userId) return;
+  const recordRank = useCallback(
+    async (categoryToRecord: LeaderboardCategory, rank: number, score: number) => {
+      if (!userId) return;
 
-    try {
-      // Check if we already have a record for today
-      const today = new Date().toISOString().split('T')[0];
-      const { data: existing } = await supabase
-        .from('rank_history')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('category', categoryToRecord)
-        .gte('recorded_at', today)
-        .maybeSingle();
+      try {
+        // Check if we already have a record for today
+        const today = new Date().toISOString().split('T')[0];
+        const { data: existing } = await supabase
+          .from('rank_history')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('category', categoryToRecord)
+          .gte('recorded_at', today)
+          .maybeSingle();
 
-      if (existing) {
-        // Update existing record
-        await supabase
-          .from('rank_history')
-          .update({ rank, score })
-          .eq('id', existing.id);
-      } else {
-        // Insert new record
-        await supabase
-          .from('rank_history')
-          .insert({
+        if (existing) {
+          // Update existing record
+          await supabase.from('rank_history').update({ rank, score }).eq('id', existing.id);
+        } else {
+          // Insert new record
+          await supabase.from('rank_history').insert({
             user_id: userId,
             category: categoryToRecord,
             rank,
             score,
           });
-      }
+        }
 
-      // Refresh history
-      fetchHistory();
-    } catch (error) {
-      console.error('Error recording rank:', error);
-    }
-  }, [userId, fetchHistory]);
+        // Refresh history
+        fetchHistory();
+      } catch (error) {
+        console.error('Error recording rank:', error);
+      }
+    },
+    [userId, fetchHistory]
+  );
 
   useEffect(() => {
     fetchHistory();

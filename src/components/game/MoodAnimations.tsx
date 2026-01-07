@@ -37,15 +37,15 @@ export function MoodAnimations({ cats }: MoodAnimationsProps) {
   useEffect(() => {
     const interval = setInterval(() => {
       // Pick a random cat to show mood
-      const catWithMood = cats.find(cat => {
+      const catWithMood = cats.find((cat) => {
         const mood = getCatMood(cat);
         return mood !== null;
       });
-      
+
       if (catWithMood && Math.random() > 0.7) {
         const mood = getCatMood(catWithMood)!;
         const emojisForMood = moodEmojis[mood];
-        
+
         const newEmoji: MoodEmoji = {
           id: `${Date.now()}-${Math.random()}`,
           emoji: emojisForMood[Math.floor(Math.random() * emojisForMood.length)],
@@ -53,16 +53,16 @@ export function MoodAnimations({ cats }: MoodAnimationsProps) {
           y: 20 + Math.random() * 60, // 20-80% of height
           mood,
         };
-        
-        setMoodEmojisState(prev => [...prev, newEmoji]);
-        
+
+        setMoodEmojisState((prev) => [...prev, newEmoji]);
+
         // Remove after animation
         setTimeout(() => {
-          setMoodEmojisState(prev => prev.filter(e => e.id !== newEmoji.id));
+          setMoodEmojisState((prev) => prev.filter((e) => e.id !== newEmoji.id));
         }, 2000);
       }
     }, 3000); // Check every 3 seconds
-    
+
     return () => clearInterval(interval);
   }, [cats]);
 
@@ -79,14 +79,16 @@ export function MoodAnimations({ cats }: MoodAnimationsProps) {
             top: `${emoji.y}%`,
           }}
         >
-          <span className={`
+          <span
+            className={`
             inline-block
             ${emoji.mood === 'happy' || emoji.mood === 'playful' ? 'animate-bounce' : ''}
             ${emoji.mood === 'sad' ? 'animate-pulse opacity-70' : ''}
             ${emoji.mood === 'angry' ? 'animate-shake' : ''}
             ${emoji.mood === 'sleepy' ? 'animate-pulse' : ''}
             ${emoji.mood === 'hungry' ? 'animate-wiggle' : ''}
-          `}>
+          `}
+          >
             {emoji.emoji}
           </span>
         </div>

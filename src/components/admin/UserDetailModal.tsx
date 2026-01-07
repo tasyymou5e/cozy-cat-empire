@@ -1,18 +1,22 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
-import { Cat, Coins, Trophy, Gift, ArrowLeftRight, AlertTriangle, Package, UserCog } from 'lucide-react';
+import {
+  Cat,
+  Coins,
+  Trophy,
+  Gift,
+  ArrowLeftRight,
+  AlertTriangle,
+  Package,
+  UserCog,
+} from 'lucide-react';
 import { PlayerInventoryEditor } from './PlayerInventoryEditor';
 import { ProfileEditor } from './ProfileEditor';
 
@@ -27,11 +31,7 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
     queryKey: ['admin-user-detail', userId],
     queryFn: async () => {
       if (!userId) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
       if (error) throw error;
       return data;
     },
@@ -129,11 +129,8 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
       <DialogContent className="max-w-3xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {user?.avatar_emoji || '😺'}{' '}
-            {user?.display_name || user?.email || 'User Details'}
-            {user?.suspended_at && (
-              <Badge variant="destructive">Suspended</Badge>
-            )}
+            {user?.avatar_emoji || '😺'} {user?.display_name || user?.email || 'User Details'}
+            {user?.suspended_at && <Badge variant="destructive">Suspended</Badge>}
           </DialogTitle>
         </DialogHeader>
 
@@ -150,7 +147,9 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
               <TabsTrigger value="profile" className="flex items-center gap-1">
                 Profile
                 {!user?.display_name && (
-                  <Badge variant="destructive" className="h-4 w-4 p-0 text-[10px] rounded-full">!</Badge>
+                  <Badge variant="destructive" className="h-4 w-4 p-0 text-[10px] rounded-full">
+                    !
+                  </Badge>
                 )}
               </TabsTrigger>
               <TabsTrigger value="cats">Cats</TabsTrigger>
@@ -215,11 +214,17 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Created</span>
-                      <span>{user?.created_at ? format(new Date(user.created_at), 'PPP') : 'Unknown'}</span>
+                      <span>
+                        {user?.created_at ? format(new Date(user.created_at), 'PPP') : 'Unknown'}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Last Played</span>
-                      <span>{gameState?.last_played_at ? format(new Date(gameState.last_played_at), 'PPP') : 'Never'}</span>
+                      <span>
+                        {gameState?.last_played_at
+                          ? format(new Date(gameState.last_played_at), 'PPP')
+                          : 'Never'}
+                      </span>
                     </div>
                     {user?.suspended_at && (
                       <>
@@ -290,7 +295,9 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
                         currentAvatarEmoji={user.avatar_emoji}
                         currentUsername={user.username}
                         onSave={() => {
-                          queryClient.invalidateQueries({ queryKey: ['admin-user-detail', userId] });
+                          queryClient.invalidateQueries({
+                            queryKey: ['admin-user-detail', userId],
+                          });
                           queryClient.invalidateQueries({ queryKey: ['admin-users'] });
                         }}
                       />
@@ -311,9 +318,7 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
                           <p className="text-sm text-muted-foreground">
                             Grade: {cat.grade || 'Unknown'}
                           </p>
-                          <p className="text-sm text-muted-foreground">
-                            Age: {cat.age || 0} days
-                          </p>
+                          <p className="text-sm text-muted-foreground">Age: {cat.age || 0} days</p>
                         </CardContent>
                       </Card>
                     ))}
@@ -363,9 +368,7 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
                           <Badge>{gift.status}</Badge>
                         </div>
                         {gift.message && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            "{gift.message}"
-                          </p>
+                          <p className="text-sm text-muted-foreground mt-1">"{gift.message}"</p>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">
                           {format(new Date(gift.created_at), 'PPp')}
@@ -387,9 +390,7 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
                           <AlertTriangle className="h-4 w-4 text-destructive" />
                           <span className="text-sm font-medium">{error.error_type}</span>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {error.error_message}
-                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">{error.error_message}</p>
                         <p className="text-xs text-muted-foreground mt-1">
                           {format(new Date(error.created_at), 'PPp')}
                         </p>

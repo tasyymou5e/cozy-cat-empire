@@ -3,7 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Cat as CatIcon, Image as ImageIcon } from 'lucide-react';
 import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useGameState } from '@/hooks/game';
 import { useSound } from '@/contexts/SoundContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,12 +18,12 @@ import { PhotoBooth } from '@/components/game/PhotoBooth';
 
 /**
  * CatPhotoBooth - Photo booth page for taking cat photos
- * 
+ *
  * Full-page photo booth experience with cat selector. Loads game state
  * from cloud or local storage and renders the PhotoBooth component.
- * 
+ *
  * @route /photobooth/:catId?
- * 
+ *
  * @example
  * ```tsx
  * <Route path="/photobooth/:catId?" element={<CatPhotoBooth />} />
@@ -30,7 +36,7 @@ const CatPhotoBooth: React.FC = () => {
   const { playSound } = useSound();
   const { user } = useAuth();
   const { cloudLoad } = useCloudSave(user?.id);
-  
+
   const [selectedCatId, setSelectedCatId] = useState<string | null>(catId || null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,7 +47,11 @@ const CatPhotoBooth: React.FC = () => {
         if (user) {
           const result = await cloudLoad();
           if (result.data) {
-            actions.loadFromData(result.data.game_state, result.data.kittens_bred, result.data.relationships);
+            actions.loadFromData(
+              result.data.game_state,
+              result.data.kittens_bred,
+              result.data.relationships
+            );
           } else {
             // Fallback to local storage if cloud returns no data
             actions.loadGame();
@@ -69,12 +79,10 @@ const CatPhotoBooth: React.FC = () => {
     }
   }, [gameState.cats, catId, selectedCatId]);
 
-  const selectedCat = gameState.cats.find(c => c.id === selectedCatId);
+  const selectedCat = gameState.cats.find((c) => c.id === selectedCatId);
 
   // Get equipped costume for selected cat (stored in catCostumes)
-  const equippedCostumeId = selectedCat 
-    ? gameState.catCostumes?.[selectedCat.id] 
-    : undefined;
+  const equippedCostumeId = selectedCat ? gameState.catCostumes?.[selectedCat.id] : undefined;
 
   if (isLoading) {
     return (
@@ -96,9 +104,7 @@ const CatPhotoBooth: React.FC = () => {
           <p className="text-muted-foreground mb-4">
             You need at least one cat to use the photo booth.
           </p>
-          <Button onClick={() => navigate('/')}>
-            Go Adopt a Cat
-          </Button>
+          <Button onClick={() => navigate('/')}>Go Adopt a Cat</Button>
         </div>
       </div>
     );
@@ -114,24 +120,19 @@ const CatPhotoBooth: React.FC = () => {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Breadcrumbs items={[
-              { label: 'Photo Booth' },
-              { label: selectedCat?.name || 'Select Cat' }
-            ]} />
+            <Breadcrumbs
+              items={[{ label: 'Photo Booth' }, { label: selectedCat?.name || 'Select Cat' }]}
+            />
           </div>
-          
+
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/gallery')}
-            >
+            <Button variant="outline" size="sm" onClick={() => navigate('/gallery')}>
               <ImageIcon className="w-4 h-4 mr-2" />
               Gallery
             </Button>
-            
-            <Select 
-              value={selectedCatId || ''} 
+
+            <Select
+              value={selectedCatId || ''}
               onValueChange={(value) => {
                 setSelectedCatId(value);
                 playSound('click');
@@ -141,7 +142,7 @@ const CatPhotoBooth: React.FC = () => {
                 <SelectValue placeholder="Select a cat" />
               </SelectTrigger>
               <SelectContent>
-                {gameState.cats.map(cat => (
+                {gameState.cats.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
                     {cat.name} ({cat.breed})
                   </SelectItem>
@@ -151,13 +152,10 @@ const CatPhotoBooth: React.FC = () => {
           </div>
         </div>
       </header>
-      
+
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
-        <PhotoBooth 
-          cat={selectedCat} 
-          equippedCostumeId={equippedCostumeId}
-        />
+        <PhotoBooth cat={selectedCat} equippedCostumeId={equippedCostumeId} />
       </main>
     </div>
   );

@@ -1,13 +1,13 @@
 /**
  * @fileoverview useCostumes - Costume management domain hook
- * 
+ *
  * Handles cat costume purchasing and equipping:
  * - Buying costumes from the shop
  * - Equipping costumes to cats
  * - Unequipping costumes from cats
- * 
+ *
  * Costumes are purely cosmetic and persist in game state.
- * 
+ *
  * @module hooks/game/useCostumes
  */
 
@@ -25,7 +25,7 @@ export interface CostumeActions {
    * @param costumeId - ID of the costume to purchase
    */
   buyCostume: (costumeId: string) => void;
-  
+
   /**
    * Equip or unequip a costume on a cat.
    * @param catId - ID of the cat
@@ -36,20 +36,20 @@ export interface CostumeActions {
 
 /**
  * Hook for managing cat costumes.
- * 
+ *
  * @param deps - Shared game hook dependencies
  * @returns Object containing costume management actions
- * 
+ *
  * @example
  * ```typescript
  * const { buyCostume, equipCostume } = useCostumes(deps);
- * 
+ *
  * // Buy a costume
  * buyCostume('party-hat');
- * 
+ *
  * // Equip it to a cat
  * equipCostume('cat-123', 'party-hat');
- * 
+ *
  * // Remove the costume
  * equipCostume('cat-123', null);
  * ```
@@ -57,63 +57,69 @@ export interface CostumeActions {
 export function useCostumes(deps: GameHookDependencies): CostumeActions {
   const { setState, showMessage, playSound } = deps;
 
-  const buyCostume = useCallback((costumeId: string) => {
-    const costume = getCostumeById(costumeId);
-    if (!costume) {
-      showMessage("Costume not found!", 'error');
-      return;
-    }
-    
-    setState(prev => {
-      // Check if already owned
-      if (prev.ownedCostumes.includes(costumeId)) {
-        showMessage("You already own this costume!", 'warning');
-        return prev;
+  const buyCostume = useCallback(
+    (costumeId: string) => {
+      const costume = getCostumeById(costumeId);
+      if (!costume) {
+        showMessage('Costume not found!', 'error');
+        return;
       }
-      
-      // Check if can afford
-      if (prev.money < costume.price) {
-        showMessage("Not enough money!", 'error');
-        playSound?.('error');
-        return prev;
-      }
-      
-      showMessage(`Bought ${costume.name}! ${costume.emoji}`, 'success');
-      playSound?.('coin');
-      return {
-        ...prev,
-        money: prev.money - costume.price,
-        ownedCostumes: [...prev.ownedCostumes, costumeId],
-      };
-    });
-  }, [setState, showMessage, playSound]);
 
-  const equipCostume = useCallback((catId: string, costumeId: string | null) => {
-    setState(prev => {
-      const cat = prev.cats.find(c => c.id === catId);
-      if (!cat) return prev;
-      
-      const newCatCostumes = { ...prev.catCostumes };
-      
-      if (costumeId === null) {
-        // Unequip costume
-        delete newCatCostumes[catId];
-        showMessage(`Removed ${cat.name}'s costume.`, 'info');
-      } else {
-        // Equip costume
-        const costume = getCostumeById(costumeId);
-        if (costume) {
-          newCatCostumes[catId] = costumeId;
-          showMessage(`${cat.name} is now wearing ${costume.name}! ${costume.emoji}`, 'success');
+      setState((prev) => {
+        // Check if already owned
+        if (prev.ownedCostumes.includes(costumeId)) {
+          showMessage('You already own this costume!', 'warning');
+          return prev;
         }
-      }
-      
-      return { 
-        ...prev, 
-        catCostumes: newCatCostumes,
-      };
-    });
-  }, [setState, showMessage]);
+
+        // Check if can afford
+        if (prev.money < costume.price) {
+          showMessage('Not enough money!', 'error');
+          playSound?.('error');
+          return prev;
+        }
+
+        showMessage(`Bought ${costume.name}! ${costume.emoji}`, 'success');
+        playSound?.('coin');
+        return {
+          ...prev,
+          money: prev.money - costume.price,
+          ownedCostumes: [...prev.ownedCostumes, costumeId],
+        };
+      });
+    },
+    [setState, showMessage, playSound]
+  );
+
+  const equipCostume = useCallback(
+    (catId: string, costumeId: string | null) => {
+      setState((prev) => {
+        const cat = prev.cats.find((c) => c.id === catId);
+        if (!cat) return prev;
+
+        const newCatCostumes = { ...prev.catCostumes };
+
+        if (costumeId === null) {
+          // Unequip costume
+          delete newCatCostumes[catId];
+          showMessage(`Removed ${cat.name}'s costume.`, 'info');
+        } else {
+          // Equip costume
+          const costume = getCostumeById(costumeId);
+          if (costume) {
+            newCatCostumes[catId] = costumeId;
+            showMessage(`${cat.name} is now wearing ${costume.name}! ${costume.emoji}`, 'success');
+          }
+        }
+
+        return {
+          ...prev,
+          catCostumes: newCatCostumes,
+        };
+      });
+    },
+    [setState, showMessage]
+  );
 
   return { buyCostume, equipCostume };
 }

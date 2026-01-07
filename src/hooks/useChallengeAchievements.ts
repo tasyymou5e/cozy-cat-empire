@@ -38,7 +38,7 @@ const STREAK_MILESTONES = [3, 5, 10];
  * ```
  */
 export function useChallengeAchievements(
-  userId: string | undefined, 
+  userId: string | undefined,
   playSound?: (type: SoundType) => void,
   vibrateAchievement?: () => void
 ) {
@@ -46,7 +46,7 @@ export function useChallengeAchievements(
     totalCompleted: 0,
     currentStreak: 0,
     longestStreak: 0,
-    loading: true
+    loading: true,
   });
 
   const fetchStats = useCallback(async () => {
@@ -68,7 +68,7 @@ export function useChallengeAchievements(
         totalCompleted: data?.total_challenges_completed || 0,
         currentStreak: data?.current_streak || 0,
         longestStreak: data?.longest_streak || 0,
-        loading: false
+        loading: false,
       });
     } catch (error) {
       console.error('Error fetching challenge stats:', error);
@@ -87,7 +87,9 @@ export function useChallengeAchievements(
       // Get existing stats including streak data
       const { data: existing } = await supabase
         .from('player_challenge_stats')
-        .select('id, total_challenges_completed, current_streak, longest_streak, last_week_completed')
+        .select(
+          'id, total_challenges_completed, current_streak, longest_streak, last_week_completed'
+        )
         .eq('user_id', userId)
         .maybeSingle();
 
@@ -96,39 +98,41 @@ export function useChallengeAchievements(
 
       // Streak logic
       const now = new Date();
-      const lastWeek = existing?.last_week_completed ? new Date(existing.last_week_completed) : null;
-      
+      const lastWeek = existing?.last_week_completed
+        ? new Date(existing.last_week_completed)
+        : null;
+
       // Check if this is a consecutive week (within 14 days of last completion)
       let newStreak = 1;
       if (lastWeek) {
-        const daysSinceLast = Math.floor((now.getTime() - lastWeek.getTime()) / (1000 * 60 * 60 * 24));
+        const daysSinceLast = Math.floor(
+          (now.getTime() - lastWeek.getTime()) / (1000 * 60 * 60 * 24)
+        );
         if (daysSinceLast <= 14) {
           newStreak = (existing?.current_streak || 0) + 1;
         }
       }
-      
+
       const longestStreak = Math.max(newStreak, existing?.longest_streak || 0);
 
       if (existing) {
         await supabase
           .from('player_challenge_stats')
-          .update({ 
+          .update({
             total_challenges_completed: newTotal,
             current_streak: newStreak,
             longest_streak: longestStreak,
-            last_week_completed: now.toISOString()
+            last_week_completed: now.toISOString(),
           })
           .eq('id', existing.id);
       } else {
-        await supabase
-          .from('player_challenge_stats')
-          .insert({ 
-            user_id: userId, 
-            total_challenges_completed: 1,
-            current_streak: 1,
-            longest_streak: 1,
-            last_week_completed: now.toISOString()
-          });
+        await supabase.from('player_challenge_stats').insert({
+          user_id: userId,
+          total_challenges_completed: 1,
+          current_streak: 1,
+          longest_streak: 1,
+          last_week_completed: now.toISOString(),
+        });
       }
 
       // Check if challenge count milestone reached
@@ -160,6 +164,6 @@ export function useChallengeAchievements(
     longestStreak: stats.longestStreak,
     loading: stats.loading,
     incrementCompleted,
-    refetch: fetchStats
+    refetch: fetchStats,
   };
 }

@@ -28,7 +28,8 @@ const categoryLabels: Record<string, string> = {
 };
 
 export function LeaderboardRewardsPanel({ userId, onCoinsEarned }: LeaderboardRewardsPanelProps) {
-  const { rewards, unclaimedCount, claimReward, claimAllRewards, REWARD_STRUCTURE } = useLeaderboardRewards(userId);
+  const { rewards, unclaimedCount, claimReward, claimAllRewards, REWARD_STRUCTURE } =
+    useLeaderboardRewards(userId);
   const [claiming, setClaiming] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -43,7 +44,7 @@ export function LeaderboardRewardsPanel({ userId, onCoinsEarned }: LeaderboardRe
     );
   }
 
-  const unclaimedRewards = rewards.filter(r => !r.claimed);
+  const unclaimedRewards = rewards.filter((r) => !r.claimed);
 
   const handleClaim = async (reward: LeaderboardReward) => {
     setClaiming(reward.id);
@@ -85,11 +86,7 @@ export function LeaderboardRewardsPanel({ userId, onCoinsEarned }: LeaderboardRe
             )}
           </CardTitle>
           {unclaimedCount > 1 && (
-            <Button 
-              size="sm" 
-              onClick={handleClaimAll}
-              disabled={claiming === 'all'}
-            >
+            <Button size="sm" onClick={handleClaimAll} disabled={claiming === 'all'}>
               {claiming === 'all' ? (
                 <Sparkles className="h-4 w-4 animate-spin mr-1" />
               ) : (
@@ -150,11 +147,10 @@ export function LeaderboardRewardsPanel({ userId, onCoinsEarned }: LeaderboardRe
                   <div className="flex items-center gap-2">
                     <div className="text-right">
                       <div className="flex items-center gap-1 text-green-500 font-bold">
-                        <Coins className="h-4 w-4" />
-                        +{reward.reward_coins}
+                        <Coins className="h-4 w-4" />+{reward.reward_coins}
                       </div>
                     </div>
-                    <Button 
+                    <Button
                       size="sm"
                       onClick={() => handleClaim(reward)}
                       disabled={claiming === reward.id}

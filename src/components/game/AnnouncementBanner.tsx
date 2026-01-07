@@ -16,9 +16,21 @@ interface Announcement {
 
 const TYPE_STYLES: Record<string, { bg: string; icon: React.ElementType; iconColor: string }> = {
   info: { bg: 'bg-blue-500/10 border-blue-500/30', icon: Info, iconColor: 'text-blue-500' },
-  warning: { bg: 'bg-yellow-500/10 border-yellow-500/30', icon: AlertTriangle, iconColor: 'text-yellow-500' },
-  success: { bg: 'bg-green-500/10 border-green-500/30', icon: CheckCircle, iconColor: 'text-green-500' },
-  event: { bg: 'bg-purple-500/10 border-purple-500/30', icon: Megaphone, iconColor: 'text-purple-500' },
+  warning: {
+    bg: 'bg-yellow-500/10 border-yellow-500/30',
+    icon: AlertTriangle,
+    iconColor: 'text-yellow-500',
+  },
+  success: {
+    bg: 'bg-green-500/10 border-green-500/30',
+    icon: CheckCircle,
+    iconColor: 'text-green-500',
+  },
+  event: {
+    bg: 'bg-purple-500/10 border-purple-500/30',
+    icon: Megaphone,
+    iconColor: 'text-purple-500',
+  },
 };
 
 export function AnnouncementBanner() {
@@ -64,10 +76,7 @@ export function AnnouncementBanner() {
         return (
           <div
             key={announcement.id}
-            className={cn(
-              'relative flex items-start gap-3 p-3 rounded-lg border',
-              style.bg
-            )}
+            className={cn('relative flex items-start gap-3 p-3 rounded-lg border', style.bg)}
           >
             <Icon className={cn('h-5 w-5 mt-0.5 flex-shrink-0', style.iconColor)} />
             <div className="flex-1 min-w-0">

@@ -50,7 +50,7 @@ export const MILESTONES: Milestone[] = [
     reward: { coins: 500, title: 'Wealthy Mogul' },
     celebrationType: 'fireworks',
   },
-  
+
   // Show milestones
   {
     id: 'first_win',
@@ -82,7 +82,7 @@ export const MILESTONES: Milestone[] = [
     reward: { coins: 1000, title: 'Legendary Showman' },
     celebrationType: 'rainbow',
   },
-  
+
   // Cat collection milestones
   {
     id: 'five_cats',
@@ -114,7 +114,7 @@ export const MILESTONES: Milestone[] = [
     reward: { coins: 750, title: 'Cat Emperor' },
     celebrationType: 'rainbow',
   },
-  
+
   // Days played milestones
   {
     id: 'week_one',
@@ -146,7 +146,7 @@ export const MILESTONES: Milestone[] = [
     reward: { coins: 500, title: 'Centurion' },
     celebrationType: 'rainbow',
   },
-  
+
   // Breeding milestones
   {
     id: 'first_kitten',

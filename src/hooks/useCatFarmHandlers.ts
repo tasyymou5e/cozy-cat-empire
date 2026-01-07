@@ -1,9 +1,9 @@
 /**
  * @fileoverview Consolidated event handlers for CatFarm component
- * 
+ *
  * Extracts all callback functions from CatFarm.tsx into a dedicated hook
  * to improve code organization and reduce the main component's complexity.
- * 
+ *
  * @module hooks/useCatFarmHandlers
  */
 
@@ -33,10 +33,10 @@ interface HandlerDependencies {
 
 /**
  * Consolidated handlers hook for CatFarm component
- * 
+ *
  * @param deps - Dependencies from useCatFarmState
  * @returns All event handlers needed by CatFarm
- * 
+ *
  * @example
  * ```tsx
  * const farmState = useCatFarmState();

@@ -1,5 +1,10 @@
 import { Cat } from '@/types/game';
-import { CatAppearance, FUR_COLORS, EYE_COLORS, generateDefaultAppearance } from '@/types/catAppearance';
+import {
+  CatAppearance,
+  FUR_COLORS,
+  EYE_COLORS,
+  generateDefaultAppearance,
+} from '@/types/catAppearance';
 import { Costume, getCostumeById } from '@/types/costumes';
 import { getGradeTier } from '@/types/grading';
 import { cn } from '@/lib/utils';
@@ -24,17 +29,17 @@ interface CatAvatarProps {
 
 /**
  * CatAvatar - Renders a customizable cat face avatar
- * 
+ *
  * Generates a unique cat avatar based on breed appearance including fur color,
  * pattern, eye color, and facial features. Supports costumes, animations,
  * and tier-specific effects for rare cats.
- * 
+ *
  * @example
  * ```tsx
- * <CatAvatar 
- *   cat={myCat} 
- *   size="md" 
- *   animated 
+ * <CatAvatar
+ *   cat={myCat}
+ *   size="md"
+ *   animated
  *   equippedCostumeId="crown"
  * />
  * ```
@@ -70,18 +75,30 @@ function FurTextureFilter() {
     <svg width="0" height="0" className="absolute" aria-hidden="true">
       <defs>
         <filter id="furTexture" x="-5%" y="-5%" width="110%" height="110%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" result="noise" seed="5" />
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="1" xChannelSelector="R" yChannelSelector="G" />
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.8"
+            numOctaves="3"
+            result="noise"
+            seed="5"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="noise"
+            scale="1"
+            xChannelSelector="R"
+            yChannelSelector="G"
+          />
         </filter>
       </defs>
     </svg>
   );
 }
 
-export function CatAvatar({ 
-  cat, 
-  equippedCostumeId, 
-  size = 'md', 
+export function CatAvatar({
+  cat,
+  equippedCostumeId,
+  size = 'md',
   showCostume = true,
   animated = false,
   className,
@@ -89,12 +106,12 @@ export function CatAvatar({
   const appearance: CatAppearance = cat.appearance || generateDefaultAppearance(cat.breed);
   const costume = showCostume && equippedCostumeId ? getCostumeById(equippedCostumeId) : null;
   const tier = getGradeTier(cat.grade);
-  
+
   const furColor = FUR_COLORS[appearance.furColor]?.hex || '#F97316';
   const eyeColorPrimary = EYE_COLORS[appearance.eyeColor]?.hex || '#22C55E';
   const eyeColorSecondary = EYE_COLORS[appearance.eyeColor]?.secondary || eyeColorPrimary;
   const patternColor = appearance.patternColor || '#1C1917';
-  
+
   const ear = earSizes[size];
   const eyeSize = eyeSizes[size];
 
@@ -108,21 +125,23 @@ export function CatAvatar({
   const fluffyScale = appearance.hairLength === 'fluffy' ? 'scale-110' : '';
 
   // Animation classes based on tier
-  const tierAnimation = animated ? {
-    ultraRare: 'animate-bounce',
-    veryRare: 'animate-pulse',
-    rare: '',
-    uncommon: '',
-    common: '',
-  }[tier] : '';
+  const tierAnimation = animated
+    ? {
+        ultraRare: 'animate-bounce',
+        veryRare: 'animate-pulse',
+        rare: '',
+        uncommon: '',
+        common: '',
+      }[tier]
+    : '';
 
   return (
     <div className={cn('relative', sizeClasses[size], className)}>
       {/* SVG Filters */}
       <FurTextureFilter />
-      
+
       {/* Main cat head with breathing animation when animated */}
-      <div 
+      <div
         className={cn(
           'relative w-full h-full transition-transform duration-300',
           hairStyle,
@@ -130,7 +149,7 @@ export function CatAvatar({
           tierAnimation,
           animated && 'animate-cat-breathe'
         )}
-        style={{ 
+        style={{
           backgroundColor: furColor,
           filter: 'url(#furTexture)',
           boxShadow: `
@@ -141,21 +160,14 @@ export function CatAvatar({
       >
         {/* Pattern overlay */}
         {appearance.pattern !== 'solid' && (
-          <PatternOverlay 
-            pattern={appearance.pattern} 
-            color={patternColor} 
-            size={size}
-          />
+          <PatternOverlay pattern={appearance.pattern} color={patternColor} size={size} />
         )}
 
         {/* Left Ear with twitch animation */}
-        <div 
-          className={cn(
-            "absolute -top-[20%] left-[10%]",
-            animated && "animate-ear-twitch-left"
-          )}
-          style={{ 
-            width: ear.width, 
+        <div
+          className={cn('absolute -top-[20%] left-[10%]', animated && 'animate-ear-twitch-left')}
+          style={{
+            width: ear.width,
             height: ear.height,
             backgroundColor: furColor,
             borderRadius: '50% 50% 0 0',
@@ -164,23 +176,20 @@ export function CatAvatar({
             boxShadow: 'inset -2px -2px 4px rgba(0,0,0,0.1)',
           }}
         >
-          <div 
+          <div
             className="absolute top-[20%] left-[20%] w-[60%] h-[60%]"
-            style={{ 
+            style={{
               backgroundColor: '#FECACA',
               borderRadius: '50% 50% 0 0',
             }}
           />
         </div>
-        
+
         {/* Right Ear with twitch animation (different timing) */}
-        <div 
-          className={cn(
-            "absolute -top-[20%] right-[10%]",
-            animated && "animate-ear-twitch-right"
-          )}
-          style={{ 
-            width: ear.width, 
+        <div
+          className={cn('absolute -top-[20%] right-[10%]', animated && 'animate-ear-twitch-right')}
+          style={{
+            width: ear.width,
             height: ear.height,
             backgroundColor: furColor,
             borderRadius: '50% 50% 0 0',
@@ -189,9 +198,9 @@ export function CatAvatar({
             boxShadow: 'inset 2px -2px 4px rgba(0,0,0,0.1)',
           }}
         >
-          <div 
+          <div
             className="absolute top-[20%] left-[20%] w-[60%] h-[60%]"
-            style={{ 
+            style={{
               backgroundColor: '#FECACA',
               borderRadius: '50% 50% 0 0',
             }}
@@ -200,19 +209,19 @@ export function CatAvatar({
 
         {/* Left Eye with reflections and blink */}
         <div className="absolute top-[35%] left-[20%] flex items-center justify-center">
-          <div 
+          <div
             className="rounded-full relative overflow-hidden"
-            style={{ 
-              width: eyeSize * 1.5, 
+            style={{
+              width: eyeSize * 1.5,
               height: eyeSize,
               backgroundColor: eyeColorPrimary,
               boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.2)',
             }}
           >
             {/* Pupil */}
-            <div 
+            <div
               className="absolute rounded-full bg-black"
-              style={{ 
+              style={{
                 width: eyeSize * 0.5,
                 height: eyeSize * 0.7,
                 top: '15%',
@@ -220,12 +229,9 @@ export function CatAvatar({
               }}
             />
             {/* Primary reflection with shimmer */}
-            <div 
-              className={cn(
-                "absolute bg-white/90 rounded-full",
-                animated && "animate-eye-shimmer"
-              )}
-              style={{ 
+            <div
+              className={cn('absolute bg-white/90 rounded-full', animated && 'animate-eye-shimmer')}
+              style={{
                 width: eyeSize * 0.3,
                 height: eyeSize * 0.3,
                 top: '15%',
@@ -233,9 +239,9 @@ export function CatAvatar({
               }}
             />
             {/* Secondary reflection */}
-            <div 
+            <div
               className="absolute bg-white/40 rounded-full"
-              style={{ 
+              style={{
                 width: eyeSize * 0.15,
                 height: eyeSize * 0.15,
                 top: '50%',
@@ -244,29 +250,30 @@ export function CatAvatar({
             />
             {/* Blink overlay */}
             {animated && (
-              <div 
+              <div
                 className="absolute inset-0 rounded-full animate-cat-blink origin-top"
                 style={{ backgroundColor: furColor }}
               />
             )}
           </div>
         </div>
-        
+
         {/* Right Eye with reflections and blink */}
         <div className="absolute top-[35%] right-[20%] flex items-center justify-center">
-          <div 
+          <div
             className="rounded-full relative overflow-hidden"
-            style={{ 
-              width: eyeSize * 1.5, 
+            style={{
+              width: eyeSize * 1.5,
               height: eyeSize,
-              backgroundColor: appearance.eyeColor === 'heterochromia' ? eyeColorSecondary : eyeColorPrimary,
+              backgroundColor:
+                appearance.eyeColor === 'heterochromia' ? eyeColorSecondary : eyeColorPrimary,
               boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.2)',
             }}
           >
             {/* Pupil */}
-            <div 
+            <div
               className="absolute rounded-full bg-black"
-              style={{ 
+              style={{
                 width: eyeSize * 0.5,
                 height: eyeSize * 0.7,
                 top: '15%',
@@ -274,12 +281,9 @@ export function CatAvatar({
               }}
             />
             {/* Primary reflection with shimmer */}
-            <div 
-              className={cn(
-                "absolute bg-white/90 rounded-full",
-                animated && "animate-eye-shimmer"
-              )}
-              style={{ 
+            <div
+              className={cn('absolute bg-white/90 rounded-full', animated && 'animate-eye-shimmer')}
+              style={{
                 width: eyeSize * 0.3,
                 height: eyeSize * 0.3,
                 top: '15%',
@@ -287,9 +291,9 @@ export function CatAvatar({
               }}
             />
             {/* Secondary reflection */}
-            <div 
+            <div
               className="absolute bg-white/40 rounded-full"
-              style={{ 
+              style={{
                 width: eyeSize * 0.15,
                 height: eyeSize * 0.15,
                 top: '50%',
@@ -298,7 +302,7 @@ export function CatAvatar({
             />
             {/* Blink overlay */}
             {animated && (
-              <div 
+              <div
                 className="absolute inset-0 rounded-full animate-cat-blink origin-top"
                 style={{ backgroundColor: furColor }}
               />
@@ -307,7 +311,7 @@ export function CatAvatar({
         </div>
 
         {/* Nose with subtle shadow */}
-        <div 
+        <div
           className="absolute top-[55%] left-1/2 -translate-x-1/2"
           style={{
             width: 0,
@@ -321,71 +325,72 @@ export function CatAvatar({
 
         {/* Mouth */}
         <div className="absolute top-[62%] left-1/2 -translate-x-1/2 flex gap-[1px]">
-          <div 
+          <div
             className="rounded-b-full border-b border-muted-foreground/50"
             style={{ width: eyeSize * 0.4, height: eyeSize * 0.3 }}
           />
-          <div 
+          <div
             className="rounded-b-full border-b border-muted-foreground/50"
             style={{ width: eyeSize * 0.4, height: eyeSize * 0.3 }}
           />
         </div>
 
         {/* SVG Whiskers with wiggle animation */}
-        {(appearance.facialFeature === 'whiskers_long' || appearance.facialFeature === 'normal') && (
-          <svg 
-            className="absolute inset-0 pointer-events-none overflow-visible" 
+        {(appearance.facialFeature === 'whiskers_long' ||
+          appearance.facialFeature === 'normal') && (
+          <svg
+            className="absolute inset-0 pointer-events-none overflow-visible"
             viewBox="0 0 100 100"
             preserveAspectRatio="none"
           >
             {/* Left whiskers */}
-            <path 
-              d="M 25 58 Q 10 55, -5 52" 
-              stroke="rgba(0,0,0,0.3)" 
-              strokeWidth="0.8" 
+            <path
+              d="M 25 58 Q 10 55, -5 52"
+              stroke="rgba(0,0,0,0.3)"
+              strokeWidth="0.8"
               fill="none"
-              className={cn(animated && "animate-whisker-wiggle")}
+              className={cn(animated && 'animate-whisker-wiggle')}
               style={{ transformOrigin: '25% 58%' }}
             />
-            <path 
-              d="M 25 55 Q 12 50, 0 48" 
-              stroke="rgba(0,0,0,0.3)" 
-              strokeWidth="0.8" 
+            <path
+              d="M 25 55 Q 12 50, 0 48"
+              stroke="rgba(0,0,0,0.3)"
+              strokeWidth="0.8"
               fill="none"
-              className={cn(animated && "animate-whisker-wiggle")}
+              className={cn(animated && 'animate-whisker-wiggle')}
               style={{ transformOrigin: '25% 55%', animationDelay: '0.1s' }}
             />
-            <path 
-              d="M 25 61 Q 10 62, -5 60" 
-              stroke="rgba(0,0,0,0.3)" 
-              strokeWidth="0.8" 
+            <path
+              d="M 25 61 Q 10 62, -5 60"
+              stroke="rgba(0,0,0,0.3)"
+              strokeWidth="0.8"
               fill="none"
-              className={cn(animated && "animate-whisker-wiggle")}
+              className={cn(animated && 'animate-whisker-wiggle')}
               style={{ transformOrigin: '25% 61%', animationDelay: '0.2s' }}
             />
             {/* Right whiskers */}
-            <path 
-              d="M 75 58 Q 90 55, 105 52" 
-              stroke="rgba(0,0,0,0.3)" 
-              strokeWidth="0.8" 
+            <path
+              d="M 75 58 Q 90 55, 105 52"
+              stroke="rgba(0,0,0,0.3)"
+              strokeWidth="0.8"
               fill="none"
-              className={cn(animated && "animate-whisker-wiggle")}
+              className={cn(animated && 'animate-whisker-wiggle')}
               style={{ transformOrigin: '75% 58%', animationDelay: '0.15s' }}
             />
-            <path 
-              d="M 75 55 Q 88 50, 100 48" 
-              stroke="rgba(0,0,0,0.3)" 
-              strokeWidth="0.8" 
+            <path
+              d="M 75 55 Q 88 50, 100 48"
+              stroke="rgba(0,0,0,0.3)"
+              strokeWidth="0.8"
               fill="none"
-              className={cn(animated && "animate-whisker-wiggle")}
+              className={cn(animated && 'animate-whisker-wiggle')}
               style={{ transformOrigin: '75% 55%', animationDelay: '0.25s' }}
             />
-            <path 
-              d="M 75 61 Q 90 62, 105 60" 
-              stroke="rgba(0,0,0,0.3)" 
-              strokeWidth="0.8" 
+            <path
+              d="M 75 61 Q 90 62, 105 60"
+              stroke="rgba(0,0,0,0.3)"
+              strokeWidth="0.8"
               fill="none"
-              className={cn(animated && "animate-whisker-wiggle")}
+              className={cn(animated && 'animate-whisker-wiggle')}
               style={{ transformOrigin: '75% 61%', animationDelay: '0.05s' }}
             />
           </svg>
@@ -396,9 +401,7 @@ export function CatAvatar({
       </div>
 
       {/* Costume overlays */}
-      {costume && (
-        <CostumeOverlay costume={costume} size={size} />
-      )}
+      {costume && <CostumeOverlay costume={costume} size={size} />}
 
       {/* Ultra rare shimmer effect */}
       {tier === 'ultraRare' && (
@@ -408,7 +411,15 @@ export function CatAvatar({
   );
 }
 
-function PatternOverlay({ pattern, color, size }: { pattern: string; color: string; size: string }) {
+function PatternOverlay({
+  pattern,
+  color,
+  size,
+}: {
+  pattern: string;
+  color: string;
+  size: string;
+}) {
   const patternStyles: Record<string, React.CSSProperties> = {
     tabby: {
       background: `repeating-linear-gradient(
@@ -438,24 +449,27 @@ function PatternOverlay({ pattern, color, size }: { pattern: string; color: stri
   };
 
   return (
-    <div 
-      className="absolute inset-0 rounded-[inherit]"
-      style={patternStyles[pattern] || {}}
-    />
+    <div className="absolute inset-0 rounded-[inherit]" style={patternStyles[pattern] || {}} />
   );
 }
 
-function FacialFeatureOverlay({ feature, size, eyeSize }: { feature: string; size: string; eyeSize: number }) {
+function FacialFeatureOverlay({
+  feature,
+  size,
+  eyeSize,
+}: {
+  feature: string;
+  size: string;
+  eyeSize: number;
+}) {
   if (feature === 'normal' || feature === 'whiskers_long') return null;
 
   const features: Record<string, React.ReactNode> = {
     scar: (
-      <div 
-        className="absolute top-[30%] right-[25%] w-[2px] h-[25%] bg-red-400/60 rotate-45"
-      />
+      <div className="absolute top-[30%] right-[25%] w-[2px] h-[25%] bg-red-400/60 rotate-45" />
     ),
     eyepatch: (
-      <div 
+      <div
         className="absolute top-[32%] right-[18%] bg-black rounded-full"
         style={{ width: eyeSize * 2, height: eyeSize * 1.3 }}
       />
@@ -468,11 +482,11 @@ function FacialFeatureOverlay({ feature, size, eyeSize }: { feature: string; siz
     ),
     cute_blush: (
       <>
-        <div 
+        <div
           className="absolute top-[48%] left-[8%] rounded-full bg-pink-300/50"
           style={{ width: eyeSize, height: eyeSize * 0.6 }}
         />
-        <div 
+        <div
           className="absolute top-[48%] right-[8%] rounded-full bg-pink-300/50"
           style={{ width: eyeSize, height: eyeSize * 0.6 }}
         />
@@ -502,9 +516,9 @@ function CostumeOverlay({ costume, size }: { costume: Costume; size: string }) {
   const multiplier = sizeMultipliers[size as keyof typeof sizeMultipliers] || 1;
 
   return (
-    <div 
+    <div
       className={positionByCategory[costume.category]}
-      style={{ 
+      style={{
         fontSize: `${1 * multiplier}rem`,
         filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
       }}

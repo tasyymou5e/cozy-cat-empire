@@ -1,8 +1,8 @@
 /**
  * @fileoverview Barrel export for all type definitions
- * 
+ *
  * Usage: import { Cat, GameState, CatBreed } from '@/types';
- * 
+ *
  * @module types
  */
 

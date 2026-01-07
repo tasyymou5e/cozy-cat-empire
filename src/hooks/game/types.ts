@@ -1,16 +1,24 @@
 /**
  * @fileoverview Shared types and utilities for game domain hooks
- * 
+ *
  * This file provides the foundation for the modular useGameState refactor.
  * All domain hooks receive dependencies through GameHookDependencies and
  * must return actions matching the GameActions interface.
- * 
+ *
  * @module hooks/game/types
  */
 
-import { 
-  Cat, GameState, CAT_NAMES, BREEDS, PERSONALITIES, 
-  CatBreed, MarketListing, Achievement, ACHIEVEMENT_DEFS, Resources
+import {
+  Cat,
+  GameState,
+  CAT_NAMES,
+  BREEDS,
+  PERSONALITIES,
+  CatBreed,
+  MarketListing,
+  Achievement,
+  ACHIEVEMENT_DEFS,
+  Resources,
 } from '@/types/game';
 import { TrickId } from '@/types/grading';
 import { CatAppearance } from '@/types/catAppearance';
@@ -55,7 +63,7 @@ export type MessageType = 'info' | 'success' | 'warning' | 'error';
 /**
  * Function signature for displaying messages to the user.
  * Backward compatible with the original showMessage implementation.
- * 
+ *
  * @param msg - The message text to display
  * @param type - The type of message (affects styling and behavior)
  */
@@ -66,11 +74,11 @@ export type RelationshipSystem = ReturnType<typeof useRelationships>;
 
 /**
  * Dependencies shared across all domain hooks.
- * 
+ *
  * This object provides consistent access to game state and shared utilities.
  * Each domain hook receives this as input and uses it to interact with
  * the game state and other systems.
- * 
+ *
  * @example
  * ```typescript
  * function useMyDomainHook(deps: GameHookDependencies) {
@@ -99,15 +107,19 @@ export interface GameHookDependencies {
   /** Setter for kittens bred count */
   setKittensBreed: React.Dispatch<React.SetStateAction<number>>;
   /** Check and unlock achievements based on new state */
-  checkAchievements: (newState: GameState, extraKittens?: number, wasBestFriendBreed?: boolean) => GameState;
+  checkAchievements: (
+    newState: GameState,
+    extraKittens?: number,
+    wasBestFriendBreed?: boolean
+  ) => GameState;
 }
 
 /**
  * Complete interface for all game actions.
- * 
+ *
  * This ensures type safety when composing domain hooks and provides
  * a unified API surface for game interactions.
- * 
+ *
  * Total: 44 actions across 9 domains:
  * - Cat Management: 10 actions
  * - Resources: 6 actions
@@ -126,19 +138,19 @@ export interface GameActions {
    * @param type - The type of cat to add ('stray', 'adopted', or 'pure')
    */
   addCat: (type: Cat['type']) => void;
-  
+
   /**
    * Buy a cat from the market
    * @param listingId - ID of the market listing to purchase
    */
   buyFromMarket: (listingId: string) => void;
-  
+
   /**
    * Sell a cat from the player's collection
    * @param catId - ID of the cat to sell
    */
   sellCat: (catId: string) => void;
-  
+
   /**
    * Rename a cat
    * @param catId - ID of the cat to rename
@@ -146,26 +158,26 @@ export interface GameActions {
    * @returns true if rename was successful, false otherwise
    */
   renameCat: (catId: string, newName: string) => boolean;
-  
+
   /**
    * Comfort an unhappy cat to improve their happiness
    * @param catId - ID of the cat to comfort
    */
   comfortCat: (catId: string) => void;
-  
+
   /**
    * Add a cat received from a gift or trade
    * @param cat - The cat object to add (will be given a new ID)
    */
   addReceivedCat: (cat: Cat) => void;
-  
+
   /**
    * Update a cat's visual appearance
    * @param catId - ID of the cat to update
    * @param appearance - The new appearance configuration
    */
   updateCatAppearance: (catId: string, appearance: CatAppearance) => void;
-  
+
   /**
    * Update a cat's AI-generated portrait URL
    * @param catId - ID of the cat to update
@@ -173,14 +185,17 @@ export interface GameActions {
    * @param hash - Optional appearance hash for change detection
    */
   updateCatPortrait: (catId: string, portraitUrl: string, hash?: string) => void;
-  
+
   /**
    * Set a specialization on a cat
    * @param catId - ID of the cat to specialize
    * @param type - The specialization type
    */
-  setSpecialization: (catId: string, type: import('@/types/specializations').SpecializationType) => void;
-  
+  setSpecialization: (
+    catId: string,
+    type: import('@/types/specializations').SpecializationType
+  ) => void;
+
   /**
    * Add XP to a specialized cat
    * @param catId - ID of the cat to add XP to
@@ -195,29 +210,29 @@ export interface GameActions {
    * @param cost - Cost in coins
    */
   buyResource: (resource: keyof Resources, cost: number) => void;
-  
+
   /**
    * Feed all cats (uses 1 food per cat)
    */
   feedCats: () => void;
-  
+
   /**
    * Feed a single cat
    * @param catId - ID of the cat to feed
    */
   feedSingleCat: (catId: string) => void;
-  
+
   /**
    * Use toys for group playtime (improves happiness)
    */
   useToys: () => void;
-  
+
   /**
    * Heal a cat with medicine (restores full health)
    * @param catId - ID of the cat to heal
    */
   useMedicine: (catId: string) => void;
-  
+
   /**
    * Add reward coins and optional resources
    * @param coins - Amount of coins to add
@@ -232,20 +247,20 @@ export interface GameActions {
    * @param trickId - ID of the trick to learn
    */
   trainCat: (catId: string, trickId: TrickId) => void;
-  
+
   /**
    * Rest a tired cat (improves rest level)
    * @param catId - ID of the cat to rest
    */
   restCat: (catId: string) => void;
-  
+
   /**
    * Do a group activity with cats in a relationship group
    * @param groupId - ID of the cat group
    * @param activityType - Type of activity to perform
    */
   doGroupActivity: (groupId: string, activityType: 'play' | 'treat' | 'nap') => void;
-  
+
   /**
    * Socialize two cats together (improves relationship)
    * @param cat1Id - ID of the first cat
@@ -271,41 +286,41 @@ export interface GameActions {
   // ============ Bulk Actions (6 actions) ============
   /** Heal all sick cats (health < 70) using medicine */
   healAllSickCats: () => void;
-  
+
   /** Rest all tired cats (restLevel < 50) */
   restAllTiredCats: () => void;
-  
+
   /** Comfort all unhappy cats (happiness < 50) */
   comfortAllUnhappyCats: () => void;
-  
+
   /** Train all available cats for the day */
   trainAllAvailableCats: () => void;
-  
+
   /**
    * Sell multiple cats at once
    * @param catIds - Array of cat IDs to sell
    */
   sellSelectedCats: (catIds: string[]) => void;
-  
+
   /** Socialize all neglected relationships (2+ days since interaction) */
   socializeAllNeglected: () => void;
 
   // ============ Save/Load (6 actions) ============
   /** Save game to localStorage */
   saveGame: () => void;
-  
+
   /** Load game from localStorage */
   loadGame: () => void;
-  
+
   /** Check if a saved game exists in localStorage */
   hasSaveGame: () => boolean;
-  
+
   /** Get the day from saved game (null if no save) */
   getSaveDay: () => number | null;
-  
+
   /** Reset game to initial state and clear save */
   resetGame: () => void;
-  
+
   /**
    * Load game from cloud save data
    * @param gameState - The game state to load
@@ -313,8 +328,8 @@ export interface GameActions {
    * @param relationshipData - Optional relationship data
    */
   loadFromData: (
-    gameState: GameState, 
-    kittens: number, 
+    gameState: GameState,
+    kittens: number,
     relationshipData?: { relationships: any[]; events: any[] }
   ) => void;
 
@@ -324,7 +339,7 @@ export interface GameActions {
    * @param costumeId - ID of the costume to buy
    */
   buyCostume: (costumeId: string) => void;
-  
+
   /**
    * Equip or unequip a costume on a cat
    * @param catId - ID of the cat
@@ -339,22 +354,22 @@ export interface GameActions {
    * @param baseReward - Base coin reward for the chore
    */
   doChore: (choreId: string, baseReward: number) => void;
-  
+
   /** Upgrade housing (apartment → house → mansion → farm) */
   upgradeHouse: () => void;
-  
+
   /** Advance to next day (processes daily updates) */
   nextDay: () => void;
-  
+
   /** Process random daily event */
   processDailyEvent: () => void;
-  
+
   /** Clear current daily event */
   clearDailyEvent: () => void;
-  
+
   /** Dismiss current message */
   dismissMessage: () => void;
-  
+
   /**
    * Deduct money from game state (with validation)
    * @param amount - Amount to deduct
@@ -362,7 +377,7 @@ export interface GameActions {
    * @returns true if deduction was successful
    */
   deductMoney: (amount: number, reason: string) => boolean;
-  
+
   /**
    * Set money directly (for backend sync)
    * @param newMoney - New money amount
@@ -385,15 +400,19 @@ export const generateId = () => Math.random().toString(36).substr(2, 9);
  * @returns Object mapping each trick ID to 0 progress
  */
 export const createDefaultTrickProgress = (): Record<TrickId, number> => ({
-  sit: 0, paw: 0, rollOver: 0, jump: 0, fetch: 0
+  sit: 0,
+  paw: 0,
+  rollOver: 0,
+  jump: 0,
+  fetch: 0,
 });
 
 /**
  * Get a random breed based on cat type
- * 
+ *
  * @param type - The cat type (stray, adopted, or pure)
  * @returns A breed appropriate for the cat type
- * 
+ *
  * @example
  * ```typescript
  * getRandomBreed('stray')    // Always returns 'stray'
@@ -407,7 +426,14 @@ export const getRandomBreed = (type: Cat['type']): CatBreed => {
     const breeds: CatBreed[] = ['stray', 'tabby', 'persian'];
     return breeds[Math.floor(Math.random() * breeds.length)];
   }
-  const pureBreeds: CatBreed[] = ['persian', 'siamese', 'maine-coon', 'british-shorthair', 'ragdoll', 'bengal'];
+  const pureBreeds: CatBreed[] = [
+    'persian',
+    'siamese',
+    'maine-coon',
+    'british-shorthair',
+    'ragdoll',
+    'bengal',
+  ];
   return pureBreeds[Math.floor(Math.random() * pureBreeds.length)];
 };
 
@@ -415,8 +441,8 @@ export const getRandomBreed = (type: Cat['type']): CatBreed => {
  * Create initial achievements from definitions
  * @returns Array of achievement objects with unlocked=false
  */
-export const createInitialAchievements = (): Achievement[] => 
-  ACHIEVEMENT_DEFS.map(a => ({
+export const createInitialAchievements = (): Achievement[] =>
+  ACHIEVEMENT_DEFS.map((a) => ({
     id: a.id,
     name: a.name,
     description: a.description,
@@ -427,19 +453,21 @@ export const createInitialAchievements = (): Achievement[] =>
 /**
  * Generate 4 random market listings for the cat shop.
  * Called every 3 days to refresh available cats.
- * 
+ *
  * @returns Array of 4 market listings with random cats
  */
 export function generateMarketListings(): MarketListing[] {
   const sellers = ['Happy Paws Shelter', 'Elite Breeders', 'Cat Haven', 'Whisker World'];
   const listings: MarketListing[] = [];
-  
+
   for (let i = 0; i < 4; i++) {
-    const breed = (['tabby', 'persian', 'siamese', 'maine-coon', 'british-shorthair'] as CatBreed[])[Math.floor(Math.random() * 5)];
+    const breed = (
+      ['tabby', 'persian', 'siamese', 'maine-coon', 'british-shorthair'] as CatBreed[]
+    )[Math.floor(Math.random() * 5)];
     const baseValue = BREEDS[breed].baseValue;
-    const usedNames = listings.map(l => l.cat.name);
-    const availableNames = CAT_NAMES.filter(n => !usedNames.includes(n));
-    
+    const usedNames = listings.map((l) => l.cat.name);
+    const availableNames = CAT_NAMES.filter((n) => !usedNames.includes(n));
+
     listings.push({
       id: generateId(),
       cat: {
@@ -472,7 +500,7 @@ export function generateMarketListings(): MarketListing[] {
 /**
  * Create the initial game state for a new game.
  * Called when starting fresh or resetting.
- * 
+ *
  * @returns A fresh GameState object with default values
  */
 export const createInitialState = (): GameState => ({

@@ -1,12 +1,12 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
 /**
  * GlassCard - Glassmorphism-styled card component
- * 
+ *
  * A translucent card with backdrop blur, subtle borders, and shadow effects.
  * Use for elevated content areas that need visual distinction.
- * 
+ *
  * @example
  * ```tsx
  * <GlassCard className="p-4">
@@ -20,35 +20,29 @@ import { cn } from "@/lib/utils";
  * </GlassCard>
  * ```
  */
-const GlassCard = React.forwardRef<
-  HTMLDivElement, 
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-2xl bg-card/80 backdrop-blur-md",
-      "border border-white/20 dark:border-white/10",
-      "shadow-xl shadow-black/5",
-      "transition-all duration-300",
-      className
-    )}
-    {...props}
-  />
-));
-GlassCard.displayName = "GlassCard";
+const GlassCard = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        'rounded-2xl bg-card/80 backdrop-blur-md',
+        'border border-white/20 dark:border-white/10',
+        'shadow-xl shadow-black/5',
+        'transition-all duration-300',
+        className
+      )}
+      {...props}
+    />
+  )
+);
+GlassCard.displayName = 'GlassCard';
 
-const GlassCardHeader = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
-    {...props}
-  />
-));
-GlassCardHeader.displayName = "GlassCardHeader";
+const GlassCardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
+  )
+);
+GlassCardHeader.displayName = 'GlassCardHeader';
 
 const GlassCardTitle = React.forwardRef<
   HTMLHeadingElement,
@@ -56,33 +50,25 @@ const GlassCardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
-      className
-    )}
+    className={cn('text-2xl font-semibold leading-none tracking-tight', className)}
     {...props}
   />
 ));
-GlassCardTitle.displayName = "GlassCardTitle";
+GlassCardTitle.displayName = 'GlassCardTitle';
 
 const GlassCardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
-    {...props}
-  />
+  <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
 ));
-GlassCardDescription.displayName = "GlassCardDescription";
+GlassCardDescription.displayName = 'GlassCardDescription';
 
-const GlassCardContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
-));
-GlassCardContent.displayName = "GlassCardContent";
+const GlassCardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
+  )
+);
+GlassCardContent.displayName = 'GlassCardContent';
 
 export { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardDescription, GlassCardContent };

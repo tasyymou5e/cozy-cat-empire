@@ -32,7 +32,19 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { ArrowLeftRight, Gift, Calendar, Users, Plus, Pencil, Trash2, BarChart3, Target, Trophy, TrendingUp }from 'lucide-react';
+import {
+  ArrowLeftRight,
+  Gift,
+  Calendar,
+  Users,
+  Plus,
+  Pencil,
+  Trash2,
+  BarChart3,
+  Target,
+  Trophy,
+  TrendingUp,
+} from 'lucide-react';
 
 export default function AdminModeration() {
   const [activeTab, setActiveTab] = useState('trades');
@@ -69,7 +81,11 @@ export default function AdminModeration() {
     },
   });
 
-  const { data: challenges, isLoading: challengesLoading, refetch: refetchChallenges } = useQuery({
+  const {
+    data: challenges,
+    isLoading: challengesLoading,
+    refetch: refetchChallenges,
+  } = useQuery({
     queryKey: ['admin-challenges'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -98,19 +114,21 @@ export default function AdminModeration() {
   const { data: analytics, isLoading: analyticsLoading } = useAdminChallengeAnalytics();
   const createChallengeMutation = useMutation({
     mutationFn: async (data: any) => {
-      const { error } = await supabase.from('weekly_challenges').insert([{
-        name: data.name,
-        description: data.description,
-        emoji: data.emoji,
-        challenge_type: data.challenge_type,
-        target_value: data.target_value,
-        difficulty: data.difficulty,
-        reward_coins: data.reward_coins,
-        reward_badge: data.reward_badge || null,
-        starts_at: data.starts_at.toISOString(),
-        ends_at: data.ends_at.toISOString(),
-        is_active: data.is_active,
-      }]);
+      const { error } = await supabase.from('weekly_challenges').insert([
+        {
+          name: data.name,
+          description: data.description,
+          emoji: data.emoji,
+          challenge_type: data.challenge_type,
+          target_value: data.target_value,
+          difficulty: data.difficulty,
+          reward_coins: data.reward_coins,
+          reward_badge: data.reward_badge || null,
+          starts_at: data.starts_at.toISOString(),
+          ends_at: data.ends_at.toISOString(),
+          is_active: data.is_active,
+        },
+      ]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -217,9 +235,7 @@ export default function AdminModeration() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Moderation</h1>
-          <p className="text-muted-foreground">
-            Monitor trades, gifts, and manage challenges
-          </p>
+          <p className="text-muted-foreground">Monitor trades, gifts, and manage challenges</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -442,7 +458,9 @@ export default function AdminModeration() {
                             <TableCell className="text-muted-foreground">
                               {challenge.challenge_type}
                             </TableCell>
-                            <TableCell>{getDifficultyBadge(challenge.difficulty || 'medium')}</TableCell>
+                            <TableCell>
+                              {getDifficultyBadge(challenge.difficulty || 'medium')}
+                            </TableCell>
                             <TableCell>{challenge.target_value}</TableCell>
                             <TableCell>🪙 {challenge.reward_coins}</TableCell>
                             <TableCell className="text-muted-foreground">
@@ -495,7 +513,9 @@ export default function AdminModeration() {
                     {analyticsLoading ? (
                       <Skeleton className="h-8 w-12" />
                     ) : (
-                      <div className="text-2xl font-bold">{analytics?.summary.totalChallenges ?? 0}</div>
+                      <div className="text-2xl font-bold">
+                        {analytics?.summary.totalChallenges ?? 0}
+                      </div>
                     )}
                     <p className="text-xs text-muted-foreground">
                       {analytics?.summary.activeChallenges ?? 0} active
@@ -513,7 +533,9 @@ export default function AdminModeration() {
                     {analyticsLoading ? (
                       <Skeleton className="h-8 w-12" />
                     ) : (
-                      <div className="text-2xl font-bold">{analytics?.summary.totalParticipations ?? 0}</div>
+                      <div className="text-2xl font-bold">
+                        {analytics?.summary.totalParticipations ?? 0}
+                      </div>
                     )}
                   </CardContent>
                 </Card>
@@ -528,7 +550,9 @@ export default function AdminModeration() {
                     {analyticsLoading ? (
                       <Skeleton className="h-8 w-12" />
                     ) : (
-                      <div className="text-2xl font-bold">{analytics?.summary.totalCompletions ?? 0}</div>
+                      <div className="text-2xl font-bold">
+                        {analytics?.summary.totalCompletions ?? 0}
+                      </div>
                     )}
                   </CardContent>
                 </Card>
@@ -555,7 +579,9 @@ export default function AdminModeration() {
               <Card>
                 <CardHeader>
                   <CardTitle>Completion Rate by Difficulty</CardTitle>
-                  <CardDescription>How players perform across different difficulty levels</CardDescription>
+                  <CardDescription>
+                    How players perform across different difficulty levels
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {analyticsLoading ? (
@@ -576,13 +602,11 @@ export default function AdminModeration() {
                               </span>
                             </div>
                             <div className="text-sm font-medium">
-                              {stat.completions}/{stat.participants} ({stat.completionRate.toFixed(1)}%)
+                              {stat.completions}/{stat.participants} (
+                              {stat.completionRate.toFixed(1)}%)
                             </div>
                           </div>
-                          <Progress 
-                            value={stat.completionRate} 
-                            className="h-2"
-                          />
+                          <Progress value={stat.completionRate} className="h-2" />
                         </div>
                       ))}
                     </div>
@@ -622,7 +646,10 @@ export default function AdminModeration() {
                           ))
                         ) : analytics?.challenges.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                            <TableCell
+                              colSpan={6}
+                              className="text-center text-muted-foreground py-8"
+                            >
                               No challenge data available
                             </TableCell>
                           </TableRow>
@@ -634,7 +661,9 @@ export default function AdminModeration() {
                                   <span>{challenge.emoji}</span>
                                   <span className="font-medium">{challenge.name}</span>
                                   {challenge.isActive && (
-                                    <Badge variant="outline" className="text-xs">Active</Badge>
+                                    <Badge variant="outline" className="text-xs">
+                                      Active
+                                    </Badge>
                                   )}
                                 </div>
                               </TableCell>
@@ -644,13 +673,20 @@ export default function AdminModeration() {
                               <TableCell>
                                 <div className="flex items-center gap-2">
                                   <Progress value={challenge.completionRate} className="w-16 h-2" />
-                                  <span className="text-sm">{challenge.completionRate.toFixed(1)}%</span>
+                                  <span className="text-sm">
+                                    {challenge.completionRate.toFixed(1)}%
+                                  </span>
                                 </div>
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-2">
-                                  <Progress value={challenge.avgProgressPercent} className="w-16 h-2" />
-                                  <span className="text-sm">{challenge.avgProgressPercent.toFixed(1)}%</span>
+                                  <Progress
+                                    value={challenge.avgProgressPercent}
+                                    className="w-16 h-2"
+                                  />
+                                  <span className="text-sm">
+                                    {challenge.avgProgressPercent.toFixed(1)}%
+                                  </span>
                                 </div>
                               </TableCell>
                             </TableRow>
@@ -744,7 +780,8 @@ export default function AdminModeration() {
           }}
           initialData={{
             ...editingChallenge,
-            difficulty: (editingChallenge.difficulty as 'easy' | 'medium' | 'hard' | 'expert') || 'medium',
+            difficulty:
+              (editingChallenge.difficulty as 'easy' | 'medium' | 'hard' | 'expert') || 'medium',
             starts_at: new Date(editingChallenge.starts_at),
             ends_at: new Date(editingChallenge.ends_at),
           }}
@@ -753,12 +790,16 @@ export default function AdminModeration() {
       )}
 
       {/* Delete Challenge Dialog */}
-      <AlertDialog open={!!deletingChallenge} onOpenChange={(open) => !open && setDeletingChallenge(null)}>
+      <AlertDialog
+        open={!!deletingChallenge}
+        onOpenChange={(open) => !open && setDeletingChallenge(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Challenge</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deletingChallenge?.name}"? This action cannot be undone.
+              Are you sure you want to delete "{deletingChallenge?.name}"? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

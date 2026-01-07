@@ -1,23 +1,31 @@
 /**
  * @fileoverview useDailyLoginRewards - Daily login reward system
- * 
+ *
  * Manages player daily login tracking, streak maintenance, VIP tier progression,
  * and reward claiming. Integrates with Supabase for persistence and provides
  * real-time streak updates.
- * 
+ *
  * Features:
  * - Automatic streak tracking (continues if logged in on consecutive days)
  * - Streak milestone bonuses (7-day, 30-day milestones)
  * - VIP tier system with multipliers for longer streaks
  * - Exclusive costume unlocks for VIP tiers
  * - Sound effects, haptics, and confetti for celebrations
- * 
+ *
  * @module hooks/useDailyLoginRewards
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { LoginData, DailyReward, getRewardForDay, STREAK_MILESTONES, getVIPTier, VIPTier, VIP_TIERS } from '@/types/dailyRewards';
+import {
+  LoginData,
+  DailyReward,
+  getRewardForDay,
+  STREAK_MILESTONES,
+  getVIPTier,
+  VIPTier,
+  VIP_TIERS,
+} from '@/types/dailyRewards';
 import { Resources } from '@/types/game';
 import { useToast } from '@/hooks/use-toast';
 
@@ -68,17 +76,17 @@ export interface DailyLoginRewardsReturn {
 
 /**
  * Hook for managing daily login rewards and streak tracking.
- * 
+ *
  * Automatically checks login status on mount and tracks consecutive
  * day logins to build streaks. Longer streaks unlock VIP tiers with
  * reward multipliers and exclusive costumes.
- * 
+ *
  * @param userId - Current user's ID (undefined if not logged in)
  * @param playSound - Optional function to play sound effects
  * @param vibrateAchievement - Optional haptic feedback for achievements
  * @param fireConfetti - Optional confetti celebration trigger
  * @returns Login data and reward management functions
- * 
+ *
  * @example
  * ```tsx
  * const {
@@ -88,10 +96,10 @@ export interface DailyLoginRewardsReturn {
  *   claimDailyReward,
  *   vipTier
  * } = useDailyLoginRewards(userId, playSound, vibrate, fireConfetti);
- * 
+ *
  * // Display streak info
  * console.log(`${currentStreak} day streak! ${vipTier?.name || 'Keep going!'}`);
- * 
+ *
  * // Claim reward when user clicks button
  * const handleClaim = async () => {
  *   const result = await claimDailyReward();
@@ -174,7 +182,7 @@ export function useDailyLoginRewards(
         setShowModal(true);
       } else {
         const lastLogin = existing.last_login_date;
-        
+
         if (lastLogin === today) {
           // Already logged in today
           const reward = getRewardForDay(existing.current_streak);
@@ -188,7 +196,7 @@ export function useDailyLoginRewards(
           // Continue streak
           const newStreak = existing.current_streak + 1;
           const longestStreak = Math.max(newStreak, existing.longest_streak);
-          
+
           const { data: updated, error: updateError } = await supabase
             .from('daily_login_rewards')
             .update({
@@ -208,11 +216,11 @@ export function useDailyLoginRewards(
           setTodayReward(reward);
           setCanClaim(true);
           setShowModal(true);
-          
+
           // Check for new VIP tier
           const oldVipTier = getVIPTier(existing.current_streak);
           const newVipTier = getVIPTier(newStreak);
-          
+
           if (newVipTier && (!oldVipTier || newVipTier.minStreak > oldVipTier.minStreak)) {
             playSound?.('achievement');
             fireConfetti?.();
@@ -246,7 +254,7 @@ export function useDailyLoginRewards(
           setTodayReward(reward);
           setCanClaim(true);
           setShowModal(true);
-          
+
           toast({
             title: '🌟 New Streak Started!',
             description: 'Your previous streak ended. Start a new one today!',
@@ -267,7 +275,7 @@ export function useDailyLoginRewards(
   /**
    * Get VIP costume IDs unlocked based on current streak level.
    * Each VIP tier unlocks exclusive costumes.
-   * 
+   *
    * @param streak - Current login streak
    * @returns Array of costume IDs the player has unlocked
    */
@@ -283,10 +291,10 @@ export function useDailyLoginRewards(
 
   /**
    * Claim today's daily login reward.
-   * 
+   *
    * Applies VIP multipliers to base rewards and checks for streak milestones.
    * Triggers sound effects, haptic feedback, and confetti on success.
-   * 
+   *
    * @returns Claimed rewards (coins + resources + costumes) or null on failure
    */
   const claimDailyReward = useCallback(async (): Promise<{
@@ -298,7 +306,7 @@ export function useDailyLoginRewards(
 
     try {
       const today = getToday();
-      
+
       const { error } = await supabase
         .from('daily_login_rewards')
         .update({ last_claimed_date: today })
@@ -315,24 +323,26 @@ export function useDailyLoginRewards(
       const vipTier = getVIPTier(loginData.current_streak);
       let totalCoins = todayReward.coins;
       let enhancedResources: Partial<Resources> = { ...todayReward.resources };
-      
+
       if (vipTier) {
         totalCoins = Math.floor(totalCoins * vipTier.coinMultiplier);
-        
+
         // Multiply each resource
         for (const [key, value] of Object.entries(enhancedResources)) {
           if (typeof value === 'number') {
-            enhancedResources[key as keyof Resources] = Math.floor(value * vipTier.resourceMultiplier);
+            enhancedResources[key as keyof Resources] = Math.floor(
+              value * vipTier.resourceMultiplier
+            );
           }
         }
-        
+
         // Show VIP bonus toast
         toast({
           title: `${vipTier.emoji} ${vipTier.name} Bonus!`,
           description: `Your VIP status gives you ${Math.round((vipTier.coinMultiplier - 1) * 100)}% extra rewards!`,
         });
       }
-      
+
       // Check for streak milestones
       const milestone = STREAK_MILESTONES[loginData.current_streak];
       if (milestone) {
@@ -346,7 +356,7 @@ export function useDailyLoginRewards(
 
       setCanClaim(false);
       setShowModal(false);
-      setLoginData(prev => prev ? { ...prev, last_claimed_date: today } : null);
+      setLoginData((prev) => (prev ? { ...prev, last_claimed_date: today } : null));
 
       toast({
         title: '🎁 Daily Reward Claimed!',
@@ -370,7 +380,17 @@ export function useDailyLoginRewards(
       });
       return null;
     }
-  }, [userId, loginData, todayReward, canClaim, playSound, fireConfetti, vibrateAchievement, toast, getUnlockedVIPCostumes]);
+  }, [
+    userId,
+    loginData,
+    todayReward,
+    canClaim,
+    playSound,
+    fireConfetti,
+    vibrateAchievement,
+    toast,
+    getUnlockedVIPCostumes,
+  ]);
 
   const vipTier = getVIPTier(loginData?.current_streak || 0);
   const isVIP = !!vipTier;

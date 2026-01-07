@@ -6,7 +6,7 @@ import { Resources } from './game';
 /**
  * Enum-like constant object for game action types.
  * Use this for type-safe action dispatching.
- * 
+ *
  * @example
  * ```tsx
  * import { GameActions } from '@/types/gameEvents';
@@ -33,7 +33,7 @@ export const GameActions = {
 /**
  * All game actions that can trigger side effects
  */
-export type GameAction = typeof GameActions[keyof typeof GameActions];
+export type GameAction = (typeof GameActions)[keyof typeof GameActions];
 
 /**
  * Payload types for each action

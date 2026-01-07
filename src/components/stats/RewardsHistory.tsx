@@ -26,7 +26,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 export function RewardsHistory({ rewards, rewardStats }: RewardsHistoryProps) {
-  const claimedRewards = rewards.filter(r => r.claimed);
+  const claimedRewards = rewards.filter((r) => r.claimed);
 
   return (
     <Card>
@@ -61,7 +61,9 @@ export function RewardsHistory({ rewards, rewardStats }: RewardsHistoryProps) {
             <h4 className="text-sm font-medium mb-2">Badge Collection</h4>
             <div className="flex flex-wrap gap-2">
               {rewardStats.badges.map((badge, i) => (
-                <span key={i} className="text-2xl">{badge}</span>
+                <span key={i} className="text-2xl">
+                  {badge}
+                </span>
               ))}
             </div>
           </div>
@@ -96,8 +98,7 @@ export function RewardsHistory({ rewards, rewardStats }: RewardsHistoryProps) {
                   </div>
                   <div className="text-right">
                     <div className="flex items-center gap-1 text-green-500 font-medium">
-                      <Coins className="h-3 w-3" />
-                      +{reward.reward_coins}
+                      <Coins className="h-3 w-3" />+{reward.reward_coins}
                     </div>
                     {reward.claimed_at && (
                       <div className="text-xs text-muted-foreground">

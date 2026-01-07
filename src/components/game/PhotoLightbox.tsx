@@ -28,10 +28,10 @@ interface PhotoLightboxProps {
 
 /**
  * PhotoLightbox - Full-screen photo viewer with navigation
- * 
+ *
  * Displays photos in a modal lightbox with keyboard navigation,
  * download, share, favorite, and delete actions.
- * 
+ *
  * @example
  * ```tsx
  * <PhotoLightbox
@@ -56,8 +56,8 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   onDelete,
 }) => {
   const { toast } = useToast();
-  
-  const currentIndex = photo ? photos.findIndex(p => p.id === photo.id) : -1;
+
+  const currentIndex = photo ? photos.findIndex((p) => p.id === photo.id) : -1;
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < photos.length - 1;
 
@@ -77,7 +77,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
       if (e.key === 'ArrowRight') goToNext();
       if (e.key === 'Escape') onClose();
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [open, goToPrev, goToNext, onClose]);
@@ -93,10 +93,14 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
 
   const handleShare = async () => {
     if (!photo || !navigator.share) {
-      toast({ title: 'Not supported', description: 'Sharing is not available.', variant: 'destructive' });
+      toast({
+        title: 'Not supported',
+        description: 'Sharing is not available.',
+        variant: 'destructive',
+      });
       return;
     }
-    
+
     try {
       const response = await fetch(photo.imageDataUrl);
       const blob = await response.blob();
@@ -120,15 +124,15 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl w-full p-0 gap-0 bg-black/95 border-none">
         {/* Close button */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="absolute top-2 right-2 z-10 text-white hover:bg-white/20"
           onClick={onClose}
         >
           <X className="w-5 h-5" />
         </Button>
-        
+
         {/* Main image area */}
         <div className="relative flex items-center justify-center min-h-[60vh]">
           {/* Navigation arrows */}
@@ -142,13 +146,13 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
               <ChevronLeft className="w-8 h-8" />
             </Button>
           )}
-          
-          <img 
-            src={photo.imageDataUrl} 
+
+          <img
+            src={photo.imageDataUrl}
             alt={`${photo.catName} photo`}
             className="max-h-[70vh] max-w-full object-contain"
           />
-          
+
           {hasNext && (
             <Button
               variant="ghost"
@@ -160,7 +164,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
             </Button>
           )}
         </div>
-        
+
         {/* Footer with info and actions */}
         <div className="p-4 bg-card border-t flex items-center justify-between">
           <div>
@@ -169,10 +173,10 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
               {format(new Date(photo.createdAt), 'MMMM d, yyyy h:mm a')}
             </p>
           </div>
-          
+
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="icon"
               onClick={() => onToggleFavorite(photo.id)}
               className={photo.isFavorite ? 'text-red-500' : ''}

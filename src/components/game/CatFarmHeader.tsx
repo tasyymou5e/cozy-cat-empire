@@ -5,9 +5,21 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Slider } from '@/components/ui/slider';
 import { QuickAccessMenu } from './QuickAccessMenu';
 import { NotificationCenter } from './NotificationCenter';
-import { 
-  Volume2, VolumeX, Music, Music2, Settings2, Keyboard, 
-  LogIn, LogOut, User, Cloud, Sun, Moon, CalendarDays, Sparkles 
+import {
+  Volume2,
+  VolumeX,
+  Music,
+  Music2,
+  Settings2,
+  Keyboard,
+  LogIn,
+  LogOut,
+  User,
+  Cloud,
+  Sun,
+  Moon,
+  CalendarDays,
+  Sparkles,
 } from 'lucide-react';
 import { VIPTier } from '@/types/dailyRewards';
 
@@ -22,18 +34,18 @@ interface CatFarmHeaderProps {
   onToggleSound: () => void;
   onSfxVolumeChange: (value: number[]) => void;
   onMusicVolumeChange: (value: number[]) => void;
-  
+
   // Theme
   theme: string | undefined;
   onThemeChange: () => void;
-  
+
   // Navigation
   recentTabs: Array<{ tab: string; label: string; icon: string; timestamp: number }>;
   onNavigateTab: (tab: string) => void;
   onShowShortcutsHelp: () => void;
   onShowWhatsNew: () => void;
   onShowDailyRewards: () => void;
-  
+
   // User
   user: { id: string; email?: string } | null;
   onSignOut: () => void;
@@ -42,12 +54,12 @@ interface CatFarmHeaderProps {
   onCloudSave: () => void;
   onLocalSave: () => void;
   onResetGame: () => void;
-  
+
   // VIP
   isVIP: boolean;
   vipTier: VIPTier | null;
   canClaimDailyReward: boolean;
-  
+
   // Mobile
   isMobile: boolean;
 }
@@ -85,19 +97,18 @@ export function CatFarmHeader({
     <header className="game-header">
       <div className="flex items-center gap-3">
         <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">🐱 Cat Farm</h1>
-        <span className="text-xs text-muted-foreground hidden sm:inline">Build your 100-acre cat empire!</span>
+        <span className="text-xs text-muted-foreground hidden sm:inline">
+          Build your 100-acre cat empire!
+        </span>
       </div>
       <div className="flex items-center gap-2">
         {musicOn && currentMoodLabel && (
           <span className="text-xs text-muted-foreground hidden sm:inline">{currentMoodLabel}</span>
         )}
-        
+
         {/* Quick Access Menu */}
-        <QuickAccessMenu 
-          recentTabs={recentTabs} 
-          onNavigateTab={onNavigateTab} 
-        />
-        
+        <QuickAccessMenu recentTabs={recentTabs} onNavigateTab={onNavigateTab} />
+
         {/* Audio Settings Popover */}
         <Popover>
           <PopoverTrigger asChild>
@@ -149,49 +160,65 @@ export function CatFarmHeader({
             </div>
           </PopoverContent>
         </Popover>
-        
-        <Button variant="ghost" size="sm" onClick={onToggleMusic} title={musicOn ? "Stop music" : "Play ambient music"}>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggleMusic}
+          title={musicOn ? 'Stop music' : 'Play ambient music'}
+        >
           {musicOn ? <Music2 className="h-4 w-4 text-primary" /> : <Music className="h-4 w-4" />}
         </Button>
-        <Button variant="ghost" size="sm" onClick={onToggleSound} title={soundOn ? "Mute sounds" : "Unmute sounds"}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggleSound}
+          title={soundOn ? 'Mute sounds' : 'Unmute sounds'}
+        >
           {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
         </Button>
-        
+
         {!isMobile && (
-          <Button variant="ghost" size="sm" onClick={onShowShortcutsHelp} title="Keyboard Shortcuts (?)" className="min-h-10 min-w-10">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onShowShortcutsHelp}
+            title="Keyboard Shortcuts (?)"
+            className="min-h-10 min-w-10"
+          >
             <Keyboard className="h-4 w-4" />
           </Button>
         )}
-        
+
         {/* What's New Button */}
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onShowWhatsNew} 
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onShowWhatsNew}
           title="What's New"
           className="min-h-10 min-w-10"
         >
           <Sparkles className="h-4 w-4" />
         </Button>
-        
+
         {/* Notification Center */}
         <NotificationCenter userId={user?.id} onNavigate={onNavigateTab} />
-        
+
         {/* VIP Badge */}
         {user && isVIP && vipTier && (
-          <Badge 
+          <Badge
             className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold text-xs animate-vip-glow cursor-pointer"
             onClick={onShowDailyRewards}
           >
             {vipTier.emoji} {vipTier.name}
           </Badge>
         )}
-        
+
         {/* Daily Rewards Button */}
         {user && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onShowDailyRewards}
             title="Daily Rewards"
             className={`min-h-10 min-w-10 relative ${canClaimDailyReward ? 'animate-bounce-gentle' : ''}`}
@@ -202,13 +229,13 @@ export function CatFarmHeader({
             )}
           </Button>
         )}
-        
+
         {/* Cloud sync indicator */}
         {user && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={onCloudSave} 
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onCloudSave}
             disabled={cloudSyncing}
             title={cloudSyncing ? 'Syncing...' : 'Sync to cloud'}
             className="min-h-10 min-w-10"
@@ -220,11 +247,19 @@ export function CatFarmHeader({
             )}
           </Button>
         )}
-        
+
         {!user && (
-          <Button variant="ghost" size="sm" onClick={onLocalSave} title="Save (S)" className="min-h-10 min-w-10">💾</Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onLocalSave}
+            title="Save (S)"
+            className="min-h-10 min-w-10"
+          >
+            💾
+          </Button>
         )}
-        
+
         {/* Auth buttons */}
         {user ? (
           <Popover>
@@ -256,8 +291,15 @@ export function CatFarmHeader({
             </Button>
           </Link>
         )}
-        
-        <Button variant="ghost" size="sm" onClick={onResetGame} className="min-h-10 min-w-10 hidden sm:flex">New Game</Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onResetGame}
+          className="min-h-10 min-w-10 hidden sm:flex"
+        >
+          New Game
+        </Button>
       </div>
     </header>
   );

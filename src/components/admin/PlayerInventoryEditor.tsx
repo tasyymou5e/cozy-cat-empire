@@ -21,7 +21,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Coins, Package, Save, AlertTriangle, RotateCcw, Sparkles, Plus, Minus } from 'lucide-react';
+import {
+  Coins,
+  Package,
+  Save,
+  AlertTriangle,
+  RotateCcw,
+  Sparkles,
+  Plus,
+  Minus,
+} from 'lucide-react';
 
 interface PlayerInventoryEditorProps {
   userId: string;
@@ -48,7 +57,12 @@ interface PortraitCredits {
 export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInventoryEditorProps) {
   const gameStateData = gameState?.game_state as Record<string, unknown> | null;
   const currentMoney = (gameStateData?.money as number) || 0;
-  const currentResources = (gameStateData?.resources as Resources) || { food: 0, medicine: 0, toys: 0, treats: 0 };
+  const currentResources = (gameStateData?.resources as Resources) || {
+    food: 0,
+    medicine: 0,
+    toys: 0,
+    treats: 0,
+  };
 
   const [money, setMoney] = useState(currentMoney);
   const [resources, setResources] = useState<Resources>({
@@ -61,7 +75,7 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
   const [isSaving, setIsSaving] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  
+
   // Portrait credits state
   const [portraitCredits, setPortraitCredits] = useState(0);
   const [creditsChange, setCreditsChange] = useState(0);
@@ -80,7 +94,7 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
         .select('*')
         .eq('user_id', userId)
         .single();
-      
+
       if (error && error.code !== 'PGRST116') {
         throw error;
       }
@@ -96,7 +110,8 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
     }
   }, [creditsData]);
 
-  const hasChanges = money !== currentMoney || 
+  const hasChanges =
+    money !== currentMoney ||
     resources.food !== (currentResources.food || 0) ||
     resources.medicine !== (currentResources.medicine || 0) ||
     resources.toys !== (currentResources.toys || 0) ||
@@ -183,12 +198,14 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
     setIsSaving(true);
     try {
       const newCredits = Math.max(0, portraitCredits + creditsChange);
-      
+
       if (creditsData) {
         // Update existing record
         const updates: Partial<PortraitCredits> = {
           credits_remaining: newCredits,
-          ...(creditsChange > 0 && { total_purchased: creditsData.total_purchased + creditsChange }),
+          ...(creditsChange > 0 && {
+            total_purchased: creditsData.total_purchased + creditsChange,
+          }),
         };
 
         const { error } = await supabase
@@ -199,14 +216,12 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
         if (error) throw error;
       } else {
         // Create new record
-        const { error } = await supabase
-          .from('player_portrait_credits')
-          .insert({
-            user_id: userId,
-            credits_remaining: newCredits,
-            total_purchased: creditsChange > 0 ? creditsChange : 0,
-            total_used: 0,
-          });
+        const { error } = await supabase.from('player_portrait_credits').insert({
+          user_id: userId,
+          credits_remaining: newCredits,
+          total_purchased: creditsChange > 0 ? creditsChange : 0,
+          total_used: 0,
+        });
 
         if (error) throw error;
       }
@@ -278,7 +293,7 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
 
       const { error } = await supabase
         .from('game_saves')
-        .update({ 
+        .update({
           game_state: resetGameState,
           kittens_bred: 0,
           relationships: [],
@@ -341,7 +356,8 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
             </span>
             {money !== currentMoney && (
               <Badge variant={money > currentMoney ? 'default' : 'destructive'}>
-                {money > currentMoney ? '+' : ''}{(money - currentMoney).toLocaleString()}
+                {money > currentMoney ? '+' : ''}
+                {(money - currentMoney).toLocaleString()}
               </Badge>
             )}
           </div>
@@ -364,7 +380,9 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
                 <Input
                   type="number"
                   value={value}
-                  onChange={(e) => setResources(prev => ({ ...prev, [key]: Number(e.target.value) }))}
+                  onChange={(e) =>
+                    setResources((prev) => ({ ...prev, [key]: Number(e.target.value) }))
+                  }
                   className="w-20"
                 />
                 <span className="text-xs text-muted-foreground">
@@ -389,7 +407,8 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
             <div className="space-y-1">
               <p className="text-2xl font-bold">{portraitCredits}</p>
               <p className="text-xs text-muted-foreground">
-                Total purchased: {creditsData?.total_purchased || 0} | Used: {creditsData?.total_used || 0}
+                Total purchased: {creditsData?.total_purchased || 0} | Used:{' '}
+                {creditsData?.total_used || 0}
               </p>
             </div>
             <div className="flex gap-2">
@@ -447,11 +466,7 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
           <Save className="h-4 w-4 mr-2" />
           Save Changes
         </Button>
-        <Button
-          variant="destructive"
-          onClick={() => setResetDialogOpen(true)}
-          disabled={isSaving}
-        >
+        <Button variant="destructive" onClick={() => setResetDialogOpen(true)} disabled={isSaving}>
           <RotateCcw className="h-4 w-4 mr-2" />
           Reset Game
         </Button>
@@ -470,7 +485,9 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
             {money !== currentMoney && (
               <div className="flex justify-between">
                 <span>Money:</span>
-                <span>${currentMoney.toLocaleString()} → ${money.toLocaleString()}</span>
+                <span>
+                  ${currentMoney.toLocaleString()} → ${money.toLocaleString()}
+                </span>
               </div>
             )}
             {Object.entries(resources).map(([key, value]) => {
@@ -479,7 +496,9 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
                 return (
                   <div key={key} className="flex justify-between capitalize">
                     <span>{key}:</span>
-                    <span>{current} → {value}</span>
+                    <span>
+                      {current} → {value}
+                    </span>
                   </div>
                 );
               }
@@ -507,7 +526,7 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
               {creditsChange > 0 ? 'Grant' : 'Remove'} Portrait Credits
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {creditsChange > 0 
+              {creditsChange > 0
                 ? 'Grant additional portrait credits to this player.'
                 : 'Remove portrait credits from this player.'}
             </AlertDialogDescription>
@@ -550,10 +569,7 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setCreditsChange(0)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleCreditsChange} 
-              disabled={isSaving || !reason.trim()}
-            >
+            <AlertDialogAction onClick={handleCreditsChange} disabled={isSaving || !reason.trim()}>
               {isSaving ? 'Saving...' : `${creditsChange > 0 ? 'Grant' : 'Remove'} Credits`}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -569,8 +585,8 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
               Reset Player Game
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This will completely reset the player's game to initial state. All cats, money, achievements, 
-              and progress will be lost. This cannot be undone.
+              This will completely reset the player's game to initial state. All cats, money,
+              achievements, and progress will be lost. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
@@ -585,8 +601,8 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleResetGame} 
+            <AlertDialogAction
+              onClick={handleResetGame}
               disabled={isSaving || !reason.trim()}
               className="bg-destructive hover:bg-destructive/90"
             >

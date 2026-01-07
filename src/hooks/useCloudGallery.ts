@@ -29,47 +29,41 @@ import { GalleryPhoto, CloudGalleryPhoto } from '@/types/gallery';
  * ```
  */
 export function useCloudGallery(userId: string | undefined) {
-  const uploadPhoto = useCallback(async (
-    photoId: string,
-    dataUrl: string
-  ): Promise<{ path: string; url: string } | null> => {
-    if (!userId) return null;
+  const uploadPhoto = useCallback(
+    async (photoId: string, dataUrl: string): Promise<{ path: string; url: string } | null> => {
+      if (!userId) return null;
 
-    try {
-      // Convert base64 to blob
-      const response = await fetch(dataUrl);
-      const blob = await response.blob();
-      
-      const path = `${userId}/${photoId}.png`;
-      
-      const { error } = await supabase.storage
-        .from('photo-gallery')
-        .upload(path, blob, { 
+      try {
+        // Convert base64 to blob
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+
+        const path = `${userId}/${photoId}.png`;
+
+        const { error } = await supabase.storage.from('photo-gallery').upload(path, blob, {
           contentType: 'image/png',
-          upsert: true 
+          upsert: true,
         });
 
-      if (error) {
-        console.error('Upload error:', error);
+        if (error) {
+          console.error('Upload error:', error);
+          return null;
+        }
+
+        const { data: urlData } = supabase.storage.from('photo-gallery').getPublicUrl(path);
+
+        return { path, url: urlData.publicUrl };
+      } catch (error) {
+        console.error('Upload failed:', error);
         return null;
       }
-
-      const { data: urlData } = supabase.storage
-        .from('photo-gallery')
-        .getPublicUrl(path);
-
-      return { path, url: urlData.publicUrl };
-    } catch (error) {
-      console.error('Upload failed:', error);
-      return null;
-    }
-  }, [userId]);
+    },
+    [userId]
+  );
 
   const downloadPhoto = useCallback(async (path: string): Promise<string | null> => {
     try {
-      const { data, error } = await supabase.storage
-        .from('photo-gallery')
-        .download(path);
+      const { data, error } = await supabase.storage.from('photo-gallery').download(path);
 
       if (error || !data) return null;
 
@@ -84,34 +78,37 @@ export function useCloudGallery(userId: string | undefined) {
     }
   }, []);
 
-  const savePhotoMetadata = useCallback(async (
-    photo: Omit<CloudGalleryPhoto, 'id' | 'user_id' | 'created_at' | 'updated_at'>
-  ): Promise<{ id: string } | null> => {
-    if (!userId) return null;
+  const savePhotoMetadata = useCallback(
+    async (
+      photo: Omit<CloudGalleryPhoto, 'id' | 'user_id' | 'created_at' | 'updated_at'>
+    ): Promise<{ id: string } | null> => {
+      if (!userId) return null;
 
-    const { data, error } = await supabase
-      .from('gallery_photos')
-      .insert({
-        user_id: userId,
-        cat_id: photo.cat_id,
-        cat_name: photo.cat_name,
-        image_path: photo.image_path,
-        background_id: photo.background_id,
-        pose_id: photo.pose_id,
-        frame_id: photo.frame_id,
-        sticker_count: photo.sticker_count,
-        is_favorite: photo.is_favorite,
-      })
-      .select('id')
-      .single();
+      const { data, error } = await supabase
+        .from('gallery_photos')
+        .insert({
+          user_id: userId,
+          cat_id: photo.cat_id,
+          cat_name: photo.cat_name,
+          image_path: photo.image_path,
+          background_id: photo.background_id,
+          pose_id: photo.pose_id,
+          frame_id: photo.frame_id,
+          sticker_count: photo.sticker_count,
+          is_favorite: photo.is_favorite,
+        })
+        .select('id')
+        .single();
 
-    if (error) {
-      console.error('Save metadata error:', error);
-      return null;
-    }
+      if (error) {
+        console.error('Save metadata error:', error);
+        return null;
+      }
 
-    return { id: data.id };
-  }, [userId]);
+      return { id: data.id };
+    },
+    [userId]
+  );
 
   const loadCloudPhotos = useCallback(async (): Promise<CloudGalleryPhoto[]> => {
     if (!userId) return [];
@@ -130,60 +127,61 @@ export function useCloudGallery(userId: string | undefined) {
     return data as CloudGalleryPhoto[];
   }, [userId]);
 
-  const updatePhotoMetadata = useCallback(async (
-    id: string,
-    updates: Partial<Pick<CloudGalleryPhoto, 'is_favorite'>>
-  ): Promise<boolean> => {
-    if (!userId) return false;
+  const updatePhotoMetadata = useCallback(
+    async (
+      id: string,
+      updates: Partial<Pick<CloudGalleryPhoto, 'is_favorite'>>
+    ): Promise<boolean> => {
+      if (!userId) return false;
 
-    const { error } = await supabase
-      .from('gallery_photos')
-      .update(updates)
-      .eq('id', id)
-      .eq('user_id', userId);
+      const { error } = await supabase
+        .from('gallery_photos')
+        .update(updates)
+        .eq('id', id)
+        .eq('user_id', userId);
 
-    return !error;
-  }, [userId]);
+      return !error;
+    },
+    [userId]
+  );
 
-  const deleteCloudPhoto = useCallback(async (
-    id: string,
-    imagePath: string
-  ): Promise<boolean> => {
-    if (!userId) return false;
+  const deleteCloudPhoto = useCallback(
+    async (id: string, imagePath: string): Promise<boolean> => {
+      if (!userId) return false;
 
-    // Delete from storage
-    await supabase.storage
-      .from('photo-gallery')
-      .remove([imagePath]);
+      // Delete from storage
+      await supabase.storage.from('photo-gallery').remove([imagePath]);
 
-    // Delete metadata
-    const { error } = await supabase
-      .from('gallery_photos')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', userId);
+      // Delete metadata
+      const { error } = await supabase
+        .from('gallery_photos')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId);
 
-    return !error;
-  }, [userId]);
+      return !error;
+    },
+    [userId]
+  );
 
-  const cloudPhotoToLocal = useCallback((
-    cloudPhoto: CloudGalleryPhoto,
-    imageDataUrl: string
-  ): GalleryPhoto => ({
-    id: cloudPhoto.id,
-    cloudId: cloudPhoto.id,
-    catId: cloudPhoto.cat_id,
-    catName: cloudPhoto.cat_name,
-    imageDataUrl,
-    imagePath: cloudPhoto.image_path,
-    backgroundId: cloudPhoto.background_id,
-    poseId: cloudPhoto.pose_id,
-    frameId: cloudPhoto.frame_id,
-    stickerCount: cloudPhoto.sticker_count,
-    createdAt: cloudPhoto.created_at,
-    isFavorite: cloudPhoto.is_favorite,
-    syncStatus: 'synced',
-  }), []);
+  const cloudPhotoToLocal = useCallback(
+    (cloudPhoto: CloudGalleryPhoto, imageDataUrl: string): GalleryPhoto => ({
+      id: cloudPhoto.id,
+      cloudId: cloudPhoto.id,
+      catId: cloudPhoto.cat_id,
+      catName: cloudPhoto.cat_name,
+      imageDataUrl,
+      imagePath: cloudPhoto.image_path,
+      backgroundId: cloudPhoto.background_id,
+      poseId: cloudPhoto.pose_id,
+      frameId: cloudPhoto.frame_id,
+      stickerCount: cloudPhoto.sticker_count,
+      createdAt: cloudPhoto.created_at,
+      isFavorite: cloudPhoto.is_favorite,
+      syncStatus: 'synced',
+    }),
+    []
+  );
 
   return {
     uploadPhoto,

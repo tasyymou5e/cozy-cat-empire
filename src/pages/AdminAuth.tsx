@@ -18,7 +18,7 @@ export default function AdminAuth() {
   const navigate = useNavigate();
   const { signIn, signOut, user } = useAuth();
   const { isAdmin, loading: adminLoading, checked } = useAdminAuth();
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -31,7 +31,7 @@ export default function AdminAuth() {
     if (adminLoading || !checked) {
       return;
     }
-    
+
     if (user && isAdmin) {
       // Log successful admin login
       logAuthAttempt({
@@ -64,7 +64,7 @@ export default function AdminAuth() {
     try {
       const validated = authSchema.parse({ email, password });
       const { error: signInError } = await signIn(validated.email, validated.password);
-      
+
       if (signInError) {
         // Log failed login attempt
         await logAuthAttempt({
@@ -114,14 +114,12 @@ export default function AdminAuth() {
               <Shield className="h-8 w-8 text-amber-300 absolute -bottom-1 -right-1" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-amber-100">
-            Cat King Portal
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold text-amber-100">Cat King Portal</CardTitle>
           <CardDescription className="text-amber-300/80">
             Administrative access only
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           {accessDenied && (
             <div className="mb-4 p-3 rounded-lg bg-red-900/50 border border-red-700 flex items-center gap-2">
@@ -131,7 +129,7 @@ export default function AdminAuth() {
               </p>
             </div>
           )}
-          
+
           {error && !accessDenied && (
             <div className="mb-4 p-3 rounded-lg bg-red-900/50 border border-red-700">
               <p className="text-red-200 text-sm">{error}</p>
@@ -153,7 +151,7 @@ export default function AdminAuth() {
                 disabled={isSubmitting}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password" className="text-amber-200">
                 Password

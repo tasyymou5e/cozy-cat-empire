@@ -108,10 +108,34 @@ export const SEASONAL_EVENTS: SeasonalEvent[] = [
 
 // Special events on milestone days
 export const SPECIAL_EVENTS = [
-  { day: 50, name: 'Golden Jubilee', emoji: '🥇', bonusMultiplier: 2, description: '50-day celebration! Double rewards!' },
-  { day: 100, name: 'Centennial Championship', emoji: '💎', bonusMultiplier: 3, description: '100-day milestone! Triple rewards!' },
-  { day: 200, name: 'Bicentennial Bash', emoji: '🌟', bonusMultiplier: 4, description: '200-day legend! 4x rewards!' },
-  { day: 365, name: 'Anniversary Spectacular', emoji: '🎂', bonusMultiplier: 5, description: 'One year anniversary! 5x rewards!' },
+  {
+    day: 50,
+    name: 'Golden Jubilee',
+    emoji: '🥇',
+    bonusMultiplier: 2,
+    description: '50-day celebration! Double rewards!',
+  },
+  {
+    day: 100,
+    name: 'Centennial Championship',
+    emoji: '💎',
+    bonusMultiplier: 3,
+    description: '100-day milestone! Triple rewards!',
+  },
+  {
+    day: 200,
+    name: 'Bicentennial Bash',
+    emoji: '🌟',
+    bonusMultiplier: 4,
+    description: '200-day legend! 4x rewards!',
+  },
+  {
+    day: 365,
+    name: 'Anniversary Spectacular',
+    emoji: '🎂',
+    bonusMultiplier: 5,
+    description: 'One year anniversary! 5x rewards!',
+  },
 ];
 
 export function getSeason(day: number): Season {
@@ -125,22 +149,22 @@ export function getSeason(day: number): Season {
 export function getCurrentSeasonalEvent(day: number): SeasonalEvent | null {
   const season = getSeason(day);
   const cycleDay = ((day - 1) % 100) + 1;
-  
+
   // Seasonal events happen on specific days within each season
   const isEventDay = cycleDay % 5 === 0; // Every 5th day is a seasonal event
-  
+
   if (isEventDay) {
-    return SEASONAL_EVENTS.find(e => e.season === season) || null;
+    return SEASONAL_EVENTS.find((e) => e.season === season) || null;
   }
   return null;
 }
 
 export function getSpecialEvent(day: number) {
-  return SPECIAL_EVENTS.find(e => e.day === day) || null;
+  return SPECIAL_EVENTS.find((e) => e.day === day) || null;
 }
 
 export function getAvailableTiers(totalWins: number): ShowTierInfo[] {
-  return SHOW_TIERS.filter(tier => totalWins >= tier.minWins);
+  return SHOW_TIERS.filter((tier) => totalWins >= tier.minWins);
 }
 
 export function canEnterTier(tier: ShowTierInfo, catGrade: number, totalWins: number): boolean {

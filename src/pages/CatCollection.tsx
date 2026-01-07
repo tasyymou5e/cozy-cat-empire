@@ -11,12 +11,42 @@ import { CatDetailModal } from '@/components/game/CatDetailModal';
 import { BatchPortraitGenerator } from '@/components/game/BatchPortraitGenerator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Cat, CatBreed, BREEDS } from '@/types/game';
 import { getGradeTier } from '@/types/grading';
 import { isPortraitOutdated } from '@/lib/portraitUtils';
-import { ArrowLeft, Search, SortAsc, Filter, Cat as CatIcon, Trophy, DollarSign, Star, Loader2, Volume2, VolumeX, Sun, Moon, Settings, RefreshCw, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  Search,
+  SortAsc,
+  Filter,
+  Cat as CatIcon,
+  Trophy,
+  DollarSign,
+  Star,
+  Loader2,
+  Volume2,
+  VolumeX,
+  Sun,
+  Moon,
+  Settings,
+  RefreshCw,
+  X,
+} from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 
@@ -31,7 +61,7 @@ export default function CatCollection() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { cloudLoad, cloudSave } = useCloudSave(user?.id);
-  
+
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('grade');
   const [sortDesc, setSortDesc] = useState(true);
@@ -45,7 +75,7 @@ export default function CatCollection() {
   // Load saved game on mount - with guard to prevent multiple loads
   useEffect(() => {
     if (hasLoadedCloud) return;
-    
+
     const loadSavedGame = async () => {
       // Try cloud save first if logged in
       if (user) {
@@ -57,13 +87,17 @@ export default function CatCollection() {
           return;
         }
       }
-      
+
       // Fall back to localStorage
       const saved = localStorage.getItem('cat-farm-save');
       if (saved) {
         try {
           const saveData = JSON.parse(saved);
-          actions.loadFromData?.(saveData.state, saveData.kittensBreek || 0, saveData.relationships);
+          actions.loadFromData?.(
+            saveData.state,
+            saveData.kittensBreek || 0,
+            saveData.relationships
+          );
         } catch (e) {
           console.error('Failed to load local save:', e);
         }
@@ -71,14 +105,14 @@ export default function CatCollection() {
       setHasLoadedCloud(true);
       setIsLoading(false);
     };
-    
+
     loadSavedGame();
   }, [user, hasLoadedCloud, cloudLoad, actions]);
 
   // Calculate outdated portrait count
   const outdatedCount = useMemo(() => {
-    return state.cats.filter(cat => 
-      cat.portraitUrl && isPortraitOutdated(cat, state.catCostumes[cat.id])
+    return state.cats.filter(
+      (cat) => cat.portraitUrl && isPortraitOutdated(cat, state.catCostumes[cat.id])
     ).length;
   }, [state.cats, state.catCostumes]);
 
@@ -87,46 +121,67 @@ export default function CatCollection() {
 
     // Filter by outdated portraits
     if (showOutdatedOnly) {
-      cats = cats.filter(c => 
-        c.portraitUrl && isPortraitOutdated(c, state.catCostumes[c.id])
-      );
+      cats = cats.filter((c) => c.portraitUrl && isPortraitOutdated(c, state.catCostumes[c.id]));
     }
 
     // Filter by search
     if (search) {
-      cats = cats.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+      cats = cats.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
     }
 
     // Filter by breed
     if (filterBreed !== 'all') {
-      cats = cats.filter(c => c.breed === filterBreed);
+      cats = cats.filter((c) => c.breed === filterBreed);
     }
 
     // Filter by tier
     if (filterTier !== 'all') {
-      cats = cats.filter(c => getGradeTier(c.grade) === filterTier);
+      cats = cats.filter((c) => getGradeTier(c.grade) === filterTier);
     }
 
     // Sort
     cats.sort((a, b) => {
       let cmp = 0;
       switch (sortBy) {
-        case 'name': cmp = a.name.localeCompare(b.name); break;
-        case 'grade': cmp = a.grade - b.grade; break;
-        case 'value': cmp = a.value - b.value; break;
-        case 'age': cmp = a.age - b.age; break;
-        case 'health': cmp = a.health - b.health; break;
-        case 'showWins': cmp = a.showWins - b.showWins; break;
+        case 'name':
+          cmp = a.name.localeCompare(b.name);
+          break;
+        case 'grade':
+          cmp = a.grade - b.grade;
+          break;
+        case 'value':
+          cmp = a.value - b.value;
+          break;
+        case 'age':
+          cmp = a.age - b.age;
+          break;
+        case 'health':
+          cmp = a.health - b.health;
+          break;
+        case 'showWins':
+          cmp = a.showWins - b.showWins;
+          break;
       }
       return sortDesc ? -cmp : cmp;
     });
 
     return cats;
-  }, [state.cats, search, sortBy, sortDesc, filterBreed, filterTier, showOutdatedOnly, state.catCostumes]);
+  }, [
+    state.cats,
+    search,
+    sortBy,
+    sortDesc,
+    filterBreed,
+    filterTier,
+    showOutdatedOnly,
+    state.catCostumes,
+  ]);
 
   // Stats summary
   const totalValue = state.cats.reduce((sum, c) => sum + c.value, 0);
-  const avgGrade = state.cats.length ? (state.cats.reduce((sum, c) => sum + c.grade, 0) / state.cats.length).toFixed(1) : '0';
+  const avgGrade = state.cats.length
+    ? (state.cats.reduce((sum, c) => sum + c.grade, 0) / state.cats.length).toFixed(1)
+    : '0';
   const totalWins = state.cats.reduce((sum, c) => sum + c.showWins, 0);
 
   const handleTrain = (catId: string, trickId: string) => {
@@ -137,15 +192,13 @@ export default function CatCollection() {
   const handlePortraitGenerated = async (catId: string, portraitUrl: string, hash?: string) => {
     // Update local state first
     actions.updateCatPortrait(catId, portraitUrl, hash);
-    
+
     // Save to cloud if logged in
     if (user) {
       const updatedState = {
         ...state,
-        cats: state.cats.map(c => 
-          c.id === catId 
-            ? { ...c, portraitUrl, appearanceHash: hash }
-            : c
+        cats: state.cats.map((c) =>
+          c.id === catId ? { ...c, portraitUrl, appearanceHash: hash } : c
         ),
       };
       const relationshipData = relationshipSystem.getRelationshipSaveData();
@@ -169,24 +222,34 @@ export default function CatCollection() {
               <DropdownMenuContent align="end" className="w-48 bg-popover">
                 <DropdownMenuLabel>Settings</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setEnabled(!isEnabled())} className="cursor-pointer">
-                  {isEnabled() ? <Volume2 className="h-4 w-4 mr-2" /> : <VolumeX className="h-4 w-4 mr-2" />}
+                <DropdownMenuItem
+                  onClick={() => setEnabled(!isEnabled())}
+                  className="cursor-pointer"
+                >
+                  {isEnabled() ? (
+                    <Volume2 className="h-4 w-4 mr-2" />
+                  ) : (
+                    <VolumeX className="h-4 w-4 mr-2" />
+                  )}
                   {isEnabled() ? 'Mute Sounds' : 'Unmute Sounds'}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="cursor-pointer">
-                  {theme === 'dark' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+                <DropdownMenuItem
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className="cursor-pointer"
+                >
+                  {theme === 'dark' ? (
+                    <Sun className="h-4 w-4 mr-2" />
+                  ) : (
+                    <Moon className="h-4 w-4 mr-2" />
+                  )}
                   {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <Link to="/photobooth">
-                  <DropdownMenuItem className="cursor-pointer">
-                    📸 Photo Booth
-                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">📸 Photo Booth</DropdownMenuItem>
                 </Link>
                 <Link to="/gallery">
-                  <DropdownMenuItem className="cursor-pointer">
-                    🖼️ Photo Gallery
-                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">🖼️ Photo Gallery</DropdownMenuItem>
                 </Link>
                 <Link to="/relationships">
                   <DropdownMenuItem className="cursor-pointer">
@@ -205,7 +268,7 @@ export default function CatCollection() {
               />
             )}
           </div>
-          
+
           <div className="grid grid-cols-4 sm:flex sm:items-center gap-2 sm:gap-4 text-sm">
             <div className="flex items-center justify-center gap-1 sm:gap-1.5 bg-accent/50 px-2 sm:px-3 py-1.5 rounded-full">
               <CatIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -229,10 +292,10 @@ export default function CatCollection() {
                 size="sm"
                 onClick={() => setShowOutdatedOnly(!showOutdatedOnly)}
                 className={cn(
-                  "flex items-center gap-1.5 px-2 sm:px-3 py-1.5 h-auto rounded-full transition-colors",
-                  showOutdatedOnly 
-                    ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/40" 
-                    : "bg-accent/50 hover:bg-orange-100 dark:hover:bg-orange-900/20"
+                  'flex items-center gap-1.5 px-2 sm:px-3 py-1.5 h-auto rounded-full transition-colors',
+                  showOutdatedOnly
+                    ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/40'
+                    : 'bg-accent/50 hover:bg-orange-100 dark:hover:bg-orange-900/20'
                 )}
               >
                 <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-500" />
@@ -249,8 +312,8 @@ export default function CatCollection() {
         <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px] max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search cats..." 
+            <Input
+              placeholder="Search cats..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -272,11 +335,7 @@ export default function CatCollection() {
                 <SelectItem value="showWins">Show Wins</SelectItem>
               </SelectContent>
             </Select>
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={() => setSortDesc(!sortDesc)}
-            >
+            <Button variant="outline" size="icon" onClick={() => setSortDesc(!sortDesc)}>
               {sortDesc ? '↓' : '↑'}
             </Button>
           </div>
@@ -290,7 +349,9 @@ export default function CatCollection() {
               <SelectContent>
                 <SelectItem value="all">All Breeds</SelectItem>
                 {Object.entries(BREEDS).map(([key, { name }]) => (
-                  <SelectItem key={key} value={key}>{name}</SelectItem>
+                  <SelectItem key={key} value={key}>
+                    {name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -336,14 +397,14 @@ export default function CatCollection() {
           <div className="text-center py-16">
             <span className="text-6xl mb-4 block">🐾</span>
             <p className="text-muted-foreground">
-              {state.cats.length === 0 
-                ? "No cats yet! Go back and adopt some." 
-                : "No cats match your filters."}
+              {state.cats.length === 0
+                ? 'No cats yet! Go back and adopt some.'
+                : 'No cats match your filters.'}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {filteredAndSortedCats.map(cat => (
+            {filteredAndSortedCats.map((cat) => (
               <UnifiedCatCard
                 key={cat.id}
                 cat={cat}
@@ -369,7 +430,10 @@ export default function CatCollection() {
         onClose={() => setSelectedCat(null)}
         onComfort={actions.comfortCat}
         onHeal={actions.useMedicine}
-        onSell={(id) => { actions.sellCat(id); setSelectedCat(null); }}
+        onSell={(id) => {
+          actions.sellCat(id);
+          setSelectedCat(null);
+        }}
         onRest={actions.restCat}
         onTrain={handleTrain}
         onRename={actions.renameCat}

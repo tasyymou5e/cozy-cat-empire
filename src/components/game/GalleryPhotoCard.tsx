@@ -41,11 +41,11 @@ const SyncStatusIcon: React.FC<{ status: GalleryPhoto['syncStatus'] }> = ({ stat
 
 /**
  * GalleryPhotoCard - Photo thumbnail card for gallery display
- * 
+ *
  * Displays a photo thumbnail with cat name, date, favorite status,
  * and cloud sync status. Shows action overlay on hover for view,
  * favorite, download, and delete operations.
- * 
+ *
  * @example
  * ```tsx
  * <GalleryPhotoCard
@@ -66,33 +66,26 @@ export const GalleryPhotoCard: React.FC<GalleryPhotoCardProps> = ({
 }) => {
   // Use cloud URL if available, otherwise use local dataUrl
   const imageSrc = photo.imageUrl || photo.imageDataUrl;
-  
+
   return (
     <div className="group relative rounded-lg overflow-hidden bg-card border shadow-sm hover:shadow-md transition-shadow">
       {/* Image */}
-      <div 
-        className="aspect-square cursor-pointer"
-        onClick={onView}
-      >
-        <img 
-          src={imageSrc} 
-          alt={`${photo.catName} photo`}
-          className="w-full h-full object-cover"
-        />
+      <div className="aspect-square cursor-pointer" onClick={onView}>
+        <img src={imageSrc} alt={`${photo.catName} photo`} className="w-full h-full object-cover" />
       </div>
-      
+
       {/* Favorite badge */}
       {photo.isFavorite && (
         <div className="absolute top-2 right-2 text-red-500">
           <Heart className="w-5 h-5 fill-current" />
         </div>
       )}
-      
+
       {/* Sync status badge */}
       <div className="absolute top-2 left-2">
         <SyncStatusIcon status={photo.syncStatus} />
       </div>
-      
+
       {/* Info bar */}
       <div className="p-2 border-t bg-card">
         <p className="font-medium text-sm truncate">{photo.catName}</p>
@@ -100,15 +93,15 @@ export const GalleryPhotoCard: React.FC<GalleryPhotoCardProps> = ({
           {format(new Date(photo.createdAt), 'MMM d, yyyy')}
         </p>
       </div>
-      
+
       {/* Hover overlay */}
       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
         <Button size="icon" variant="secondary" onClick={onView}>
           <Eye className="w-4 h-4" />
         </Button>
-        <Button 
-          size="icon" 
-          variant="secondary" 
+        <Button
+          size="icon"
+          variant="secondary"
           onClick={onToggleFavorite}
           className={photo.isFavorite ? 'text-red-500' : ''}
         >

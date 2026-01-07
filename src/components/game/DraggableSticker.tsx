@@ -20,10 +20,10 @@ interface DraggableStickerProps {
 
 /**
  * DraggableSticker - Draggable sticker element for photo booth
- * 
+ *
  * Renders a sticker that can be dragged to reposition within the photo.
  * Supports mouse and touch input. Shows delete button on hover.
- * 
+ *
  * @example
  * ```tsx
  * <DraggableSticker
@@ -47,24 +47,24 @@ export const DraggableSticker: React.FC<DraggableStickerProps> = ({
   const stickerRef = useRef<HTMLDivElement>(null);
   const startPosRef = useRef({ x: 0, y: 0 });
 
-  const stickerData = PHOTO_STICKERS.find(s => s.id === sticker.stickerId);
+  const stickerData = PHOTO_STICKERS.find((s) => s.id === sticker.stickerId);
   if (!stickerData) return null;
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsDragging(true);
     startPosRef.current = { x: e.clientX, y: e.clientY };
-    
+
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (!containerRef.current) return;
-      
+
       const containerRect = containerRef.current.getBoundingClientRect();
       const deltaX = ((moveEvent.clientX - startPosRef.current.x) / containerRect.width) * 100;
       const deltaY = ((moveEvent.clientY - startPosRef.current.y) / containerRect.height) * 100;
-      
+
       const newX = Math.max(0, Math.min(100, sticker.x + deltaX));
       const newY = Math.max(0, Math.min(100, sticker.y + deltaY));
-      
+
       onUpdate(sticker.id, { x: newX, y: newY });
       startPosRef.current = { x: moveEvent.clientX, y: moveEvent.clientY };
     };
@@ -83,18 +83,18 @@ export const DraggableSticker: React.FC<DraggableStickerProps> = ({
     const touch = e.touches[0];
     setIsDragging(true);
     startPosRef.current = { x: touch.clientX, y: touch.clientY };
-    
+
     const handleTouchMove = (moveEvent: TouchEvent) => {
       if (!containerRef.current) return;
       const touchMove = moveEvent.touches[0];
-      
+
       const containerRect = containerRef.current.getBoundingClientRect();
       const deltaX = ((touchMove.clientX - startPosRef.current.x) / containerRect.width) * 100;
       const deltaY = ((touchMove.clientY - startPosRef.current.y) / containerRect.height) * 100;
-      
+
       const newX = Math.max(0, Math.min(100, sticker.x + deltaX));
       const newY = Math.max(0, Math.min(100, sticker.y + deltaY));
-      
+
       onUpdate(sticker.id, { x: newX, y: newY });
       startPosRef.current = { x: touchMove.clientX, y: touchMove.clientY };
     };
@@ -125,7 +125,7 @@ export const DraggableSticker: React.FC<DraggableStickerProps> = ({
       onMouseLeave={() => setIsHovered(false)}
     >
       <span className="text-4xl">{stickerData.emoji}</span>
-      
+
       {/* Delete button - hidden during export */}
       {isHovered && !isDragging && !isExporting && (
         <button

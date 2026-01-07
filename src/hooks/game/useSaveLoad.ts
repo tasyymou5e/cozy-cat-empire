@@ -1,13 +1,13 @@
 /**
  * @fileoverview useSaveLoad - Game persistence domain hook
- * 
+ *
  * Handles saving and loading game state to/from localStorage and cloud.
  * Provides functionality for:
  * - Local save/load operations
  * - Cloud save integration
  * - Game reset
  * - Save existence checks
- * 
+ *
  * @module hooks/game/useSaveLoad
  */
 
@@ -24,30 +24,30 @@ export interface SaveLoadActions {
    * Includes game state, kittens bred, and relationships.
    */
   saveGame: () => void;
-  
+
   /**
    * Load game state from localStorage.
    * Restores game state, kittens bred, and relationships.
    */
   loadGame: () => void;
-  
+
   /**
    * Check if a saved game exists in localStorage
    * @returns true if a save exists
    */
   hasSaveGame: () => boolean;
-  
+
   /**
    * Get the day number from the saved game
    * @returns Day number or null if no save exists
    */
   getSaveDay: () => number | null;
-  
+
   /**
    * Reset game to initial state and clear localStorage save
    */
   resetGame: () => void;
-  
+
   /**
    * Load game from cloud save data.
    * Used by useCloudSave hook for cloud sync.
@@ -55,48 +55,52 @@ export interface SaveLoadActions {
    * @param kittens - Kittens bred count
    * @param relationshipData - Optional relationship data
    */
-  loadFromData: (gameState: GameState, kittens: number, relationshipData: RelationshipSaveData | null) => void;
+  loadFromData: (
+    gameState: GameState,
+    kittens: number,
+    relationshipData: RelationshipSaveData | null
+  ) => void;
 }
 
 /**
  * Hook for managing game saves.
- * 
+ *
  * @param deps - Shared game hook dependencies
  * @returns Object containing all save/load actions
- * 
+ *
  * @example
  * ```typescript
  * const { saveGame, loadGame, hasSaveGame, resetGame } = useSaveLoad(deps);
- * 
+ *
  * // Check for existing save
  * if (hasSaveGame()) {
  *   loadGame(); // Resume previous game
  * }
- * 
+ *
  * // Save progress
  * saveGame();
- * 
+ *
  * // Start fresh
  * resetGame();
  * ```
  */
 export function useSaveLoad(deps: GameHookDependencies): SaveLoadActions {
-  const { 
-    state, 
-    setState, 
-    showMessage, 
-    playSound, 
-    relationshipSystem, 
-    kittensBreed, 
-    setKittensBreed 
+  const {
+    state,
+    setState,
+    showMessage,
+    playSound,
+    relationshipSystem,
+    kittensBreed,
+    setKittensBreed,
   } = deps;
 
   const saveGame = useCallback(() => {
-    const saveData = { 
-      state, 
-      kittensBreed, 
-      relationships: relationshipSystem.getRelationshipSaveData(), 
-      savedAt: new Date().toISOString() 
+    const saveData = {
+      state,
+      kittensBreed,
+      relationships: relationshipSystem.getRelationshipSaveData(),
+      savedAt: new Date().toISOString(),
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
     showMessage('Game saved! 💾', 'success');
@@ -105,9 +109,9 @@ export function useSaveLoad(deps: GameHookDependencies): SaveLoadActions {
 
   const loadGame = useCallback(() => {
     const saved = localStorage.getItem(SAVE_KEY);
-    if (!saved) { 
-      showMessage('No saved game found!', 'warning'); 
-      return; 
+    if (!saved) {
+      showMessage('No saved game found!', 'warning');
+      return;
     }
     try {
       const data = JSON.parse(saved);
@@ -144,8 +148,8 @@ export function useSaveLoad(deps: GameHookDependencies): SaveLoadActions {
     localStorage.removeItem(SAVE_KEY);
     setState(createInitialState());
     setKittensBreed(0);
-    relationshipSystem.loadRelationships({ 
-      relationships: [], 
+    relationshipSystem.loadRelationships({
+      relationships: [],
       events: [],
       maintenanceStreak: 0,
       longestMaintenanceStreak: 0,
@@ -155,27 +159,26 @@ export function useSaveLoad(deps: GameHookDependencies): SaveLoadActions {
     playSound?.('success');
   }, [setState, setKittensBreed, relationshipSystem, playSound, showMessage]);
 
-  const loadFromData = useCallback((
-    gameState: GameState, 
-    kittens: number, 
-    relationshipData: RelationshipSaveData | null
-  ) => {
-    setState(gameState);
-    setKittensBreed(kittens);
-    if (relationshipData) {
-      relationshipSystem.loadRelationships(relationshipData);
-      relationshipSystem.detectGroups(gameState.cats);
-    }
-    showMessage(`Cloud save loaded! Day ${gameState.day}. ☁️`, 'success');
-    playSound?.('success');
-  }, [setState, setKittensBreed, relationshipSystem, playSound, showMessage]);
+  const loadFromData = useCallback(
+    (gameState: GameState, kittens: number, relationshipData: RelationshipSaveData | null) => {
+      setState(gameState);
+      setKittensBreed(kittens);
+      if (relationshipData) {
+        relationshipSystem.loadRelationships(relationshipData);
+        relationshipSystem.detectGroups(gameState.cats);
+      }
+      showMessage(`Cloud save loaded! Day ${gameState.day}. ☁️`, 'success');
+      playSound?.('success');
+    },
+    [setState, setKittensBreed, relationshipSystem, playSound, showMessage]
+  );
 
-  return { 
-    saveGame, 
-    loadGame, 
-    hasSaveGame, 
-    getSaveDay, 
-    resetGame, 
-    loadFromData 
+  return {
+    saveGame,
+    loadGame,
+    hasSaveGame,
+    getSaveDay,
+    resetGame,
+    loadFromData,
   };
 }

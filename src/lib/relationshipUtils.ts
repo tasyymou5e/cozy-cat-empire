@@ -3,7 +3,7 @@ import { CatRelationship, getRelationshipLevel, RelationshipLevel } from '@/type
 
 /**
  * Relationship utility functions
- * 
+ *
  * Extracted from UnifiedCatCard for reuse across components.
  * These functions handle common relationship calculations.
  */
@@ -11,8 +11,11 @@ import { CatRelationship, getRelationshipLevel, RelationshipLevel } from '@/type
 /**
  * Get all relationships involving a specific cat
  */
-export function getCatRelationships(catId: string, relationships: CatRelationship[]): CatRelationship[] {
-  return relationships.filter(r => r.catId1 === catId || r.catId2 === catId);
+export function getCatRelationships(
+  catId: string,
+  relationships: CatRelationship[]
+): CatRelationship[] {
+  return relationships.filter((r) => r.catId1 === catId || r.catId2 === catId);
 }
 
 /**
@@ -26,10 +29,10 @@ export function getOtherCatId(catId: string, relationship: CatRelationship): str
  * Filter relationships by level(s)
  */
 export function filterRelationshipsByLevel(
-  relationships: CatRelationship[], 
+  relationships: CatRelationship[],
   levels: RelationshipLevel[]
 ): CatRelationship[] {
-  return relationships.filter(r => levels.includes(getRelationshipLevel(r.score)));
+  return relationships.filter((r) => levels.includes(getRelationshipLevel(r.score)));
 }
 
 /**
@@ -37,7 +40,7 @@ export function filterRelationshipsByLevel(
  */
 export function countFriends(catId: string, relationships: CatRelationship[]): number {
   const catRels = getCatRelationships(catId, relationships);
-  return catRels.filter(r => {
+  return catRels.filter((r) => {
     const level = getRelationshipLevel(r.score);
     return level === 'friend' || level === 'bestFriend';
   }).length;
@@ -48,7 +51,7 @@ export function countFriends(catId: string, relationships: CatRelationship[]): n
  */
 export function countEnemies(catId: string, relationships: CatRelationship[]): number {
   const catRels = getCatRelationships(catId, relationships);
-  return catRels.filter(r => {
+  return catRels.filter((r) => {
     const level = getRelationshipLevel(r.score);
     return level === 'enemy' || level === 'rival';
   }).length;
@@ -57,9 +60,12 @@ export function countEnemies(catId: string, relationships: CatRelationship[]): n
 /**
  * Get friend relationships for a cat
  */
-export function getFriendRelationships(catId: string, relationships: CatRelationship[]): CatRelationship[] {
+export function getFriendRelationships(
+  catId: string,
+  relationships: CatRelationship[]
+): CatRelationship[] {
   const catRels = getCatRelationships(catId, relationships);
-  return catRels.filter(r => {
+  return catRels.filter((r) => {
     const level = getRelationshipLevel(r.score);
     return level === 'friend' || level === 'bestFriend';
   });
@@ -68,9 +74,12 @@ export function getFriendRelationships(catId: string, relationships: CatRelation
 /**
  * Get enemy relationships for a cat
  */
-export function getEnemyRelationships(catId: string, relationships: CatRelationship[]): CatRelationship[] {
+export function getEnemyRelationships(
+  catId: string,
+  relationships: CatRelationship[]
+): CatRelationship[] {
   const catRels = getCatRelationships(catId, relationships);
-  return catRels.filter(r => {
+  return catRels.filter((r) => {
     const level = getRelationshipLevel(r.score);
     return level === 'enemy' || level === 'rival';
   });
@@ -79,32 +88,40 @@ export function getEnemyRelationships(catId: string, relationships: CatRelations
 /**
  * Get the best friend of a cat (if any)
  */
-export function getBestFriend(catId: string, relationships: CatRelationship[], cats: Cat[]): Cat | null {
+export function getBestFriend(
+  catId: string,
+  relationships: CatRelationship[],
+  cats: Cat[]
+): Cat | null {
   const catRels = getCatRelationships(catId, relationships);
-  const bestFriendRel = catRels.find(r => getRelationshipLevel(r.score) === 'bestFriend');
-  
+  const bestFriendRel = catRels.find((r) => getRelationshipLevel(r.score) === 'bestFriend');
+
   if (!bestFriendRel) return null;
-  
+
   const bestFriendId = getOtherCatId(catId, bestFriendRel);
-  return cats.find(c => c.id === bestFriendId) || null;
+  return cats.find((c) => c.id === bestFriendId) || null;
 }
 
 /**
  * Get the worst enemy of a cat (if any)
  */
-export function getWorstEnemy(catId: string, relationships: CatRelationship[], cats: Cat[]): Cat | null {
+export function getWorstEnemy(
+  catId: string,
+  relationships: CatRelationship[],
+  cats: Cat[]
+): Cat | null {
   const catRels = getCatRelationships(catId, relationships);
   const enemyRel = catRels
-    .filter(r => {
+    .filter((r) => {
       const level = getRelationshipLevel(r.score);
       return level === 'enemy' || level === 'rival';
     })
     .sort((a, b) => a.score - b.score)[0]; // Most negative first
-  
+
   if (!enemyRel) return null;
-  
+
   const enemyId = getOtherCatId(catId, enemyRel);
-  return cats.find(c => c.id === enemyId) || null;
+  return cats.find((c) => c.id === enemyId) || null;
 }
 
 /**
@@ -119,12 +136,16 @@ export function needsSocialAttention(catId: string, relationships: CatRelationsh
 /**
  * Get relationship summary for a cat
  */
-export function getRelationshipSummary(catId: string, relationships: CatRelationship[], cats: Cat[]) {
+export function getRelationshipSummary(
+  catId: string,
+  relationships: CatRelationship[],
+  cats: Cat[]
+) {
   const catRels = getCatRelationships(catId, relationships);
   const friendRels = getFriendRelationships(catId, relationships);
   const enemyRels = getEnemyRelationships(catId, relationships);
   const bestFriend = getBestFriend(catId, relationships, cats);
-  
+
   return {
     totalRelationships: catRels.length,
     friendCount: friendRels.length,

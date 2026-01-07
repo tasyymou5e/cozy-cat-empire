@@ -31,13 +31,13 @@ export function ProfileEditor({
   const [username, setUsername] = useState(currentUsername || '');
   const [reason, setReason] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  
+
   // Display name validation
   const [isCheckingName, setIsCheckingName] = useState(false);
   const [nameAvailable, setNameAvailable] = useState<boolean | null>(null);
   const [nameSuggestions, setNameSuggestions] = useState<string[]>([]);
   const [nameError, setNameError] = useState<string | null>(null);
-  
+
   // Username validation
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
@@ -50,177 +50,185 @@ export function ProfileEditor({
   const generateNameSuggestions = (baseName: string): string[] => {
     const suggestions: string[] = [];
     const clean = baseName.replace(/[^a-zA-Z0-9]/g, '');
-    
+
     suggestions.push(`${clean}${Math.floor(Math.random() * 999)}`);
     suggestions.push(`${clean}_${Math.floor(Math.random() * 99)}`);
-    
+
     const suffixes = ['Cat', 'Meow', 'Paws', 'Kitty', 'Whiskers'];
     suggestions.push(`${clean}${suffixes[Math.floor(Math.random() * suffixes.length)]}`);
-    
+
     const prefixes = ['Sir', 'Lady', 'Captain', 'Chief', 'Master'];
     suggestions.push(`${prefixes[Math.floor(Math.random() * prefixes.length)]}${clean}`);
-    
+
     suggestions.push(`${clean}${new Date().getFullYear()}`);
-    
+
     return suggestions.slice(0, 5);
   };
 
   const generateUsernameSuggestions = (baseName: string): string[] => {
     const suggestions: string[] = [];
     const clean = baseName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    
+
     const base = /^[a-zA-Z]/.test(clean) ? clean : `cat${clean}`;
-    
+
     suggestions.push(`${base}${Math.floor(Math.random() * 999)}`);
     suggestions.push(`${base}_${Math.floor(Math.random() * 99)}`);
     suggestions.push(`${base}_cat`);
     suggestions.push(`meow_${base}`);
-    
+
     return suggestions.slice(0, 5);
   };
 
-  const checkNameAvailability = useCallback(async (name: string) => {
-    const trimmed = name.trim();
-    
-    if (trimmed.length < 3) {
-      setNameError('Display name must be at least 3 characters');
-      setNameAvailable(null);
-      return;
-    }
-    if (trimmed.length > 30) {
-      setNameError('Display name must be 30 characters or less');
-      setNameAvailable(null);
-      return;
-    }
-    if (!/^[a-zA-Z0-9\s_-]+$/.test(trimmed)) {
-      setNameError('Only letters, numbers, spaces, underscores, and hyphens allowed');
-      setNameAvailable(null);
-      return;
-    }
-    
-    setNameError(null);
-    setIsCheckingName(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('validate-display-name', {
-        body: { displayName: trimmed, action: 'validate', excludeUserId: userId }
-      });
-      
-      if (error) throw error;
-      
-      if (data.profanityViolation) {
-        setNameError('Display name contains inappropriate content');
-        setNameAvailable(false);
-        setNameSuggestions([]);
-      } else if (!data.available) {
-        setNameError('This name is already taken');
-        setNameAvailable(false);
-        setNameSuggestions(data.suggestions || generateNameSuggestions(trimmed));
-      } else if (!data.valid) {
-        setNameError(data.error || 'Invalid display name');
+  const checkNameAvailability = useCallback(
+    async (name: string) => {
+      const trimmed = name.trim();
+
+      if (trimmed.length < 3) {
+        setNameError('Display name must be at least 3 characters');
         setNameAvailable(null);
-      } else {
-        setNameAvailable(true);
-        setNameSuggestions([]);
+        return;
       }
-    } catch (err) {
-      console.error('Failed to check name availability:', err);
-      // Fallback to local check
-      const { data: localData } = await supabase
-        .from('profiles')
-        .select('id, display_name')
-        .ilike('display_name', trimmed)
-        .limit(1);
-
-      const isTaken = localData && localData.length > 0 && localData[0].id !== userId;
-      setNameAvailable(!isTaken);
-
-      if (isTaken) {
-        setNameSuggestions(generateNameSuggestions(trimmed));
-      } else {
-        setNameSuggestions([]);
+      if (trimmed.length > 30) {
+        setNameError('Display name must be 30 characters or less');
+        setNameAvailable(null);
+        return;
       }
-    } finally {
-      setIsCheckingName(false);
-    }
-  }, [userId]);
+      if (!/^[a-zA-Z0-9\s_-]+$/.test(trimmed)) {
+        setNameError('Only letters, numbers, spaces, underscores, and hyphens allowed');
+        setNameAvailable(null);
+        return;
+      }
 
-  const checkUsernameAvailability = useCallback(async (name: string) => {
-    const trimmed = name.trim().toLowerCase();
-    
-    if (!trimmed) {
-      setUsernameError(null);
-      setUsernameAvailable(null);
-      return;
-    }
-    
-    if (trimmed.length < 3) {
-      setUsernameError('Username must be at least 3 characters');
-      setUsernameAvailable(null);
-      return;
-    }
-    if (trimmed.length > 20) {
-      setUsernameError('Username must be 20 characters or less');
-      setUsernameAvailable(null);
-      return;
-    }
-    if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(trimmed)) {
-      setUsernameError('Username must start with a letter and contain only letters, numbers, and underscores');
-      setUsernameAvailable(null);
-      return;
-    }
-    
-    setUsernameError(null);
-    setIsCheckingUsername(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('validate-display-name', {
-        body: { username: trimmed, action: 'validate_username', excludeUserId: userId }
-      });
-      
-      if (error) throw error;
-      
-      if (data.profanityViolation) {
-        setUsernameError('Username contains inappropriate content');
-        setUsernameAvailable(false);
-        setUsernameSuggestions([]);
-      } else if (!data.available) {
-        setUsernameError('This username is already taken');
-        setUsernameAvailable(false);
-        setUsernameSuggestions(data.suggestions || generateUsernameSuggestions(trimmed));
-      } else if (!data.valid) {
-        setUsernameError(data.error || 'Invalid username');
+      setNameError(null);
+      setIsCheckingName(true);
+
+      try {
+        const { data, error } = await supabase.functions.invoke('validate-display-name', {
+          body: { displayName: trimmed, action: 'validate', excludeUserId: userId },
+        });
+
+        if (error) throw error;
+
+        if (data.profanityViolation) {
+          setNameError('Display name contains inappropriate content');
+          setNameAvailable(false);
+          setNameSuggestions([]);
+        } else if (!data.available) {
+          setNameError('This name is already taken');
+          setNameAvailable(false);
+          setNameSuggestions(data.suggestions || generateNameSuggestions(trimmed));
+        } else if (!data.valid) {
+          setNameError(data.error || 'Invalid display name');
+          setNameAvailable(null);
+        } else {
+          setNameAvailable(true);
+          setNameSuggestions([]);
+        }
+      } catch (err) {
+        console.error('Failed to check name availability:', err);
+        // Fallback to local check
+        const { data: localData } = await supabase
+          .from('profiles')
+          .select('id, display_name')
+          .ilike('display_name', trimmed)
+          .limit(1);
+
+        const isTaken = localData && localData.length > 0 && localData[0].id !== userId;
+        setNameAvailable(!isTaken);
+
+        if (isTaken) {
+          setNameSuggestions(generateNameSuggestions(trimmed));
+        } else {
+          setNameSuggestions([]);
+        }
+      } finally {
+        setIsCheckingName(false);
+      }
+    },
+    [userId]
+  );
+
+  const checkUsernameAvailability = useCallback(
+    async (name: string) => {
+      const trimmed = name.trim().toLowerCase();
+
+      if (!trimmed) {
+        setUsernameError(null);
         setUsernameAvailable(null);
-      } else {
-        setUsernameAvailable(true);
-        setUsernameSuggestions([]);
+        return;
       }
-    } catch (err) {
-      console.error('Failed to check username availability:', err);
-      // Fallback
-      const { data: localData } = await supabase
-        .from('profiles')
-        .select('id, username')
-        .ilike('username', trimmed)
-        .limit(1);
 
-      const isTaken = localData && localData.length > 0 && localData[0].id !== userId;
-      setUsernameAvailable(!isTaken);
-
-      if (isTaken) {
-        setUsernameSuggestions(generateUsernameSuggestions(trimmed));
-      } else {
-        setUsernameSuggestions([]);
+      if (trimmed.length < 3) {
+        setUsernameError('Username must be at least 3 characters');
+        setUsernameAvailable(null);
+        return;
       }
-    } finally {
-      setIsCheckingUsername(false);
-    }
-  }, [userId]);
+      if (trimmed.length > 20) {
+        setUsernameError('Username must be 20 characters or less');
+        setUsernameAvailable(null);
+        return;
+      }
+      if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(trimmed)) {
+        setUsernameError(
+          'Username must start with a letter and contain only letters, numbers, and underscores'
+        );
+        setUsernameAvailable(null);
+        return;
+      }
+
+      setUsernameError(null);
+      setIsCheckingUsername(true);
+
+      try {
+        const { data, error } = await supabase.functions.invoke('validate-display-name', {
+          body: { username: trimmed, action: 'validate_username', excludeUserId: userId },
+        });
+
+        if (error) throw error;
+
+        if (data.profanityViolation) {
+          setUsernameError('Username contains inappropriate content');
+          setUsernameAvailable(false);
+          setUsernameSuggestions([]);
+        } else if (!data.available) {
+          setUsernameError('This username is already taken');
+          setUsernameAvailable(false);
+          setUsernameSuggestions(data.suggestions || generateUsernameSuggestions(trimmed));
+        } else if (!data.valid) {
+          setUsernameError(data.error || 'Invalid username');
+          setUsernameAvailable(null);
+        } else {
+          setUsernameAvailable(true);
+          setUsernameSuggestions([]);
+        }
+      } catch (err) {
+        console.error('Failed to check username availability:', err);
+        // Fallback
+        const { data: localData } = await supabase
+          .from('profiles')
+          .select('id, username')
+          .ilike('username', trimmed)
+          .limit(1);
+
+        const isTaken = localData && localData.length > 0 && localData[0].id !== userId;
+        setUsernameAvailable(!isTaken);
+
+        if (isTaken) {
+          setUsernameSuggestions(generateUsernameSuggestions(trimmed));
+        } else {
+          setUsernameSuggestions([]);
+        }
+      } finally {
+        setIsCheckingUsername(false);
+      }
+    },
+    [userId]
+  );
 
   const handleSave = async () => {
     const trimmedName = displayName.trim();
     const trimmedUsername = username.trim().toLowerCase();
-    
+
     // Validate display name
     if (trimmedName.length < 3) {
       setNameError('Display name must be at least 3 characters');
@@ -234,13 +242,13 @@ export function ProfileEditor({
       setNameError('Only letters, numbers, spaces, underscores, and hyphens allowed');
       return;
     }
-    
+
     // Validate username if provided
     if (trimmedUsername && !/^[a-zA-Z][a-zA-Z0-9_]*$/.test(trimmedUsername)) {
       setUsernameError('Invalid username format');
       return;
     }
-    
+
     if (!reason.trim()) {
       toast({
         title: 'Reason Required',
@@ -260,20 +268,20 @@ export function ProfileEditor({
     }
 
     setIsSaving(true);
-    
+
     try {
       // Final profanity check
       const { data: nameCheck } = await supabase.functions.invoke('validate-display-name', {
-        body: { displayName: trimmedName, action: 'validate', excludeUserId: userId }
+        body: { displayName: trimmedName, action: 'validate', excludeUserId: userId },
       });
-      
+
       if (nameCheck?.profanityViolation) {
         setNameError('Display name contains inappropriate content');
         setNameAvailable(false);
         setIsSaving(false);
         return;
       }
-      
+
       if (!nameCheck?.available) {
         setNameError('This name is already taken');
         setNameAvailable(false);
@@ -284,16 +292,16 @@ export function ProfileEditor({
 
       if (trimmedUsername) {
         const { data: usernameCheck } = await supabase.functions.invoke('validate-display-name', {
-          body: { username: trimmedUsername, action: 'validate_username', excludeUserId: userId }
+          body: { username: trimmedUsername, action: 'validate_username', excludeUserId: userId },
         });
-        
+
         if (usernameCheck?.profanityViolation) {
           setUsernameError('Username contains inappropriate content');
           setUsernameAvailable(false);
           setIsSaving(false);
           return;
         }
-        
+
         if (!usernameCheck?.available) {
           setUsernameError('This username is already taken');
           setUsernameAvailable(false);
@@ -347,7 +355,8 @@ export function ProfileEditor({
     }
   };
 
-  const hasErrors = nameError || usernameError || nameAvailable === false || usernameAvailable === false;
+  const hasErrors =
+    nameError || usernameError || nameAvailable === false || usernameAvailable === false;
 
   return (
     <div className="space-y-4">
@@ -402,11 +411,9 @@ export function ProfileEditor({
         <p className="text-xs text-muted-foreground">
           3-30 characters, letters/numbers/spaces/underscores/hyphens only
         </p>
-        
-        {nameError && (
-          <p className="text-xs text-destructive">{nameError}</p>
-        )}
-        
+
+        {nameError && <p className="text-xs text-destructive">{nameError}</p>}
+
         {nameAvailable === false && nameSuggestions.length > 0 && (
           <div className="space-y-1">
             <p className="text-xs text-orange-500">Name taken. Try one of these:</p>
@@ -468,7 +475,9 @@ export function ProfileEditor({
             )}
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            {isCheckingUsername && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+            {isCheckingUsername && (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            )}
             {usernameAvailable === true && <Check className="h-4 w-4 text-green-500" />}
             {usernameAvailable === false && <AlertCircle className="h-4 w-4 text-orange-500" />}
           </div>
@@ -476,11 +485,9 @@ export function ProfileEditor({
         <p className="text-xs text-muted-foreground">
           For @mentions (3-20 chars, starts with letter, a-z, 0-9, _)
         </p>
-        
-        {usernameError && (
-          <p className="text-xs text-destructive">{usernameError}</p>
-        )}
-        
+
+        {usernameError && <p className="text-xs text-destructive">{usernameError}</p>}
+
         {usernameAvailable === false && usernameSuggestions.length > 0 && (
           <div className="space-y-1">
             <p className="text-xs text-orange-500">Username taken. Try one of these:</p>

@@ -13,11 +13,11 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
-@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap');
 
-@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
 
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
 
 @layer base {
   :root {
@@ -69,9 +69,13 @@
     --chart-4: 238 83% 66%;
     --chart-5: 0 0% 45%;
     --sidebar: 0 0% 98%;
-    --font-sans: 'Lato', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    --font-sans:
+      'Lato', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+      'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
     --font-serif: 'EB Garamond', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-    --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    --font-mono:
+      'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+      'Courier New', monospace;
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
     --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
     --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
@@ -222,14 +226,30 @@
   .cat-grid > * {
     animation: fade-in-up 0.4s ease-out backwards;
   }
-  .cat-grid > *:nth-child(1) { animation-delay: 0ms; }
-  .cat-grid > *:nth-child(2) { animation-delay: 50ms; }
-  .cat-grid > *:nth-child(3) { animation-delay: 100ms; }
-  .cat-grid > *:nth-child(4) { animation-delay: 150ms; }
-  .cat-grid > *:nth-child(5) { animation-delay: 200ms; }
-  .cat-grid > *:nth-child(6) { animation-delay: 250ms; }
-  .cat-grid > *:nth-child(7) { animation-delay: 300ms; }
-  .cat-grid > *:nth-child(8) { animation-delay: 350ms; }
+  .cat-grid > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .cat-grid > *:nth-child(2) {
+    animation-delay: 50ms;
+  }
+  .cat-grid > *:nth-child(3) {
+    animation-delay: 100ms;
+  }
+  .cat-grid > *:nth-child(4) {
+    animation-delay: 150ms;
+  }
+  .cat-grid > *:nth-child(5) {
+    animation-delay: 200ms;
+  }
+  .cat-grid > *:nth-child(6) {
+    animation-delay: 250ms;
+  }
+  .cat-grid > *:nth-child(7) {
+    animation-delay: 300ms;
+  }
+  .cat-grid > *:nth-child(8) {
+    animation-delay: 350ms;
+  }
 
   .cat-card {
     @apply flex flex-col items-center p-3 rounded-xl 
@@ -258,7 +278,10 @@
     @apply w-full lg:w-80 flex-shrink-0;
   }
 
-  .action-panel, .chore-panel, .resource-panel, .market-panel {
+  .action-panel,
+  .chore-panel,
+  .resource-panel,
+  .market-panel {
     @apply bg-card/80 backdrop-blur-md rounded-xl 
            border border-white/20 dark:border-white/10 
            shadow-lg p-4 space-y-4;
@@ -299,21 +322,45 @@
 }
 
 @keyframes mood-float {
-  0% { opacity: 0; transform: translateY(0) scale(0.5); }
-  20% { opacity: 1; transform: translateY(-10px) scale(1); }
-  80% { opacity: 1; transform: translateY(-30px) scale(1); }
-  100% { opacity: 0; transform: translateY(-50px) scale(0.5); }
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(-30px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.5);
+  }
 }
 
 @keyframes wiggle {
-  0%, 100% { transform: rotate(-3deg); }
-  50% { transform: rotate(3deg); }
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-2px); }
-  75% { transform: translateX(2px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
 }
 
 .animate-mood-float {
@@ -330,14 +377,26 @@
 
 /* Photo Booth Pose Animations */
 @keyframes cat-wave {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-8deg); }
-  75% { transform: rotate(8deg); }
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-8deg);
+  }
+  75% {
+    transform: rotate(8deg);
+  }
 }
 
 @keyframes cat-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
 }
 
 .animate-cat-wave {
@@ -352,25 +411,38 @@
 
 /* Animated Background Gradient */
 .animated-gradient-bg {
-  background: linear-gradient(-45deg, 
-    hsl(var(--primary) / 0.1), 
-    hsl(var(--accent) / 0.15), 
-    hsl(var(--background)), 
-    hsl(var(--primary) / 0.05));
+  background: linear-gradient(
+    -45deg,
+    hsl(var(--primary) / 0.1),
+    hsl(var(--accent) / 0.15),
+    hsl(var(--background)),
+    hsl(var(--primary) / 0.05)
+  );
   background-size: 400% 400%;
   animation: gradient-shift 15s ease infinite;
 }
 
 @keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* Floating Animation */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .animate-float {
@@ -378,11 +450,21 @@
 }
 
 /* Staggered Animation Delays */
-.animate-delay-100 { animation-delay: 100ms; }
-.animate-delay-200 { animation-delay: 200ms; }
-.animate-delay-300 { animation-delay: 300ms; }
-.animate-delay-400 { animation-delay: 400ms; }
-.animate-delay-500 { animation-delay: 500ms; }
+.animate-delay-100 {
+  animation-delay: 100ms;
+}
+.animate-delay-200 {
+  animation-delay: 200ms;
+}
+.animate-delay-300 {
+  animation-delay: 300ms;
+}
+.animate-delay-400 {
+  animation-delay: 400ms;
+}
+.animate-delay-500 {
+  animation-delay: 500ms;
+}
 
 /* Fade In Up Animation */
 @keyframes fade-in-up {
@@ -427,8 +509,13 @@
 
 /* Golden glow for crowns and legendary items */
 @keyframes costume-glow-gold {
-  0%, 100% { filter: drop-shadow(0 0 3px #FFD700); }
-  50% { filter: drop-shadow(0 0 10px #FFD700) drop-shadow(0 0 18px #FFA500); }
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px #ffd700);
+  }
+  50% {
+    filter: drop-shadow(0 0 10px #ffd700) drop-shadow(0 0 18px #ffa500);
+  }
 }
 
 .animate-costume-glow-gold {
@@ -437,10 +524,18 @@
 
 /* VIP rainbow glow */
 @keyframes costume-glow-vip {
-  0% { filter: drop-shadow(0 0 5px #C0C0C0) drop-shadow(0 0 10px #FFD700); }
-  33% { filter: drop-shadow(0 0 8px #FFD700) drop-shadow(0 0 15px #FF69B4); }
-  66% { filter: drop-shadow(0 0 8px #FF69B4) drop-shadow(0 0 15px #9B59B6); }
-  100% { filter: drop-shadow(0 0 5px #C0C0C0) drop-shadow(0 0 10px #FFD700); }
+  0% {
+    filter: drop-shadow(0 0 5px #c0c0c0) drop-shadow(0 0 10px #ffd700);
+  }
+  33% {
+    filter: drop-shadow(0 0 8px #ffd700) drop-shadow(0 0 15px #ff69b4);
+  }
+  66% {
+    filter: drop-shadow(0 0 8px #ff69b4) drop-shadow(0 0 15px #9b59b6);
+  }
+  100% {
+    filter: drop-shadow(0 0 5px #c0c0c0) drop-shadow(0 0 10px #ffd700);
+  }
 }
 
 .animate-costume-glow-vip {
@@ -449,8 +544,13 @@
 
 /* Fiery glow for dragon */
 @keyframes costume-glow-fire {
-  0%, 100% { filter: drop-shadow(0 0 4px #FF4500); }
-  50% { filter: drop-shadow(0 0 12px #FF4500) drop-shadow(0 0 20px #FF6347); }
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px #ff4500);
+  }
+  50% {
+    filter: drop-shadow(0 0 12px #ff4500) drop-shadow(0 0 20px #ff6347);
+  }
 }
 
 .animate-costume-glow-fire {
@@ -459,9 +559,16 @@
 
 /* Flowing cape animation */
 @keyframes costume-flow {
-  0%, 100% { transform: skewX(0deg) translateX(0); }
-  25% { transform: skewX(1.5deg) translateX(1px); }
-  75% { transform: skewX(-1.5deg) translateX(-1px); }
+  0%,
+  100% {
+    transform: skewX(0deg) translateX(0);
+  }
+  25% {
+    transform: skewX(1.5deg) translateX(1px);
+  }
+  75% {
+    transform: skewX(-1.5deg) translateX(-1px);
+  }
 }
 
 .animate-costume-flow {
@@ -470,12 +577,24 @@
 
 /* Rainbow color shift for unicorn */
 @keyframes costume-rainbow {
-  0% { filter: drop-shadow(0 0 6px #FF6B6B); }
-  20% { filter: drop-shadow(0 0 6px #FFE66D); }
-  40% { filter: drop-shadow(0 0 6px #4ECDC4); }
-  60% { filter: drop-shadow(0 0 6px #45B7D1); }
-  80% { filter: drop-shadow(0 0 6px #9B59B6); }
-  100% { filter: drop-shadow(0 0 6px #FF6B6B); }
+  0% {
+    filter: drop-shadow(0 0 6px #ff6b6b);
+  }
+  20% {
+    filter: drop-shadow(0 0 6px #ffe66d);
+  }
+  40% {
+    filter: drop-shadow(0 0 6px #4ecdc4);
+  }
+  60% {
+    filter: drop-shadow(0 0 6px #45b7d1);
+  }
+  80% {
+    filter: drop-shadow(0 0 6px #9b59b6);
+  }
+  100% {
+    filter: drop-shadow(0 0 6px #ff6b6b);
+  }
 }
 
 .animate-costume-rainbow {
@@ -484,8 +603,13 @@
 
 /* Wing flutter animation */
 @keyframes costume-flutter {
-  0%, 100% { transform: scaleX(1); }
-  50% { transform: scaleX(1.03); }
+  0%,
+  100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(1.03);
+  }
 }
 
 .animate-costume-flutter {
@@ -494,8 +618,14 @@
 
 /* Sparkle for wizard stars */
 @keyframes costume-sparkle {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; filter: drop-shadow(0 0 4px #FFD700); }
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px #ffd700);
+  }
 }
 
 .animate-costume-sparkle {
@@ -504,8 +634,13 @@
 
 /* Bronze shimmer */
 @keyframes costume-shimmer-bronze {
-  0%, 100% { filter: drop-shadow(0 0 2px #CD7F32); }
-  50% { filter: drop-shadow(0 0 6px #CD7F32) drop-shadow(0 0 10px #B8860B); }
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px #cd7f32);
+  }
+  50% {
+    filter: drop-shadow(0 0 6px #cd7f32) drop-shadow(0 0 10px #b8860b);
+  }
 }
 
 .animate-costume-shimmer-bronze {
@@ -514,8 +649,13 @@
 
 /* Silver shimmer */
 @keyframes costume-shimmer-silver {
-  0%, 100% { filter: drop-shadow(0 0 3px #C0C0C0); }
-  50% { filter: drop-shadow(0 0 8px #C0C0C0) drop-shadow(0 0 12px #E8E8E8); }
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px #c0c0c0);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px #c0c0c0) drop-shadow(0 0 12px #e8e8e8);
+  }
 }
 
 .animate-costume-shimmer-silver {
@@ -524,8 +664,15 @@
 
 /* Costume particle sparkle */
 @keyframes particle-sparkle {
-  0%, 100% { opacity: 0; transform: scale(0.5); }
-  50% { opacity: 1; transform: scale(1.2); }
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 .animate-particle-sparkle {
@@ -553,23 +700,23 @@
   .animate-particle-sparkle {
     animation: none;
   }
-  
+
   /* Static glow fallbacks for reduced motion */
   .animate-rainbow-glow {
-    box-shadow: 0 0 25px 6px rgba(236,72,153,0.5);
-    border-color: rgb(236,72,153);
+    box-shadow: 0 0 25px 6px rgba(236, 72, 153, 0.5);
+    border-color: rgb(236, 72, 153);
   }
-  
+
   .animate-golden-glow {
-    box-shadow: 0 0 20px 5px rgba(234,179,8,0.5);
+    box-shadow: 0 0 20px 5px rgba(234, 179, 8, 0.5);
   }
-  
+
   .animate-purple-glow {
-    box-shadow: 0 0 15px 4px rgba(168,85,247,0.4);
+    box-shadow: 0 0 15px 4px rgba(168, 85, 247, 0.4);
   }
-  
+
   .animate-costume-glow-gold,
   .animate-costume-glow-vip {
-    filter: drop-shadow(0 0 6px #FFD700);
+    filter: drop-shadow(0 0 6px #ffd700);
   }
 }

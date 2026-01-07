@@ -48,7 +48,9 @@ export function WealthProgressionChart({ data, loading }: WealthProgressionChart
           </CardTitle>
         </CardHeader>
         <CardContent className="h-64 flex items-center justify-center">
-          <p className="text-muted-foreground">No wealth history data yet. Keep playing to track your progress!</p>
+          <p className="text-muted-foreground">
+            No wealth history data yet. Keep playing to track your progress!
+          </p>
         </CardContent>
       </Card>
     );
@@ -57,10 +59,11 @@ export function WealthProgressionChart({ data, loading }: WealthProgressionChart
   // Calculate trend
   const firstValue = data[0]?.wealth || 0;
   const lastValue = data[data.length - 1]?.wealth || 0;
-  const growthPercent = firstValue > 0 ? ((lastValue - firstValue) / firstValue * 100).toFixed(1) : 0;
+  const growthPercent =
+    firstValue > 0 ? (((lastValue - firstValue) / firstValue) * 100).toFixed(1) : 0;
   const trend = lastValue > firstValue ? 'up' : lastValue < firstValue ? 'down' : 'neutral';
 
-  const formattedData = data.map(d => ({
+  const formattedData = data.map((d) => ({
     ...d,
     formattedDate: format(new Date(d.date), 'MMM d'),
   }));
@@ -73,9 +76,15 @@ export function WealthProgressionChart({ data, loading }: WealthProgressionChart
             <TrendingUp className="h-5 w-5" />
             Wealth Progression
           </CardTitle>
-          <div className={`flex items-center gap-1 text-sm ${
-            trend === 'up' ? 'text-green-500' : trend === 'down' ? 'text-red-500' : 'text-muted-foreground'
-          }`}>
+          <div
+            className={`flex items-center gap-1 text-sm ${
+              trend === 'up'
+                ? 'text-green-500'
+                : trend === 'down'
+                  ? 'text-red-500'
+                  : 'text-muted-foreground'
+            }`}
+          >
             {trend === 'up' && <TrendingUp className="h-4 w-4" />}
             {trend === 'down' && <TrendingDown className="h-4 w-4" />}
             {trend === 'neutral' && <Minus className="h-4 w-4" />}
@@ -87,25 +96,27 @@ export function WealthProgressionChart({ data, loading }: WealthProgressionChart
         <ChartContainer config={chartConfig} className="h-64 w-full">
           <LineChart data={formattedData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis 
-              dataKey="formattedDate" 
+            <XAxis
+              dataKey="formattedDate"
               tick={{ fontSize: 12 }}
               tickLine={false}
               axisLine={false}
             />
-            <YAxis 
+            <YAxis
               tick={{ fontSize: 12 }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value) => `$${value >= 1000 ? `${(value/1000).toFixed(0)}k` : value}`}
+              tickFormatter={(value) =>
+                `$${value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`
+              }
             />
-            <ChartTooltip 
+            <ChartTooltip
               content={<ChartTooltipContent />}
               formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Wealth']}
             />
-            <Line 
-              type="monotone" 
-              dataKey="wealth" 
+            <Line
+              type="monotone"
+              dataKey="wealth"
               stroke="hsl(var(--primary))"
               strokeWidth={2}
               dot={false}

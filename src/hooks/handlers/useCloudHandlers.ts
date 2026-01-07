@@ -1,9 +1,9 @@
 /**
  * @fileoverview Cloud save/load handlers for CatFarm
- * 
+ *
  * Manages cloud synchronization including auto-save intervals,
  * manual save/load, and initial cloud load on login.
- * 
+ *
  * @module hooks/handlers/useCloudHandlers
  */
 
@@ -38,11 +38,7 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
     if (auth.user && !ui.hasLoadedCloud) {
       cloudSave.cloudLoad().then(({ data }) => {
         if (data) {
-          actions.loadFromData?.(
-            data.game_state,
-            data.kittens_bred,
-            data.relationships
-          );
+          actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
           ui.setLastCloudSave(data.last_played_at);
         }
         ui.setHasLoadedCloud(true);
@@ -54,18 +50,21 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
   useEffect(() => {
     if (!auth.user) return;
 
-    const interval = setInterval(async () => {
-      ui.setCloudSyncing(true);
-      const result = await cloudSave.cloudSave(
-        state,
-        kittensBreed,
-        relationshipSystem.getRelationshipSaveData()
-      );
-      if (result.success) {
-        ui.setLastCloudSave(new Date().toISOString());
-      }
-      ui.setCloudSyncing(false);
-    }, 5 * 60 * 1000);
+    const interval = setInterval(
+      async () => {
+        ui.setCloudSyncing(true);
+        const result = await cloudSave.cloudSave(
+          state,
+          kittensBreed,
+          relationshipSystem.getRelationshipSaveData()
+        );
+        if (result.success) {
+          ui.setLastCloudSave(new Date().toISOString());
+        }
+        ui.setCloudSyncing(false);
+      },
+      5 * 60 * 1000
+    );
 
     return () => clearInterval(interval);
   }, [auth.user, state, kittensBreed, relationshipSystem, cloudSave, ui]);
@@ -105,11 +104,7 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
     if (!auth.user) return;
     const { data } = await cloudSave.cloudLoad();
     if (data) {
-      actions.loadFromData?.(
-        data.game_state,
-        data.kittens_bred,
-        data.relationships
-      );
+      actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
       ui.setLastCloudSave(data.last_played_at);
       playSound?.('success');
     }

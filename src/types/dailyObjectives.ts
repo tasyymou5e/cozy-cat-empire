@@ -1,4 +1,4 @@
-export type ObjectiveType = 
+export type ObjectiveType =
   | 'feed_cats'
   | 'win_show'
   | 'socialize'
@@ -125,7 +125,7 @@ export function generateDailyObjectives(count: number = 3): DailyObjective[] {
   // Shuffle and pick random objectives
   const shuffled = [...OBJECTIVE_DEFINITIONS].sort(() => Math.random() - 0.5);
   const selected = shuffled.slice(0, count);
-  
+
   return selected.map((def, index) => {
     const target = Math.floor(
       Math.random() * (def.targetRange[1] - def.targetRange[0] + 1) + def.targetRange[0]
@@ -133,7 +133,7 @@ export function generateDailyObjectives(count: number = 3): DailyObjective[] {
     const reward = Math.floor(
       Math.random() * (def.rewardRange[1] - def.rewardRange[0] + 1) + def.rewardRange[0]
     );
-    
+
     return {
       id: `${def.id}_${Date.now()}_${index}`,
       type: def.id,

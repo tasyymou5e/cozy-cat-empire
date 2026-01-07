@@ -18,10 +18,10 @@ interface FriendsPanelProps {
 
 /**
  * FriendsPanel - Social friends management interface
- * 
+ *
  * Allows players to view friends, manage friend requests, and add new friends.
  * Displays friend stats including show wins, cats owned, and kittens bred.
- * 
+ *
  * @example
  * ```tsx
  * <FriendsPanel userId={user?.id} />
@@ -124,9 +124,7 @@ export function FriendsPanel({ userId }: FriendsPanelProps) {
                         {friend.display_name || 'Anonymous'}
                       </div>
                       {friend.username && (
-                        <div className="text-xs text-muted-foreground">
-                          @{friend.username}
-                        </div>
+                        <div className="text-xs text-muted-foreground">@{friend.username}</div>
                       )}
                       {friend.stats && (
                         <div className="flex gap-3 text-xs text-muted-foreground mt-1">
@@ -178,13 +176,9 @@ export function FriendsPanel({ userId }: FriendsPanelProps) {
                         {request.display_name || 'Anonymous'}
                       </div>
                       {request.username && (
-                        <div className="text-xs text-muted-foreground">
-                          @{request.username}
-                        </div>
+                        <div className="text-xs text-muted-foreground">@{request.username}</div>
                       )}
-                      <div className="text-xs text-muted-foreground">
-                        wants to be your friend
-                      </div>
+                      <div className="text-xs text-muted-foreground">wants to be your friend</div>
                     </div>
                     <div className="flex gap-1">
                       <Button

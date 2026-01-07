@@ -13,13 +13,10 @@ export function usePortraitOutdatedToast() {
 
   const showOutdatedToast = (cat: Cat) => {
     toast({
-      title: "Portrait Outdated",
+      title: 'Portrait Outdated',
       description: `${cat.name}'s appearance has changed. The AI portrait no longer matches.`,
       action: (
-        <ToastAction 
-          altText="Update Portrait" 
-          onClick={() => navigate(`/photobooth/${cat.id}`)}
-        >
+        <ToastAction altText="Update Portrait" onClick={() => navigate(`/photobooth/${cat.id}`)}>
           Update Portrait
         </ToastAction>
       ),

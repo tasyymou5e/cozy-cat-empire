@@ -70,7 +70,11 @@ export function PortraitPurchaseDialog({
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Your Balance:</span>
-                  <span className={canAfford ? 'text-green-500 font-medium' : 'text-red-500 font-medium'}>
+                  <span
+                    className={
+                      canAfford ? 'text-green-500 font-medium' : 'text-red-500 font-medium'
+                    }
+                  >
                     ${currentMoney.toLocaleString()}
                   </span>
                 </div>
@@ -87,8 +91,8 @@ export function PortraitPurchaseDialog({
                 <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-lg">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
                   <span className="text-sm">
-                    You need ${(packageCost - currentMoney).toLocaleString()} more coins.
-                    Earn money through chores, cat shows, and selling cats!
+                    You need ${(packageCost - currentMoney).toLocaleString()} more coins. Earn money
+                    through chores, cat shows, and selling cats!
                   </span>
                 </div>
               )}

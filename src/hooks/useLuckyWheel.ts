@@ -51,51 +51,52 @@ export function useLuckyWheel(isVIP: boolean = false): UseLuckyWheelReturn {
   // Load from cloud on mount
   useEffect(() => {
     if (!user?.id || cloudLoaded) return;
-    
+
     const loadFromCloud = async () => {
       const { data } = await supabase
         .from('player_progress')
         .select('last_spin_date, spins_today, total_spins, best_prize')
         .eq('user_id', user.id)
         .single();
-      
+
       if (data) {
         const today = getTodayDateString();
         const cloudLastSpinDate = data.last_spin_date;
         const isNewDay = cloudLastSpinDate !== today;
-        
+
         const cloudState: WheelState = {
           lastSpinDate: isNewDay ? null : cloudLastSpinDate,
-          spinsToday: isNewDay ? 0 : (data.spins_today || 0),
+          spinsToday: isNewDay ? 0 : data.spins_today || 0,
           totalSpins: Math.max(state.totalSpins, data.total_spins || 0),
           bestPrize: data.best_prize as WheelState['bestPrize'],
         };
-        
+
         setState(cloudState);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudState));
       }
       setCloudLoaded(true);
     };
-    
+
     loadFromCloud();
   }, [user?.id, cloudLoaded]);
 
   // Sync to cloud when state changes
   useEffect(() => {
     if (!user?.id || !cloudLoaded) return;
-    
+
     const syncToCloud = async () => {
-      await supabase
-        .from('player_progress')
-        .upsert({
+      await supabase.from('player_progress').upsert(
+        {
           user_id: user.id,
           last_spin_date: state.lastSpinDate,
           spins_today: state.spinsToday,
           total_spins: state.totalSpins,
           best_prize: state.bestPrize,
-        }, { onConflict: 'user_id' });
+        },
+        { onConflict: 'user_id' }
+      );
     };
-    
+
     syncToCloud();
   }, [user?.id, state, cloudLoaded]);
 
@@ -108,7 +109,7 @@ export function useLuckyWheel(isVIP: boolean = false): UseLuckyWheelReturn {
   useEffect(() => {
     const today = getTodayDateString();
     if (state.lastSpinDate && state.lastSpinDate !== today) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         lastSpinDate: null,
         spinsToday: 0,
@@ -120,15 +121,15 @@ export function useLuckyWheel(isVIP: boolean = false): UseLuckyWheelReturn {
     if (!canSpin) return null;
 
     setIsSpinning(true);
-    
+
     const prize = selectRandomPrize();
-    
-    setState(prev => {
-      const newBestPrize = !prev.bestPrize || 
-        getRarityValue(prize.rarity) > getRarityValue(prev.bestPrize) 
-          ? prize.rarity 
+
+    setState((prev) => {
+      const newBestPrize =
+        !prev.bestPrize || getRarityValue(prize.rarity) > getRarityValue(prev.bestPrize)
+          ? prize.rarity
           : prev.bestPrize;
-      
+
       return {
         lastSpinDate: getTodayDateString(),
         spinsToday: prev.spinsToday + 1,

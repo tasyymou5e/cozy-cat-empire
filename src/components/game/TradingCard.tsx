@@ -16,34 +16,47 @@ interface TradingCardProps {
 }
 
 const typeLabels: Record<string, { label: string; color: string }> = {
-  'stray': { label: 'Stray', color: 'bg-gray-500' },
-  'adopted': { label: 'Adopted', color: 'bg-blue-500' },
-  'pure': { label: 'Purebred', color: 'bg-purple-500' },
+  stray: { label: 'Stray', color: 'bg-gray-500' },
+  adopted: { label: 'Adopted', color: 'bg-blue-500' },
+  pure: { label: 'Purebred', color: 'bg-purple-500' },
 };
 
-export function TradingCard({ cat, relationships, allCats, onClick, equippedCostumeId }: TradingCardProps) {
+export function TradingCard({
+  cat,
+  relationships,
+  allCats,
+  onClick,
+  equippedCostumeId,
+}: TradingCardProps) {
   const tier = getGradeTier(cat.grade);
   const stars = getGradeStars(cat.grade);
-  
+
   // Get relationship stats
-  const catRelationships = relationships.filter(r => r.catId1 === cat.id || r.catId2 === cat.id);
-  const friends = catRelationships.filter(r => {
+  const catRelationships = relationships.filter((r) => r.catId1 === cat.id || r.catId2 === cat.id);
+  const friends = catRelationships.filter((r) => {
     const level = getRelationshipLevel(r.score);
     return level === 'friend' || level === 'bestFriend';
   });
-  const enemies = catRelationships.filter(r => {
+  const enemies = catRelationships.filter((r) => {
     const level = getRelationshipLevel(r.score);
     return level === 'enemy' || level === 'rival';
   });
-  
+
   // Find best friend
-  const bestFriendRel = catRelationships.find(r => getRelationshipLevel(r.score) === 'bestFriend');
-  const bestFriendId = bestFriendRel ? (bestFriendRel.catId1 === cat.id ? bestFriendRel.catId2 : bestFriendRel.catId1) : null;
-  const bestFriend = bestFriendId ? allCats.find(c => c.id === bestFriendId) : null;
+  const bestFriendRel = catRelationships.find(
+    (r) => getRelationshipLevel(r.score) === 'bestFriend'
+  );
+  const bestFriendId = bestFriendRel
+    ? bestFriendRel.catId1 === cat.id
+      ? bestFriendRel.catId2
+      : bestFriendRel.catId1
+    : null;
+  const bestFriend = bestFriendId ? allCats.find((c) => c.id === bestFriendId) : null;
 
   const cardBorders: Record<string, string> = {
     common: 'border-2 border-border',
-    uncommon: 'border-2 border-blue-400 shadow-[0_0_12px_2px_rgba(59,130,246,0.35)] hover:shadow-[0_0_18px_4px_rgba(59,130,246,0.5)]',
+    uncommon:
+      'border-2 border-blue-400 shadow-[0_0_12px_2px_rgba(59,130,246,0.35)] hover:shadow-[0_0_18px_4px_rgba(59,130,246,0.5)]',
     rare: 'border-2 border-purple-400 animate-purple-glow',
     veryRare: 'border-2 border-yellow-400 animate-golden-glow',
     ultraRare: 'border-2 animate-rainbow-glow',
@@ -54,7 +67,8 @@ export function TradingCard({ cat, relationships, allCats, onClick, equippedCost
     uncommon: 'bg-gradient-to-b from-blue-50 to-card dark:from-blue-950/30',
     rare: 'bg-gradient-to-b from-purple-50 to-card dark:from-purple-950/30',
     veryRare: 'bg-gradient-to-b from-yellow-50 to-card dark:from-yellow-950/30',
-    ultraRare: 'bg-gradient-to-br from-purple-100 via-pink-50 to-orange-100 dark:from-purple-950/50 dark:via-pink-950/30 dark:to-orange-950/50',
+    ultraRare:
+      'bg-gradient-to-br from-purple-100 via-pink-50 to-orange-100 dark:from-purple-950/50 dark:via-pink-950/30 dark:to-orange-950/50',
   };
 
   const innerCard = (
@@ -66,9 +80,9 @@ export function TradingCard({ cat, relationships, allCats, onClick, equippedCost
       </div>
       {/* Cat Display */}
       <div className="relative flex-shrink-0 h-24 flex items-center justify-center mb-2 rounded-md bg-gradient-to-b from-background/50 to-transparent">
-        <CatVisual 
-          cat={cat} 
-          size="lg" 
+        <CatVisual
+          cat={cat}
+          size="lg"
           equippedCostumeId={equippedCostumeId}
           preferPortrait={true}
           animated={tier === 'ultraRare' || tier === 'veryRare'}
@@ -116,12 +130,18 @@ export function TradingCard({ cat, relationships, allCats, onClick, equippedCost
       {/* Tricks */}
       {cat.tricksLearned.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2">
-          {cat.tricksLearned.map(trickId => {
-            const trick = TRICKS.find(t => t.id === trickId);
-            return trick && (
-              <span key={trickId} className="text-xs bg-accent/50 px-1.5 py-0.5 rounded" title={trick.name}>
-                {trick.emoji}
-              </span>
+          {cat.tricksLearned.map((trickId) => {
+            const trick = TRICKS.find((t) => t.id === trickId);
+            return (
+              trick && (
+                <span
+                  key={trickId}
+                  className="text-xs bg-accent/50 px-1.5 py-0.5 rounded"
+                  title={trick.name}
+                >
+                  {trick.emoji}
+                </span>
+              )
             );
           })}
         </div>
@@ -149,9 +169,7 @@ export function TradingCard({ cat, relationships, allCats, onClick, equippedCost
 
       {/* Best Friend */}
       {bestFriend && (
-        <div className="text-[10px] text-center text-pink-500 mt-1">
-          💕 BFF: {bestFriend.name}
-        </div>
+        <div className="text-[10px] text-center text-pink-500 mt-1">💕 BFF: {bestFriend.name}</div>
       )}
 
       {/* Value */}
@@ -162,7 +180,7 @@ export function TradingCard({ cat, relationships, allCats, onClick, equippedCost
   );
 
   return (
-    <div 
+    <div
       onClick={onClick}
       className={`cursor-pointer transition-all duration-300 hover:scale-105 hover:-translate-y-1 rounded-lg overflow-hidden ${cardBorders[tier]}`}
     >

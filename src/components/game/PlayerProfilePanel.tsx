@@ -11,7 +11,24 @@ interface PlayerProfilePanelProps {
   userId: string | undefined;
 }
 
-const AVATAR_OPTIONS = ['😺', '😸', '😻', '😽', '🐱', '🐈', '🐈‍⬛', '😼', '🙀', '😿', '😾', '🦁', '🐯', '🐆', '🐅', '🎀'];
+const AVATAR_OPTIONS = [
+  '😺',
+  '😸',
+  '😻',
+  '😽',
+  '🐱',
+  '🐈',
+  '🐈‍⬛',
+  '😼',
+  '🙀',
+  '😿',
+  '😾',
+  '🦁',
+  '🐯',
+  '🐆',
+  '🐅',
+  '🎀',
+];
 
 export function PlayerProfilePanel({ userId }: PlayerProfilePanelProps) {
   const { profile, loading, updateProfile } = usePlayerProfile(userId);
@@ -122,11 +139,7 @@ export function PlayerProfilePanel({ userId }: PlayerProfilePanelProps) {
         </div>
 
         {/* Save Button */}
-        <Button
-          onClick={handleSave}
-          disabled={saving || !hasChanges}
-          className="w-full"
-        >
+        <Button onClick={handleSave} disabled={saving || !hasChanges} className="w-full">
           {saving ? (
             <>
               <Save className="h-4 w-4 mr-2 animate-pulse" />

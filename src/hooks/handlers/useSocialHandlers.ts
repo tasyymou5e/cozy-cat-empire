@@ -1,8 +1,8 @@
 /**
  * @fileoverview Social interaction handlers for CatFarm
- * 
+ *
  * Handles gift/trade popup responses and quick socialize actions.
- * 
+ *
  * @module hooks/handlers/useSocialHandlers
  */
 

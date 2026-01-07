@@ -1,6 +1,6 @@
 /**
  * AnimatedCostumeSVG - Renders costume overlays with animated effects
- * 
+ *
  * Supports various animation types: glow, sparkle, flow, rainbow, shimmer
  * Includes particle effects for legendary items
  */
@@ -22,10 +22,10 @@ const animationClassMap: Record<string, string> = {
   'glow-gold': 'animate-costume-glow-gold',
   'glow-vip': 'animate-costume-glow-vip',
   'glow-fire': 'animate-costume-glow-fire',
-  'flow': 'animate-costume-flow',
-  'rainbow': 'animate-costume-rainbow',
-  'flutter': 'animate-costume-flutter',
-  'sparkle': 'animate-costume-sparkle',
+  flow: 'animate-costume-flow',
+  rainbow: 'animate-costume-rainbow',
+  flutter: 'animate-costume-flutter',
+  sparkle: 'animate-costume-sparkle',
   'shimmer-bronze': 'animate-costume-shimmer-bronze',
   'shimmer-silver': 'animate-costume-shimmer-silver',
 };
@@ -49,7 +49,7 @@ export function AnimatedCostumeSVG({
   const scale = costume.scales[size] || costume.scales.md || 1;
   const shouldAnimate = isAnimated && settings.enableCostumeAnimations;
   const shouldShowParticles = shouldAnimate && settings.enableParticles;
-  
+
   // Get animation class
   const animationClass = useMemo(() => {
     if (!shouldAnimate || !costume.animation?.className) return '';
@@ -59,24 +59,21 @@ export function AnimatedCostumeSVG({
   // Render particles if costume has them
   const renderParticles = () => {
     if (!shouldShowParticles || !costume.particles) return null;
-    
+
     const { type, count, color } = costume.particles;
     const particleColor = color || '#FFD700';
     const particlesToRender = particlePositions.slice(0, count);
-    
+
     return (
       <>
         {particlesToRender.map((pos, i) => (
-          <g 
-            key={i} 
+          <g
+            key={i}
             className="animate-particle-sparkle"
             style={{ animationDelay: `${pos.delay}s` }}
           >
             {type === 'sparkles' && (
-              <path
-                d={`M${pos.x},${pos.y} l2,-2 l2,2 l-2,2 z`}
-                fill={particleColor}
-              />
+              <path d={`M${pos.x},${pos.y} l2,-2 l2,2 l-2,2 z`} fill={particleColor} />
             )}
             {type === 'stars' && (
               <path
@@ -91,14 +88,7 @@ export function AnimatedCostumeSVG({
                 transform="scale(0.5)"
               />
             )}
-            {type === 'magic' && (
-              <circle
-                cx={pos.x}
-                cy={pos.y}
-                r={1.5}
-                fill={particleColor}
-              />
-            )}
+            {type === 'magic' && <circle cx={pos.x} cy={pos.y} r={1.5} fill={particleColor} />}
           </g>
         ))}
       </>
@@ -108,11 +98,7 @@ export function AnimatedCostumeSVG({
   return (
     <svg
       viewBox="-40 -55 80 70"
-      className={cn(
-        'absolute w-full h-full pointer-events-none',
-        animationClass,
-        className
-      )}
+      className={cn('absolute w-full h-full pointer-events-none', animationClass, className)}
       style={{
         transform: `scale(${scale})`,
       }}
@@ -135,15 +121,10 @@ export function AnimatedCostumeSVG({
           stroke={costume.stroke}
           strokeWidth={costume.strokeWidth}
         />
-        
+
         {/* Decorations */}
         {costume.decorations?.map((dec, i) => (
-          <path
-            key={i}
-            d={dec.path}
-            fill={dec.fill}
-            stroke={dec.stroke}
-          />
+          <path key={i} d={dec.path} fill={dec.fill} stroke={dec.stroke} />
         ))}
       </g>
 

@@ -1,6 +1,6 @@
 /**
  * useGameMessages - Centralized Game Message Management
- * 
+ *
  * Provides unified message handling with:
  * - Message queue with priority levels
  * - Auto-dismiss timing based on type
@@ -34,16 +34,16 @@ export interface MessageOptions {
 export interface UseGameMessagesReturn {
   /** Current message to display */
   currentMessage: GameMessage | null;
-  
+
   /** Show a message (replaces showMessage in game hooks) */
   showMessage: (text: string, type?: MessageType, options?: MessageOptions) => void;
-  
+
   /** Dismiss current message and show next in queue */
   dismissMessage: () => void;
-  
+
   /** Number of messages waiting in queue */
   queueCount: number;
-  
+
   /** Message history (last 10) */
   messageHistory: GameMessage[];
 }
@@ -82,13 +82,15 @@ export function useGameMessages(): UseGameMessagesReturn {
   const [currentMessage, setCurrentMessage] = useState<GameMessage | null>(null);
   const [messageQueue, setMessageQueue] = useState<GameMessage[]>([]);
   const [messageHistory, setMessageHistory] = useState<GameMessage[]>([]);
-  
+
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastMessageRef = useRef<{ text: string; timestamp: number } | null>(null);
 
   // Generate unique ID
-  const generateId = useCallback(() => 
-    `msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, []);
+  const generateId = useCallback(
+    () => `msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+    []
+  );
 
   // Clear dismiss timer
   const clearDismissTimer = useCallback(() => {
@@ -100,7 +102,7 @@ export function useGameMessages(): UseGameMessagesReturn {
 
   // Show next message from queue
   const showNextFromQueue = useCallback(() => {
-    setMessageQueue(prev => {
+    setMessageQueue((prev) => {
       if (prev.length === 0) {
         setCurrentMessage(null);
         return prev;
@@ -115,9 +117,9 @@ export function useGameMessages(): UseGameMessagesReturn {
 
       const nextMessage = sorted[0];
       setCurrentMessage(nextMessage);
-      
+
       // Add to history
-      setMessageHistory(hist => {
+      setMessageHistory((hist) => {
         const newHist = [nextMessage, ...hist].slice(0, MAX_HISTORY);
         return newHist;
       });
@@ -146,51 +148,52 @@ export function useGameMessages(): UseGameMessagesReturn {
   }, [currentMessage, clearDismissTimer, dismissMessage]);
 
   // Show a message
-  const showMessage = useCallback((
-    text: string, 
-    type: MessageType = 'info', 
-    options?: MessageOptions
-  ) => {
-    const now = Date.now();
-    
-    // Deduplication: skip if same message was shown recently
-    if (lastMessageRef.current && 
-        lastMessageRef.current.text === text && 
-        now - lastMessageRef.current.timestamp < DEDUP_WINDOW) {
-      return;
-    }
-    lastMessageRef.current = { text, timestamp: now };
+  const showMessage = useCallback(
+    (text: string, type: MessageType = 'info', options?: MessageOptions) => {
+      const now = Date.now();
 
-    const priority = options?.priority ?? 'normal';
-    const autoDismiss = options?.autoDismiss ?? AUTO_DISMISS_TIMES[type];
-
-    const newMessage: GameMessage = {
-      id: generateId(),
-      text,
-      type,
-      priority,
-      timestamp: now,
-      autoDismiss,
-    };
-
-    // If no current message, show immediately
-    if (!currentMessage) {
-      setCurrentMessage(newMessage);
-      setMessageHistory(hist => [newMessage, ...hist].slice(0, MAX_HISTORY));
-    } else {
-      // Critical priority messages interrupt current message
-      if (priority === 'critical') {
-        // Push current to front of queue and show critical
-        setMessageQueue(prev => [currentMessage, ...prev]);
-        setCurrentMessage(newMessage);
-        setMessageHistory(hist => [newMessage, ...hist].slice(0, MAX_HISTORY));
-        clearDismissTimer();
-      } else {
-        // Add to queue
-        setMessageQueue(prev => [...prev, newMessage]);
+      // Deduplication: skip if same message was shown recently
+      if (
+        lastMessageRef.current &&
+        lastMessageRef.current.text === text &&
+        now - lastMessageRef.current.timestamp < DEDUP_WINDOW
+      ) {
+        return;
       }
-    }
-  }, [currentMessage, generateId, clearDismissTimer]);
+      lastMessageRef.current = { text, timestamp: now };
+
+      const priority = options?.priority ?? 'normal';
+      const autoDismiss = options?.autoDismiss ?? AUTO_DISMISS_TIMES[type];
+
+      const newMessage: GameMessage = {
+        id: generateId(),
+        text,
+        type,
+        priority,
+        timestamp: now,
+        autoDismiss,
+      };
+
+      // If no current message, show immediately
+      if (!currentMessage) {
+        setCurrentMessage(newMessage);
+        setMessageHistory((hist) => [newMessage, ...hist].slice(0, MAX_HISTORY));
+      } else {
+        // Critical priority messages interrupt current message
+        if (priority === 'critical') {
+          // Push current to front of queue and show critical
+          setMessageQueue((prev) => [currentMessage, ...prev]);
+          setCurrentMessage(newMessage);
+          setMessageHistory((hist) => [newMessage, ...hist].slice(0, MAX_HISTORY));
+          clearDismissTimer();
+        } else {
+          // Add to queue
+          setMessageQueue((prev) => [...prev, newMessage]);
+        }
+      }
+    },
+    [currentMessage, generateId, clearDismissTimer]
+  );
 
   return {
     currentMessage,

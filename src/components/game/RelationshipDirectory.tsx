@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Cat } from '@/types/game';
-import { 
-  CatRelationship, 
+import {
+  CatRelationship,
   RelationshipEvent,
   RelationshipLevel,
   getRelationshipEmoji,
@@ -15,7 +15,13 @@ import { CatVisual } from './CatVisual';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Search, SortAsc, AlertTriangle } from 'lucide-react';
@@ -45,8 +51,8 @@ export function RelationshipDirectory({
   const [sortBy, setSortBy] = useState<SortOption>('score-desc');
   const [expandedPair, setExpandedPair] = useState<string | null>(null);
 
-  const getCatName = (catId: string) => cats.find(c => c.id === catId)?.name || 'Unknown';
-  const getCat = (catId: string) => cats.find(c => c.id === catId);
+  const getCatName = (catId: string) => cats.find((c) => c.id === catId)?.name || 'Unknown';
+  const getCat = (catId: string) => cats.find((c) => c.id === catId);
 
   const filteredRelationships = useMemo(() => {
     let rels = [...relationships];
@@ -54,7 +60,7 @@ export function RelationshipDirectory({
     // Filter by search
     if (search) {
       const searchLower = search.toLowerCase();
-      rels = rels.filter(r => {
+      rels = rels.filter((r) => {
         const name1 = getCatName(r.catId1).toLowerCase();
         const name2 = getCatName(r.catId2).toLowerCase();
         return name1.includes(searchLower) || name2.includes(searchLower);
@@ -63,12 +69,12 @@ export function RelationshipDirectory({
 
     // Filter by relationship type
     if (filter === 'needs-attention') {
-      rels = rels.filter(r => {
+      rels = rels.filter((r) => {
         const decayInfo = getDecayInfo(r, currentDay);
         return decayInfo.daysSinceInteraction >= 2;
       });
     } else if (filter !== 'all') {
-      rels = rels.filter(r => r.level === filter);
+      rels = rels.filter((r) => r.level === filter);
     }
 
     // Sort
@@ -98,10 +104,13 @@ export function RelationshipDirectory({
   }, [relationships, search, filter, sortBy, cats, currentDay]);
 
   const getPairEvents = (catId1: string, catId2: string) => {
-    return events.filter(e => 
-      (e.catId1 === catId1 && e.catId2 === catId2) ||
-      (e.catId1 === catId2 && e.catId2 === catId1)
-    ).slice(0, 5);
+    return events
+      .filter(
+        (e) =>
+          (e.catId1 === catId1 && e.catId2 === catId2) ||
+          (e.catId1 === catId2 && e.catId2 === catId1)
+      )
+      .slice(0, 5);
   };
 
   const getScoreBarWidth = (score: number) => {
@@ -119,7 +128,8 @@ export function RelationshipDirectory({
 
   // Count relationships needing attention
   const needsAttentionCount = useMemo(() => {
-    return relationships.filter(r => getDecayInfo(r, currentDay).daysSinceInteraction >= 2).length;
+    return relationships.filter((r) => getDecayInfo(r, currentDay).daysSinceInteraction >= 2)
+      .length;
   }, [relationships, currentDay]);
 
   return (
@@ -127,17 +137,15 @@ export function RelationshipDirectory({
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg">Relationship Directory</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            All relationship pairs between your cats
-          </p>
+          <p className="text-sm text-muted-foreground">All relationship pairs between your cats</p>
         </CardHeader>
         <CardContent>
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <div className="relative flex-1 min-w-[200px] max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search cats..." 
+              <Input
+                placeholder="Search cats..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -186,15 +194,15 @@ export function RelationshipDirectory({
           <ScrollArea className="h-[500px]">
             {filteredRelationships.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {relationships.length === 0 
-                  ? "No relationships formed yet. Cats will bond over time!" 
-                  : filter === 'needs-attention' 
-                    ? "All relationships are healthy! 🎉"
-                    : "No relationships match your filters."}
+                {relationships.length === 0
+                  ? 'No relationships formed yet. Cats will bond over time!'
+                  : filter === 'needs-attention'
+                    ? 'All relationships are healthy! 🎉'
+                    : 'No relationships match your filters.'}
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredRelationships.map(rel => {
+                {filteredRelationships.map((rel) => {
                   const cat1 = getCat(rel.catId1);
                   const cat2 = getCat(rel.catId2);
                   const pairKey = `${rel.catId1}-${rel.catId2}`;
@@ -204,26 +212,39 @@ export function RelationshipDirectory({
                   const showWarning = decayInfo.daysSinceInteraction >= 2;
 
                   return (
-                    <div 
+                    <div
                       key={pairKey}
                       className={`p-4 rounded-lg border transition-colors ${
-                        rel.level === 'bestFriend' ? 'bg-pink-50 border-pink-200 dark:bg-pink-950/20 dark:border-pink-800' :
-                        rel.level === 'friend' ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800' :
-                        rel.level === 'enemy' ? 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800' :
-                        rel.level === 'rival' ? 'bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800' :
-                        'bg-secondary/30 border-border'
+                        rel.level === 'bestFriend'
+                          ? 'bg-pink-50 border-pink-200 dark:bg-pink-950/20 dark:border-pink-800'
+                          : rel.level === 'friend'
+                            ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800'
+                            : rel.level === 'enemy'
+                              ? 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800'
+                              : rel.level === 'rival'
+                                ? 'bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800'
+                                : 'bg-secondary/30 border-border'
                       }`}
                     >
-                      <div 
+                      <div
                         className="flex items-center gap-4 cursor-pointer"
                         onClick={() => setExpandedPair(isExpanded ? null : pairKey)}
                       >
                         {/* Cat 1 */}
-                        <div 
+                        <div
                           className="flex items-center gap-2 min-w-0 flex-1"
-                          onClick={(e) => { e.stopPropagation(); onCatClick?.(rel.catId1); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCatClick?.(rel.catId1);
+                          }}
                         >
-                          {cat1 && <CatVisual cat={cat1} size="sm" equippedCostumeId={catCostumes?.[rel.catId1]} />}
+                          {cat1 && (
+                            <CatVisual
+                              cat={cat1}
+                              size="sm"
+                              equippedCostumeId={catCostumes?.[rel.catId1]}
+                            />
+                          )}
                           <span className="font-medium truncate hover:underline cursor-pointer">
                             {getCatName(rel.catId1)}
                           </span>
@@ -237,8 +258,8 @@ export function RelationshipDirectory({
                             {showWarning && (
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Badge 
-                                    variant="outline" 
+                                  <Badge
+                                    variant="outline"
                                     className={`text-xs gap-0.5 ${getDecayWarningColor(decayInfo.decayLevel)}`}
                                   >
                                     <AlertTriangle className="h-3 w-3" />
@@ -248,33 +269,48 @@ export function RelationshipDirectory({
                                 <TooltipContent>
                                   <p>Last interaction: {decayInfo.daysSinceInteraction} days ago</p>
                                   {decayInfo.isDecaying && (
-                                    <p className="text-red-400">{getDecayWarningText(decayInfo.decayLevel)}</p>
+                                    <p className="text-red-400">
+                                      {getDecayWarningText(decayInfo.decayLevel)}
+                                    </p>
                                   )}
                                 </TooltipContent>
                               </Tooltip>
                             )}
-                            <Badge variant="outline" className={`text-xs ${getRelationshipColor(rel.level)}`}>
-                              {rel.score > 0 ? '+' : ''}{rel.score}
+                            <Badge
+                              variant="outline"
+                              className={`text-xs ${getRelationshipColor(rel.level)}`}
+                            >
+                              {rel.score > 0 ? '+' : ''}
+                              {rel.score}
                             </Badge>
                           </div>
                         </div>
 
                         {/* Cat 2 */}
-                        <div 
+                        <div
                           className="flex items-center gap-2 min-w-0 flex-1 justify-end"
-                          onClick={(e) => { e.stopPropagation(); onCatClick?.(rel.catId2); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCatClick?.(rel.catId2);
+                          }}
                         >
                           <span className="font-medium truncate hover:underline cursor-pointer">
                             {getCatName(rel.catId2)}
                           </span>
-                          {cat2 && <CatVisual cat={cat2} size="sm" equippedCostumeId={catCostumes?.[rel.catId2]} />}
+                          {cat2 && (
+                            <CatVisual
+                              cat={cat2}
+                              size="sm"
+                              equippedCostumeId={catCostumes?.[rel.catId2]}
+                            />
+                          )}
                         </div>
                       </div>
 
                       {/* Score Bar */}
                       <div className="mt-3 relative h-2 bg-secondary rounded-full overflow-hidden">
                         <div className="absolute inset-y-0 left-1/2 w-0.5 bg-border z-10" />
-                        <div 
+                        <div
                           className={`absolute inset-y-0 left-0 ${getScoreBarColor(rel.score)} transition-all`}
                           style={{ width: `${getScoreBarWidth(rel.score)}%` }}
                         />
@@ -282,33 +318,45 @@ export function RelationshipDirectory({
 
                       {/* Last Interaction Display */}
                       <div className="mt-2 text-xs text-muted-foreground">
-                        Last interaction: Day {rel.lastInteraction} 
-                        ({decayInfo.daysSinceInteraction === 0 ? 'Today' : `${decayInfo.daysSinceInteraction} day${decayInfo.daysSinceInteraction > 1 ? 's' : ''} ago`})
+                        Last interaction: Day {rel.lastInteraction}(
+                        {decayInfo.daysSinceInteraction === 0
+                          ? 'Today'
+                          : `${decayInfo.daysSinceInteraction} day${decayInfo.daysSinceInteraction > 1 ? 's' : ''} ago`}
+                        )
                       </div>
 
                       {/* Expanded Details */}
                       {isExpanded && pairEvents.length > 0 && (
                         <div className="mt-4 pt-4 border-t border-border/50">
-                          <p className="text-xs font-medium text-muted-foreground mb-2">Recent Interactions</p>
+                          <p className="text-xs font-medium text-muted-foreground mb-2">
+                            Recent Interactions
+                          </p>
                           <div className="space-y-2">
-                            {pairEvents.map(event => (
-                              <div 
+                            {pairEvents.map((event) => (
+                              <div
                                 key={event.id}
                                 className={`text-sm p-2 rounded ${
-                                  event.type === 'positive' ? 'bg-green-100 dark:bg-green-900/30' :
-                                  event.type === 'negative' ? 'bg-red-100 dark:bg-red-900/30' :
-                                  'bg-secondary/50'
+                                  event.type === 'positive'
+                                    ? 'bg-green-100 dark:bg-green-900/30'
+                                    : event.type === 'negative'
+                                      ? 'bg-red-100 dark:bg-red-900/30'
+                                      : 'bg-secondary/50'
                                 }`}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{event.message}</span>
-                                  <span className={`text-xs ${
-                                    event.scoreChange > 0 ? 'text-green-600' : 'text-red-600'
-                                  }`}>
-                                    {event.scoreChange > 0 ? '+' : ''}{event.scoreChange}
+                                  <span
+                                    className={`text-xs ${
+                                      event.scoreChange > 0 ? 'text-green-600' : 'text-red-600'
+                                    }`}
+                                  >
+                                    {event.scoreChange > 0 ? '+' : ''}
+                                    {event.scoreChange}
                                   </span>
                                 </div>
-                                <span className="text-xs text-muted-foreground">Day {event.day}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  Day {event.day}
+                                </span>
                               </div>
                             ))}
                           </div>

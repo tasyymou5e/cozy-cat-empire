@@ -36,7 +36,18 @@ import { useToast } from '@/hooks/use-toast';
 import { useAdminActivityLog, useAdminRateLimit } from '@/hooks/admin';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
-import { Bell, Plus, Send, Users, Crown, Activity, UserX, CheckCircle, XCircle, Clock } from 'lucide-react';
+import {
+  Bell,
+  Plus,
+  Send,
+  Users,
+  Crown,
+  Activity,
+  UserX,
+  CheckCircle,
+  XCircle,
+  Clock,
+} from 'lucide-react';
 
 interface AdminNotification {
   id: string;
@@ -53,8 +64,18 @@ interface AdminNotification {
 const targetOptions = [
   { value: 'all', label: 'All Users', icon: Users, description: 'Send to everyone' },
   { value: 'vip', label: 'VIP Users', icon: Crown, description: 'Users with 7+ day login streak' },
-  { value: 'active', label: 'Active Users', icon: Activity, description: 'Users active in last 7 days' },
-  { value: 'inactive', label: 'Inactive Users', icon: UserX, description: 'Users inactive for 14+ days' },
+  {
+    value: 'active',
+    label: 'Active Users',
+    icon: Activity,
+    description: 'Users active in last 7 days',
+  },
+  {
+    value: 'inactive',
+    label: 'Inactive Users',
+    icon: UserX,
+    description: 'Users inactive for 14+ days',
+  },
 ];
 
 export default function AdminNotifications() {
@@ -63,7 +84,7 @@ export default function AdminNotifications() {
   const queryClient = useQueryClient();
   const { logActivity } = useAdminActivityLog();
   const { enforceRateLimit } = useAdminRateLimit();
-  
+
   const [composeOpen, setComposeOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -77,7 +98,7 @@ export default function AdminNotifications() {
         .select('*')
         .order('sent_at', { ascending: false })
         .limit(50);
-      
+
       if (error) throw error;
       return data as AdminNotification[];
     },
@@ -92,7 +113,9 @@ export default function AdminNotifications() {
       // Get target user count for display
       let targetCount = 0;
       if (data.target === 'all') {
-        const { count } = await supabase.from('push_subscriptions').select('id', { count: 'exact', head: true });
+        const { count } = await supabase
+          .from('push_subscriptions')
+          .select('id', { count: 'exact', head: true });
         targetCount = count || 0;
       }
 
@@ -119,9 +142,9 @@ export default function AdminNotifications() {
         actionDescription: `Sent notification to ${target} users: ${title}`,
         targetTable: 'admin_notifications',
       });
-      toast({ 
-        title: 'Notification Sent', 
-        description: `Queued for ${result.targetCount} users with push subscriptions.` 
+      toast({
+        title: 'Notification Sent',
+        description: `Queued for ${result.targetCount} users with push subscriptions.`,
       });
       setComposeOpen(false);
       setTitle('');
@@ -136,18 +159,30 @@ export default function AdminNotifications() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'sent':
-        return <Badge className="bg-green-600 gap-1"><CheckCircle className="h-3 w-3" /> Sent</Badge>;
+        return (
+          <Badge className="bg-green-600 gap-1">
+            <CheckCircle className="h-3 w-3" /> Sent
+          </Badge>
+        );
       case 'failed':
-        return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> Failed</Badge>;
+        return (
+          <Badge variant="destructive" className="gap-1">
+            <XCircle className="h-3 w-3" /> Failed
+          </Badge>
+        );
       case 'pending':
-        return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" /> Pending</Badge>;
+        return (
+          <Badge variant="secondary" className="gap-1">
+            <Clock className="h-3 w-3" /> Pending
+          </Badge>
+        );
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
   const getTargetLabel = (target: string) => {
-    const option = targetOptions.find(o => o.value === target);
+    const option = targetOptions.find((o) => o.value === target);
     return option?.label || target;
   };
 
@@ -252,11 +287,9 @@ export default function AdminNotifications() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Compose Notification</DialogTitle>
-            <DialogDescription>
-              Send a push notification to your users.
-            </DialogDescription>
+            <DialogDescription>Send a push notification to your users.</DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
@@ -295,7 +328,9 @@ export default function AdminNotifications() {
                       <div className="flex items-center gap-2">
                         <option.icon className="h-4 w-4" />
                         <span>{option.label}</span>
-                        <span className="text-xs text-muted-foreground">- {option.description}</span>
+                        <span className="text-xs text-muted-foreground">
+                          - {option.description}
+                        </span>
                       </div>
                     </SelectItem>
                   ))}
@@ -308,7 +343,7 @@ export default function AdminNotifications() {
             <Button variant="outline" onClick={() => setComposeOpen(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={() => sendMutation.mutate({ title, body, target })}
               disabled={!title || !body || sendMutation.isPending}
             >

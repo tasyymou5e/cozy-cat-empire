@@ -41,18 +41,18 @@ interface CatFarmDialogsProps {
   onAcceptGift: (giftId: string) => Promise<void>;
   onDeclineGift: (giftId: string) => Promise<void>;
   onClearGift: () => void;
-  
+
   // Trade
   newTradeAlert: TradeOffer | null;
   onAcceptTrade: (tradeId: string) => Promise<void>;
   onDeclineTrade: (tradeId: string) => Promise<void>;
   onClearTrade: () => void;
-  
+
   // Milestone
   pendingMilestone: Milestone | null;
   onClaimMilestone: () => void;
   onDismissMilestone: () => void;
-  
+
   // Daily Rewards
   loginStreak: number;
   loginLongestStreak: number;
@@ -63,7 +63,7 @@ interface CatFarmDialogsProps {
   onClaimDailyReward: () => void;
   vipTier: VIPTier | null;
   isVIP: boolean;
-  
+
   // What's New
   showWhatsNew: boolean;
   onCloseWhatsNew: () => void;
@@ -101,7 +101,7 @@ export function CatFarmDialogs({
         onClaim={onClaimMilestone}
         onDismiss={onDismissMilestone}
       />
-      
+
       {/* Gift Received Popup */}
       <GiftReceivedDialog
         gift={newGiftAlert}
@@ -109,7 +109,7 @@ export function CatFarmDialogs({
         onDecline={onDeclineGift}
         onClose={onClearGift}
       />
-      
+
       {/* Trade Received Popup */}
       <TradeReceivedDialog
         trade={newTradeAlert}
@@ -117,7 +117,7 @@ export function CatFarmDialogs({
         onDecline={onDeclineTrade}
         onClose={onClearTrade}
       />
-      
+
       {/* Daily Login Rewards Modal */}
       <DailyRewardsPanel
         currentStreak={loginStreak}
@@ -130,12 +130,9 @@ export function CatFarmDialogs({
         vipTier={vipTier}
         isVIP={isVIP}
       />
-      
+
       {/* What's New Popup */}
-      <WhatsNewPopup
-        open={showWhatsNew}
-        onClose={onCloseWhatsNew}
-      />
+      <WhatsNewPopup open={showWhatsNew} onClose={onCloseWhatsNew} />
     </>
   );
 }

@@ -20,7 +20,8 @@ const NEGATIVE_EMOJIS = ['😾', '💢', '😤', '😿', '⚡'];
 const NEUTRAL_EMOJIS = ['🤔', '😐', '😶'];
 
 function getRandomEmoji(type: 'positive' | 'negative' | 'neutral'): string {
-  const emojis = type === 'positive' ? POSITIVE_EMOJIS : type === 'negative' ? NEGATIVE_EMOJIS : NEUTRAL_EMOJIS;
+  const emojis =
+    type === 'positive' ? POSITIVE_EMOJIS : type === 'negative' ? NEGATIVE_EMOJIS : NEUTRAL_EMOJIS;
   return emojis[Math.floor(Math.random() * emojis.length)];
 }
 
@@ -42,29 +43,34 @@ export function CatReactionProvider({ children }: { children: React.ReactNode })
       clearTimeout(existingTimeout);
     }
 
-    setReactions(prev => {
+    setReactions((prev) => {
       // Remove existing reaction for this cat and add new one
-      const filtered = prev.filter(r => r.catId !== catId);
+      const filtered = prev.filter((r) => r.catId !== catId);
       return [...filtered, newReaction];
     });
 
     // Auto-remove after 2.5 seconds
     const timeout = setTimeout(() => {
-      setReactions(prev => prev.filter(r => r.catId !== catId || r.timestamp !== newReaction.timestamp));
+      setReactions((prev) =>
+        prev.filter((r) => r.catId !== catId || r.timestamp !== newReaction.timestamp)
+      );
       timeoutRefs.current.delete(catId);
     }, 2500);
 
     timeoutRefs.current.set(catId, timeout);
   }, []);
 
-  const getCatReaction = useCallback((catId: string) => {
-    return reactions.find(r => r.catId === catId);
-  }, [reactions]);
+  const getCatReaction = useCallback(
+    (catId: string) => {
+      return reactions.find((r) => r.catId === catId);
+    },
+    [reactions]
+  );
 
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
-      timeoutRefs.current.forEach(timeout => clearTimeout(timeout));
+      timeoutRefs.current.forEach((timeout) => clearTimeout(timeout));
     };
   }, []);
 

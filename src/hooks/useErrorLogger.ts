@@ -72,100 +72,97 @@ function isRateLimited(): boolean {
 export function useErrorLogger() {
   const { user } = useAuth();
 
-  const logError = useCallback(async (data: ErrorLogData) => {
-    // Check rate limit first
-    if (isRateLimited()) {
-      return;
-    }
+  const logError = useCallback(
+    async (data: ErrorLogData) => {
+      // Check rate limit first
+      if (isRateLimited()) {
+        return;
+      }
 
-    try {
-      const logEntry = {
-        user_id: user?.id || null,
-        error_type: data.error_type,
-        error_message: data.error_message.slice(0, 5000), // Limit message length
-        error_stack: data.error_stack?.slice(0, 10000) || null,
-        component_name: data.component_name || null,
-        route: data.route || window.location.pathname,
-        user_agent: navigator.userAgent,
-        metadata: {
-          ...data.metadata,
-          timestamp: new Date().toISOString(),
-          url: window.location.href,
-          viewport: {
-            width: window.innerWidth,
-            height: window.innerHeight
-          }
+      try {
+        const logEntry = {
+          user_id: user?.id || null,
+          error_type: data.error_type,
+          error_message: data.error_message.slice(0, 5000), // Limit message length
+          error_stack: data.error_stack?.slice(0, 10000) || null,
+          component_name: data.component_name || null,
+          route: data.route || window.location.pathname,
+          user_agent: navigator.userAgent,
+          metadata: {
+            ...data.metadata,
+            timestamp: new Date().toISOString(),
+            url: window.location.href,
+            viewport: {
+              width: window.innerWidth,
+              height: window.innerHeight,
+            },
+          },
+        };
+
+        // Log to console in development
+        console.error('[ErrorLogger]', logEntry);
+
+        // Insert into database
+        const { error } = await supabase.from('error_logs').insert([logEntry]);
+
+        if (error) {
+          console.error('[ErrorLogger] Failed to save error log:', error);
         }
-      };
-
-      // Log to console in development
-      console.error('[ErrorLogger]', logEntry);
-
-      // Insert into database
-      const { error } = await supabase
-        .from('error_logs')
-        .insert([logEntry]);
-
-      if (error) {
-        console.error('[ErrorLogger] Failed to save error log:', error);
+      } catch (e) {
+        // Silently fail to avoid infinite loops
+        console.error('[ErrorLogger] Logging failed:', e);
       }
-    } catch (e) {
-      // Silently fail to avoid infinite loops
-      console.error('[ErrorLogger] Logging failed:', e);
-    }
-  }, [user?.id]);
+    },
+    [user?.id]
+  );
 
-  const logInteractionError = useCallback((
-    eventType: string,
-    target: string,
-    error: Error
-  ) => {
-    logError({
-      error_type: 'interaction_error',
-      error_message: error.message,
-      error_stack: error.stack,
-      metadata: {
-        eventType,
-        target,
-        errorName: error.name
-      }
-    });
-  }, [logError]);
+  const logInteractionError = useCallback(
+    (eventType: string, target: string, error: Error) => {
+      logError({
+        error_type: 'interaction_error',
+        error_message: error.message,
+        error_stack: error.stack,
+        metadata: {
+          eventType,
+          target,
+          errorName: error.name,
+        },
+      });
+    },
+    [logError]
+  );
 
-  const logNetworkError = useCallback((
-    url: string,
-    status: number,
-    statusText: string,
-    method: string
-  ) => {
-    logError({
-      error_type: 'network_error',
-      error_message: `${method} ${url} failed with ${status} ${statusText}`,
-      metadata: {
-        url,
-        status,
-        statusText,
-        method
-      }
-    });
-  }, [logError]);
+  const logNetworkError = useCallback(
+    (url: string, status: number, statusText: string, method: string) => {
+      logError({
+        error_type: 'network_error',
+        error_message: `${method} ${url} failed with ${status} ${statusText}`,
+        metadata: {
+          url,
+          status,
+          statusText,
+          method,
+        },
+      });
+    },
+    [logError]
+  );
 
-  const logComponentError = useCallback((
-    componentName: string,
-    error: Error,
-    errorInfo?: { componentStack?: string }
-  ) => {
-    logError({
-      error_type: 'component_error',
-      error_message: error.message,
-      error_stack: error.stack,
-      component_name: componentName,
-      metadata: {
-        errorName: error.name,
-        componentStack: errorInfo?.componentStack
-      }
-    });
-  }, [logError]);
+  const logComponentError = useCallback(
+    (componentName: string, error: Error, errorInfo?: { componentStack?: string }) => {
+      logError({
+        error_type: 'component_error',
+        error_message: error.message,
+        error_stack: error.stack,
+        component_name: componentName,
+        metadata: {
+          errorName: error.name,
+          componentStack: errorInfo?.componentStack,
+        },
+      });
+    },
+    [logError]
+  );
 
   // Set up global error handlers
   useEffect(() => {
@@ -181,8 +178,8 @@ export function useErrorLogger() {
         metadata: {
           filename: event.filename,
           lineno: event.lineno,
-          colno: event.colno
-        }
+          colno: event.colno,
+        },
       });
     };
 
@@ -194,8 +191,8 @@ export function useErrorLogger() {
         error_message: error?.message || String(error),
         error_stack: error?.stack,
         metadata: {
-          errorName: error?.name
-        }
+          errorName: error?.name,
+        },
       });
     };
 
@@ -211,14 +208,17 @@ export function useErrorLogger() {
           className = (target.className as SVGAnimatedString).baseVal || '';
         }
       }
-      const targetInfo = target.tagName + (target.id ? `#${target.id}` : '') + (className ? `.${className.split(' ')[0]}` : '');
-      
+      const targetInfo =
+        target.tagName +
+        (target.id ? `#${target.id}` : '') +
+        (className ? `.${className.split(' ')[0]}` : '');
+
       // Store click info for potential error correlation
       (window as unknown as Record<string, unknown>).__lastClick = {
         target: targetInfo,
         timestamp: Date.now(),
         x: (event as MouseEvent).clientX,
-        y: (event as MouseEvent).clientY
+        y: (event as MouseEvent).clientY,
       };
     };
 
@@ -238,7 +238,7 @@ export function useErrorLogger() {
     logError,
     logInteractionError,
     logNetworkError,
-    logComponentError
+    logComponentError,
   };
 }
 
@@ -276,8 +276,8 @@ export async function logErrorToDatabase(data: ErrorLogData & { user_id?: string
       user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
       metadata: {
         ...data.metadata,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     };
 
     await supabase.from('error_logs').insert([logEntry]);

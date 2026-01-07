@@ -4,8 +4,25 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Lock, Gift, Star, Crown, Clock, Sparkles, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Lock,
+  Gift,
+  Star,
+  Crown,
+  Clock,
+  Sparkles,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { useBattlePass } from '@/hooks/useBattlePass';
 import { BattlePassReward, getSeasonTimeRemaining, XP_SOURCES } from '@/types/battlePass';
 
@@ -16,20 +33,29 @@ interface BattlePassPanelProps {
 }
 
 export function BattlePassPanel({ money, onClaimReward, onUpgradePremium }: BattlePassPanelProps) {
-  const { battlePass, season, xpProgress, claimReward, canClaimReward, getUnclaimedRewards, allRewards, upgradeToPremium } = useBattlePass();
+  const {
+    battlePass,
+    season,
+    xpProgress,
+    claimReward,
+    canClaimReward,
+    getUnclaimedRewards,
+    allRewards,
+    upgradeToPremium,
+  } = useBattlePass();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [viewTier, setViewTier] = useState(battlePass.currentTier);
-  
+
   const timeRemaining = getSeasonTimeRemaining(season.endsAt);
   const unclaimedCount = getUnclaimedRewards().length;
-  
+
   const handleClaimReward = (rewardId: string) => {
     const reward = claimReward(rewardId);
     if (reward) {
       onClaimReward(reward);
     }
   };
-  
+
   const handleUpgrade = () => {
     if (money >= 500) {
       upgradeToPremium();
@@ -37,36 +63,44 @@ export function BattlePassPanel({ money, onClaimReward, onUpgradePremium }: Batt
       setShowUpgradeDialog(false);
     }
   };
-  
-  const tierRewards = allRewards.filter(r => r.tier === viewTier);
-  const freeReward = tierRewards.find(r => !r.isPremium);
-  const premiumReward = tierRewards.find(r => r.isPremium);
-  
-  const RewardCard = ({ reward, isPremiumLocked }: { reward: BattlePassReward; isPremiumLocked: boolean }) => {
+
+  const tierRewards = allRewards.filter((r) => r.tier === viewTier);
+  const freeReward = tierRewards.find((r) => !r.isPremium);
+  const premiumReward = tierRewards.find((r) => r.isPremium);
+
+  const RewardCard = ({
+    reward,
+    isPremiumLocked,
+  }: {
+    reward: BattlePassReward;
+    isPremiumLocked: boolean;
+  }) => {
     const isClaimed = battlePass.claimedRewards.includes(reward.id);
     const canClaim = canClaimReward(reward.id);
     const isLocked = reward.tier > battlePass.currentTier;
-    
+
     return (
-      <div className={`relative p-3 rounded-lg border-2 transition-all ${
-        isClaimed 
-          ? 'bg-muted/50 border-muted' 
-          : canClaim 
-            ? 'bg-primary/10 border-primary animate-pulse' 
-            : isLocked || isPremiumLocked
-              ? 'bg-muted/30 border-muted/50'
-              : 'bg-card border-border'
-      }`}>
+      <div
+        className={`relative p-3 rounded-lg border-2 transition-all ${
+          isClaimed
+            ? 'bg-muted/50 border-muted'
+            : canClaim
+              ? 'bg-primary/10 border-primary animate-pulse'
+              : isLocked || isPremiumLocked
+                ? 'bg-muted/30 border-muted/50'
+                : 'bg-card border-border'
+        }`}
+      >
         {isPremiumLocked && !battlePass.isPremium && (
           <div className="absolute inset-0 bg-background/80 rounded-lg flex items-center justify-center z-10">
             <Lock className="w-6 h-6 text-muted-foreground" />
           </div>
         )}
-        
+
         <div className="flex flex-col items-center gap-2">
           <span className="text-2xl">{reward.emoji}</span>
           <span className="text-xs font-medium text-center">{reward.name}</span>
-          
+
           {isClaimed ? (
             <Badge variant="secondary" className="gap-1">
               <Check className="w-3 h-3" /> Claimed
@@ -104,7 +138,9 @@ export function BattlePassPanel({ money, onClaimReward, onUpgradePremium }: Batt
                 {timeRemaining.isExpired ? (
                   <span className="text-destructive">Season Ended</span>
                 ) : (
-                  <span>{timeRemaining.days}d {timeRemaining.hours}h remaining</span>
+                  <span>
+                    {timeRemaining.days}d {timeRemaining.hours}h remaining
+                  </span>
                 )}
               </div>
               {battlePass.isPremium && (
@@ -130,7 +166,7 @@ export function BattlePassPanel({ money, onClaimReward, onUpgradePremium }: Batt
               <span>Max Tier: {season.maxTier}</span>
             </div>
           </div>
-          
+
           {/* Unclaimed notification */}
           {unclaimedCount > 0 && (
             <div className="mt-3 p-2 bg-primary/20 rounded-lg flex items-center justify-between">
@@ -152,10 +188,12 @@ export function BattlePassPanel({ money, onClaimReward, onUpgradePremium }: Batt
                 <Crown className="w-8 h-8 text-amber-500" />
                 <div>
                   <p className="font-semibold">Upgrade to Premium</p>
-                  <p className="text-sm text-muted-foreground">Unlock exclusive rewards & costumes!</p>
+                  <p className="text-sm text-muted-foreground">
+                    Unlock exclusive rewards & costumes!
+                  </p>
                 </div>
               </div>
-              <Button 
+              <Button
                 onClick={() => setShowUpgradeDialog(true)}
                 className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
               >
@@ -172,22 +210,22 @@ export function BattlePassPanel({ money, onClaimReward, onUpgradePremium }: Batt
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Reward Track</CardTitle>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="icon"
                 disabled={viewTier <= 1}
-                onClick={() => setViewTier(v => Math.max(1, v - 1))}
+                onClick={() => setViewTier((v) => Math.max(1, v - 1))}
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <Badge variant="secondary" className="px-3">
                 Tier {viewTier}
               </Badge>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="icon"
                 disabled={viewTier >= season.maxTier}
-                onClick={() => setViewTier(v => Math.min(season.maxTier, v + 1))}
+                onClick={() => setViewTier((v) => Math.min(season.maxTier, v + 1))}
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -202,11 +240,9 @@ export function BattlePassPanel({ money, onClaimReward, onUpgradePremium }: Batt
                 <Star className="w-4 h-4" />
                 Free Track
               </div>
-              {freeReward && (
-                <RewardCard reward={freeReward} isPremiumLocked={false} />
-              )}
+              {freeReward && <RewardCard reward={freeReward} isPremiumLocked={false} />}
             </div>
-            
+
             {/* Premium Track */}
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm font-medium text-amber-500">
@@ -232,7 +268,10 @@ export function BattlePassPanel({ money, onClaimReward, onUpgradePremium }: Batt
         <CardContent>
           <div className="grid grid-cols-2 gap-2 text-sm">
             {Object.entries(XP_SOURCES).map(([source, xp]) => (
-              <div key={source} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+              <div
+                key={source}
+                className="flex items-center justify-between p-2 bg-muted/50 rounded"
+              >
                 <span className="capitalize">{source.replace(/_/g, ' ')}</span>
                 <Badge variant="secondary">+{xp} XP</Badge>
               </div>
@@ -249,30 +288,33 @@ export function BattlePassPanel({ money, onClaimReward, onUpgradePremium }: Batt
         <CardContent>
           <ScrollArea className="h-48">
             <div className="space-y-2">
-              {Array.from({ length: season.maxTier }, (_, i) => i + 1).map(tier => {
-                const rewards = allRewards.filter(r => r.tier === tier);
+              {Array.from({ length: season.maxTier }, (_, i) => i + 1).map((tier) => {
+                const rewards = allRewards.filter((r) => r.tier === tier);
                 const isUnlocked = tier <= battlePass.currentTier;
                 const isCurrent = tier === battlePass.currentTier;
-                
+
                 return (
-                  <div 
+                  <div
                     key={tier}
                     onClick={() => setViewTier(tier)}
                     className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
-                      isCurrent 
-                        ? 'bg-primary/20 border border-primary' 
-                        : isUnlocked 
-                          ? 'bg-muted/50 hover:bg-muted' 
+                      isCurrent
+                        ? 'bg-primary/20 border border-primary'
+                        : isUnlocked
+                          ? 'bg-muted/50 hover:bg-muted'
                           : 'bg-muted/20 hover:bg-muted/30'
                     }`}
                   >
-                    <Badge variant={isUnlocked ? "default" : "outline"} className="w-12 justify-center">
+                    <Badge
+                      variant={isUnlocked ? 'default' : 'outline'}
+                      className="w-12 justify-center"
+                    >
                       {tier}
                     </Badge>
                     <div className="flex-1 flex items-center gap-2">
-                      {rewards.map(r => (
-                        <span 
-                          key={r.id} 
+                      {rewards.map((r) => (
+                        <span
+                          key={r.id}
                           className={`text-lg ${r.isPremium && !battlePass.isPremium ? 'opacity-50' : ''}`}
                           title={r.name}
                         >
@@ -297,11 +339,9 @@ export function BattlePassPanel({ money, onClaimReward, onUpgradePremium }: Batt
               <Crown className="w-5 h-5 text-amber-500" />
               Upgrade to Premium
             </DialogTitle>
-            <DialogDescription>
-              Unlock exclusive premium rewards for this season!
-            </DialogDescription>
+            <DialogDescription>Unlock exclusive premium rewards for this season!</DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-lg">
               <h4 className="font-semibold mb-2">Premium Benefits:</h4>
@@ -324,18 +364,18 @@ export function BattlePassPanel({ money, onClaimReward, onUpgradePremium }: Batt
                 </li>
               </ul>
             </div>
-            
+
             <div className="text-center">
               <p className="text-2xl font-bold">500 💰</p>
               <p className="text-sm text-muted-foreground">Your balance: {money} coins</p>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowUpgradeDialog(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleUpgrade}
               disabled={money < 500}
               className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"

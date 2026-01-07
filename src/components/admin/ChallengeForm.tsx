@@ -30,31 +30,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { CHALLENGE_TEMPLATES } from '@/types/challenges';
 
-const challengeSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100),
-  description: z.string().min(1, 'Description is required').max(500),
-  emoji: z.string().min(1, 'Emoji is required'),
-  challenge_type: z.string().min(1, 'Type is required'),
-  target_value: z.coerce.number().min(1, 'Target must be at least 1'),
-  difficulty: z.enum(['easy', 'medium', 'hard', 'expert']),
-  reward_coins: z.coerce.number().min(0, 'Reward must be positive'),
-  reward_badge: z.string().optional(),
-  starts_at: z.date(),
-  ends_at: z.date(),
-  is_active: z.boolean(),
-}).refine((data) => data.ends_at > data.starts_at, {
-  message: 'End date must be after start date',
-  path: ['ends_at'],
-});
+const challengeSchema = z
+  .object({
+    name: z.string().min(1, 'Name is required').max(100),
+    description: z.string().min(1, 'Description is required').max(500),
+    emoji: z.string().min(1, 'Emoji is required'),
+    challenge_type: z.string().min(1, 'Type is required'),
+    target_value: z.coerce.number().min(1, 'Target must be at least 1'),
+    difficulty: z.enum(['easy', 'medium', 'hard', 'expert']),
+    reward_coins: z.coerce.number().min(0, 'Reward must be positive'),
+    reward_badge: z.string().optional(),
+    starts_at: z.date(),
+    ends_at: z.date(),
+    is_active: z.boolean(),
+  })
+  .refine((data) => data.ends_at > data.starts_at, {
+    message: 'End date must be after start date',
+    path: ['ends_at'],
+  });
 
 type ChallengeFormValues = z.infer<typeof challengeSchema>;
 
@@ -116,7 +114,7 @@ export function ChallengeForm({
     }
   };
 
-  const applyTemplate = (template: typeof CHALLENGE_TEMPLATES[number]) => {
+  const applyTemplate = (template: (typeof CHALLENGE_TEMPLATES)[number]) => {
     form.setValue('name', template.name);
     form.setValue('description', template.description);
     form.setValue('emoji', template.emoji);

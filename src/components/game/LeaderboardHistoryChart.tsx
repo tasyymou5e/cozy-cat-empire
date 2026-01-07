@@ -1,4 +1,10 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
@@ -47,10 +53,14 @@ function TrendIndicator({ trend }: { trend: RankTrend }) {
   );
 }
 
-export function LeaderboardHistoryChart({ userId, category, currentRank }: LeaderboardHistoryChartProps) {
+export function LeaderboardHistoryChart({
+  userId,
+  category,
+  currentRank,
+}: LeaderboardHistoryChartProps) {
   const { history, loading, trend, bestRank } = useLeaderboardHistory(userId, category);
 
-  const chartData = history.map(entry => ({
+  const chartData = history.map((entry) => ({
     date: format(new Date(entry.recorded_at), 'MMM d'),
     rank: entry.rank,
     score: entry.score,
@@ -78,7 +88,7 @@ export function LeaderboardHistoryChart({ userId, category, currentRank }: Leade
             {categoryLabels[category]} Ranking History
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           {/* Stats Summary */}
           <div className="flex items-center justify-between gap-4">
@@ -113,21 +123,16 @@ export function LeaderboardHistoryChart({ userId, category, currentRank }: Leade
           ) : (
             <ChartContainer config={chartConfig} className="h-48 w-full">
               <LineChart data={chartData}>
-                <XAxis 
-                  dataKey="date" 
-                  tickLine={false} 
-                  axisLine={false}
-                  tick={{ fontSize: 10 }}
-                />
-                <YAxis 
-                  reversed 
-                  tickLine={false} 
+                <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} />
+                <YAxis
+                  reversed
+                  tickLine={false}
                   axisLine={false}
                   tick={{ fontSize: 10 }}
                   domain={['dataMin - 1', 'dataMax + 1']}
                   tickFormatter={(value) => `#${value}`}
                 />
-                <ChartTooltip 
+                <ChartTooltip
                   content={<ChartTooltipContent />}
                   formatter={(value) => [`#${value}`, 'Rank']}
                 />

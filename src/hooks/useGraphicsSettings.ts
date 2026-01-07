@@ -1,6 +1,6 @@
 /**
  * useGraphicsSettings Hook
- * 
+ *
  * Provides runtime graphics settings management with localStorage persistence.
  * Allows users to customize visual settings without code changes.
  */
@@ -79,10 +79,13 @@ function getDefaultSettings(): GraphicsSettings {
  */
 function saveSettings(settings: GraphicsSettings): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      version: SETTINGS_VERSION,
-      settings,
-    }));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: SETTINGS_VERSION,
+        settings,
+      })
+    );
   } catch (e) {
     console.warn('[GraphicsSettings] Failed to save settings:', e);
   }
@@ -90,12 +93,12 @@ function saveSettings(settings: GraphicsSettings): void {
 
 /**
  * Hook for managing graphics settings
- * 
+ *
  * @example
  * ```tsx
  * function SettingsPanel() {
  *   const { settings, updateSetting, resetToDefaults, isReducedMotion } = useGraphicsSettings();
- *   
+ *
  *   return (
  *     <Switch
  *       checked={settings.enableAnimations}
@@ -123,16 +126,16 @@ export function useGraphicsSettings() {
   }, []);
 
   // Update a single setting
-  const updateSetting = useCallback(<K extends keyof GraphicsSettings>(
-    key: K,
-    value: GraphicsSettings[K]
-  ) => {
-    setSettings(prev => {
-      const next = { ...prev, [key]: value };
-      saveSettings(next);
-      return next;
-    });
-  }, []);
+  const updateSetting = useCallback(
+    <K extends keyof GraphicsSettings>(key: K, value: GraphicsSettings[K]) => {
+      setSettings((prev) => {
+        const next = { ...prev, [key]: value };
+        saveSettings(next);
+        return next;
+      });
+    },
+    []
+  );
 
   // Reset all settings to defaults
   const resetToDefaults = useCallback(() => {
@@ -142,7 +145,8 @@ export function useGraphicsSettings() {
   }, []);
 
   // Get effective animation state (respects reduced motion preference)
-  const effectiveAnimations = settings.enableAnimations && !isReducedMotion && !settings.enableReducedMotion;
+  const effectiveAnimations =
+    settings.enableAnimations && !isReducedMotion && !settings.enableReducedMotion;
 
   return {
     settings,

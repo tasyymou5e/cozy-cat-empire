@@ -11,10 +11,10 @@ interface ChorePanelProps {
 
 /**
  * ChorePanel - Chore completion interface for earning money
- * 
+ *
  * Displays available chores that players can complete to earn cat money.
  * Each chore has a base reward with potential bonus earnings.
- * 
+ *
  * @example
  * ```tsx
  * <ChorePanel onDoChore={handleDoChore} />
@@ -26,9 +26,9 @@ export function ChorePanel({ onDoChore }: ChorePanelProps) {
     <div className="chore-panel">
       <h3 className="font-bold text-lg mb-3">🧹 Chores</h3>
       <p className="text-xs text-muted-foreground mb-3">Do chores to earn cat money!</p>
-      
+
       <div className="space-y-2">
-        {CHORE_TYPES.map(chore => (
+        {CHORE_TYPES.map((chore) => (
           <Button
             key={chore.id}
             variant="outline"

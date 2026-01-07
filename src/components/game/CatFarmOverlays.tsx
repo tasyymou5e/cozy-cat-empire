@@ -11,18 +11,18 @@ import { DailyEvent } from '@/types/dailyEvents';
 interface CatFarmOverlaysProps {
   // Tutorial
   onHighlightTab: (tab: string | null) => void;
-  
+
   // Keyboard shortcuts
   showShortcutsHelp: boolean;
   onCloseShortcutsHelp: () => void;
-  
+
   // Relationship animations
   events: RelationshipEvent[];
   lastEventId: string;
-  
+
   // Mood animations
   cats: Cat[];
-  
+
   // Cat activity popups
   onCatClick: (catId: string) => void;
   onFeed: (catId: string) => void;
@@ -30,7 +30,7 @@ interface CatFarmOverlaysProps {
   onHeal: (catId: string) => void;
   hasFood: boolean;
   hasMedicine: boolean;
-  
+
   // Daily event
   currentDailyEvent: DailyEvent | null;
   onDismissDailyEvent: () => void;
@@ -58,8 +58,8 @@ export function CatFarmOverlays({
       <KeyboardShortcutsHelp open={showShortcutsHelp} onClose={onCloseShortcutsHelp} />
       <RelationshipAnimations events={events} lastEventId={lastEventId} />
       <MoodAnimations cats={cats} />
-      <CatActivityPopups 
-        cats={cats} 
+      <CatActivityPopups
+        cats={cats}
         onCatClick={onCatClick}
         onFeed={onFeed}
         onComfort={onComfort}

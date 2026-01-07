@@ -1,6 +1,6 @@
 /**
  * Panel group components for CatFarm
- * 
+ *
  * These components group related TabsContent sections to reduce
  * the size of CatFarm.tsx and improve maintainability.
  */

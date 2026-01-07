@@ -119,24 +119,24 @@ export function checkSpecializationEligibility(
   kittenCount: number
 ): SpecializationEligibility {
   const meetsGrade = cat.grade >= SPECIALIZATION_MIN_GRADE;
-  
+
   const eligiblePaths: SpecializationType[] = [];
-  
+
   // Check Show Star
   if (meetsGrade && cat.showWins >= 5) {
     eligiblePaths.push('show_star');
   }
-  
+
   // Check Social Butterfly
   if (meetsGrade && friendshipCount >= 3) {
     eligiblePaths.push('social_butterfly');
   }
-  
+
   // Check Dynasty Builder
   if (meetsGrade && kittenCount >= 2) {
     eligiblePaths.push('dynasty_builder');
   }
-  
+
   return {
     isEligible: eligiblePaths.length > 0,
     meetsGrade,
@@ -145,7 +145,7 @@ export function checkSpecializationEligibility(
   };
 }
 
-export function getMasteryLevel(xp: number): typeof MASTERY_LEVELS[number] {
+export function getMasteryLevel(xp: number): (typeof MASTERY_LEVELS)[number] {
   for (let i = MASTERY_LEVELS.length - 1; i >= 0; i--) {
     if (xp >= MASTERY_LEVELS[i].xpRequired) {
       return MASTERY_LEVELS[i];
@@ -154,8 +154,8 @@ export function getMasteryLevel(xp: number): typeof MASTERY_LEVELS[number] {
   return MASTERY_LEVELS[0];
 }
 
-export function getNextMasteryLevel(xp: number): typeof MASTERY_LEVELS[number] | null {
+export function getNextMasteryLevel(xp: number): (typeof MASTERY_LEVELS)[number] | null {
   const current = getMasteryLevel(xp);
-  const nextIndex = MASTERY_LEVELS.findIndex(l => l.level === current.level) + 1;
+  const nextIndex = MASTERY_LEVELS.findIndex((l) => l.level === current.level) + 1;
   return nextIndex < MASTERY_LEVELS.length ? MASTERY_LEVELS[nextIndex] : null;
 }

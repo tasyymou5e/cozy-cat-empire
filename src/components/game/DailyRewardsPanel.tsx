@@ -1,4 +1,12 @@
-import { DAILY_REWARDS, getRewardForDay, STREAK_MILESTONES, VIPTier, VIP_TIERS, getVIPTier, getNextVIPTier } from '@/types/dailyRewards';
+import {
+  DAILY_REWARDS,
+  getRewardForDay,
+  STREAK_MILESTONES,
+  VIPTier,
+  VIP_TIERS,
+  getVIPTier,
+  getNextVIPTier,
+} from '@/types/dailyRewards';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,24 +41,38 @@ export function DailyRewardsPanel({
   const currentDayInCycle = ((safeStreak - 1) % 7) + 1;
   const todayReward = getRewardForDay(safeStreak);
   const nextVipTier = getNextVIPTier(currentStreak);
-  
+
   // Calculate VIP-enhanced rewards
-  const enhancedCoins = vipTier ? Math.floor(todayReward.coins * vipTier.coinMultiplier) : todayReward.coins;
-  
+  const enhancedCoins = vipTier
+    ? Math.floor(todayReward.coins * vipTier.coinMultiplier)
+    : todayReward.coins;
+
   // Find next milestone (streak or VIP)
-  const milestoneKeys = Object.keys(STREAK_MILESTONES).map(Number).sort((a, b) => a - b);
-  const nextMilestone = milestoneKeys.find(m => m > currentStreak) || milestoneKeys[milestoneKeys.length - 1];
+  const milestoneKeys = Object.keys(STREAK_MILESTONES)
+    .map(Number)
+    .sort((a, b) => a - b);
+  const nextMilestone =
+    milestoneKeys.find((m) => m > currentStreak) || milestoneKeys[milestoneKeys.length - 1];
   const progressToMilestone = Math.min((currentStreak / nextMilestone) * 100, 100);
 
   // VIP progress calculation
   const getVIPProgress = () => {
     if (!vipTier && currentStreak < 30) {
-      return { progress: (currentStreak / 30) * 100, label: `${30 - currentStreak} days to VIP Bronze`, target: 30 };
+      return {
+        progress: (currentStreak / 30) * 100,
+        label: `${30 - currentStreak} days to VIP Bronze`,
+        target: 30,
+      };
     }
     if (nextVipTier) {
       const prevMinStreak = vipTier?.minStreak || 0;
-      const progress = ((currentStreak - prevMinStreak) / (nextVipTier.minStreak - prevMinStreak)) * 100;
-      return { progress, label: `${nextVipTier.minStreak - currentStreak} days to ${nextVipTier.name}`, target: nextVipTier.minStreak };
+      const progress =
+        ((currentStreak - prevMinStreak) / (nextVipTier.minStreak - prevMinStreak)) * 100;
+      return {
+        progress,
+        label: `${nextVipTier.minStreak - currentStreak} days to ${nextVipTier.name}`,
+        target: nextVipTier.minStreak,
+      };
     }
     return { progress: 100, label: 'Maximum VIP Tier!', target: 90 };
   };
@@ -87,11 +109,15 @@ export function DailyRewardsPanel({
                   </p>
                 </div>
               </div>
-              
+
               {/* VIP Perks */}
               <div className="flex flex-wrap justify-center gap-1 mt-2">
                 {vipTier.perks.slice(0, 3).map((perk, i) => (
-                  <Badge key={i} variant="outline" className="text-[10px] border-amber-500/50 bg-amber-500/10">
+                  <Badge
+                    key={i}
+                    variant="outline"
+                    className="text-[10px] border-amber-500/50 bg-amber-500/10"
+                  >
                     ✨ {perk}
                   </Badge>
                 ))}
@@ -100,14 +126,18 @@ export function DailyRewardsPanel({
           )}
 
           {/* Streak Display */}
-          <div className={`flex items-center justify-center gap-4 p-4 rounded-lg ${
-            isVIP 
-              ? 'bg-gradient-to-r from-amber-500/10 via-yellow-500/10 to-amber-500/10' 
-              : 'bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10'
-          }`}>
+          <div
+            className={`flex items-center justify-center gap-4 p-4 rounded-lg ${
+              isVIP
+                ? 'bg-gradient-to-r from-amber-500/10 via-yellow-500/10 to-amber-500/10'
+                : 'bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10'
+            }`}
+          >
             <div className="text-center">
               <div className="flex items-center justify-center gap-1">
-                <Flame className={`h-6 w-6 ${isVIP ? 'text-amber-500' : 'text-orange-500'} animate-streak-flame`} />
+                <Flame
+                  className={`h-6 w-6 ${isVIP ? 'text-amber-500' : 'text-orange-500'} animate-streak-flame`}
+                />
                 <span className="text-3xl font-bold text-foreground">{currentStreak}</span>
               </div>
               <span className="text-sm text-muted-foreground">Day Streak</span>
@@ -135,8 +165,8 @@ export function DailyRewardsPanel({
                     isToday
                       ? 'bg-primary/20 border-primary shadow-lg ring-2 ring-primary/50 animate-glow-pulse'
                       : isPast
-                      ? 'bg-green-500/10 border-green-500/30'
-                      : 'bg-muted/30 border-muted opacity-50'
+                        ? 'bg-green-500/10 border-green-500/30'
+                        : 'bg-muted/30 border-muted opacity-50'
                   }`}
                 >
                   <span className="text-lg">{isPast ? '✅' : isToday ? reward.emoji : '🔒'}</span>
@@ -146,7 +176,10 @@ export function DailyRewardsPanel({
                     {reward.coins}
                   </span>
                   {reward.isMilestone && (
-                    <Badge variant="secondary" className="absolute -top-1 -right-1 text-[8px] px-1 py-0">
+                    <Badge
+                      variant="secondary"
+                      className="absolute -top-1 -right-1 text-[8px] px-1 py-0"
+                    >
                       🎁
                     </Badge>
                   )}
@@ -156,7 +189,9 @@ export function DailyRewardsPanel({
           </div>
 
           {/* Today's Reward Details */}
-          <Card className={`border-primary/20 ${isVIP ? 'bg-gradient-to-br from-amber-500/5 to-yellow-500/10' : 'bg-gradient-to-br from-primary/5 to-primary/10'}`}>
+          <Card
+            className={`border-primary/20 ${isVIP ? 'bg-gradient-to-br from-amber-500/5 to-yellow-500/10' : 'bg-gradient-to-br from-primary/5 to-primary/10'}`}
+          >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -182,14 +217,15 @@ export function DailyRewardsPanel({
                     <div className="text-xs text-muted-foreground mt-1">
                       {Object.entries(todayReward.resources).map(([key, val]) => (
                         <span key={key} className="mr-2">
-                          {key}: +{isVIP && vipTier ? Math.floor(val * vipTier.resourceMultiplier) : val}
+                          {key}: +
+                          {isVIP && vipTier ? Math.floor(val * vipTier.resourceMultiplier) : val}
                         </span>
                       ))}
                     </div>
                   )}
                 </div>
-                <Button 
-                  onClick={onClaim} 
+                <Button
+                  onClick={onClaim}
                   disabled={!canClaim}
                   className={canClaim ? 'animate-bounce-gentle' : ''}
                 >
@@ -218,7 +254,9 @@ export function DailyRewardsPanel({
               </span>
               <span className="font-medium">
                 {nextVipTier ? (
-                  <>{nextVipTier.emoji} {vipProgress.label}</>
+                  <>
+                    {nextVipTier.emoji} {vipProgress.label}
+                  </>
                 ) : isVIP ? (
                   <span className="text-amber-500">🌟 Max Tier!</span>
                 ) : (
@@ -226,9 +264,9 @@ export function DailyRewardsPanel({
                 )}
               </span>
             </div>
-            <Progress 
-              value={vipProgress.progress} 
-              className={`h-2 ${isVIP ? '[&>div]:bg-gradient-to-r [&>div]:from-amber-400 [&>div]:to-yellow-500' : ''}`} 
+            <Progress
+              value={vipProgress.progress}
+              className={`h-2 ${isVIP ? '[&>div]:bg-gradient-to-r [&>div]:from-amber-400 [&>div]:to-yellow-500' : ''}`}
             />
             {!isVIP && currentStreak < 30 && (
               <div className="text-xs text-muted-foreground text-center">
@@ -247,7 +285,8 @@ export function DailyRewardsPanel({
             </div>
             <Progress value={progressToMilestone} className="h-2" />
             <div className="text-xs text-muted-foreground text-center">
-              {nextMilestone - currentStreak} days to go • +{STREAK_MILESTONES[nextMilestone]?.bonusCoins} bonus coins
+              {nextMilestone - currentStreak} days to go • +
+              {STREAK_MILESTONES[nextMilestone]?.bonusCoins} bonus coins
             </div>
           </div>
 

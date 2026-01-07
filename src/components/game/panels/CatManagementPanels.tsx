@@ -4,7 +4,7 @@ import { PanelErrorBoundary } from '../PanelErrorBoundary';
 import { PanelSkeleton } from '../PanelSkeleton';
 
 // Lazy load panels for performance
-const ActionPanel = lazy(() => import('../ActionPanel').then(m => ({ default: m.ActionPanel })));
+const ActionPanel = lazy(() => import('../ActionPanel').then((m) => ({ default: m.ActionPanel })));
 
 interface CatManagementPanelsProps {
   money: number;
@@ -29,12 +29,12 @@ export function CatManagementPanels({
     <TabsContent value="actions" className="mt-0">
       <PanelErrorBoundary panelName="ActionPanel">
         <Suspense fallback={<PanelSkeleton rows={2} />}>
-          <ActionPanel 
-            onAddCat={onAddCat} 
-            onNextDay={onNextDay} 
-            money={money} 
-            space={space} 
-            catCount={catCount} 
+          <ActionPanel
+            onAddCat={onAddCat}
+            onNextDay={onNextDay}
+            money={money}
+            space={space}
+            catCount={catCount}
           />
         </Suspense>
       </PanelErrorBoundary>

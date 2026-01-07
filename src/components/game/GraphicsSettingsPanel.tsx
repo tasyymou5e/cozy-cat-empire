@@ -1,6 +1,6 @@
 /**
  * GraphicsSettingsPanel - User interface for graphics settings
- * 
+ *
  * Allows users to toggle costume animations, particle effects,
  * tier glows, and other visual features.
  */
@@ -23,7 +23,8 @@ import {
 import { Palette, Gauge, Sparkles, Image, RotateCcw, Eye } from 'lucide-react';
 
 export function GraphicsSettingsPanel() {
-  const { settings, updateSetting, resetToDefaults, isReducedMotion, effectiveAnimations } = useGraphicsSettings();
+  const { settings, updateSetting, resetToDefaults, isReducedMotion, effectiveAnimations } =
+    useGraphicsSettings();
 
   return (
     <Card className="border-accent/30">
@@ -32,9 +33,7 @@ export function GraphicsSettingsPanel() {
           <Palette className="h-5 w-5 text-primary" />
           Graphics Settings
         </CardTitle>
-        <CardDescription>
-          Customize visual effects and performance
-        </CardDescription>
+        <CardDescription>Customize visual effects and performance</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Performance Section */}
@@ -47,9 +46,7 @@ export function GraphicsSettingsPanel() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-sm">Avatar Quality</Label>
-              <p className="text-xs text-muted-foreground">
-                Higher quality uses more resources
-              </p>
+              <p className="text-xs text-muted-foreground">Higher quality uses more resources</p>
             </div>
             <Select
               value={settings.avatarQuality}
@@ -70,9 +67,7 @@ export function GraphicsSettingsPanel() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-sm">Enable Animations</Label>
-              <p className="text-xs text-muted-foreground">
-                Breathing, blinking, micro-animations
-              </p>
+              <p className="text-xs text-muted-foreground">Breathing, blinking, micro-animations</p>
             </div>
             <Switch
               checked={settings.enableAnimations}
@@ -84,9 +79,7 @@ export function GraphicsSettingsPanel() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-sm">Force Reduced Motion</Label>
-              <p className="text-xs text-muted-foreground">
-                Minimize all animations
-              </p>
+              <p className="text-xs text-muted-foreground">Minimize all animations</p>
             </div>
             <Switch
               checked={settings.enableReducedMotion}
@@ -107,9 +100,7 @@ export function GraphicsSettingsPanel() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-sm">Costume Animations</Label>
-              <p className="text-xs text-muted-foreground">
-                Sparkles, glows, flowing effects
-              </p>
+              <p className="text-xs text-muted-foreground">Sparkles, glows, flowing effects</p>
             </div>
             <Switch
               checked={settings.enableCostumeAnimations}
@@ -121,9 +112,7 @@ export function GraphicsSettingsPanel() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-sm">Particle Effects</Label>
-              <p className="text-xs text-muted-foreground">
-                Floating sparkles and magic particles
-              </p>
+              <p className="text-xs text-muted-foreground">Floating sparkles and magic particles</p>
             </div>
             <Switch
               checked={settings.enableParticles}
@@ -135,9 +124,7 @@ export function GraphicsSettingsPanel() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-sm">Tier Glows</Label>
-              <p className="text-xs text-muted-foreground">
-                Glowing borders on rare cats
-              </p>
+              <p className="text-xs text-muted-foreground">Glowing borders on rare cats</p>
             </div>
             <Switch
               checked={settings.enableTierGlows}
@@ -149,9 +136,7 @@ export function GraphicsSettingsPanel() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-sm">Sparkle Effects</Label>
-              <p className="text-xs text-muted-foreground">
-                Ultra rare cat sparkle particles
-              </p>
+              <p className="text-xs text-muted-foreground">Ultra rare cat sparkle particles</p>
             </div>
             <Switch
               checked={settings.enableSparkles}
@@ -163,9 +148,7 @@ export function GraphicsSettingsPanel() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-sm">Card Flip Animation</Label>
-              <p className="text-xs text-muted-foreground">
-                3D flip effect on trading cards
-              </p>
+              <p className="text-xs text-muted-foreground">3D flip effect on trading cards</p>
             </div>
             <Switch
               checked={settings.enableCardFlip}
@@ -186,9 +169,7 @@ export function GraphicsSettingsPanel() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-sm">Card Border Style</Label>
-              <p className="text-xs text-muted-foreground">
-                How cat card borders appear
-              </p>
+              <p className="text-xs text-muted-foreground">How cat card borders appear</p>
             </div>
             <Select
               value={settings.cardBorderStyle}
@@ -209,9 +190,7 @@ export function GraphicsSettingsPanel() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-sm">Prefer AI Portraits</Label>
-              <p className="text-xs text-muted-foreground">
-                Show AI portraits when available
-              </p>
+              <p className="text-xs text-muted-foreground">Show AI portraits when available</p>
             </div>
             <Switch
               checked={settings.enablePortraitPriority}
@@ -223,9 +202,7 @@ export function GraphicsSettingsPanel() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-sm">Show Costume on Portrait</Label>
-              <p className="text-xs text-muted-foreground">
-                Display costume badge on AI portraits
-              </p>
+              <p className="text-xs text-muted-foreground">Display costume badge on AI portraits</p>
             </div>
             <Switch
               checked={settings.showCostumeOnPortrait}
@@ -237,13 +214,13 @@ export function GraphicsSettingsPanel() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-sm">Costume Rendering</Label>
-              <p className="text-xs text-muted-foreground">
-                How costumes are displayed
-              </p>
+              <p className="text-xs text-muted-foreground">How costumes are displayed</p>
             </div>
             <Select
               value={settings.costumeDisplayMode}
-              onValueChange={(v: 'vector' | 'emoji' | 'auto') => updateSetting('costumeDisplayMode', v)}
+              onValueChange={(v: 'vector' | 'emoji' | 'auto') =>
+                updateSetting('costumeDisplayMode', v)
+              }
             >
               <SelectTrigger className="w-28">
                 <SelectValue />
@@ -273,11 +250,7 @@ export function GraphicsSettingsPanel() {
               </Badge>
             )}
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetToDefaults}
-          >
+          <Button variant="outline" size="sm" onClick={resetToDefaults}>
             <RotateCcw className="h-4 w-4 mr-2" />
             Reset
           </Button>

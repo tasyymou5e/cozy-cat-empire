@@ -24,19 +24,74 @@ interface CatActivityPopupsProps {
 }
 
 const ACTIVITIES = [
-  { key: 'eating', emojis: ['🍖', '🐟', '🍽️'], text: 'is eating', animation: 'animate-bounce-gentle' },
+  {
+    key: 'eating',
+    emojis: ['🍖', '🐟', '🍽️'],
+    text: 'is eating',
+    animation: 'animate-bounce-gentle',
+  },
   { key: 'playing', emojis: ['🎾', '🧶', '🎮'], text: 'is playing', animation: 'animate-wiggle' },
-  { key: 'sleeping', emojis: ['💤', '😴', '🌙'], text: 'is napping', animation: 'animate-cat-breathe' },
-  { key: 'grooming', emojis: ['✨', '🛁', '🐾'], text: 'is grooming', animation: 'animate-sparkle' },
-  { key: 'exploring', emojis: ['🔍', '🗺️', '👀'], text: 'is exploring', animation: 'animate-pulse' },
+  {
+    key: 'sleeping',
+    emojis: ['💤', '😴', '🌙'],
+    text: 'is napping',
+    animation: 'animate-cat-breathe',
+  },
+  {
+    key: 'grooming',
+    emojis: ['✨', '🛁', '🐾'],
+    text: 'is grooming',
+    animation: 'animate-sparkle',
+  },
+  {
+    key: 'exploring',
+    emojis: ['🔍', '🗺️', '👀'],
+    text: 'is exploring',
+    animation: 'animate-pulse',
+  },
   { key: 'hunting', emojis: ['🎯', '🐭', '🦋'], text: 'is hunting', animation: 'animate-shake' },
-  { key: 'stretching', emojis: ['🧘', '💪', '🌟'], text: 'is stretching', animation: 'animate-scale-in' },
-  { key: 'cuddling', emojis: ['💕', '🤗', '❤️'], text: 'is cuddling', animation: 'animate-heart-pop' },
-  { key: 'training', emojis: ['🎓', '🏆', '📚'], text: 'is learning tricks', animation: 'animate-progress-pop' },
-  { key: 'mischief', emojis: ['😈', '🙀', '💥'], text: 'is being mischievous', animation: 'animate-shake' },
-  { key: 'zoomies', emojis: ['💨', '🏃', '⚡'], text: 'has the zoomies!', animation: 'animate-zoomies' },
-  { key: 'sunbathing', emojis: ['☀️', '😌', '🌞'], text: 'is sunbathing', animation: 'animate-glow-pulse' },
-  { key: 'birdwatching', emojis: ['🐦', '👁️', '🪶'], text: 'is watching birds', animation: 'animate-eye-shimmer' },
+  {
+    key: 'stretching',
+    emojis: ['🧘', '💪', '🌟'],
+    text: 'is stretching',
+    animation: 'animate-scale-in',
+  },
+  {
+    key: 'cuddling',
+    emojis: ['💕', '🤗', '❤️'],
+    text: 'is cuddling',
+    animation: 'animate-heart-pop',
+  },
+  {
+    key: 'training',
+    emojis: ['🎓', '🏆', '📚'],
+    text: 'is learning tricks',
+    animation: 'animate-progress-pop',
+  },
+  {
+    key: 'mischief',
+    emojis: ['😈', '🙀', '💥'],
+    text: 'is being mischievous',
+    animation: 'animate-shake',
+  },
+  {
+    key: 'zoomies',
+    emojis: ['💨', '🏃', '⚡'],
+    text: 'has the zoomies!',
+    animation: 'animate-zoomies',
+  },
+  {
+    key: 'sunbathing',
+    emojis: ['☀️', '😌', '🌞'],
+    text: 'is sunbathing',
+    animation: 'animate-glow-pulse',
+  },
+  {
+    key: 'birdwatching',
+    emojis: ['🐦', '👁️', '🪶'],
+    text: 'is watching birds',
+    animation: 'animate-eye-shimmer',
+  },
 ];
 
 const POSITIONS = [
@@ -47,23 +102,23 @@ const POSITIONS = [
 ];
 
 const ACTIVITY_SOUNDS: Record<string, SoundType> = {
-  'eating': 'catEating',
-  'playing': 'catPlaying',
-  'sleeping': 'catSleeping',
-  'grooming': 'catGrooming',
-  'exploring': 'catExploring',
-  'hunting': 'catHunting',
-  'stretching': 'catStretching',
-  'cuddling': 'catCuddling',
-  'training': 'catTraining',
-  'mischief': 'catMischief',
-  'zoomies': 'catZoomies',
-  'sunbathing': 'catSunbathing',
-  'birdwatching': 'catBirdwatching',
+  eating: 'catEating',
+  playing: 'catPlaying',
+  sleeping: 'catSleeping',
+  grooming: 'catGrooming',
+  exploring: 'catExploring',
+  hunting: 'catHunting',
+  stretching: 'catStretching',
+  cuddling: 'catCuddling',
+  training: 'catTraining',
+  mischief: 'catMischief',
+  zoomies: 'catZoomies',
+  sunbathing: 'catSunbathing',
+  birdwatching: 'catBirdwatching',
 };
 
-export function CatActivityPopups({ 
-  cats, 
+export function CatActivityPopups({
+  cats,
   onCatClick,
   onFeed,
   onComfort,
@@ -79,43 +134,47 @@ export function CatActivityPopups({
   useEffect(() => {
     if (cats.length === 0) return;
 
-    const interval = setInterval(() => {
-      const randomCat = cats[Math.floor(Math.random() * cats.length)];
-      const randomActivity = ACTIVITIES[Math.floor(Math.random() * ACTIVITIES.length)];
-      const randomEmoji = randomActivity.emojis[Math.floor(Math.random() * randomActivity.emojis.length)];
+    const interval = setInterval(
+      () => {
+        const randomCat = cats[Math.floor(Math.random() * cats.length)];
+        const randomActivity = ACTIVITIES[Math.floor(Math.random() * ACTIVITIES.length)];
+        const randomEmoji =
+          randomActivity.emojis[Math.floor(Math.random() * randomActivity.emojis.length)];
 
-      const newPopup: ActivityPopup = {
-        id: `${Date.now()}-${Math.random()}`,
-        catId: randomCat.id,
-        catName: randomCat.name,
-        activity: randomActivity.text,
-        emoji: randomEmoji,
-        animation: randomActivity.animation,
-        position: POSITIONS[positionIndexRef.current % POSITIONS.length],
-      };
+        const newPopup: ActivityPopup = {
+          id: `${Date.now()}-${Math.random()}`,
+          catId: randomCat.id,
+          catName: randomCat.name,
+          activity: randomActivity.text,
+          emoji: randomEmoji,
+          animation: randomActivity.animation,
+          position: POSITIONS[positionIndexRef.current % POSITIONS.length],
+        };
 
-      positionIndexRef.current += 1;
-      setPopups((prev) => [...prev, newPopup]);
+        positionIndexRef.current += 1;
+        setPopups((prev) => [...prev, newPopup]);
 
-      // Play activity sound
-      const soundType = ACTIVITY_SOUNDS[randomActivity.key];
-      if (soundType) {
-        playSound(soundType);
-      }
+        // Play activity sound
+        const soundType = ACTIVITY_SOUNDS[randomActivity.key];
+        if (soundType) {
+          playSound(soundType);
+        }
 
-      // Remove popup AFTER animation completes (5s animation + 200ms buffer)
-      const timeoutId = setTimeout(() => {
-        setPopups((prev) => prev.filter((p) => p.id !== newPopup.id));
-        timeoutsRef.current.delete(timeoutId);
-      }, 5200);
-      
-      timeoutsRef.current.add(timeoutId);
-    }, 8000 + Math.random() * 4000);
+        // Remove popup AFTER animation completes (5s animation + 200ms buffer)
+        const timeoutId = setTimeout(() => {
+          setPopups((prev) => prev.filter((p) => p.id !== newPopup.id));
+          timeoutsRef.current.delete(timeoutId);
+        }, 5200);
+
+        timeoutsRef.current.add(timeoutId);
+      },
+      8000 + Math.random() * 4000
+    );
 
     return () => {
       clearInterval(interval);
       // Clear all pending timeouts on cleanup
-      timeoutsRef.current.forEach(id => clearTimeout(id));
+      timeoutsRef.current.forEach((id) => clearTimeout(id));
       timeoutsRef.current.clear();
     };
   }, [cats, playSound]);
@@ -155,7 +214,8 @@ export function CatActivityPopups({
             <div className="flex-1">
               <p className="font-medium text-sm text-foreground">{popup.catName}</p>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <span className={`text-base ${popup.animation}`}>{popup.emoji}</span> {popup.activity}...
+                <span className={`text-base ${popup.animation}`}>{popup.emoji}</span>{' '}
+                {popup.activity}...
               </p>
             </div>
             {/* Quick Actions */}

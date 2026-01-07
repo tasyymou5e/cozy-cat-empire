@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 /**
  * Props for the AnimatedBackground component
@@ -14,10 +14,10 @@ interface AnimatedBackgroundProps {
 
 /**
  * AnimatedBackground - Animated gradient background with floating orbs
- * 
+ *
  * Provides a visually appealing animated background with different variants
  * for different page contexts. Includes floating decorative blur effects.
- * 
+ *
  * @example
  * ```tsx
  * <AnimatedBackground variant="auth" className="min-h-screen">
@@ -26,20 +26,23 @@ interface AnimatedBackgroundProps {
  * ```
  */
 
-export function AnimatedBackground({ 
-  children, 
+export function AnimatedBackground({
+  children,
   className,
-  variant = 'default' 
+  variant = 'default',
 }: AnimatedBackgroundProps) {
   return (
-    <div className={cn(
-      "relative min-h-screen overflow-hidden",
-      variant === 'auth' && "animated-gradient-bg",
-      variant === 'cozy' && "bg-gradient-to-br from-[hsl(var(--primary)/0.1)] via-background to-[hsl(var(--accent)/0.15)]",
-      variant === 'game' && "bg-background",
-      variant === 'default' && "bg-background",
-      className
-    )}>
+    <div
+      className={cn(
+        'relative min-h-screen overflow-hidden',
+        variant === 'auth' && 'animated-gradient-bg',
+        variant === 'cozy' &&
+          'bg-gradient-to-br from-[hsl(var(--primary)/0.1)] via-background to-[hsl(var(--accent)/0.15)]',
+        variant === 'game' && 'bg-background',
+        variant === 'default' && 'bg-background',
+        className
+      )}
+    >
       {/* Floating Decorative Orbs - Only for auth variant */}
       {variant === 'auth' && (
         <>
@@ -58,7 +61,7 @@ export function AnimatedBackground({
           <div className="absolute bottom-1/3 left-[20%] w-48 h-48 bg-[hsl(var(--accent)/0.12)] rounded-full blur-2xl animate-float animate-delay-300" />
         </>
       )}
-      
+
       {/* Subtle orbs for game variant */}
       {variant === 'game' && (
         <>
@@ -66,11 +69,9 @@ export function AnimatedBackground({
           <div className="absolute bottom-40 left-10 w-64 h-64 bg-accent/5 rounded-full blur-3xl animate-float animate-delay-300 opacity-40" />
         </>
       )}
-      
+
       {/* Content */}
-      <div className="relative z-10 min-h-screen">
-        {children}
-      </div>
+      <div className="relative z-10 min-h-screen">{children}</div>
     </div>
   );
 }

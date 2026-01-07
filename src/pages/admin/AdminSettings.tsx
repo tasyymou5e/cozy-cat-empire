@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { 
-  useAdminActivityLogs, 
-  useAdminAuthLogs, 
+import {
+  useAdminActivityLogs,
+  useAdminAuthLogs,
   useAdminPlayerActivityLogs,
   useAdminStorageStats,
-  useAdminAllTableStats 
+  useAdminAllTableStats,
 } from '@/hooks/admin';
 import { ExportButton } from '@/components/admin/ExportButton';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -28,22 +28,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Activity, 
-  Key, 
-  Database, 
+  ChevronLeft,
+  ChevronRight,
+  Activity,
+  Key,
+  Database,
   Users,
   HardDrive,
   ChevronDown,
   RefreshCw,
-  Image
+  Image,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
@@ -51,7 +47,7 @@ import { useQueryClient } from '@tanstack/react-query';
 // Activity types for player activity log filter
 const ACTIVITY_TYPES = [
   'login',
-  'logout', 
+  'logout',
   'trade_created',
   'trade_completed',
   'gift_sent',
@@ -84,12 +80,18 @@ export default function AdminSettings() {
 
   const { data: activityLogs, isLoading: activityLoading } = useAdminActivityLogs(activityPage);
   const { data: authLogs, isLoading: authLoading } = useAdminAuthLogs(authPage);
-  const { data: playerActivityLogs, isLoading: playerActivityLoading } = useAdminPlayerActivityLogs({
-    activityType: playerActivityFilter || undefined,
-    page: playerActivityPage,
-  });
+  const { data: playerActivityLogs, isLoading: playerActivityLoading } = useAdminPlayerActivityLogs(
+    {
+      activityType: playerActivityFilter || undefined,
+      page: playerActivityPage,
+    }
+  );
   const { data: storageStats, isLoading: storageLoading } = useAdminStorageStats();
-  const { data: tableStats, isLoading: tableStatsLoading, refetch: refetchTables } = useAdminAllTableStats();
+  const {
+    data: tableStats,
+    isLoading: tableStatsLoading,
+    refetch: refetchTables,
+  } = useAdminAllTableStats();
 
   const toggleCategory = (category: string) => {
     setOpenCategories((prev) =>
@@ -389,7 +391,13 @@ export default function AdminSettings() {
                   <ExportButton
                     data={playerActivityLogs?.logs || []}
                     filename="player-activity-log"
-                    columns={['activity_type', 'activity_description', 'user_id', 'created_at', 'metadata']}
+                    columns={[
+                      'activity_type',
+                      'activity_description',
+                      'user_id',
+                      'created_at',
+                      'metadata',
+                    ]}
                   />
                 </div>
               </CardHeader>
@@ -424,9 +432,7 @@ export default function AdminSettings() {
                       ) : (
                         playerActivityLogs?.logs.map((log: any) => (
                           <TableRow key={log.id}>
-                            <TableCell>
-                              {getActivityTypeBadge(log.activity_type)}
-                            </TableCell>
+                            <TableCell>{getActivityTypeBadge(log.activity_type)}</TableCell>
                             <TableCell className="max-w-md truncate">
                               {log.activity_description}
                             </TableCell>
@@ -463,7 +469,9 @@ export default function AdminSettings() {
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          setPlayerActivityPage((p) => Math.min(playerActivityLogs.totalPages, p + 1))
+                          setPlayerActivityPage((p) =>
+                            Math.min(playerActivityLogs.totalPages, p + 1)
+                          )
                         }
                         disabled={playerActivityPage === playerActivityLogs.totalPages}
                       >
@@ -491,37 +499,37 @@ export default function AdminSettings() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {storageLoading ? (
-                    Array.from({ length: 2 }).map((_, i) => (
-                      <div key={i} className="p-4 border rounded-lg">
-                        <Skeleton className="h-4 w-24 mb-2" />
-                        <Skeleton className="h-8 w-16" />
-                      </div>
-                    ))
-                  ) : (
-                    storageStats?.map((stat) => (
-                      <div
-                        key={stat.bucket}
-                        className="p-4 border rounded-lg hover:bg-muted/50 transition-colors flex items-center gap-3"
-                      >
-                        <div className="p-2 rounded-lg bg-primary/10">
-                          <Image className="h-5 w-5 text-primary" />
+                  {storageLoading
+                    ? Array.from({ length: 2 }).map((_, i) => (
+                        <div key={i} className="p-4 border rounded-lg">
+                          <Skeleton className="h-4 w-24 mb-2" />
+                          <Skeleton className="h-8 w-16" />
                         </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground font-medium">
-                            {stat.bucket}
-                          </p>
-                          <p className="text-2xl font-bold">
-                            {stat.status === 'ok' ? stat.count.toLocaleString() : 'N/A'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">files</p>
+                      ))
+                    : storageStats?.map((stat) => (
+                        <div
+                          key={stat.bucket}
+                          className="p-4 border rounded-lg hover:bg-muted/50 transition-colors flex items-center gap-3"
+                        >
+                          <div className="p-2 rounded-lg bg-primary/10">
+                            <Image className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground font-medium">
+                              {stat.bucket}
+                            </p>
+                            <p className="text-2xl font-bold">
+                              {stat.status === 'ok' ? stat.count.toLocaleString() : 'N/A'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">files</p>
+                          </div>
+                          {stat.status === 'error' && (
+                            <Badge variant="destructive" className="ml-auto">
+                              Error
+                            </Badge>
+                          )}
                         </div>
-                        {stat.status === 'error' && (
-                          <Badge variant="destructive" className="ml-auto">Error</Badge>
-                        )}
-                      </div>
-                    ))
-                  )}
+                      ))}
                 </div>
               </CardContent>
             </Card>
@@ -534,7 +542,9 @@ export default function AdminSettings() {
                   <div>
                     <CardTitle>Database Statistics</CardTitle>
                     <CardDescription>
-                      {tableStats ? `${tableStats.totalTables} tables • ${tableStats.totalRows.toLocaleString()} total rows` : 'Loading...'}
+                      {tableStats
+                        ? `${tableStats.totalTables} tables • ${tableStats.totalRows.toLocaleString()} total rows`
+                        : 'Loading...'}
                     </CardDescription>
                   </div>
                 </div>
@@ -544,7 +554,9 @@ export default function AdminSettings() {
                   onClick={handleRefreshTables}
                   disabled={tableStatsLoading}
                 >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${tableStatsLoading ? 'animate-spin' : ''}`} />
+                  <RefreshCw
+                    className={`h-4 w-4 mr-2 ${tableStatsLoading ? 'animate-spin' : ''}`}
+                  />
                   Refresh
                 </Button>
               </CardHeader>
@@ -570,19 +582,20 @@ export default function AdminSettings() {
                       onOpenChange={() => toggleCategory(category)}
                     >
                       <CollapsibleTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-between p-2 h-auto"
-                        >
+                        <Button variant="ghost" className="w-full justify-between p-2 h-auto">
                           <div className="flex items-center gap-2">
                             <Badge className={CATEGORY_CONFIG[category]?.color || ''}>
                               {CATEGORY_CONFIG[category]?.label || category}
                             </Badge>
                             <span className="text-sm text-muted-foreground">
-                              {tables.length} tables • {tables.reduce((sum, t) => sum + (t.count ?? 0), 0).toLocaleString()} rows
+                              {tables.length} tables •{' '}
+                              {tables.reduce((sum, t) => sum + (t.count ?? 0), 0).toLocaleString()}{' '}
+                              rows
                             </span>
                           </div>
-                          <ChevronDown className={`h-4 w-4 transition-transform ${openCategories.includes(category) ? 'rotate-180' : ''}`} />
+                          <ChevronDown
+                            className={`h-4 w-4 transition-transform ${openCategories.includes(category) ? 'rotate-180' : ''}`}
+                          />
                         </Button>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
@@ -592,7 +605,10 @@ export default function AdminSettings() {
                               key={stat.table}
                               className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                             >
-                              <p className="text-sm text-muted-foreground font-medium truncate" title={stat.table}>
+                              <p
+                                className="text-sm text-muted-foreground font-medium truncate"
+                                title={stat.table}
+                              >
                                 {stat.table}
                               </p>
                               <p className="text-2xl font-bold mt-1">
@@ -601,7 +617,9 @@ export default function AdminSettings() {
                                   : 'N/A'}
                               </p>
                               {stat.status === 'error' && (
-                                <Badge variant="destructive" className="mt-1">Query Error</Badge>
+                                <Badge variant="destructive" className="mt-1">
+                                  Query Error
+                                </Badge>
                               )}
                             </div>
                           ))}

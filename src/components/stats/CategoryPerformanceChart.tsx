@@ -1,6 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer,
+} from 'recharts';
 import { Target } from 'lucide-react';
 import { CategoryRank } from '@/hooks/usePlayerStats';
 
@@ -24,7 +31,10 @@ const chartConfig = {
   },
 };
 
-export function CategoryPerformanceChart({ categoryRanks, loading }: CategoryPerformanceChartProps) {
+export function CategoryPerformanceChart({
+  categoryRanks,
+  loading,
+}: CategoryPerformanceChartProps) {
   if (loading) {
     return (
       <Card>
@@ -51,22 +61,25 @@ export function CategoryPerformanceChart({ categoryRanks, loading }: CategoryPer
           </CardTitle>
         </CardHeader>
         <CardContent className="h-64 flex items-center justify-center">
-          <p className="text-muted-foreground">No performance data yet. Start playing to see your strengths!</p>
+          <p className="text-muted-foreground">
+            No performance data yet. Start playing to see your strengths!
+          </p>
         </CardContent>
       </Card>
     );
   }
 
-  const radarData = categoryRanks.map(rank => ({
+  const radarData = categoryRanks.map((rank) => ({
     category: categoryLabels[rank.category] || rank.category,
     percentile: rank.percentile || 0,
     fullMark: 100,
   }));
 
   // Find strongest category
-  const strongestCategory = categoryRanks.reduce((best, current) => 
-    (current.percentile || 0) > (best.percentile || 0) ? current : best
-  , categoryRanks[0]);
+  const strongestCategory = categoryRanks.reduce(
+    (best, current) => ((current.percentile || 0) > (best.percentile || 0) ? current : best),
+    categoryRanks[0]
+  );
 
   return (
     <Card>
@@ -78,7 +91,10 @@ export function CategoryPerformanceChart({ categoryRanks, loading }: CategoryPer
           </CardTitle>
           {strongestCategory && (
             <span className="text-sm text-muted-foreground">
-              Strongest: <span className="text-primary font-medium">{categoryLabels[strongestCategory.category]}</span>
+              Strongest:{' '}
+              <span className="text-primary font-medium">
+                {categoryLabels[strongestCategory.category]}
+              </span>
             </span>
           )}
         </div>
@@ -87,17 +103,17 @@ export function CategoryPerformanceChart({ categoryRanks, loading }: CategoryPer
         <ChartContainer config={chartConfig} className="h-64 w-full">
           <RadarChart data={radarData} margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
             <PolarGrid className="stroke-muted" />
-            <PolarAngleAxis 
-              dataKey="category" 
+            <PolarAngleAxis
+              dataKey="category"
               tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
             />
-            <PolarRadiusAxis 
-              angle={90} 
-              domain={[0, 100]} 
+            <PolarRadiusAxis
+              angle={90}
+              domain={[0, 100]}
               tick={{ fontSize: 10 }}
               tickFormatter={(value) => `${value}%`}
             />
-            <ChartTooltip 
+            <ChartTooltip
               content={<ChartTooltipContent />}
               formatter={(value) => [`${value}%`, 'Percentile']}
             />

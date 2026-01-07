@@ -72,7 +72,7 @@ export default function AdminGameConfig() {
         .from('game_config')
         .select('*')
         .order('category', { ascending: true });
-      
+
       if (error) throw error;
       return data as GameConfig[];
     },
@@ -82,12 +82,12 @@ export default function AdminGameConfig() {
     mutationFn: async ({ key, value }: { key: string; value: Json }) => {
       const { error } = await supabase
         .from('game_config')
-        .update({ 
-          value, 
+        .update({
+          value,
           updated_at: new Date().toISOString(),
         })
         .eq('key', key);
-      
+
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
@@ -107,7 +107,11 @@ export default function AdminGameConfig() {
 
   const handleEdit = (config: GameConfig) => {
     setEditingKey(config.key);
-    setEditValue(typeof config.value === 'object' ? JSON.stringify(config.value, null, 2) : String(config.value));
+    setEditValue(
+      typeof config.value === 'object'
+        ? JSON.stringify(config.value, null, 2)
+        : String(config.value)
+    );
   };
 
   const handleSave = (key: string) => {
@@ -121,9 +125,9 @@ export default function AdminGameConfig() {
   };
 
   const handleToggleFeature = (featureKey: string, currentValue: boolean) => {
-    const featuresConfig = configs?.find(c => c.key === 'features');
+    const featuresConfig = configs?.find((c) => c.key === 'features');
     if (!featuresConfig) return;
-    
+
     const features = featuresConfig.value as Record<string, boolean>;
     updateMutation.mutate({
       key: 'features',
@@ -132,9 +136,9 @@ export default function AdminGameConfig() {
   };
 
   const handleToggleMaintenance = () => {
-    const maintenanceConfig = configs?.find(c => c.key === 'maintenance_mode');
+    const maintenanceConfig = configs?.find((c) => c.key === 'maintenance_mode');
     if (!maintenanceConfig) return;
-    
+
     const maintenance = maintenanceConfig.value as { enabled: boolean; message: string };
     updateMutation.mutate({
       key: 'maintenance_mode',
@@ -143,15 +147,23 @@ export default function AdminGameConfig() {
   };
 
   // Group configs by category
-  const groupedConfigs = configs?.reduce((acc, config) => {
-    const category = config.category || 'general';
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(config);
-    return acc;
-  }, {} as Record<string, GameConfig[]>) || {};
+  const groupedConfigs =
+    configs?.reduce(
+      (acc, config) => {
+        const category = config.category || 'general';
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(config);
+        return acc;
+      },
+      {} as Record<string, GameConfig[]>
+    ) || {};
 
-  const maintenanceConfig = configs?.find(c => c.key === 'maintenance_mode')?.value as { enabled: boolean; message: string } | undefined;
-  const featuresConfig = configs?.find(c => c.key === 'features')?.value as Record<string, boolean> | undefined;
+  const maintenanceConfig = configs?.find((c) => c.key === 'maintenance_mode')?.value as
+    | { enabled: boolean; message: string }
+    | undefined;
+  const featuresConfig = configs?.find((c) => c.key === 'features')?.value as
+    | Record<string, boolean>
+    | undefined;
 
   return (
     <AdminLayout>
@@ -161,12 +173,14 @@ export default function AdminGameConfig() {
             <Settings className="h-6 w-6" />
             Game Configuration
           </h1>
-          <p className="text-muted-foreground">Manage game settings, feature flags, and system configuration.</p>
+          <p className="text-muted-foreground">
+            Manage game settings, feature flags, and system configuration.
+          </p>
         </div>
 
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-2">
-            {[1, 2, 3, 4].map(i => (
+            {[1, 2, 3, 4].map((i) => (
               <Card key={i}>
                 <CardHeader>
                   <Skeleton className="h-6 w-32" />
@@ -185,7 +199,9 @@ export default function AdminGameConfig() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className={`h-5 w-5 ${maintenanceConfig?.enabled ? 'text-destructive' : 'text-muted-foreground'}`} />
+                    <AlertTriangle
+                      className={`h-5 w-5 ${maintenanceConfig?.enabled ? 'text-destructive' : 'text-muted-foreground'}`}
+                    />
                     <CardTitle>Maintenance Mode</CardTitle>
                   </div>
                   <Switch
@@ -220,23 +236,31 @@ export default function AdminGameConfig() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {featuresConfig && Object.entries(featuresConfig).map(([feature, enabled]) => (
-                    <div key={feature} className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                      <span className="text-sm font-medium capitalize">
-                        {feature.replace(/_/g, ' ')}
-                      </span>
-                      <Switch
-                        checked={enabled}
-                        onCheckedChange={() => handleToggleFeature(feature, enabled)}
-                      />
-                    </div>
-                  ))}
+                  {featuresConfig &&
+                    Object.entries(featuresConfig).map(([feature, enabled]) => (
+                      <div
+                        key={feature}
+                        className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                      >
+                        <span className="text-sm font-medium capitalize">
+                          {feature.replace(/_/g, ' ')}
+                        </span>
+                        <Switch
+                          checked={enabled}
+                          onCheckedChange={() => handleToggleFeature(feature, enabled)}
+                        />
+                      </div>
+                    ))}
                 </div>
               </CardContent>
             </Card>
 
             {/* Other Configs by Category */}
-            <Accordion type="multiple" defaultValue={Object.keys(groupedConfigs)} className="space-y-2">
+            <Accordion
+              type="multiple"
+              defaultValue={Object.keys(groupedConfigs)}
+              className="space-y-2"
+            >
               {Object.entries(groupedConfigs)
                 .filter(([category]) => category !== 'system' && category !== 'features')
                 .map(([category, categoryConfigs]) => (

@@ -1,10 +1,24 @@
 import { CatBreed } from './game';
 
-export type FurColor = 'orange' | 'black' | 'white' | 'gray' | 'brown' | 'cream' | 'ginger' | 'calico';
+export type FurColor =
+  | 'orange'
+  | 'black'
+  | 'white'
+  | 'gray'
+  | 'brown'
+  | 'cream'
+  | 'ginger'
+  | 'calico';
 export type FurPattern = 'solid' | 'tabby' | 'spotted' | 'tuxedo' | 'bicolor' | 'calico';
 export type EyeColor = 'green' | 'blue' | 'amber' | 'gold' | 'heterochromia' | 'copper';
 export type HairLength = 'short' | 'medium' | 'fluffy';
-export type FacialFeature = 'normal' | 'scar' | 'eyepatch' | 'whiskers_long' | 'grumpy' | 'cute_blush';
+export type FacialFeature =
+  | 'normal'
+  | 'scar'
+  | 'eyepatch'
+  | 'whiskers_long'
+  | 'grumpy'
+  | 'cute_blush';
 
 export interface CatAppearance {
   furColor: FurColor;
@@ -75,13 +89,18 @@ export function generateDefaultAppearance(breed: CatBreed): CatAppearance {
     persian: { furColor: 'white', pattern: 'solid', eyeColor: 'blue', hairLength: 'fluffy' },
     siamese: { furColor: 'cream', pattern: 'bicolor', patternColor: '#78350F', eyeColor: 'blue' },
     'maine-coon': { furColor: 'brown', pattern: 'tabby', eyeColor: 'gold', hairLength: 'fluffy' },
-    'british-shorthair': { furColor: 'gray', pattern: 'solid', eyeColor: 'copper', hairLength: 'short' },
+    'british-shorthair': {
+      furColor: 'gray',
+      pattern: 'solid',
+      eyeColor: 'copper',
+      hairLength: 'short',
+    },
     ragdoll: { furColor: 'cream', pattern: 'bicolor', eyeColor: 'blue', hairLength: 'fluffy' },
     bengal: { furColor: 'ginger', pattern: 'spotted', eyeColor: 'green', hairLength: 'short' },
   };
 
   const defaults = breedDefaults[breed] || {};
-  
+
   return {
     furColor: defaults.furColor || 'orange',
     pattern: defaults.pattern || 'solid',

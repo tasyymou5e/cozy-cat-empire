@@ -5,13 +5,26 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Users, Gift, Clock, Check, X, Send, Trophy, Sparkles } from 'lucide-react';
-import { 
-  ActiveCoopChallenge, 
-  CoopChallengeInvite, 
+import {
+  ActiveCoopChallenge,
+  CoopChallengeInvite,
   CoopChallenge,
   getCombinedProgress,
   isCoopChallengeCompleted,
@@ -31,7 +44,9 @@ interface CoopChallengesPanelProps {
   onAcceptInvite: (inviteId: string) => boolean | Promise<boolean>;
   onDeclineInvite: (inviteId: string) => boolean | Promise<boolean>;
   onCancelInvite: (inviteId: string) => boolean | Promise<boolean>;
-  onClaimReward: (challengeId: string) => { coins: number; bonus: number } | null | Promise<{ coins: number; bonus: number } | null>;
+  onClaimReward: (
+    challengeId: string
+  ) => { coins: number; bonus: number } | null | Promise<{ coins: number; bonus: number } | null>;
 }
 
 export function CoopChallengesPanel({
@@ -65,9 +80,9 @@ export function CoopChallengesPanel({
     );
   }
 
-  const acceptedFriends = friends.filter(f => f.status === 'accepted');
-  const activeChallengesList = activeChallenges.filter(c => c.status === 'active');
-  const completedChallenges = activeChallenges.filter(c => c.status === 'completed');
+  const acceptedFriends = friends.filter((f) => f.status === 'accepted');
+  const activeChallengesList = activeChallenges.filter((c) => c.status === 'active');
+  const completedChallenges = activeChallenges.filter((c) => c.status === 'completed');
 
   const handleSendInvite = async () => {
     if (!selectedFriend || !selectedChallenge) return;
@@ -90,7 +105,7 @@ export function CoopChallengesPanel({
             </CardTitle>
             <CardDescription>Work together with friends for bonus rewards!</CardDescription>
           </div>
-          
+
           {pendingInvites.length > 0 && (
             <Badge variant="secondary" className="bg-amber-500/20 text-amber-600">
               {pendingInvites.length} pending
@@ -129,16 +144,16 @@ export function CoopChallengesPanel({
               <ScrollArea className="h-[300px] pr-2">
                 <div className="space-y-3">
                   {/* Completed first */}
-                  {completedChallenges.map(challenge => (
+                  {completedChallenges.map((challenge) => (
                     <ActiveChallengeCard
                       key={challenge.id}
                       challenge={challenge}
                       onClaimReward={onClaimReward}
                     />
                   ))}
-                  
+
                   {/* Then active */}
-                  {activeChallengesList.map(challenge => (
+                  {activeChallengesList.map((challenge) => (
                     <ActiveChallengeCard
                       key={challenge.id}
                       challenge={challenge}
@@ -164,7 +179,7 @@ export function CoopChallengesPanel({
                   {pendingInvites.length > 0 && (
                     <>
                       <p className="text-xs font-medium text-muted-foreground">Received</p>
-                      {pendingInvites.map(invite => (
+                      {pendingInvites.map((invite) => (
                         <InviteCard
                           key={invite.id}
                           invite={invite}
@@ -175,13 +190,13 @@ export function CoopChallengesPanel({
                       ))}
                     </>
                   )}
-                  
+
                   {/* Sent invites */}
                   {sentInvites.length > 0 && (
                     <>
                       <Separator className="my-3" />
                       <p className="text-xs font-medium text-muted-foreground">Sent</p>
-                      {sentInvites.map(invite => (
+                      {sentInvites.map((invite) => (
                         <InviteCard
                           key={invite.id}
                           invite={invite}
@@ -201,7 +216,9 @@ export function CoopChallengesPanel({
             {acceptedFriends.length === 0 ? (
               <div className="text-center py-6">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
-                <p className="text-sm text-muted-foreground">Add friends to start coop challenges</p>
+                <p className="text-sm text-muted-foreground">
+                  Add friends to start coop challenges
+                </p>
               </div>
             ) : (
               <>
@@ -222,7 +239,7 @@ export function CoopChallengesPanel({
                         Choose a friend and challenge to work on together
                       </DialogDescription>
                     </DialogHeader>
-                    
+
                     <div className="space-y-4 mt-4">
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Select Friend</label>
@@ -231,7 +248,7 @@ export function CoopChallengesPanel({
                             <SelectValue placeholder="Choose a friend" />
                           </SelectTrigger>
                           <SelectContent>
-                            {acceptedFriends.map(friend => (
+                            {acceptedFriends.map((friend) => (
                               <SelectItem key={friend.friend_id} value={friend.friend_id}>
                                 <span className="flex items-center gap-2">
                                   <span>{friend.avatar_emoji}</span>
@@ -250,7 +267,7 @@ export function CoopChallengesPanel({
                             <SelectValue placeholder="Choose a challenge" />
                           </SelectTrigger>
                           <SelectContent>
-                            {templates.map(template => (
+                            {templates.map((template) => (
                               <SelectItem key={template.id} value={template.id}>
                                 <span className="flex items-center gap-2">
                                   <span>{template.emoji}</span>
@@ -266,13 +283,13 @@ export function CoopChallengesPanel({
                       </div>
 
                       {selectedChallenge && (
-                        <ChallengePreview 
-                          challenge={templates.find(t => t.id === selectedChallenge)!} 
+                        <ChallengePreview
+                          challenge={templates.find((t) => t.id === selectedChallenge)!}
                         />
                       )}
 
-                      <Button 
-                        onClick={handleSendInvite} 
+                      <Button
+                        onClick={handleSendInvite}
                         className="w-full"
                         disabled={!selectedFriend || !selectedChallenge}
                       >
@@ -285,8 +302,10 @@ export function CoopChallengesPanel({
 
                 <ScrollArea className="h-[240px] pr-2">
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Available Challenges</p>
-                    {templates.map(template => (
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      Available Challenges
+                    </p>
+                    {templates.map((template) => (
                       <ChallengeTemplateCard key={template.id} challenge={template} />
                     ))}
                   </div>
@@ -302,12 +321,14 @@ export function CoopChallengesPanel({
 
 // Sub-components
 
-function ActiveChallengeCard({ 
-  challenge, 
-  onClaimReward 
-}: { 
+function ActiveChallengeCard({
+  challenge,
+  onClaimReward,
+}: {
   challenge: ActiveCoopChallenge;
-  onClaimReward: (id: string) => { coins: number; bonus: number } | null | Promise<{ coins: number; bonus: number } | null>;
+  onClaimReward: (
+    id: string
+  ) => { coins: number; bonus: number } | null | Promise<{ coins: number; bonus: number } | null>;
 }) {
   const combined = getCombinedProgress(challenge);
   const target = challenge.challenge.targetValue;
@@ -317,7 +338,9 @@ function ActiveChallengeCard({
   const partnerContribution = getContributionPercent(challenge.partnerProgress, combined || 1);
 
   return (
-    <div className={`p-3 rounded-lg border ${isCompleted ? 'bg-green-500/10 border-green-500/30' : 'bg-card/50 border-border'}`}>
+    <div
+      className={`p-3 rounded-lg border ${isCompleted ? 'bg-green-500/10 border-green-500/30' : 'bg-card/50 border-border'}`}
+    >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="text-2xl">{challenge.challenge.emoji}</span>
@@ -329,7 +352,7 @@ function ActiveChallengeCard({
             </p>
           </div>
         </div>
-        
+
         {isCompleted && !challenge.rewardClaimed ? (
           <Button size="sm" onClick={() => onClaimReward(challenge.id)} className="gap-1">
             <Gift className="h-3 w-3" />
@@ -351,21 +374,22 @@ function ActiveChallengeCard({
       <div className="space-y-2">
         <Progress value={progress} className="h-2" />
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{combined} / {target}</span>
+          <span>
+            {combined} / {target}
+          </span>
           <span className="flex items-center gap-2">
             <span>You: {challenge.myProgress}</span>
             <span>•</span>
-            <span>{challenge.partnerName}: {challenge.partnerProgress}</span>
+            <span>
+              {challenge.partnerName}: {challenge.partnerProgress}
+            </span>
           </span>
         </div>
 
         {/* Contribution bar */}
         <div className="h-1.5 rounded-full bg-muted overflow-hidden flex">
-          <div 
-            className="bg-primary transition-all"
-            style={{ width: `${myContribution}%` }}
-          />
-          <div 
+          <div className="bg-primary transition-all" style={{ width: `${myContribution}%` }} />
+          <div
             className="bg-secondary transition-all"
             style={{ width: `${partnerContribution}%` }}
           />
@@ -376,7 +400,11 @@ function ActiveChallengeCard({
         <div className="mt-2 flex items-center gap-2 text-xs">
           <Trophy className="h-3 w-3 text-amber-500" />
           <span className="text-amber-600 font-medium">
-            Reward: {challenge.challenge.rewardCoins} coins + {Math.floor(challenge.challenge.rewardCoins * (challenge.challenge.bonusMultiplier - 1))} coop bonus!
+            Reward: {challenge.challenge.rewardCoins} coins +{' '}
+            {Math.floor(
+              challenge.challenge.rewardCoins * (challenge.challenge.bonusMultiplier - 1)
+            )}{' '}
+            coop bonus!
           </span>
         </div>
       )}
@@ -406,7 +434,9 @@ function InviteCard({
             <p className="font-medium text-sm">{invite.challenge.name}</p>
             <p className="text-xs text-muted-foreground">
               {type === 'received' ? (
-                <>From {invite.senderAvatar} {invite.senderName}</>
+                <>
+                  From {invite.senderAvatar} {invite.senderName}
+                </>
               ) : (
                 <>Waiting for response...</>
               )}
@@ -444,7 +474,10 @@ function ChallengeTemplateCard({ challenge }: { challenge: CoopChallenge }) {
         <p className="text-xs text-muted-foreground truncate">{challenge.description}</p>
       </div>
       <div className="flex flex-col items-end gap-1">
-        <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-500/30">
+        <Badge
+          variant="outline"
+          className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-500/30"
+        >
           <Sparkles className="h-2.5 w-2.5 mr-0.5" />
           {challenge.bonusMultiplier}x
         </Badge>

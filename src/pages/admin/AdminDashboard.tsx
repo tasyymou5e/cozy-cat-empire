@@ -34,9 +34,7 @@ const StatCard = ({
 }) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between pb-2">
-      <CardTitle className="text-sm font-medium text-muted-foreground">
-        {title}
-      </CardTitle>
+      <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
       <Icon className={`h-5 w-5 ${color || 'text-muted-foreground'}`} />
     </CardHeader>
     <CardContent>
@@ -60,9 +58,7 @@ export default function AdminDashboard() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome to the Cat King Admin Panel
-          </p>
+          <p className="text-muted-foreground">Welcome to the Cat King Admin Panel</p>
         </div>
 
         {/* Live Activity Monitor */}
@@ -88,7 +84,11 @@ export default function AdminDashboard() {
                 <Save className="h-5 w-5 text-green-500" />
                 <div>
                   <p className="text-2xl font-bold">
-                    {liveLoading ? <Skeleton className="h-7 w-8 inline-block" /> : liveActivity?.recentSaves ?? 0}
+                    {liveLoading ? (
+                      <Skeleton className="h-7 w-8 inline-block" />
+                    ) : (
+                      (liveActivity?.recentSaves ?? 0)
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground">Cloud Saves</p>
                 </div>
@@ -97,7 +97,11 @@ export default function AdminDashboard() {
                 <AlertTriangle className="h-5 w-5 text-red-500" />
                 <div>
                   <p className="text-2xl font-bold">
-                    {liveLoading ? <Skeleton className="h-7 w-8 inline-block" /> : liveActivity?.recentErrors ?? 0}
+                    {liveLoading ? (
+                      <Skeleton className="h-7 w-8 inline-block" />
+                    ) : (
+                      (liveActivity?.recentErrors ?? 0)
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground">Errors</p>
                 </div>
@@ -106,7 +110,11 @@ export default function AdminDashboard() {
                 <ArrowLeftRight className="h-5 w-5 text-blue-500" />
                 <div>
                   <p className="text-2xl font-bold">
-                    {liveLoading ? <Skeleton className="h-7 w-8 inline-block" /> : liveActivity?.recentTrades ?? 0}
+                    {liveLoading ? (
+                      <Skeleton className="h-7 w-8 inline-block" />
+                    ) : (
+                      (liveActivity?.recentTrades ?? 0)
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground">Trades</p>
                 </div>
@@ -115,7 +123,11 @@ export default function AdminDashboard() {
                 <Gift className="h-5 w-5 text-pink-500" />
                 <div>
                   <p className="text-2xl font-bold">
-                    {liveLoading ? <Skeleton className="h-7 w-8 inline-block" /> : liveActivity?.recentGifts ?? 0}
+                    {liveLoading ? (
+                      <Skeleton className="h-7 w-8 inline-block" />
+                    ) : (
+                      (liveActivity?.recentGifts ?? 0)
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground">Gifts</p>
                 </div>

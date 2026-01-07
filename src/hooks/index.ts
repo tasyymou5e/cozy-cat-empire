@@ -1,8 +1,8 @@
 /**
  * @fileoverview Barrel export for all custom hooks
- * 
+ *
  * Usage: import { useCloudSave, useFriends, useConfetti } from '@/hooks';
- * 
+ *
  * @module hooks
  */
 

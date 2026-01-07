@@ -6,10 +6,10 @@ interface PanelSkeletonProps {
   showButtons?: boolean;
 }
 
-export function PanelSkeleton({ 
-  rows = 3, 
+export function PanelSkeleton({
+  rows = 3,
   showHeader = true,
-  showButtons = true 
+  showButtons = true,
 }: PanelSkeletonProps) {
   return (
     <div className="action-panel space-y-4">
@@ -19,7 +19,7 @@ export function PanelSkeleton({
           <Skeleton className="h-6 w-32" />
         </div>
       )}
-      
+
       <div className="space-y-3">
         {Array.from({ length: rows }).map((_, i) => (
           <div key={i} className="flex items-center gap-3">
@@ -31,7 +31,7 @@ export function PanelSkeleton({
           </div>
         ))}
       </div>
-      
+
       {showButtons && (
         <div className="flex gap-2 pt-2">
           <Skeleton className="h-10 flex-1 rounded-md" />

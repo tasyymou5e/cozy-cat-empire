@@ -1,15 +1,15 @@
 /**
  * @fileoverview Unified Sound System Provider
- * 
+ *
  * Provides procedural audio for game sounds and ambient music using Web Audio API.
  * This is the single source of truth for all audio in the game.
- * 
+ *
  * Features:
  * - Sound effects for UI, game events, and cat activities
  * - Mood-based ambient music that changes with game progression
  * - Volume controls for SFX and music independently
  * - Celebration and tense mood triggers
- * 
+ *
  * @module contexts/SoundContext
  */
 
@@ -18,15 +18,15 @@ import React, { createContext, useContext, ReactNode, useCallback, useRef, useEf
 /**
  * Available sound effect types
  */
-export type SoundType = 
-  | 'click' 
-  | 'success' 
-  | 'error' 
-  | 'meow' 
-  | 'purr' 
-  | 'hiss' 
-  | 'friendship' 
-  | 'rivalry' 
+export type SoundType =
+  | 'click'
+  | 'success'
+  | 'error'
+  | 'meow'
+  | 'purr'
+  | 'hiss'
+  | 'friendship'
+  | 'rivalry'
   | 'levelUp'
   | 'coin'
   | 'achievement'
@@ -110,60 +110,60 @@ interface SoundContextType {
 const MUSIC_MOODS: Record<MusicMood, { chords: number[][]; tempo: number; brightness: number }> = {
   morning: {
     chords: [
-      [130.81, 164.81, 196.00, 246.94], // Cmaj7
-      [146.83, 174.61, 220.00, 261.63], // Dm7
-      [164.81, 196.00, 246.94, 293.66], // Em7
-      [174.61, 220.00, 261.63, 329.63], // Fmaj7
+      [130.81, 164.81, 196.0, 246.94], // Cmaj7
+      [146.83, 174.61, 220.0, 261.63], // Dm7
+      [164.81, 196.0, 246.94, 293.66], // Em7
+      [174.61, 220.0, 261.63, 329.63], // Fmaj7
     ],
     tempo: 0.08,
     brightness: 1.2,
   },
   afternoon: {
     chords: [
-      [98.00, 123.47, 146.83, 185.00],  // G
-      [110.00, 138.59, 164.81, 207.65], // Am
-      [123.47, 155.56, 185.00, 233.08], // Bm
-      [130.81, 164.81, 196.00, 246.94], // C
+      [98.0, 123.47, 146.83, 185.0], // G
+      [110.0, 138.59, 164.81, 207.65], // Am
+      [123.47, 155.56, 185.0, 233.08], // Bm
+      [130.81, 164.81, 196.0, 246.94], // C
     ],
     tempo: 0.1,
     brightness: 1.0,
   },
   evening: {
     chords: [
-      [87.31, 110.00, 130.81, 164.81],  // Fmaj7
-      [98.00, 123.47, 146.83, 185.00],  // G7
-      [110.00, 130.81, 164.81, 196.00], // Am7
-      [116.54, 146.83, 174.61, 220.00], // Bb
+      [87.31, 110.0, 130.81, 164.81], // Fmaj7
+      [98.0, 123.47, 146.83, 185.0], // G7
+      [110.0, 130.81, 164.81, 196.0], // Am7
+      [116.54, 146.83, 174.61, 220.0], // Bb
     ],
     tempo: 0.06,
     brightness: 0.8,
   },
   night: {
     chords: [
-      [110.00, 130.81, 164.81, 207.65], // Am7
-      [98.00, 123.47, 146.83, 185.00],  // G
-      [87.31, 110.00, 130.81, 164.81],  // Fmaj7
-      [82.41, 103.83, 123.47, 155.56],  // Em
+      [110.0, 130.81, 164.81, 207.65], // Am7
+      [98.0, 123.47, 146.83, 185.0], // G
+      [87.31, 110.0, 130.81, 164.81], // Fmaj7
+      [82.41, 103.83, 123.47, 155.56], // Em
     ],
     tempo: 0.04,
     brightness: 0.6,
   },
   celebration: {
     chords: [
-      [130.81, 164.81, 196.00, 261.63], // C
-      [146.83, 185.00, 220.00, 293.66], // D
+      [130.81, 164.81, 196.0, 261.63], // C
+      [146.83, 185.0, 220.0, 293.66], // D
       [164.81, 207.65, 246.94, 329.63], // E
-      [174.61, 220.00, 261.63, 349.23], // F
+      [174.61, 220.0, 261.63, 349.23], // F
     ],
     tempo: 0.15,
     brightness: 1.5,
   },
   tense: {
     chords: [
-      [110.00, 130.81, 155.56, 185.00], // Am dim
+      [110.0, 130.81, 155.56, 185.0], // Am dim
       [103.83, 123.47, 146.83, 174.61], // G#dim
-      [98.00, 116.54, 138.59, 164.81],  // Gm
-      [92.50, 110.00, 130.81, 155.56],  // F#dim
+      [98.0, 116.54, 138.59, 164.81], // Gm
+      [92.5, 110.0, 130.81, 155.56], // F#dim
     ],
     tempo: 0.12,
     brightness: 0.5,
@@ -302,7 +302,13 @@ const SOUND_CONFIGS: Record<SoundType, SoundConfig | SoundConfig[]> = {
     { frequency: 900, type: 'sawtooth', duration: 0.05, volume: 0.14 },
     { frequency: 1100, type: 'sawtooth', duration: 0.08, volume: 0.1, ramp: 'down' },
   ],
-  catSunbathing: { frequency: 150, type: 'sine', duration: 0.6, volume: 0.06, harmonics: [200, 250] },
+  catSunbathing: {
+    frequency: 150,
+    type: 'sine',
+    duration: 0.6,
+    volume: 0.06,
+    harmonics: [200, 250],
+  },
   catBirdwatching: [
     { frequency: 600, type: 'sine', duration: 0.1, volume: 0.08 },
     { frequency: 800, type: 'sine', duration: 0.08, volume: 0.1 },
@@ -327,11 +333,16 @@ const SOUND_CONFIGS: Record<SoundType, SoundConfig | SoundConfig[]> = {
 function getMoodForDay(day: number): MusicMood {
   const timeOfDay = day % 4;
   switch (timeOfDay) {
-    case 0: return 'morning';
-    case 1: return 'afternoon';
-    case 2: return 'evening';
-    case 3: return 'night';
-    default: return 'afternoon';
+    case 0:
+      return 'morning';
+    case 1:
+      return 'afternoon';
+    case 2:
+      return 'evening';
+    case 3:
+      return 'night';
+    default:
+      return 'afternoon';
   }
 }
 
@@ -339,10 +350,10 @@ const SoundContext = createContext<SoundContextType | null>(null);
 
 /**
  * Sound Provider Component
- * 
+ *
  * Provides the unified sound system to all children components.
  * Must wrap any components that need access to sound effects or music.
- * 
+ *
  * @example
  * ```tsx
  * function App() {
@@ -377,211 +388,233 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     return audioContextRef.current;
   }, []);
 
-  const playTone = useCallback((config: SoundConfig, delay: number = 0) => {
-    if (!enabledRef.current) return;
-    
-    const ctx = initAudio();
-    if (ctx.state === 'suspended') {
-      ctx.resume();
-    }
+  const playTone = useCallback(
+    (config: SoundConfig, delay: number = 0) => {
+      if (!enabledRef.current) return;
 
-    const startTime = ctx.currentTime + delay;
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
+      const ctx = initAudio();
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
 
-    oscillator.type = config.type;
-    oscillator.frequency.setValueAtTime(config.frequency, startTime);
+      const startTime = ctx.currentTime + delay;
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
 
-    const volume = config.volume * volumeRef.current;
-    
-    if (config.ramp === 'up') {
-      gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(volume, startTime + config.duration * 0.3);
-      gainNode.gain.linearRampToValueAtTime(0, startTime + config.duration);
-    } else if (config.ramp === 'down') {
-      gainNode.gain.setValueAtTime(volume, startTime);
-      gainNode.gain.linearRampToValueAtTime(0, startTime + config.duration);
-    } else {
-      gainNode.gain.setValueAtTime(volume, startTime);
-      gainNode.gain.linearRampToValueAtTime(0, startTime + config.duration - 0.01);
-    }
+      oscillator.type = config.type;
+      oscillator.frequency.setValueAtTime(config.frequency, startTime);
 
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
+      const volume = config.volume * volumeRef.current;
 
-    oscillator.start(startTime);
-    oscillator.stop(startTime + config.duration);
+      if (config.ramp === 'up') {
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(volume, startTime + config.duration * 0.3);
+        gainNode.gain.linearRampToValueAtTime(0, startTime + config.duration);
+      } else if (config.ramp === 'down') {
+        gainNode.gain.setValueAtTime(volume, startTime);
+        gainNode.gain.linearRampToValueAtTime(0, startTime + config.duration);
+      } else {
+        gainNode.gain.setValueAtTime(volume, startTime);
+        gainNode.gain.linearRampToValueAtTime(0, startTime + config.duration - 0.01);
+      }
 
-    if (config.harmonics) {
-      config.harmonics.forEach(harmFreq => {
-        const harmOsc = ctx.createOscillator();
-        const harmGain = ctx.createGain();
-        harmOsc.type = config.type;
-        harmOsc.frequency.setValueAtTime(harmFreq, startTime);
-        harmGain.gain.setValueAtTime(volume * 0.5, startTime);
-        harmGain.gain.linearRampToValueAtTime(0, startTime + config.duration);
-        harmOsc.connect(harmGain);
-        harmGain.connect(ctx.destination);
-        harmOsc.start(startTime);
-        harmOsc.stop(startTime + config.duration);
-      });
-    }
-  }, [initAudio]);
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
 
-  const playSound = useCallback((type: SoundType) => {
-    const config = SOUND_CONFIGS[type];
-    
-    if (Array.isArray(config)) {
-      let delay = 0;
-      config.forEach(c => {
-        playTone(c, delay);
-        delay += c.duration * 0.8;
-      });
-    } else {
-      playTone(config);
-    }
-  }, [playTone]);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + config.duration);
+
+      if (config.harmonics) {
+        config.harmonics.forEach((harmFreq) => {
+          const harmOsc = ctx.createOscillator();
+          const harmGain = ctx.createGain();
+          harmOsc.type = config.type;
+          harmOsc.frequency.setValueAtTime(harmFreq, startTime);
+          harmGain.gain.setValueAtTime(volume * 0.5, startTime);
+          harmGain.gain.linearRampToValueAtTime(0, startTime + config.duration);
+          harmOsc.connect(harmGain);
+          harmGain.connect(ctx.destination);
+          harmOsc.start(startTime);
+          harmOsc.stop(startTime + config.duration);
+        });
+      }
+    },
+    [initAudio]
+  );
+
+  const playSound = useCallback(
+    (type: SoundType) => {
+      const config = SOUND_CONFIGS[type];
+
+      if (Array.isArray(config)) {
+        let delay = 0;
+        config.forEach((c) => {
+          playTone(c, delay);
+          delay += c.duration * 0.8;
+        });
+      } else {
+        playTone(config);
+      }
+    },
+    [playTone]
+  );
 
   const transitionToChord = useCallback((frequencies: number[], brightness: number) => {
     if (!musicNodesRef.current || !audioContextRef.current) return;
-    
+
     const ctx = audioContextRef.current;
     const { oscillators, gains } = musicNodesRef.current;
-    
+
     frequencies.forEach((freq, i) => {
       if (oscillators[i] && gains[i]) {
         oscillators[i].frequency.linearRampToValueAtTime(freq * brightness, ctx.currentTime + 2);
         gains[i].gain.linearRampToValueAtTime(0.08, ctx.currentTime + 1);
-        gains[i].gain.linearRampToValueAtTime(0.12 + (i * 0.02), ctx.currentTime + 2);
+        gains[i].gain.linearRampToValueAtTime(0.12 + i * 0.02, ctx.currentTime + 2);
       }
     });
   }, []);
 
   const startChordProgression = useCallback(() => {
     if (chordIntervalRef.current) return;
-    
+
     const cycleChord = () => {
       const mood = MUSIC_MOODS[currentMoodRef.current];
       currentChordIndexRef.current = (currentChordIndexRef.current + 1) % mood.chords.length;
       transitionToChord(mood.chords[currentChordIndexRef.current], mood.brightness);
     };
-    
+
     chordIntervalRef.current = window.setInterval(cycleChord, 8000);
   }, [transitionToChord]);
 
-  const startMusic = useCallback((mood: MusicMood = 'afternoon') => {
-    if (musicPlayingRef.current || musicNodesRef.current) return;
-    
-    currentMoodRef.current = mood;
-    currentChordIndexRef.current = 0;
-    
-    const ctx = initAudio();
-    if (ctx.state === 'suspended') {
-      ctx.resume();
-    }
+  const startMusic = useCallback(
+    (mood: MusicMood = 'afternoon') => {
+      if (musicPlayingRef.current || musicNodesRef.current) return;
 
-    const moodConfig = MUSIC_MOODS[mood];
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(0, ctx.currentTime);
-    masterGain.gain.linearRampToValueAtTime(musicVolumeRef.current, ctx.currentTime + 2);
-    masterGain.connect(ctx.destination);
+      currentMoodRef.current = mood;
+      currentChordIndexRef.current = 0;
 
-    const oscillators: OscillatorNode[] = [];
-    const gains: GainNode[] = [];
+      const ctx = initAudio();
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
 
-    const firstChord = moodConfig.chords[0];
-    
-    firstChord.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq * moodConfig.brightness, ctx.currentTime);
-      osc.detune.setValueAtTime((i - 1.5) * 5, ctx.currentTime);
-      
-      gain.gain.setValueAtTime(0.12 + (i * 0.02), ctx.currentTime);
-      
-      osc.connect(gain);
-      gain.connect(masterGain);
-      osc.start();
-      
-      oscillators.push(osc);
-      gains.push(gain);
-    });
+      const moodConfig = MUSIC_MOODS[mood];
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0, ctx.currentTime);
+      masterGain.gain.linearRampToValueAtTime(musicVolumeRef.current, ctx.currentTime + 2);
+      masterGain.connect(ctx.destination);
 
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-    lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(moodConfig.tempo, ctx.currentTime);
-    lfoGain.gain.setValueAtTime(0.02, ctx.currentTime);
-    lfo.connect(lfoGain);
-    lfoGain.connect(masterGain.gain);
-    lfo.start();
+      const oscillators: OscillatorNode[] = [];
+      const gains: GainNode[] = [];
 
-    musicNodesRef.current = { oscillators, gains, masterGain, lfo };
-    musicPlayingRef.current = true;
-    
-    startChordProgression();
-  }, [initAudio, startChordProgression]);
+      const firstChord = moodConfig.chords[0];
+
+      firstChord.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq * moodConfig.brightness, ctx.currentTime);
+        osc.detune.setValueAtTime((i - 1.5) * 5, ctx.currentTime);
+
+        gain.gain.setValueAtTime(0.12 + i * 0.02, ctx.currentTime);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start();
+
+        oscillators.push(osc);
+        gains.push(gain);
+      });
+
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.type = 'sine';
+      lfo.frequency.setValueAtTime(moodConfig.tempo, ctx.currentTime);
+      lfoGain.gain.setValueAtTime(0.02, ctx.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(masterGain.gain);
+      lfo.start();
+
+      musicNodesRef.current = { oscillators, gains, masterGain, lfo };
+      musicPlayingRef.current = true;
+
+      startChordProgression();
+    },
+    [initAudio, startChordProgression]
+  );
 
   const stopMusic = useCallback(() => {
     if (!musicNodesRef.current) return;
-    
+
     if (chordIntervalRef.current) {
       clearInterval(chordIntervalRef.current);
       chordIntervalRef.current = null;
     }
-    
+
     const ctx = audioContextRef.current;
     if (!ctx) return;
 
     const { oscillators, masterGain, lfo } = musicNodesRef.current;
-    
+
     if (masterGain) {
       masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1);
     }
 
     setTimeout(() => {
-      oscillators.forEach(osc => {
-        try { osc.stop(); } catch (e) {}
+      oscillators.forEach((osc) => {
+        try {
+          osc.stop();
+        } catch (e) {}
       });
       if (lfo) {
-        try { lfo.stop(); } catch (e) {}
+        try {
+          lfo.stop();
+        } catch (e) {}
       }
       musicNodesRef.current = null;
       musicPlayingRef.current = false;
     }, 1100);
   }, []);
 
-  const setMusicMood = useCallback((mood: MusicMood) => {
-    if (!musicPlayingRef.current || !musicNodesRef.current || !audioContextRef.current) return;
-    
-    currentMoodRef.current = mood;
-    currentChordIndexRef.current = 0;
-    
-    const moodConfig = MUSIC_MOODS[mood];
-    const ctx = audioContextRef.current;
-    
-    if (musicNodesRef.current.lfo) {
-      musicNodesRef.current.lfo.frequency.linearRampToValueAtTime(moodConfig.tempo, ctx.currentTime + 1);
-    }
-    
-    transitionToChord(moodConfig.chords[0], moodConfig.brightness);
-  }, [transitionToChord]);
+  const setMusicMood = useCallback(
+    (mood: MusicMood) => {
+      if (!musicPlayingRef.current || !musicNodesRef.current || !audioContextRef.current) return;
 
-  const updateMusicForDay = useCallback((day: number) => {
-    if (!musicPlayingRef.current) return;
-    const newMood = getMoodForDay(day);
-    if (newMood !== currentMoodRef.current) {
-      setMusicMood(newMood);
-    }
-  }, [setMusicMood]);
+      currentMoodRef.current = mood;
+      currentChordIndexRef.current = 0;
+
+      const moodConfig = MUSIC_MOODS[mood];
+      const ctx = audioContextRef.current;
+
+      if (musicNodesRef.current.lfo) {
+        musicNodesRef.current.lfo.frequency.linearRampToValueAtTime(
+          moodConfig.tempo,
+          ctx.currentTime + 1
+        );
+      }
+
+      transitionToChord(moodConfig.chords[0], moodConfig.brightness);
+    },
+    [transitionToChord]
+  );
+
+  const updateMusicForDay = useCallback(
+    (day: number) => {
+      if (!musicPlayingRef.current) return;
+      const newMood = getMoodForDay(day);
+      if (newMood !== currentMoodRef.current) {
+        setMusicMood(newMood);
+      }
+    },
+    [setMusicMood]
+  );
 
   const triggerCelebration = useCallback(() => {
     if (!musicPlayingRef.current) return;
     const previousMood = currentMoodRef.current;
     setMusicMood('celebration');
-    
+
     setTimeout(() => {
       if (musicPlayingRef.current) {
         setMusicMood(previousMood);
@@ -593,7 +626,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     if (!musicPlayingRef.current) return;
     const previousMood = currentMoodRef.current;
     setMusicMood('tense');
-    
+
     setTimeout(() => {
       if (musicPlayingRef.current) {
         setMusicMood(previousMood);
@@ -632,11 +665,15 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         clearInterval(chordIntervalRef.current);
       }
       if (musicNodesRef.current) {
-        musicNodesRef.current.oscillators.forEach(osc => {
-          try { osc.stop(); } catch (e) {}
+        musicNodesRef.current.oscillators.forEach((osc) => {
+          try {
+            osc.stop();
+          } catch (e) {}
         });
         if (musicNodesRef.current.lfo) {
-          try { musicNodesRef.current.lfo.stop(); } catch (e) {}
+          try {
+            musicNodesRef.current.lfo.stop();
+          } catch (e) {}
         }
       }
     };
@@ -659,34 +696,30 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     triggerTense,
   };
 
-  return (
-    <SoundContext.Provider value={soundSystem}>
-      {children}
-    </SoundContext.Provider>
-  );
+  return <SoundContext.Provider value={soundSystem}>{children}</SoundContext.Provider>;
 }
 
 /**
  * Hook to access the sound system
- * 
+ *
  * Must be used within a SoundProvider.
- * 
+ *
  * @returns Sound system methods
  * @throws Error if used outside SoundProvider
- * 
+ *
  * @example
  * ```tsx
  * function GameComponent() {
  *   const { playSound, startMusic, updateMusicForDay } = useSound();
- *   
+ *
  *   const handleClick = () => {
  *     playSound('click');
  *   };
- *   
+ *
  *   useEffect(() => {
  *     startMusic('morning');
  *   }, []);
- *   
+ *
  *   return <button onClick={handleClick}>Click me</button>;
  * }
  * ```

@@ -66,9 +66,9 @@ export function useNotifications(userId: string | undefined) {
 
       // Get sender names
       const senderIds = [
-        ...(friendRequests || []).map(fr => fr.user_id),
-        ...(gifts || []).map(g => g.sender_id),
-        ...(trades || []).map(t => t.sender_id)
+        ...(friendRequests || []).map((fr) => fr.user_id),
+        ...(gifts || []).map((g) => g.sender_id),
+        ...(trades || []).map((t) => t.sender_id),
       ];
 
       const { data: profiles } = await supabase
@@ -76,36 +76,36 @@ export function useNotifications(userId: string | undefined) {
         .select('id, display_name')
         .in('id', senderIds);
 
-      const nameMap = new Map(profiles?.map(p => [p.id, p.display_name || 'Someone']) || []);
+      const nameMap = new Map(profiles?.map((p) => [p.id, p.display_name || 'Someone']) || []);
 
       const allNotifications: Notification[] = [
-        ...(friendRequests || []).map(fr => ({
+        ...(friendRequests || []).map((fr) => ({
           id: `fr-${fr.id}`,
           type: 'friend_request' as const,
           title: '👥 Friend Request',
           message: `${nameMap.get(fr.user_id)} wants to be your friend!`,
           timestamp: fr.created_at,
           read: false,
-          data: { requestId: fr.id, senderId: fr.user_id }
+          data: { requestId: fr.id, senderId: fr.user_id },
         })),
-        ...(gifts || []).map(g => ({
+        ...(gifts || []).map((g) => ({
           id: `gift-${g.id}`,
           type: 'gift' as const,
           title: '🎁 Cat Gift',
           message: `${nameMap.get(g.sender_id)} sent you a cat!`,
           timestamp: g.created_at,
           read: false,
-          data: { giftId: g.id, catData: g.cat_data }
+          data: { giftId: g.id, catData: g.cat_data },
         })),
-        ...(trades || []).map(t => ({
+        ...(trades || []).map((t) => ({
           id: `trade-${t.id}`,
           type: 'trade' as const,
           title: '📦 Trade Offer',
           message: `${nameMap.get(t.sender_id)} wants to trade with you!`,
           timestamp: t.created_at,
           read: false,
-          data: { tradeId: t.id }
-        }))
+          data: { tradeId: t.id },
+        })),
       ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
       setNotifications(allNotifications);
@@ -131,12 +131,12 @@ export function useNotifications(userId: string | undefined) {
           event: 'INSERT',
           schema: 'public',
           table: 'player_friends',
-          filter: `friend_id=eq.${userId}`
+          filter: `friend_id=eq.${userId}`,
         },
         () => {
           toast({
-            title: "👥 New Friend Request!",
-            description: "Someone wants to be your friend!",
+            title: '👥 New Friend Request!',
+            description: 'Someone wants to be your friend!',
           });
           fetchNotifications();
         }
@@ -151,12 +151,12 @@ export function useNotifications(userId: string | undefined) {
           event: 'INSERT',
           schema: 'public',
           table: 'cat_gifts',
-          filter: `recipient_id=eq.${userId}`
+          filter: `recipient_id=eq.${userId}`,
         },
         () => {
           toast({
-            title: "🎁 New Cat Gift!",
-            description: "Someone sent you a cat!",
+            title: '🎁 New Cat Gift!',
+            description: 'Someone sent you a cat!',
           });
           fetchNotifications();
         }
@@ -171,12 +171,12 @@ export function useNotifications(userId: string | undefined) {
           event: 'INSERT',
           schema: 'public',
           table: 'trade_offers',
-          filter: `recipient_id=eq.${userId}`
+          filter: `recipient_id=eq.${userId}`,
         },
         () => {
           toast({
-            title: "📦 New Trade Offer!",
-            description: "Someone wants to trade with you!",
+            title: '📦 New Trade Offer!',
+            description: 'Someone wants to trade with you!',
           });
           fetchNotifications();
         }
@@ -191,10 +191,10 @@ export function useNotifications(userId: string | undefined) {
   }, [userId, fetchNotifications]);
 
   const markAsRead = (notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
     );
-    setUnreadCount(prev => Math.max(0, prev - 1));
+    setUnreadCount((prev) => Math.max(0, prev - 1));
   };
 
   const clearAll = () => {
@@ -207,6 +207,6 @@ export function useNotifications(userId: string | undefined) {
     unreadCount,
     markAsRead,
     clearAll,
-    refetch: fetchNotifications
+    refetch: fetchNotifications,
   };
 }

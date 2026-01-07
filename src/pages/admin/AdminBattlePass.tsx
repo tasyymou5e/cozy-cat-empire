@@ -85,7 +85,7 @@ export default function AdminBattlePass() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { logActivity } = useAdminActivityLog();
-  
+
   const [formOpen, setFormOpen] = useState(false);
   const [editingSeason, setEditingSeason] = useState<BattlePassSeason | null>(null);
   const [deletingSeason, setDeletingSeason] = useState<BattlePassSeason | null>(null);
@@ -98,7 +98,7 @@ export default function AdminBattlePass() {
         .from('battle_pass_seasons')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data as BattlePassSeason[];
     },
@@ -197,7 +197,7 @@ export default function AdminBattlePass() {
       ends_at: season.ends_at.slice(0, 16),
       premium_price: season.premium_price,
       is_active: season.is_active,
-      tiers: Array.isArray(season.tiers) ? season.tiers as SeasonFormData['tiers'] : [],
+      tiers: Array.isArray(season.tiers) ? (season.tiers as SeasonFormData['tiers']) : [],
     });
   };
 
@@ -228,7 +228,11 @@ export default function AdminBattlePass() {
     });
   };
 
-  const updateTier = (index: number, field: keyof SeasonFormData['tiers'][0], value: string | number) => {
+  const updateTier = (
+    index: number,
+    field: keyof SeasonFormData['tiers'][0],
+    value: string | number
+  ) => {
     const newTiers = [...formData.tiers];
     newTiers[index] = { ...newTiers[index], [field]: value };
     setFormData({ ...formData, tiers: newTiers });
@@ -245,9 +249,16 @@ export default function AdminBattlePass() {
               <Sparkles className="h-6 w-6 text-yellow-500" />
               Battle Pass Management
             </h1>
-            <p className="text-muted-foreground">Create and manage battle pass seasons and tiers.</p>
+            <p className="text-muted-foreground">
+              Create and manage battle pass seasons and tiers.
+            </p>
           </div>
-          <Button onClick={() => { setFormData(defaultFormData); setFormOpen(true); }}>
+          <Button
+            onClick={() => {
+              setFormData(defaultFormData);
+              setFormOpen(true);
+            }}
+          >
             <Plus className="h-4 w-4 mr-2" />
             New Season
           </Button>
@@ -301,7 +312,8 @@ export default function AdminBattlePass() {
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <Calendar className="h-3 w-3" />
-                          {format(new Date(season.starts_at), 'MMM d')} - {format(new Date(season.ends_at), 'MMM d')}
+                          {format(new Date(season.starts_at), 'MMM d')} -{' '}
+                          {format(new Date(season.ends_at), 'MMM d')}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -341,7 +353,15 @@ export default function AdminBattlePass() {
       </div>
 
       {/* Create/Edit Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) { setFormOpen(false); setEditingSeason(null); } }}>
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setFormOpen(false);
+            setEditingSeason(null);
+          }
+        }}
+      >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingSeason ? 'Edit Season' : 'Create Season'}</DialogTitle>
@@ -349,7 +369,7 @@ export default function AdminBattlePass() {
               Configure the battle pass season details and tiers.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -410,7 +430,9 @@ export default function AdminBattlePass() {
                   id="premium_price"
                   type="number"
                   value={formData.premium_price}
-                  onChange={(e) => setFormData({ ...formData, premium_price: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, premium_price: parseInt(e.target.value) || 0 })
+                  }
                 />
               </div>
               <div className="flex items-center gap-2 pt-6">
@@ -433,14 +455,19 @@ export default function AdminBattlePass() {
               </div>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {formData.tiers.map((tier, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2 border rounded-lg bg-muted/30">
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 p-2 border rounded-lg bg-muted/30"
+                  >
                     <span className="text-sm font-medium w-8">#{tier.level}</span>
                     <Input
                       type="number"
                       placeholder="XP"
                       className="w-20"
                       value={tier.xp_required}
-                      onChange={(e) => updateTier(index, 'xp_required', parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        updateTier(index, 'xp_required', parseInt(e.target.value) || 0)
+                      }
                     />
                     <Input
                       placeholder="Free reward"
@@ -469,10 +496,19 @@ export default function AdminBattlePass() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setFormOpen(false); setEditingSeason(null); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setFormOpen(false);
+                setEditingSeason(null);
+              }}
+            >
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
+            <Button
+              onClick={handleSubmit}
+              disabled={createMutation.isPending || updateMutation.isPending}
+            >
               {editingSeason ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
@@ -480,12 +516,16 @@ export default function AdminBattlePass() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deletingSeason} onOpenChange={(open) => !open && setDeletingSeason(null)}>
+      <AlertDialog
+        open={!!deletingSeason}
+        onOpenChange={(open) => !open && setDeletingSeason(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Season</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deletingSeason?.name}"? This action cannot be undone.
+              Are you sure you want to delete "{deletingSeason?.name}"? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

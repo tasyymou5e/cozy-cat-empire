@@ -89,7 +89,10 @@ export function usePortraitCredits(): UsePortraitCreditsReturn {
     fetchPackageConfig();
   }, [fetchCredits, fetchPackageConfig]);
 
-  const purchaseCredits = useCallback(async (): Promise<{ success: boolean; newMoneyBalance?: number }> => {
+  const purchaseCredits = useCallback(async (): Promise<{
+    success: boolean;
+    newMoneyBalance?: number;
+  }> => {
     if (!user) {
       toast({
         title: 'Login Required',

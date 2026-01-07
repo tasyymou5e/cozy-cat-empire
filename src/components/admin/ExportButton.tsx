@@ -34,7 +34,10 @@ export function ExportButton({ data, filename, columns }: ExportButtonProps) {
             const value = item[col];
             if (value === null || value === undefined) return '';
             if (typeof value === 'object') return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
-            if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+            if (
+              typeof value === 'string' &&
+              (value.includes(',') || value.includes('"') || value.includes('\n'))
+            ) {
               return `"${value.replace(/"/g, '""')}"`;
             }
             return String(value);

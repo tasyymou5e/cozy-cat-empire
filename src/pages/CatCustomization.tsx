@@ -10,28 +10,57 @@ import { GradeBadge } from '@/components/game/GradeBadge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Cat, BREEDS } from '@/types/game';
-import { 
-  CatAppearance, FurColor, FurPattern, EyeColor, HairLength, FacialFeature,
-  FUR_COLORS, PATTERNS, EYE_COLORS, HAIR_LENGTHS, FACIAL_FEATURES, PATTERN_COLORS,
-  generateDefaultAppearance, randomizeAppearance,
+import {
+  CatAppearance,
+  FurColor,
+  FurPattern,
+  EyeColor,
+  HairLength,
+  FacialFeature,
+  FUR_COLORS,
+  PATTERNS,
+  EYE_COLORS,
+  HAIR_LENGTHS,
+  FACIAL_FEATURES,
+  PATTERN_COLORS,
+  generateDefaultAppearance,
+  randomizeAppearance,
 } from '@/types/catAppearance';
 import { COSTUMES, getCostumeById } from '@/types/costumes';
 import { computeAppearanceHash } from '@/lib/portraitUtils';
-import { ArrowLeft, Save, RotateCcw, Shuffle, Palette, Eye, Scissors, Smile, Shirt, Loader2, AlertTriangle } from 'lucide-react';
+import {
+  ArrowLeft,
+  Save,
+  RotateCcw,
+  Shuffle,
+  Palette,
+  Eye,
+  Scissors,
+  Smile,
+  Shirt,
+  Loader2,
+  AlertTriangle,
+} from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 /**
  * CatCustomization - Cat appearance editor page
- * 
+ *
  * Full-page cat customization experience allowing players to edit
  * fur color, pattern, eye color, hair length, facial features, and
  * equip costumes. Supports live preview and cloud save.
- * 
+ *
  * @route /customize/:catId?
- * 
+ *
  * @example
  * ```tsx
  * <Route path="/customize/:catId?" element={<CatCustomization />} />
@@ -45,7 +74,7 @@ export default function CatCustomization() {
   const { user } = useAuth();
   const { cloudLoad, cloudSave } = useCloudSave(user?.id);
   const { showOutdatedToast } = usePortraitOutdatedToast();
-  
+
   const [selectedCatId, setSelectedCatId] = useState<string | null>(catId || null);
   const [editedAppearance, setEditedAppearance] = useState<CatAppearance | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
@@ -56,7 +85,7 @@ export default function CatCustomization() {
   // Load saved game on mount
   useEffect(() => {
     if (hasLoadedCloud) return;
-    
+
     const loadSavedGame = async () => {
       if (user) {
         const { data } = await cloudLoad();
@@ -67,12 +96,16 @@ export default function CatCustomization() {
           return;
         }
       }
-      
+
       const saved = localStorage.getItem('cat-farm-save');
       if (saved) {
         try {
           const saveData = JSON.parse(saved);
-          actions.loadFromData?.(saveData.state, saveData.kittensBreed || 0, saveData.relationships);
+          actions.loadFromData?.(
+            saveData.state,
+            saveData.kittensBreed || 0,
+            saveData.relationships
+          );
         } catch (e) {
           console.error('Failed to load local save:', e);
         }
@@ -80,12 +113,15 @@ export default function CatCustomization() {
       setHasLoadedCloud(true);
       setIsLoading(false);
     };
-    
+
     loadSavedGame();
   }, [user, hasLoadedCloud, cloudLoad, actions]);
 
-  const selectedCat = state.cats.find(c => c.id === selectedCatId) || state.cats[0];
-  const currentAppearance = editedAppearance || selectedCat?.appearance || (selectedCat ? generateDefaultAppearance(selectedCat.breed) : null);
+  const selectedCat = state.cats.find((c) => c.id === selectedCatId) || state.cats[0];
+  const currentAppearance =
+    editedAppearance ||
+    selectedCat?.appearance ||
+    (selectedCat ? generateDefaultAppearance(selectedCat.breed) : null);
   const equippedCostumeId = selectedCat ? state.catCostumes[selectedCat.id] : undefined;
 
   // Update edited appearance when cat changes
@@ -98,7 +134,7 @@ export default function CatCustomization() {
 
   // Set initial cat from URL param
   useEffect(() => {
-    if (catId && state.cats.find(c => c.id === catId)) {
+    if (catId && state.cats.find((c) => c.id === catId)) {
       setSelectedCatId(catId);
     } else if (!selectedCatId && state.cats.length > 0) {
       setSelectedCatId(state.cats[0].id);
@@ -115,7 +151,7 @@ export default function CatCustomization() {
   const handleSave = async () => {
     if (!selectedCat || !editedAppearance) return;
     setIsSaving(true);
-    
+
     // Check if portrait will become outdated before saving
     const hadPortrait = selectedCat.portraitUrl && selectedCat.appearanceHash;
     const oldHash = selectedCat.appearanceHash;
@@ -124,31 +160,29 @@ export default function CatCustomization() {
       equippedCostumeId
     );
     const willBeOutdated = hadPortrait && oldHash !== newHash;
-    
+
     // Update the cat's appearance in game state
     actions.updateCatAppearance?.(selectedCat.id, editedAppearance);
-    
+
     // Save to local
     actions.saveGame();
-    
+
     // Save to cloud if logged in
     if (user) {
       const updatedGameState = {
         ...state,
-        cats: state.cats.map(c => 
-          c.id === selectedCat.id 
-            ? { ...c, appearance: editedAppearance }
-            : c
+        cats: state.cats.map((c) =>
+          c.id === selectedCat.id ? { ...c, appearance: editedAppearance } : c
         ),
       };
       const relationshipData = relationshipSystem.getRelationshipSaveData();
       await cloudSave(updatedGameState, kittensBreed, relationshipData);
     }
-    
+
     setHasChanges(false);
     setIsSaving(false);
     playSound('success');
-    
+
     // Show toast if portrait became outdated
     if (willBeOutdated) {
       showOutdatedToast(selectedCat);
@@ -208,7 +242,7 @@ export default function CatCustomization() {
             </Link>
             <h1 className="text-xl font-bold">✨ Cat Customization</h1>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Link to={selectedCat ? `/photobooth/${selectedCat.id}` : '/photobooth'}>
               <Button variant="outline" size="sm">
@@ -248,7 +282,7 @@ export default function CatCustomization() {
                   <SelectValue placeholder="Select a cat" />
                 </SelectTrigger>
                 <SelectContent>
-                  {state.cats.map(cat => (
+                  {state.cats.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
                       {cat.name} - {BREEDS[cat.breed].name}
                     </SelectItem>
@@ -260,8 +294,8 @@ export default function CatCustomization() {
               {selectedCat && currentAppearance && (
                 <div className="flex flex-col items-center gap-4 py-6">
                   <div className="relative">
-                    <CatAvatar 
-                      cat={{ ...selectedCat, appearance: editedAppearance || undefined }} 
+                    <CatAvatar
+                      cat={{ ...selectedCat, appearance: editedAppearance || undefined }}
                       equippedCostumeId={equippedCostumeId}
                       size="xl"
                       showCostume
@@ -270,7 +304,9 @@ export default function CatCustomization() {
                   </div>
                   <div className="text-center">
                     <h3 className="font-bold text-lg">{selectedCat.name}</h3>
-                    <p className="text-sm text-muted-foreground">{BREEDS[selectedCat.breed].name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {BREEDS[selectedCat.breed].name}
+                    </p>
                     <GradeBadge grade={selectedCat.grade} size="sm" />
                   </div>
                 </div>
@@ -279,10 +315,26 @@ export default function CatCustomization() {
               {/* Size variants preview */}
               {selectedCat && currentAppearance && (
                 <div className="flex items-end gap-3 pt-4 border-t border-border w-full justify-center">
-                  <CatAvatar cat={{ ...selectedCat, appearance: editedAppearance || undefined }} size="xs" equippedCostumeId={equippedCostumeId} />
-                  <CatAvatar cat={{ ...selectedCat, appearance: editedAppearance || undefined }} size="sm" equippedCostumeId={equippedCostumeId} />
-                  <CatAvatar cat={{ ...selectedCat, appearance: editedAppearance || undefined }} size="md" equippedCostumeId={equippedCostumeId} />
-                  <CatAvatar cat={{ ...selectedCat, appearance: editedAppearance || undefined }} size="lg" equippedCostumeId={equippedCostumeId} />
+                  <CatAvatar
+                    cat={{ ...selectedCat, appearance: editedAppearance || undefined }}
+                    size="xs"
+                    equippedCostumeId={equippedCostumeId}
+                  />
+                  <CatAvatar
+                    cat={{ ...selectedCat, appearance: editedAppearance || undefined }}
+                    size="sm"
+                    equippedCostumeId={equippedCostumeId}
+                  />
+                  <CatAvatar
+                    cat={{ ...selectedCat, appearance: editedAppearance || undefined }}
+                    size="md"
+                    equippedCostumeId={equippedCostumeId}
+                  />
+                  <CatAvatar
+                    cat={{ ...selectedCat, appearance: editedAppearance || undefined }}
+                    size="lg"
+                    equippedCostumeId={equippedCostumeId}
+                  />
                 </div>
               )}
 
@@ -291,7 +343,8 @@ export default function CatCustomization() {
                 <Alert className="bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800">
                   <AlertTriangle className="h-4 w-4 text-orange-500" />
                   <AlertDescription className="text-xs text-orange-700 dark:text-orange-300">
-                    Saving changes will mark the AI portrait as outdated. You can regenerate it in the Photo Booth.
+                    Saving changes will mark the AI portrait as outdated. You can regenerate it in
+                    the Photo Booth.
                   </AlertDescription>
                 </Alert>
               )}
@@ -330,12 +383,16 @@ export default function CatCustomization() {
                   <div>
                     <h4 className="font-semibold mb-3">Fur Color</h4>
                     <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-                      {(Object.entries(FUR_COLORS) as [FurColor, { hex: string; name: string }][]).map(([key, { hex, name }]) => (
+                      {(
+                        Object.entries(FUR_COLORS) as [FurColor, { hex: string; name: string }][]
+                      ).map(([key, { hex, name }]) => (
                         <button
                           key={key}
                           onClick={() => updateAppearance({ furColor: key })}
                           className={`aspect-square rounded-lg border-2 transition-all hover:scale-105 ${
-                            currentAppearance?.furColor === key ? 'border-primary ring-2 ring-primary/50' : 'border-border'
+                            currentAppearance?.furColor === key
+                              ? 'border-primary ring-2 ring-primary/50'
+                              : 'border-border'
                           }`}
                           style={{ backgroundColor: hex }}
                           title={name}
@@ -347,12 +404,19 @@ export default function CatCustomization() {
                   <div>
                     <h4 className="font-semibold mb-3">Pattern</h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {(Object.entries(PATTERNS) as [FurPattern, { name: string; description: string }][]).map(([key, { name, description }]) => (
+                      {(
+                        Object.entries(PATTERNS) as [
+                          FurPattern,
+                          { name: string; description: string },
+                        ][]
+                      ).map(([key, { name, description }]) => (
                         <button
                           key={key}
                           onClick={() => updateAppearance({ pattern: key })}
                           className={`p-3 rounded-lg border-2 text-left transition-all hover:bg-accent ${
-                            currentAppearance?.pattern === key ? 'border-primary bg-primary/10' : 'border-border'
+                            currentAppearance?.pattern === key
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border'
                           }`}
                         >
                           <div className="font-medium">{name}</div>
@@ -371,7 +435,9 @@ export default function CatCustomization() {
                             key={hex}
                             onClick={() => updateAppearance({ patternColor: hex })}
                             className={`aspect-square rounded-lg border-2 transition-all hover:scale-105 ${
-                              currentAppearance?.patternColor === hex ? 'border-primary ring-2 ring-primary/50' : 'border-border'
+                              currentAppearance?.patternColor === hex
+                                ? 'border-primary ring-2 ring-primary/50'
+                                : 'border-border'
                             }`}
                             style={{ backgroundColor: hex }}
                             title={name}
@@ -387,22 +453,29 @@ export default function CatCustomization() {
                   <div>
                     <h4 className="font-semibold mb-3">Eye Color</h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {(Object.entries(EYE_COLORS) as [EyeColor, { hex: string; name: string; secondary?: string }][]).map(([key, { hex, name, secondary }]) => (
+                      {(
+                        Object.entries(EYE_COLORS) as [
+                          EyeColor,
+                          { hex: string; name: string; secondary?: string },
+                        ][]
+                      ).map(([key, { hex, name, secondary }]) => (
                         <button
                           key={key}
                           onClick={() => updateAppearance({ eyeColor: key })}
                           className={`p-4 rounded-lg border-2 flex items-center gap-3 transition-all hover:bg-accent ${
-                            currentAppearance?.eyeColor === key ? 'border-primary bg-primary/10' : 'border-border'
+                            currentAppearance?.eyeColor === key
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border'
                           }`}
                         >
                           <div className="flex gap-1">
-                            <div 
-                              className="w-6 h-6 rounded-full" 
+                            <div
+                              className="w-6 h-6 rounded-full"
                               style={{ backgroundColor: hex }}
                             />
                             {secondary && (
-                              <div 
-                                className="w-6 h-6 rounded-full" 
+                              <div
+                                className="w-6 h-6 rounded-full"
                                 style={{ backgroundColor: secondary }}
                               />
                             )}
@@ -419,12 +492,19 @@ export default function CatCustomization() {
                   <div>
                     <h4 className="font-semibold mb-3">Hair Length</h4>
                     <div className="grid grid-cols-3 gap-3">
-                      {(Object.entries(HAIR_LENGTHS) as [HairLength, { name: string; description: string }][]).map(([key, { name, description }]) => (
+                      {(
+                        Object.entries(HAIR_LENGTHS) as [
+                          HairLength,
+                          { name: string; description: string },
+                        ][]
+                      ).map(([key, { name, description }]) => (
                         <button
                           key={key}
                           onClick={() => updateAppearance({ hairLength: key })}
                           className={`p-4 rounded-lg border-2 text-center transition-all hover:bg-accent ${
-                            currentAppearance?.hairLength === key ? 'border-primary bg-primary/10' : 'border-border'
+                            currentAppearance?.hairLength === key
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border'
                           }`}
                         >
                           <div className="text-2xl mb-2">
@@ -443,12 +523,19 @@ export default function CatCustomization() {
                   <div>
                     <h4 className="font-semibold mb-3">Facial Feature</h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {(Object.entries(FACIAL_FEATURES) as [FacialFeature, { name: string; emoji: string }][]).map(([key, { name, emoji }]) => (
+                      {(
+                        Object.entries(FACIAL_FEATURES) as [
+                          FacialFeature,
+                          { name: string; emoji: string },
+                        ][]
+                      ).map(([key, { name, emoji }]) => (
                         <button
                           key={key}
                           onClick={() => updateAppearance({ facialFeature: key })}
                           className={`p-4 rounded-lg border-2 text-center transition-all hover:bg-accent ${
-                            currentAppearance?.facialFeature === key ? 'border-primary bg-primary/10' : 'border-border'
+                            currentAppearance?.facialFeature === key
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border'
                           }`}
                         >
                           <div className="text-2xl mb-2">{emoji || '😺'}</div>
@@ -467,12 +554,16 @@ export default function CatCustomization() {
                       <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50 mb-4">
                         <span className="text-2xl">{getCostumeById(equippedCostumeId)?.emoji}</span>
                         <div>
-                          <div className="font-medium">{getCostumeById(equippedCostumeId)?.name}</div>
-                          <div className="text-xs text-muted-foreground">{getCostumeById(equippedCostumeId)?.description}</div>
+                          <div className="font-medium">
+                            {getCostumeById(equippedCostumeId)?.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {getCostumeById(equippedCostumeId)?.description}
+                          </div>
                         </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="ml-auto"
                           onClick={() => selectedCat && actions.equipCostume(selectedCat.id, '')}
                         >
@@ -485,14 +576,16 @@ export default function CatCustomization() {
                   </div>
 
                   <div>
-                    <h4 className="font-semibold mb-3">Owned Costumes ({state.ownedCostumes.length})</h4>
+                    <h4 className="font-semibold mb-3">
+                      Owned Costumes ({state.ownedCostumes.length})
+                    </h4>
                     {state.ownedCostumes.length === 0 ? (
                       <p className="text-sm text-muted-foreground">
                         No costumes owned. Visit the Costume Shop to buy some!
                       </p>
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {state.ownedCostumes.map(costumeId => {
+                        {state.ownedCostumes.map((costumeId) => {
                           const costume = getCostumeById(costumeId);
                           if (!costume) return null;
                           const isEquipped = equippedCostumeId === costumeId;

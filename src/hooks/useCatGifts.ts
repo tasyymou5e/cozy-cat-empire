@@ -1,9 +1,9 @@
 /**
  * @fileoverview Cat gifting system hook
- * 
+ *
  * Provides functionality for sending cats as gifts between players.
  * Includes real-time notifications for incoming gifts via Supabase subscriptions.
- * 
+ *
  * @module hooks/useCatGifts
  */
 
@@ -15,7 +15,7 @@ import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
 /**
  * Cat gift data structure
- * 
+ *
  * @interface CatGift
  * @property {string} id - Unique gift record ID
  * @property {string} sender_id - ID of the player who sent the gift
@@ -41,7 +41,7 @@ interface CatGift {
 
 /**
  * Result of a gift operation
- * 
+ *
  * @interface GiftResult
  * @property {boolean} success - Whether the operation succeeded
  * @property {string} [error] - Error message if operation failed
@@ -53,20 +53,20 @@ interface GiftResult {
 
 /**
  * Hook for managing cat gifting between players
- * 
+ *
  * Provides functionality to:
  * - Fetch received and sent gifts
  * - Send a cat as a gift to a friend
  * - Accept or decline received gifts
  * - Real-time notifications for incoming gifts
- * 
+ *
  * When a gift is sent, the cat is removed from the sender's inventory.
  * When a gift is accepted, the cat is added to the recipient's inventory.
  * Declined gifts are marked as such (cat is not returned to sender).
- * 
+ *
  * @param {string | undefined} userId - The current user's ID (undefined if not logged in)
  * @returns {Object} Gift state and management functions
- * 
+ *
  * @example
  * ```tsx
  * function GiftingPanel() {
@@ -81,7 +81,7 @@ interface GiftResult {
  *     newGiftAlert,
  *     clearNewGift
  *   } = useCatGifts(user?.id);
- * 
+ *
  *   // Send a cat to a friend
  *   const handleSendGift = async (friendId: string, cat: Cat) => {
  *     const result = await sendGift(friendId, cat, 'Enjoy your new cat!');
@@ -90,7 +90,7 @@ interface GiftResult {
  *       removeCatFromState(cat.id);
  *     }
  *   };
- * 
+ *
  *   // Accept a received gift
  *   const handleAccept = async (giftId: string) => {
  *     const cat = await acceptGift(giftId);
@@ -99,14 +99,14 @@ interface GiftResult {
  *       addCatToState(cat);
  *     }
  *   };
- * 
+ *
  *   // Show popup when new gift arrives
  *   useEffect(() => {
  *     if (newGiftAlert) {
  *       showGiftPopup(newGiftAlert);
  *     }
  *   }, [newGiftAlert]);
- * 
+ *
  *   return (
  *     <div>
  *       <h2>Received Gifts ({receivedGifts.length})</h2>
@@ -121,19 +121,19 @@ interface GiftResult {
 export function useCatGifts(userId: string | undefined) {
   /** List of pending received gifts */
   const [receivedGifts, setReceivedGifts] = useState<CatGift[]>([]);
-  
+
   /** List of all sent gifts (any status) */
   const [sentGifts, setSentGifts] = useState<CatGift[]>([]);
-  
+
   /** Whether data is currently being fetched */
   const [loading, setLoading] = useState(true);
-  
+
   /** New gift alert for popup notification */
   const [newGiftAlert, setNewGiftAlert] = useState<CatGift | null>(null);
 
   /**
    * Fetches all received and sent gifts from the database
-   * 
+   *
    * @internal
    * @returns {Promise<void>}
    */
@@ -164,10 +164,12 @@ export function useCatGifts(userId: string | undefined) {
       if (sentError) throw sentError;
 
       // Get sender/recipient names for display
-      const userIds = [...new Set([
-        ...(received || []).map(g => g.sender_id),
-        ...(sent || []).map(g => g.recipient_id)
-      ])];
+      const userIds = [
+        ...new Set([
+          ...(received || []).map((g) => g.sender_id),
+          ...(sent || []).map((g) => g.recipient_id),
+        ]),
+      ];
 
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
@@ -175,21 +177,25 @@ export function useCatGifts(userId: string | undefined) {
           .select('id, display_name')
           .in('id', userIds);
 
-        const nameMap = new Map(profiles?.map(p => [p.id, p.display_name]) || []);
+        const nameMap = new Map(profiles?.map((p) => [p.id, p.display_name]) || []);
 
-        setReceivedGifts((received || []).map(g => ({
-          ...g,
-          cat_data: g.cat_data as unknown as Cat,
-          status: g.status as 'pending' | 'accepted' | 'declined',
-          sender_name: nameMap.get(g.sender_id) || 'Unknown'
-        })));
+        setReceivedGifts(
+          (received || []).map((g) => ({
+            ...g,
+            cat_data: g.cat_data as unknown as Cat,
+            status: g.status as 'pending' | 'accepted' | 'declined',
+            sender_name: nameMap.get(g.sender_id) || 'Unknown',
+          }))
+        );
 
-        setSentGifts((sent || []).map(g => ({
-          ...g,
-          cat_data: g.cat_data as unknown as Cat,
-          status: g.status as 'pending' | 'accepted' | 'declined',
-          recipient_name: nameMap.get(g.recipient_id) || 'Unknown'
-        })));
+        setSentGifts(
+          (sent || []).map((g) => ({
+            ...g,
+            cat_data: g.cat_data as unknown as Cat,
+            status: g.status as 'pending' | 'accepted' | 'declined',
+            recipient_name: nameMap.get(g.recipient_id) || 'Unknown',
+          }))
+        );
       } else {
         setReceivedGifts([]);
         setSentGifts([]);
@@ -218,7 +224,7 @@ export function useCatGifts(userId: string | undefined) {
           event: 'INSERT',
           schema: 'public',
           table: 'cat_gifts',
-          filter: `recipient_id=eq.${userId}`
+          filter: `recipient_id=eq.${userId}`,
         },
         async (payload) => {
           // Fetch sender name for the new gift popup
@@ -233,7 +239,7 @@ export function useCatGifts(userId: string | undefined) {
             ...newGift,
             cat_data: newGift.cat_data as Cat,
             status: newGift.status as 'pending' | 'accepted' | 'declined',
-            sender_name: senderProfile?.display_name || 'A friend'
+            sender_name: senderProfile?.display_name || 'A friend',
           };
 
           setNewGiftAlert(giftWithSender);
@@ -246,7 +252,7 @@ export function useCatGifts(userId: string | undefined) {
           event: 'UPDATE',
           schema: 'public',
           table: 'cat_gifts',
-          filter: `recipient_id=eq.${userId}`
+          filter: `recipient_id=eq.${userId}`,
         },
         () => {
           fetchGifts();
@@ -261,15 +267,15 @@ export function useCatGifts(userId: string | undefined) {
 
   /**
    * Sends a cat as a gift to another player
-   * 
+   *
    * The cat will be removed from the sender's inventory when the gift is created.
    * The sender should call a remove function after successful send.
-   * 
+   *
    * @param {string} recipientId - The ID of the player to send the gift to
    * @param {Cat} cat - The cat to send as a gift
    * @param {string} [message] - Optional message to include with the gift
    * @returns {Promise<GiftResult>} Result with success status and optional error
-   * 
+   *
    * @example
    * ```ts
    * const result = await sendGift(friendId, myCat, 'Happy birthday!');
@@ -283,14 +289,14 @@ export function useCatGifts(userId: string | undefined) {
     if (!userId) return { success: false, error: 'Not logged in' };
 
     try {
-      const { error } = await supabase
-        .from('cat_gifts')
-        .insert([{
+      const { error } = await supabase.from('cat_gifts').insert([
+        {
           sender_id: userId,
           recipient_id: recipientId,
           cat_data: JSON.parse(JSON.stringify(cat)),
-          message: message || null
-        }]);
+          message: message || null,
+        },
+      ]);
 
       if (error) throw error;
 
@@ -298,11 +304,11 @@ export function useCatGifts(userId: string | undefined) {
       logPlayerActivity(userId, {
         activityType: 'gift_sent',
         activityDescription: `Sent ${cat.name} as a gift`,
-        metadata: { cat_name: cat.name, cat_breed: cat.breed, recipient_id: recipientId }
+        metadata: { cat_name: cat.name, cat_breed: cat.breed, recipient_id: recipientId },
       });
 
       toast({
-        title: "Gift Sent! 🎁",
+        title: 'Gift Sent! 🎁',
         description: `${cat.name} is on their way to their new home!`,
       });
 
@@ -311,9 +317,9 @@ export function useCatGifts(userId: string | undefined) {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send gift';
       toast({
-        title: "Error",
+        title: 'Error',
         description: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
       return { success: false, error: errorMessage };
     }
@@ -321,13 +327,13 @@ export function useCatGifts(userId: string | undefined) {
 
   /**
    * Accepts a received gift
-   * 
+   *
    * Marks the gift as accepted and returns the cat data.
    * The caller should add the cat to their inventory.
-   * 
+   *
    * @param {string} giftId - The ID of the gift to accept
    * @returns {Promise<Cat | null>} The gifted cat, or null if failed
-   * 
+   *
    * @example
    * ```ts
    * const cat = await acceptGift(giftId);
@@ -339,9 +345,9 @@ export function useCatGifts(userId: string | undefined) {
    */
   const acceptGift = async (giftId: string): Promise<Cat | null> => {
     if (!userId) return null;
-    
+
     try {
-      const gift = receivedGifts.find(g => g.id === giftId);
+      const gift = receivedGifts.find((g) => g.id === giftId);
       if (!gift) return null;
 
       const { error } = await supabase
@@ -355,11 +361,15 @@ export function useCatGifts(userId: string | undefined) {
       logPlayerActivity(userId, {
         activityType: 'gift_received',
         activityDescription: `Received ${gift.cat_data.name} as a gift`,
-        metadata: { cat_name: gift.cat_data.name, cat_breed: gift.cat_data.breed, sender_id: gift.sender_id }
+        metadata: {
+          cat_name: gift.cat_data.name,
+          cat_breed: gift.cat_data.breed,
+          sender_id: gift.sender_id,
+        },
       });
 
       toast({
-        title: "Gift Accepted! 🎉",
+        title: 'Gift Accepted! 🎉',
         description: `${gift.cat_data.name} has joined your family!`,
       });
 
@@ -368,9 +378,9 @@ export function useCatGifts(userId: string | undefined) {
     } catch (error) {
       console.error('Error accepting gift:', error);
       toast({
-        title: "Error",
-        description: "Failed to accept gift",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to accept gift',
+        variant: 'destructive',
       });
       return null;
     }
@@ -378,9 +388,9 @@ export function useCatGifts(userId: string | undefined) {
 
   /**
    * Declines a received gift
-   * 
+   *
    * Marks the gift as declined. The cat is NOT returned to the sender.
-   * 
+   *
    * @param {string} giftId - The ID of the gift to decline
    * @returns {Promise<boolean>} Whether the operation succeeded
    */
@@ -394,8 +404,8 @@ export function useCatGifts(userId: string | undefined) {
       if (error) throw error;
 
       toast({
-        title: "Gift Declined",
-        description: "The gift has been returned to sender.",
+        title: 'Gift Declined',
+        description: 'The gift has been returned to sender.',
       });
 
       fetchGifts();
@@ -408,7 +418,7 @@ export function useCatGifts(userId: string | undefined) {
 
   /**
    * Clears the new gift alert popup
-   * 
+   *
    * @returns {void}
    */
   const clearNewGift = useCallback(() => {
@@ -433,6 +443,6 @@ export function useCatGifts(userId: string | undefined) {
     /** New gift alert for popup (real-time) */
     newGiftAlert,
     /** Clear the new gift alert */
-    clearNewGift
+    clearNewGift,
   };
 }

@@ -2,21 +2,31 @@ import { lazy, Suspense } from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import { PanelErrorBoundary } from '../PanelErrorBoundary';
 import { PanelSkeleton } from '../PanelSkeleton';
-import type { 
-  SharedCatDataProps, 
-  ChallengeProps, 
-  ObjectivesProps, 
-  WheelProps, 
+import type {
+  SharedCatDataProps,
+  ChallengeProps,
+  ObjectivesProps,
+  WheelProps,
   CollectionProps,
-  FeedbackProps 
+  FeedbackProps,
 } from './types';
 
 // Lazy load panels for performance
-const LeaderboardPanel = lazy(() => import('../LeaderboardPanel').then(m => ({ default: m.LeaderboardPanel })));
-const WeeklyChallengesPanel = lazy(() => import('../WeeklyChallengesPanel').then(m => ({ default: m.WeeklyChallengesPanel })));
-const DailyObjectivesPanel = lazy(() => import('../DailyObjectivesPanel').then(m => ({ default: m.DailyObjectivesPanel })));
-const CollectionProgressPanel = lazy(() => import('../CollectionProgressPanel').then(m => ({ default: m.CollectionProgressPanel })));
-const LuckyWheelPanel = lazy(() => import('../LuckyWheelPanel').then(m => ({ default: m.LuckyWheelPanel })));
+const LeaderboardPanel = lazy(() =>
+  import('../LeaderboardPanel').then((m) => ({ default: m.LeaderboardPanel }))
+);
+const WeeklyChallengesPanel = lazy(() =>
+  import('../WeeklyChallengesPanel').then((m) => ({ default: m.WeeklyChallengesPanel }))
+);
+const DailyObjectivesPanel = lazy(() =>
+  import('../DailyObjectivesPanel').then((m) => ({ default: m.DailyObjectivesPanel }))
+);
+const CollectionProgressPanel = lazy(() =>
+  import('../CollectionProgressPanel').then((m) => ({ default: m.CollectionProgressPanel }))
+);
+const LuckyWheelPanel = lazy(() =>
+  import('../LuckyWheelPanel').then((m) => ({ default: m.LuckyWheelPanel }))
+);
 
 interface ProgressPanelsProps {
   /** Shared cat data (cats, relationships, costumes) */
@@ -50,10 +60,10 @@ export function ProgressPanels({
       <TabsContent value="leaderboard" className="mt-0">
         <PanelErrorBoundary panelName="LeaderboardPanel">
           <Suspense fallback={<PanelSkeleton rows={5} />}>
-            <LeaderboardPanel 
-              cats={catData.cats} 
-              relationships={catData.relationships} 
-              catCostumes={catData.catCostumes} 
+            <LeaderboardPanel
+              cats={catData.cats}
+              relationships={catData.relationships}
+              catCostumes={catData.catCostumes}
             />
           </Suspense>
         </PanelErrorBoundary>

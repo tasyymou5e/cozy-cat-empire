@@ -6,8 +6,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Heart, Smile, Moon, Sparkles, Trash2, CheckSquare, Square, Zap, HeartHandshake } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  Heart,
+  Smile,
+  Moon,
+  Sparkles,
+  Trash2,
+  CheckSquare,
+  Square,
+  Zap,
+  HeartHandshake,
+} from 'lucide-react';
 import { CatVisual } from './CatVisual';
 
 /**
@@ -40,11 +60,11 @@ interface BulkActionsProps {
 
 /**
  * BulkActionsPanel - Mass cat management interface
- * 
+ *
  * Provides bulk operations for managing multiple cats at once.
  * Includes heal all, rest all, comfort all, train all, and bulk sell.
  * Shows status summary badges for cats needing attention.
- * 
+ *
  * @example
  * ```tsx
  * <BulkActionsPanel
@@ -61,38 +81,35 @@ interface BulkActionsProps {
  * ```
  */
 
-export function BulkActionsPanel({ 
-  cats, 
-  resources, 
-  day, 
+export function BulkActionsPanel({
+  cats,
+  resources,
+  day,
   relationships,
-  onHealAll, 
-  onRestAll, 
-  onComfortAll, 
-  onTrainAll, 
+  onHealAll,
+  onRestAll,
+  onComfortAll,
+  onTrainAll,
   onSellSelected,
   onSocializeAll,
-  catCostumes
+  catCostumes,
 }: BulkActionsProps) {
   const [selectMode, setSelectMode] = useState(false);
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
 
   // Calculate stats
-  const sickCats = cats.filter(c => c.health < 70);
-  const tiredCats = cats.filter(c => c.restLevel < 50);
-  const unhappyCats = cats.filter(c => c.happiness < 50);
-  const trainableCats = cats.filter(c => 
-    c.lastTrainingDay < day && 
-    c.tricksLearned.length < 5
-  );
-  
+  const sickCats = cats.filter((c) => c.health < 70);
+  const tiredCats = cats.filter((c) => c.restLevel < 50);
+  const unhappyCats = cats.filter((c) => c.happiness < 50);
+  const trainableCats = cats.filter((c) => c.lastTrainingDay < day && c.tricksLearned.length < 5);
+
   // Calculate neglected relationships (2+ days since last interaction)
   const neglectedRelationships = useMemo(() => {
-    return relationships.filter(rel => {
+    return relationships.filter((rel) => {
       const daysSinceInteraction = day - rel.lastInteraction;
       // Only count if both cats still exist
-      const cat1Exists = cats.some(c => c.id === rel.catId1);
-      const cat2Exists = cats.some(c => c.id === rel.catId2);
+      const cat1Exists = cats.some((c) => c.id === rel.catId1);
+      const cat2Exists = cats.some((c) => c.id === rel.catId2);
       return daysSinceInteraction >= 2 && cat1Exists && cat2Exists;
     });
   }, [relationships, day, cats]);
@@ -103,20 +120,17 @@ export function BulkActionsPanel({
   const canHealAll = sickCats.length > 0 && resources.medicine >= medicineCost;
   const canRestAll = tiredCats.length > 0;
   const canComfortAll = unhappyCats.length > 0;
-  const canTrainAll = trainableCats.length > 0 && 
-    resources.treats >= trainCost && 
-    resources.toys >= trainCost;
+  const canTrainAll =
+    trainableCats.length > 0 && resources.treats >= trainCost && resources.toys >= trainCost;
   const canSocializeAll = neglectedRelationships.length > 0 && resources.treats >= socializeCost;
 
   const toggleSelect = (catId: string) => {
-    setSelectedCats(prev => 
-      prev.includes(catId) 
-        ? prev.filter(id => id !== catId)
-        : [...prev, catId]
+    setSelectedCats((prev) =>
+      prev.includes(catId) ? prev.filter((id) => id !== catId) : [...prev, catId]
     );
   };
 
-  const selectAll = () => setSelectedCats(cats.map(c => c.id));
+  const selectAll = () => setSelectedCats(cats.map((c) => c.id));
   const deselectAll = () => setSelectedCats([]);
 
   const handleSellSelected = () => {
@@ -126,7 +140,7 @@ export function BulkActionsPanel({
   };
 
   const totalSellValue = cats
-    .filter(c => selectedCats.includes(c.id))
+    .filter((c) => selectedCats.includes(c.id))
     .reduce((sum, cat) => sum + Math.floor(cat.value * (1 + cat.showWins * 0.1)), 0);
 
   return (
@@ -165,11 +179,15 @@ export function BulkActionsPanel({
               💔 {neglectedRelationships.length} neglected bonds
             </Badge>
           )}
-          {cats.length > 0 && sickCats.length === 0 && tiredCats.length === 0 && unhappyCats.length === 0 && neglectedRelationships.length === 0 && (
-            <Badge variant="outline" className="gap-1 border-green-500 text-green-600">
-              ✨ All cats are happy & healthy!
-            </Badge>
-          )}
+          {cats.length > 0 &&
+            sickCats.length === 0 &&
+            tiredCats.length === 0 &&
+            unhappyCats.length === 0 &&
+            neglectedRelationships.length === 0 && (
+              <Badge variant="outline" className="gap-1 border-green-500 text-green-600">
+                ✨ All cats are happy & healthy!
+              </Badge>
+            )}
         </div>
 
         {/* Bulk Action Buttons */}
@@ -184,9 +202,7 @@ export function BulkActionsPanel({
             <Heart className="h-4 w-4 text-red-500" />
             <span className="text-xs font-medium">Heal All</span>
             {sickCats.length > 0 && (
-              <span className="text-xs text-muted-foreground">
-                💊 {medicineCost} medicine
-              </span>
+              <span className="text-xs text-muted-foreground">💊 {medicineCost} medicine</span>
             )}
           </Button>
 
@@ -252,14 +268,14 @@ export function BulkActionsPanel({
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium">Bulk Sell</span>
             <Button
-              variant={selectMode ? "secondary" : "outline"}
+              variant={selectMode ? 'secondary' : 'outline'}
               size="sm"
               onClick={() => {
                 setSelectMode(!selectMode);
                 if (selectMode) setSelectedCats([]);
               }}
             >
-              {selectMode ? "Cancel" : "Select Cats"}
+              {selectMode ? 'Cancel' : 'Select Cats'}
             </Button>
           </div>
 
@@ -276,7 +292,7 @@ export function BulkActionsPanel({
 
               <ScrollArea className="h-48 border rounded-md p-2">
                 <div className="space-y-1">
-                  {cats.map(cat => (
+                  {cats.map((cat) => (
                     <label
                       key={cat.id}
                       className="flex items-center gap-2 p-2 rounded-md hover:bg-muted cursor-pointer"
@@ -289,7 +305,8 @@ export function BulkActionsPanel({
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{cat.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {BREEDS[cat.breed].name} • ${Math.floor(cat.value * (1 + cat.showWins * 0.1))}
+                          {BREEDS[cat.breed].name} • $
+                          {Math.floor(cat.value * (1 + cat.showWins * 0.1))}
                         </p>
                       </div>
                     </label>
@@ -309,8 +326,8 @@ export function BulkActionsPanel({
                     <AlertDialogHeader>
                       <AlertDialogTitle>Confirm Bulk Sell</AlertDialogTitle>
                       <AlertDialogDescription>
-                        You are about to sell {selectedCats.length} cats for a total of ${totalSellValue}. 
-                        This action cannot be undone.
+                        You are about to sell {selectedCats.length} cats for a total of $
+                        {totalSellValue}. This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

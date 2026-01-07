@@ -22,10 +22,10 @@ const COMFORT_DURATION = 20;
 
 /**
  * ComfortButton - Hold-to-comfort interaction for upset cats
- * 
+ *
  * Provides a 20-second hold interaction to comfort cats that are unhappy
  * or stressed. Shows progress bar during comforting with cancel option.
- * 
+ *
  * @example
  * ```tsx
  * <ComfortButton
@@ -43,10 +43,10 @@ export function ComfortButton({ catId, catName, onComfort, disabled }: ComfortBu
 
   useEffect(() => {
     let interval: number | undefined;
-    
+
     if (isComforting && timeRemaining > 0) {
       interval = window.setInterval(() => {
-        setTimeRemaining(prev => {
+        setTimeRemaining((prev) => {
           const newTime = prev - 0.1;
           setProgress(((COMFORT_DURATION - newTime) / COMFORT_DURATION) * 100);
           return newTime;
@@ -88,9 +88,9 @@ export function ComfortButton({ catId, catName, onComfort, disabled }: ComfortBu
           <span className="ml-auto font-mono">{Math.ceil(timeRemaining)}s</span>
         </div>
         <Progress value={progress} className="h-2" />
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={handleCancel}
           className="w-full text-xs text-muted-foreground"
         >

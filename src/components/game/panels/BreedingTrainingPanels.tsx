@@ -7,9 +7,15 @@ import { CatRelationship } from '@/types/relationships';
 import { GameAction, GameActions, GameActionPayloads } from '@/types/gameEvents';
 
 // Lazy load panels for performance
-const BreedingPanel = lazy(() => import('../BreedingPanel').then(m => ({ default: m.BreedingPanel })));
-const TrainingPanel = lazy(() => import('../TrainingPanel').then(m => ({ default: m.TrainingPanel })));
-const CostumeShopPanel = lazy(() => import('../CostumeShopPanel').then(m => ({ default: m.CostumeShopPanel })));
+const BreedingPanel = lazy(() =>
+  import('../BreedingPanel').then((m) => ({ default: m.BreedingPanel }))
+);
+const TrainingPanel = lazy(() =>
+  import('../TrainingPanel').then((m) => ({ default: m.TrainingPanel }))
+);
+const CostumeShopPanel = lazy(() =>
+  import('../CostumeShopPanel').then((m) => ({ default: m.CostumeShopPanel }))
+);
 
 interface BreedingTrainingPanelsProps {
   cats: Cat[];
@@ -23,7 +29,10 @@ interface BreedingTrainingPanelsProps {
   money: number;
   ownedCostumes: string[];
   dispatchAction: <A extends GameAction>(type: A, payload?: GameActionPayloads[A]) => void;
-  getBreedingCompatibility: (cat1Id: string, cat2Id: string) => {
+  getBreedingCompatibility: (
+    cat1Id: string,
+    cat2Id: string
+  ) => {
     canBreed: boolean;
     bonus: number;
     message: string;
@@ -59,10 +68,10 @@ export function BreedingTrainingPanels({
       <TabsContent value="costumes" className="mt-0">
         <PanelErrorBoundary panelName="CostumeShopPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
-            <CostumeShopPanel 
-              cats={cats} 
-              money={money} 
-              ownedCostumes={ownedCostumes} 
+            <CostumeShopPanel
+              cats={cats}
+              money={money}
+              ownedCostumes={ownedCostumes}
               catCostumes={catCostumes}
               onBuyCostume={onBuyCostume}
               onEquipCostume={onEquipCostume}
@@ -74,14 +83,16 @@ export function BreedingTrainingPanels({
       <TabsContent value="breeding" className="mt-0">
         <PanelErrorBoundary panelName="BreedingPanel">
           <Suspense fallback={<PanelSkeleton rows={3} />}>
-            <BreedingPanel 
-              cats={cats} 
-              cooldown={breedingCooldown} 
+            <BreedingPanel
+              cats={cats}
+              cooldown={breedingCooldown}
               hasSpace={hasSpace}
-              onBreed={(cat1Id, cat2Id) => dispatchAction(GameActions.BREED_CATS, { cat1Id, cat2Id })} 
-              getBreedingCompatibility={getBreedingCompatibility} 
-              catCostumes={catCostumes} 
-              relationships={relationships} 
+              onBreed={(cat1Id, cat2Id) =>
+                dispatchAction(GameActions.BREED_CATS, { cat1Id, cat2Id })
+              }
+              getBreedingCompatibility={getBreedingCompatibility}
+              catCostumes={catCostumes}
+              relationships={relationships}
             />
           </Suspense>
         </PanelErrorBoundary>
@@ -89,13 +100,15 @@ export function BreedingTrainingPanels({
       <TabsContent value="training" className="mt-0">
         <PanelErrorBoundary panelName="TrainingPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
-            <TrainingPanel 
-              cats={cats} 
-              treats={treats} 
+            <TrainingPanel
+              cats={cats}
+              treats={treats}
               toys={toys}
-              day={day} 
-              onTrain={(catId, trickId) => dispatchAction(GameActions.TRAIN_CAT, { catId, trickId })} 
-              onRest={(catId) => dispatchAction(GameActions.REST_CAT, { catId })} 
+              day={day}
+              onTrain={(catId, trickId) =>
+                dispatchAction(GameActions.TRAIN_CAT, { catId, trickId })
+              }
+              onRest={(catId) => dispatchAction(GameActions.REST_CAT, { catId })}
               catCostumes={catCostumes}
             />
           </Suspense>

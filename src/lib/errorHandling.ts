@@ -1,9 +1,9 @@
 /**
  * @fileoverview Standardized error handling utilities for hooks
- * 
+ *
  * Provides consistent error handling patterns across the codebase.
  * Centralizes error logging, user notifications, and error result types.
- * 
+ *
  * @module lib/errorHandling
  */
 
@@ -37,15 +37,15 @@ export interface ErrorContext {
 
 /**
  * Standard error handler for async operations in hooks
- * 
+ *
  * Logs the error to console, database (if user is logged in),
  * and returns a standardized error result.
- * 
+ *
  * @param error - The caught error
  * @param context - Context about where the error occurred
  * @param defaultMessage - User-friendly fallback message
  * @returns Standardized error result object
- * 
+ *
  * @example
  * ```ts
  * try {
@@ -81,24 +81,24 @@ export function handleAsyncError(
     user_id: context.userId,
     metadata: {
       operation: context.operation,
-      ...context.metadata
-    }
+      ...context.metadata,
+    },
   }).catch(() => {
     // Silently fail if database logging fails
   });
 
   return {
     success: false,
-    error: defaultMessage
+    error: defaultMessage,
   };
 }
 
 /**
  * Creates a success result with optional data
- * 
+ *
  * @param data - Optional data to include in result
  * @returns Success result object
- * 
+ *
  * @example
  * ```ts
  * return successResult({ id: '123', name: 'Test' });
@@ -106,17 +106,15 @@ export function handleAsyncError(
  * ```
  */
 export function successResult<T>(data?: T): OperationResult<T> {
-  return data !== undefined 
-    ? { success: true, data }
-    : { success: true } as OperationResult<T>;
+  return data !== undefined ? { success: true, data } : ({ success: true } as OperationResult<T>);
 }
 
 /**
  * Creates an error result with message
- * 
+ *
  * @param error - Error message
  * @returns Error result object
- * 
+ *
  * @example
  * ```ts
  * return errorResult('User not found');
@@ -129,12 +127,12 @@ export function errorResult(error: string): OperationResult<never> {
 
 /**
  * Wraps an async operation with standardized error handling
- * 
+ *
  * @param operation - Async function to execute
  * @param context - Error context for logging
  * @param defaultErrorMessage - Fallback error message
  * @returns Result of operation or error result
- * 
+ *
  * @example
  * ```ts
  * const result = await withErrorHandling(
@@ -163,12 +161,12 @@ export async function withErrorHandling<T>(
 
 /**
  * Safe wrapper for fire-and-forget operations (like activity logging)
- * 
+ *
  * Executes the operation without blocking, swallowing any errors silently.
  * Useful for non-critical operations that shouldn't affect the main flow.
- * 
+ *
  * @param operation - Async function to execute
- * 
+ *
  * @example
  * ```ts
  * // Log activity without blocking the main flow

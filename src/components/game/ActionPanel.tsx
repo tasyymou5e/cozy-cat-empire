@@ -19,10 +19,10 @@ interface ActionPanelProps {
 
 /**
  * ActionPanel - Primary actions for acquiring cats and advancing time
- * 
+ *
  * Provides buttons for getting new cats (stray, adopted, pure breed)
  * and advancing to the next day. Shows cost and availability.
- * 
+ *
  * @example
  * ```tsx
  * <ActionPanel
@@ -35,13 +35,7 @@ interface ActionPanelProps {
  * ```
  */
 
-export function ActionPanel({
-  onAddCat,
-  onNextDay,
-  money,
-  space,
-  catCount,
-}: ActionPanelProps) {
+export function ActionPanel({ onAddCat, onNextDay, money, space, catCount }: ActionPanelProps) {
   const hasSpace = catCount < space;
 
   return (
@@ -49,8 +43,8 @@ export function ActionPanel({
       <div className="space-y-3">
         <h3 className="font-bold text-lg">🐾 Get New Cat</h3>
         <div className="grid grid-cols-3 gap-2">
-          <Button 
-            variant="secondary" 
+          <Button
+            variant="secondary"
             onClick={() => onAddCat('stray')}
             disabled={!hasSpace}
             className="flex flex-col h-auto py-3"
@@ -59,8 +53,8 @@ export function ActionPanel({
             <span className="text-xs font-semibold">Stray</span>
             <span className="text-xs text-muted-foreground">Free</span>
           </Button>
-          <Button 
-            variant="secondary" 
+          <Button
+            variant="secondary"
             onClick={() => onAddCat('adopted')}
             disabled={money < CAT_COSTS.adopted || !hasSpace}
             className="flex flex-col h-auto py-3"
@@ -69,8 +63,8 @@ export function ActionPanel({
             <span className="text-xs font-semibold">Adopt</span>
             <span className="text-xs text-muted-foreground">${CAT_COSTS.adopted}</span>
           </Button>
-          <Button 
-            variant="secondary" 
+          <Button
+            variant="secondary"
             onClick={() => onAddCat('pure')}
             disabled={money < CAT_COSTS.pure || !hasSpace}
             className="flex flex-col h-auto py-3"

@@ -1,10 +1,10 @@
 /**
  * @fileoverview Admin data fetching hooks
- * 
+ *
  * Provides React Query hooks for fetching administrative data including
  * user statistics, error logs, activity logs, storage stats, and analytics.
  * All hooks use TanStack Query for caching and automatic refetching.
- * 
+ *
  * @module hooks/admin/useAdminData
  */
 
@@ -13,7 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Parameters for fetching admin users
- * 
+ *
  * @interface UseAdminUsersParams
  * @property {string} [search] - Search term for display name, username, or email
  * @property {number} [page] - Page number (1-indexed)
@@ -27,7 +27,7 @@ interface UseAdminUsersParams {
 
 /**
  * Parameters for fetching error logs
- * 
+ *
  * @interface UseAdminErrorsParams
  * @property {string} [errorType] - Filter by error type
  * @property {string} [status] - Filter by status (open, resolved, etc.)
@@ -43,7 +43,7 @@ interface UseAdminErrorsParams {
 
 /**
  * Parameters for fetching player activity logs
- * 
+ *
  * @interface UseAdminPlayerActivityParams
  * @property {string} [activityType] - Filter by activity type
  * @property {number} [page] - Page number (1-indexed)
@@ -57,19 +57,19 @@ interface UseAdminPlayerActivityParams {
 
 /**
  * Hook to fetch aggregate admin dashboard statistics
- * 
+ *
  * Returns counts for users, game saves, recent errors, and aggregated
  * player statistics (total wins, cats, kittens, money).
- * 
+ *
  * @returns {UseQueryResult} Query result with stats data
- * 
+ *
  * @example
  * ```tsx
  * function AdminDashboard() {
  *   const { data: stats, isLoading } = useAdminStats();
- * 
+ *
  *   if (isLoading) return <Spinner />;
- * 
+ *
  *   return (
  *     <div>
  *       <StatCard title="Users" value={stats.userCount} />
@@ -84,19 +84,16 @@ export function useAdminStats() {
   return useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const [
-        profilesResult,
-        gameSavesResult,
-        errorsResult,
-        playerStatsResult,
-      ] = await Promise.all([
+      const [profilesResult, gameSavesResult, errorsResult, playerStatsResult] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('game_saves').select('id', { count: 'exact', head: true }),
         supabase
           .from('error_logs')
           .select('id', { count: 'exact', head: true })
           .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
-        supabase.from('player_stats').select('total_show_wins, total_cats_owned, total_kittens_bred, total_money_earned'),
+        supabase
+          .from('player_stats')
+          .select('total_show_wins, total_cats_owned, total_kittens_bred, total_money_earned'),
       ]);
 
       const aggregateStats = playerStatsResult.data?.reduce(
@@ -125,21 +122,21 @@ export function useAdminStats() {
 
 /**
  * Hook to fetch paginated user list with search
- * 
+ *
  * Returns users with their profiles, player stats, and roles.
  * Supports searching by display name, username, or email.
- * 
+ *
  * @param {UseAdminUsersParams} params - Search and pagination options
  * @returns {UseQueryResult} Query result with users array and pagination info
- * 
+ *
  * @example
  * ```tsx
  * function UserManagement() {
  *   const [search, setSearch] = useState('');
  *   const [page, setPage] = useState(1);
- * 
+ *
  *   const { data, isLoading } = useAdminUsers({ search, page, pageSize: 20 });
- * 
+ *
  *   return (
  *     <>
  *       <SearchInput value={search} onChange={setSearch} />
@@ -160,7 +157,8 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
     queryFn: async () => {
       let query = supabase
         .from('profiles')
-        .select(`
+        .select(
+          `
           id,
           display_name,
           avatar_emoji,
@@ -170,12 +168,15 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
           updated_at,
           suspended_at,
           suspension_reason
-        `)
+        `
+        )
         .order('created_at', { ascending: false })
         .range((page - 1) * pageSize, page * pageSize - 1);
 
       if (search) {
-        query = query.or(`display_name.ilike.%${search}%,username.ilike.%${search}%,email.ilike.%${search}%`);
+        query = query.or(
+          `display_name.ilike.%${search}%,username.ilike.%${search}%,email.ilike.%${search}%`
+        );
       }
 
       const { data: profiles, error: profilesError } = await query;
@@ -184,16 +185,15 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
 
       // Fetch player stats and roles for each user
       const userIds = profiles?.map((p) => p.id) || [];
-      
+
       const [statsResult, rolesResult] = await Promise.all([
         supabase
           .from('player_stats')
-          .select('user_id, total_show_wins, total_cats_owned, total_kittens_bred, total_money_earned, last_updated')
+          .select(
+            'user_id, total_show_wins, total_cats_owned, total_kittens_bred, total_money_earned, last_updated'
+          )
           .in('user_id', userIds),
-        supabase
-          .from('user_roles')
-          .select('user_id, role')
-          .in('user_id', userIds),
+        supabase.from('user_roles').select('user_id, role').in('user_id', userIds),
       ]);
 
       const statsMap = new Map(statsResult.data?.map((s) => [s.user_id, s]));
@@ -225,20 +225,20 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
 
 /**
  * Hook to fetch paginated error logs with filtering
- * 
+ *
  * Returns error logs with optional filtering by error type and status.
- * 
+ *
  * @param {UseAdminErrorsParams} params - Filter and pagination options
  * @returns {UseQueryResult} Query result with errors array and pagination info
- * 
+ *
  * @example
  * ```tsx
  * function ErrorLogViewer() {
  *   const [errorType, setErrorType] = useState<string>();
  *   const [page, setPage] = useState(1);
- * 
+ *
  *   const { data, isLoading } = useAdminErrors({ errorType, page });
- * 
+ *
  *   return (
  *     <>
  *       <ErrorTypeFilter value={errorType} onChange={setErrorType} />
@@ -248,7 +248,12 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
  * }
  * ```
  */
-export function useAdminErrors({ errorType, status, page = 1, pageSize = 20 }: UseAdminErrorsParams = {}) {
+export function useAdminErrors({
+  errorType,
+  status,
+  page = 1,
+  pageSize = 20,
+}: UseAdminErrorsParams = {}) {
   return useQuery({
     queryKey: ['admin-errors', errorType, status, page, pageSize],
     queryFn: async () => {
@@ -270,9 +275,7 @@ export function useAdminErrors({ errorType, status, page = 1, pageSize = 20 }: U
       if (error) throw error;
 
       // Get count with same filters
-      let countQuery = supabase
-        .from('error_logs')
-        .select('id', { count: 'exact', head: true });
+      let countQuery = supabase.from('error_logs').select('id', { count: 'exact', head: true });
 
       if (errorType) {
         countQuery = countQuery.eq('error_type', errorType);
@@ -299,17 +302,17 @@ export function useAdminErrors({ errorType, status, page = 1, pageSize = 20 }: U
 
 /**
  * Hook to fetch error trends over the last 7 days
- * 
+ *
  * Returns daily error counts grouped by error type for trend analysis
  * and visualization in charts.
- * 
+ *
  * @returns {UseQueryResult} Query result with daily error data for charts
- * 
+ *
  * @example
  * ```tsx
  * function ErrorTrendsChart() {
  *   const { data: trends } = useAdminErrorTrends();
- * 
+ *
  *   return (
  *     <LineChart data={trends}>
  *       <Line dataKey="total" name="Total Errors" />
@@ -327,7 +330,7 @@ export function useAdminErrorTrends() {
       // Fetch errors from the last 7 days
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      
+
       const { data, error } = await supabase
         .from('error_logs')
         .select('created_at, error_type')
@@ -338,7 +341,7 @@ export function useAdminErrorTrends() {
 
       // Group by day and error type
       const dailyData = new Map<string, Record<string, number>>();
-      
+
       // Initialize all 7 days
       for (let i = 6; i >= 0; i--) {
         const date = new Date();
@@ -373,7 +376,11 @@ export function useAdminErrorTrends() {
       // Convert to array format for recharts
       return Array.from(dailyData.entries()).map(([date, counts]) => ({
         date,
-        displayDate: new Date(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        displayDate: new Date(date).toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+        }),
         ...counts,
       }));
     },
@@ -383,20 +390,20 @@ export function useAdminErrorTrends() {
 
 /**
  * Hook to fetch paginated authentication attempt logs
- * 
+ *
  * Returns logs of login attempts including successes, failures,
  * and access denied events.
- * 
+ *
  * @param {number} page - Page number (1-indexed)
  * @param {number} pageSize - Number of results per page
  * @returns {UseQueryResult} Query result with auth logs and pagination info
- * 
+ *
  * @example
  * ```tsx
  * function AuthLogsTable() {
  *   const [page, setPage] = useState(1);
  *   const { data } = useAdminAuthLogs(page, 20);
- * 
+ *
  *   return <LogsTable logs={data?.logs || []} />;
  * }
  * ```
@@ -432,19 +439,19 @@ export function useAdminAuthLogs(page = 1, pageSize = 20) {
 
 /**
  * Hook to fetch paginated admin activity logs
- * 
+ *
  * Returns logs of admin actions for audit trail and accountability.
- * 
+ *
  * @param {number} page - Page number (1-indexed)
  * @param {number} pageSize - Number of results per page
  * @returns {UseQueryResult} Query result with activity logs and pagination info
- * 
+ *
  * @example
  * ```tsx
  * function ActivityLogViewer() {
  *   const [page, setPage] = useState(1);
  *   const { data } = useAdminActivityLogs(page);
- * 
+ *
  *   return (
  *     <Table>
  *       {data?.logs.map(log => (
@@ -489,29 +496,29 @@ export function useAdminActivityLogs(page = 1, pageSize = 20) {
 
 /**
  * Hook to fetch paginated player activity logs
- * 
+ *
  * Returns logs of player actions (friend requests, trades, etc.)
  * with optional filtering by activity type.
- * 
+ *
  * @param {UseAdminPlayerActivityParams} params - Filter and pagination options
  * @returns {UseQueryResult} Query result with player activity logs
- * 
+ *
  * @example
  * ```tsx
  * function PlayerActivityViewer() {
- *   const { data } = useAdminPlayerActivityLogs({ 
+ *   const { data } = useAdminPlayerActivityLogs({
  *     activityType: 'friend_request_sent',
- *     page: 1 
+ *     page: 1
  *   });
- * 
+ *
  *   return <ActivityTable logs={data?.logs || []} />;
  * }
  * ```
  */
-export function useAdminPlayerActivityLogs({ 
-  activityType, 
-  page = 1, 
-  pageSize = 20 
+export function useAdminPlayerActivityLogs({
+  activityType,
+  page = 1,
+  pageSize = 20,
 }: UseAdminPlayerActivityParams = {}) {
   return useQuery({
     queryKey: ['admin-player-activity', activityType, page, pageSize],
@@ -555,16 +562,16 @@ export function useAdminPlayerActivityLogs({
 
 /**
  * Hook to fetch storage bucket statistics
- * 
+ *
  * Returns file counts for each storage bucket (photo-gallery, cat-portraits).
- * 
+ *
  * @returns {UseQueryResult} Query result with storage stats per bucket
- * 
+ *
  * @example
  * ```tsx
  * function StorageOverview() {
  *   const { data: buckets } = useAdminStorageStats();
- * 
+ *
  *   return (
  *     <div>
  *       {buckets?.map(bucket => (
@@ -582,33 +589,31 @@ export function useAdminStorageStats() {
     queryKey: ['admin-storage-stats'],
     queryFn: async () => {
       const buckets = ['photo-gallery', 'cat-portraits'] as const;
-      
+
       const stats = await Promise.all(
         buckets.map(async (bucket) => {
           try {
-            const { data, error } = await supabase.storage
-              .from(bucket)
-              .list('', { limit: 1000 });
-            
+            const { data, error } = await supabase.storage.from(bucket).list('', { limit: 1000 });
+
             if (error) throw error;
-            return { 
+            return {
               /** Bucket name */
-              bucket, 
+              bucket,
               /** Number of files in bucket */
-              count: data?.length ?? 0, 
+              count: data?.length ?? 0,
               /** Operation status */
-              status: 'ok' as const 
+              status: 'ok' as const,
             };
           } catch {
-            return { 
-              bucket, 
-              count: 0, 
-              status: 'error' as const 
+            return {
+              bucket,
+              count: 0,
+              status: 'error' as const,
             };
           }
         })
       );
-      
+
       return stats;
     },
     staleTime: 60000,
@@ -617,17 +622,17 @@ export function useAdminStorageStats() {
 
 /**
  * Hook to fetch row counts for all database tables
- * 
+ *
  * Returns counts for all tables grouped by category (core, social,
  * challenges, progression, leaderboards, logging, content).
- * 
+ *
  * @returns {UseQueryResult} Query result with table stats grouped by category
- * 
+ *
  * @example
  * ```tsx
  * function DatabaseOverview() {
  *   const { data } = useAdminAllTableStats();
- * 
+ *
  *   return (
  *     <div>
  *       <p>Total Tables: {data?.totalTables}</p>
@@ -649,31 +654,31 @@ export function useAdminAllTableStats() {
         core: ['profiles', 'game_saves', 'player_stats', 'user_roles'],
         social: ['player_friends', 'cat_gifts', 'trade_offers', 'push_subscriptions'],
         challenges: [
-          'weekly_challenges', 
-          'player_challenge_progress', 
+          'weekly_challenges',
+          'player_challenge_progress',
           'player_challenge_stats',
-          'coop_challenges', 
-          'coop_challenge_invites', 
-          'daily_objectives_progress'
+          'coop_challenges',
+          'coop_challenge_invites',
+          'daily_objectives_progress',
         ],
         progression: [
-          'daily_login_rewards', 
-          'battle_pass_progress', 
-          'gallery_photos', 
-          'retired_cats'
+          'daily_login_rewards',
+          'battle_pass_progress',
+          'gallery_photos',
+          'retired_cats',
         ],
         leaderboards: [
-          'leaderboard_rewards', 
-          'leaderboard_snapshots', 
-          'rank_history', 
-          'rewards_processing_log'
+          'leaderboard_rewards',
+          'leaderboard_snapshots',
+          'rank_history',
+          'rewards_processing_log',
         ],
         logging: [
-          'error_logs', 
-          'admin_activity_log', 
-          'auth_attempts_log', 
-          'player_activity_log', 
-          'ai_usage_log'
+          'error_logs',
+          'admin_activity_log',
+          'auth_attempts_log',
+          'player_activity_log',
+          'ai_usage_log',
         ],
         content: ['announcements'],
       };
@@ -690,12 +695,12 @@ export function useAdminAllTableStats() {
             const { count, error } = await supabase
               .from(table as any)
               .select('*', { count: 'exact', head: true });
-            
-            return { 
-              table, 
-              category, 
+
+            return {
+              table,
+              category,
               count: error ? null : (count ?? 0),
-              status: error ? 'error' : 'ok'
+              status: error ? 'error' : 'ok',
             };
           } catch {
             return { table, category, count: null, status: 'error' };
@@ -704,10 +709,13 @@ export function useAdminAllTableStats() {
       );
 
       // Group results by category for display
-      const grouped = Object.keys(tableGroups).reduce((acc, category) => {
-        acc[category] = results.filter((r) => r.category === category);
-        return acc;
-      }, {} as Record<string, typeof results>);
+      const grouped = Object.keys(tableGroups).reduce(
+        (acc, category) => {
+          acc[category] = results.filter((r) => r.category === category);
+          return acc;
+        },
+        {} as Record<string, typeof results>
+      );
 
       return {
         /** Table stats grouped by category */
@@ -726,17 +734,17 @@ export function useAdminAllTableStats() {
 
 /**
  * Hook to monitor live activity in the last 5 minutes
- * 
+ *
  * Returns counts of recent saves, errors, trades, and gifts.
  * Auto-refreshes every 30 seconds for real-time monitoring.
- * 
+ *
  * @returns {UseQueryResult} Query result with live activity counts
- * 
+ *
  * @example
  * ```tsx
  * function LiveActivityMonitor() {
  *   const { data } = useAdminLiveActivity();
- * 
+ *
  *   return (
  *     <div className="grid grid-cols-4 gap-4">
  *       <LiveStat label="Recent Saves" value={data?.recentSaves} />
@@ -753,18 +761,26 @@ export function useAdminLiveActivity() {
     queryKey: ['admin-live-activity'],
     queryFn: async () => {
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-      
+
       const [savesResult, errorsResult, tradesResult, giftsResult] = await Promise.all([
-        supabase.from('game_saves').select('id', { count: 'exact', head: true })
+        supabase
+          .from('game_saves')
+          .select('id', { count: 'exact', head: true })
           .gte('last_played_at', fiveMinutesAgo),
-        supabase.from('error_logs').select('id', { count: 'exact', head: true })
+        supabase
+          .from('error_logs')
+          .select('id', { count: 'exact', head: true })
           .gte('created_at', fiveMinutesAgo),
-        supabase.from('trade_offers').select('id', { count: 'exact', head: true })
+        supabase
+          .from('trade_offers')
+          .select('id', { count: 'exact', head: true })
           .gte('created_at', fiveMinutesAgo),
-        supabase.from('cat_gifts').select('id', { count: 'exact', head: true })
+        supabase
+          .from('cat_gifts')
+          .select('id', { count: 'exact', head: true })
           .gte('created_at', fiveMinutesAgo),
       ]);
-      
+
       return {
         /** Game saves in last 5 minutes */
         recentSaves: savesResult.count ?? 0,
@@ -784,23 +800,23 @@ export function useAdminLiveActivity() {
 
 /**
  * Hook to fetch weekly challenge analytics
- * 
+ *
  * Returns detailed analytics for each challenge including participation,
  * completion rates, and difficulty breakdown.
- * 
+ *
  * @returns {UseQueryResult} Query result with challenge analytics
- * 
+ *
  * @example
  * ```tsx
  * function ChallengeAnalytics() {
  *   const { data } = useAdminChallengeAnalytics();
- * 
+ *
  *   return (
  *     <div>
  *       <h2>Overall: {data?.summary.overallCompletionRate.toFixed(1)}% completion</h2>
  *       {data?.challenges.map(c => (
- *         <ChallengeCard 
- *           key={c.id} 
+ *         <ChallengeCard
+ *           key={c.id}
  *           name={c.name}
  *           completionRate={c.completionRate}
  *         />
@@ -823,13 +839,15 @@ export function useAdminChallengeAnalytics() {
       const progress = progressResult.data || [];
 
       // Calculate analytics per challenge
-      const challengeAnalytics = challenges.map(challenge => {
-        const participants = progress.filter(p => p.challenge_id === challenge.id);
-        const completedCount = participants.filter(p => p.completed).length;
+      const challengeAnalytics = challenges.map((challenge) => {
+        const participants = progress.filter((p) => p.challenge_id === challenge.id);
+        const completedCount = participants.filter((p) => p.completed).length;
         const totalParticipants = participants.length;
-        const avgProgress = totalParticipants > 0
-          ? participants.reduce((sum, p) => sum + (p.current_progress || 0), 0) / totalParticipants
-          : 0;
+        const avgProgress =
+          totalParticipants > 0
+            ? participants.reduce((sum, p) => sum + (p.current_progress || 0), 0) /
+              totalParticipants
+            : 0;
 
         return {
           id: challenge.id,
@@ -842,22 +860,22 @@ export function useAdminChallengeAnalytics() {
           completedCount,
           completionRate: totalParticipants > 0 ? (completedCount / totalParticipants) * 100 : 0,
           avgProgress,
-          avgProgressPercent: challenge.target_value > 0 ? (avgProgress / challenge.target_value) * 100 : 0,
+          avgProgressPercent:
+            challenge.target_value > 0 ? (avgProgress / challenge.target_value) * 100 : 0,
         };
       });
 
       // Summary stats
       const totalChallenges = challenges.length;
-      const activeChallenges = challenges.filter(c => c.is_active).length;
+      const activeChallenges = challenges.filter((c) => c.is_active).length;
       const totalParticipations = progress.length;
-      const totalCompletions = progress.filter(p => p.completed).length;
-      const overallCompletionRate = totalParticipations > 0 
-        ? (totalCompletions / totalParticipations) * 100 
-        : 0;
+      const totalCompletions = progress.filter((p) => p.completed).length;
+      const overallCompletionRate =
+        totalParticipations > 0 ? (totalCompletions / totalParticipations) * 100 : 0;
 
       // Stats by difficulty
-      const difficultyStats = ['easy', 'medium', 'hard', 'expert'].map(diff => {
-        const diffChallenges = challengeAnalytics.filter(c => c.difficulty === diff);
+      const difficultyStats = ['easy', 'medium', 'hard', 'expert'].map((diff) => {
+        const diffChallenges = challengeAnalytics.filter((c) => c.difficulty === diff);
         const diffParticipants = diffChallenges.reduce((sum, c) => sum + c.totalParticipants, 0);
         const diffCompleted = diffChallenges.reduce((sum, c) => sum + c.completedCount, 0);
         return {
@@ -889,17 +907,17 @@ export function useAdminChallengeAnalytics() {
 
 /**
  * Hook to fetch user retention analytics
- * 
+ *
  * Returns DAU/WAU/MAU metrics, login streak distribution, and
  * overall engagement statistics.
- * 
+ *
  * @returns {UseQueryResult} Query result with retention metrics
- * 
+ *
  * @example
  * ```tsx
  * function RetentionDashboard() {
  *   const { data } = useAdminRetentionAnalytics();
- * 
+ *
  *   return (
  *     <div>
  *       <MetricCard label="DAU" value={data?.dau} percent={data?.dauPercent} />
@@ -920,22 +938,23 @@ export function useAdminRetentionAnalytics() {
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-      const [
-        totalUsersResult,
-        dauResult,
-        wauResult,
-        mauResult,
-        loginRewardsResult,
-      ] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('game_saves').select('id', { count: 'exact', head: true })
-          .gte('last_played_at', oneDayAgo),
-        supabase.from('game_saves').select('id', { count: 'exact', head: true })
-          .gte('last_played_at', sevenDaysAgo),
-        supabase.from('game_saves').select('id', { count: 'exact', head: true })
-          .gte('last_played_at', thirtyDaysAgo),
-        supabase.from('daily_login_rewards').select('*'),
-      ]);
+      const [totalUsersResult, dauResult, wauResult, mauResult, loginRewardsResult] =
+        await Promise.all([
+          supabase.from('profiles').select('id', { count: 'exact', head: true }),
+          supabase
+            .from('game_saves')
+            .select('id', { count: 'exact', head: true })
+            .gte('last_played_at', oneDayAgo),
+          supabase
+            .from('game_saves')
+            .select('id', { count: 'exact', head: true })
+            .gte('last_played_at', sevenDaysAgo),
+          supabase
+            .from('game_saves')
+            .select('id', { count: 'exact', head: true })
+            .gte('last_played_at', thirtyDaysAgo),
+          supabase.from('daily_login_rewards').select('*'),
+        ]);
 
       const loginData = loginRewardsResult.data || [];
       const totalUsers = totalUsersResult.count ?? 0;
@@ -945,17 +964,38 @@ export function useAdminRetentionAnalytics() {
 
       // Calculate streak distribution
       const streakDistribution = [
-        { range: '1 day', count: loginData.filter(l => (l.current_streak ?? 0) === 1).length },
-        { range: '2-3 days', count: loginData.filter(l => (l.current_streak ?? 0) >= 2 && (l.current_streak ?? 0) <= 3).length },
-        { range: '4-7 days', count: loginData.filter(l => (l.current_streak ?? 0) >= 4 && (l.current_streak ?? 0) <= 7).length },
-        { range: '8-14 days', count: loginData.filter(l => (l.current_streak ?? 0) >= 8 && (l.current_streak ?? 0) <= 14).length },
-        { range: '15-30 days', count: loginData.filter(l => (l.current_streak ?? 0) >= 15 && (l.current_streak ?? 0) <= 30).length },
-        { range: '30+ days', count: loginData.filter(l => (l.current_streak ?? 0) > 30).length },
+        { range: '1 day', count: loginData.filter((l) => (l.current_streak ?? 0) === 1).length },
+        {
+          range: '2-3 days',
+          count: loginData.filter(
+            (l) => (l.current_streak ?? 0) >= 2 && (l.current_streak ?? 0) <= 3
+          ).length,
+        },
+        {
+          range: '4-7 days',
+          count: loginData.filter(
+            (l) => (l.current_streak ?? 0) >= 4 && (l.current_streak ?? 0) <= 7
+          ).length,
+        },
+        {
+          range: '8-14 days',
+          count: loginData.filter(
+            (l) => (l.current_streak ?? 0) >= 8 && (l.current_streak ?? 0) <= 14
+          ).length,
+        },
+        {
+          range: '15-30 days',
+          count: loginData.filter(
+            (l) => (l.current_streak ?? 0) >= 15 && (l.current_streak ?? 0) <= 30
+          ).length,
+        },
+        { range: '30+ days', count: loginData.filter((l) => (l.current_streak ?? 0) > 30).length },
       ];
 
-      const avgStreak = loginData.length > 0
-        ? loginData.reduce((sum, l) => sum + (l.current_streak ?? 0), 0) / loginData.length
-        : 0;
+      const avgStreak =
+        loginData.length > 0
+          ? loginData.reduce((sum, l) => sum + (l.current_streak ?? 0), 0) / loginData.length
+          : 0;
       const maxStreak = loginData.reduce((max, l) => Math.max(max, l.longest_streak ?? 0), 0);
 
       return {

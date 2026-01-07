@@ -34,20 +34,19 @@ export function HeartParticles({ x, y, count = 12 }: HeartParticlesProps) {
   }, [count]);
 
   return (
-    <div 
-      className="absolute pointer-events-none"
-      style={{ left: `${x}%`, top: `${y}%` }}
-    >
+    <div className="absolute pointer-events-none" style={{ left: `${x}%`, top: `${y}%` }}>
       {hearts.map((heart) => (
         <div
           key={heart.id}
           className="absolute animate-heart-cascade"
-          style={{
-            '--x-spread': `${heart.xSpread}px`,
-            animationDelay: `${heart.delay}s`,
-            animationDuration: `${heart.duration}s`,
-            fontSize: `${heart.size * 1.5}rem`,
-          } as React.CSSProperties}
+          style={
+            {
+              '--x-spread': `${heart.xSpread}px`,
+              animationDelay: `${heart.delay}s`,
+              animationDuration: `${heart.duration}s`,
+              fontSize: `${heart.size * 1.5}rem`,
+            } as React.CSSProperties
+          }
         >
           {heart.emoji}
         </div>
@@ -71,21 +70,20 @@ export function SparkParticles({ x, y, count = 10 }: SparkParticlesProps) {
   }, [count]);
 
   return (
-    <div 
-      className="absolute pointer-events-none"
-      style={{ left: `${x}%`, top: `${y}%` }}
-    >
+    <div className="absolute pointer-events-none" style={{ left: `${x}%`, top: `${y}%` }}>
       {sparks.map((spark) => (
         <div
           key={spark.id}
           className="absolute animate-spark-burst"
-          style={{
-            '--x-spread': `${spark.xSpread}px`,
-            '--y-spread': `${spark.ySpread}px`,
-            '--rotation': `${spark.rotation}deg`,
-            animationDelay: `${spark.delay}s`,
-            fontSize: `${spark.size * 1.5}rem`,
-          } as React.CSSProperties}
+          style={
+            {
+              '--x-spread': `${spark.xSpread}px`,
+              '--y-spread': `${spark.ySpread}px`,
+              '--rotation': `${spark.rotation}deg`,
+              animationDelay: `${spark.delay}s`,
+              fontSize: `${spark.size * 1.5}rem`,
+            } as React.CSSProperties
+          }
         >
           {spark.emoji}
         </div>
@@ -94,29 +92,38 @@ export function SparkParticles({ x, y, count = 10 }: SparkParticlesProps) {
   );
 }
 
-export function InteractionBubble({ catName1, catName2, message, scoreChange, type }: InteractionBubbleProps) {
-  const borderColor = type === 'positive' 
-    ? 'border-green-500/50' 
-    : type === 'negative' 
-    ? 'border-destructive/50' 
-    : 'border-muted-foreground/50';
+export function InteractionBubble({
+  catName1,
+  catName2,
+  message,
+  scoreChange,
+  type,
+}: InteractionBubbleProps) {
+  const borderColor =
+    type === 'positive'
+      ? 'border-green-500/50'
+      : type === 'negative'
+        ? 'border-destructive/50'
+        : 'border-muted-foreground/50';
 
-  const bgColor = type === 'positive'
-    ? 'bg-green-500/10'
-    : type === 'negative'
-    ? 'bg-destructive/10'
-    : 'bg-muted/50';
+  const bgColor =
+    type === 'positive'
+      ? 'bg-green-500/10'
+      : type === 'negative'
+        ? 'bg-destructive/10'
+        : 'bg-muted/50';
 
-  const scoreColor = type === 'positive'
-    ? 'text-green-500'
-    : type === 'negative'
-    ? 'text-destructive'
-    : 'text-muted-foreground';
+  const scoreColor =
+    type === 'positive'
+      ? 'text-green-500'
+      : type === 'negative'
+        ? 'text-destructive'
+        : 'text-muted-foreground';
 
   const emoji = type === 'positive' ? '💚' : type === 'negative' ? '💔' : '😐';
 
   return (
-    <div 
+    <div
       className={`
         animate-slide-in-top px-4 py-3 rounded-lg border-2 ${borderColor} ${bgColor}
         backdrop-blur-sm shadow-lg max-w-xs
@@ -128,12 +135,11 @@ export function InteractionBubble({ catName1, catName2, message, scoreChange, ty
           <div className="font-medium text-foreground">
             {catName1} & {catName2}
           </div>
-          <div className="text-xs text-muted-foreground truncate">
-            {message}
-          </div>
+          <div className="text-xs text-muted-foreground truncate">{message}</div>
         </div>
         <span className={`font-bold ${scoreColor}`}>
-          {scoreChange > 0 ? '+' : ''}{scoreChange}
+          {scoreChange > 0 ? '+' : ''}
+          {scoreChange}
         </span>
       </div>
     </div>
@@ -141,11 +147,12 @@ export function InteractionBubble({ catName1, catName2, message, scoreChange, ty
 }
 
 export function EdgeGlow({ type }: { type: 'positive' | 'negative' | 'neutral' }) {
-  const glowColor = type === 'positive' 
-    ? 'from-pink-500/30 via-transparent to-transparent' 
-    : type === 'negative'
-    ? 'from-orange-500/30 via-transparent to-transparent'
-    : 'from-gray-500/20 via-transparent to-transparent';
+  const glowColor =
+    type === 'positive'
+      ? 'from-pink-500/30 via-transparent to-transparent'
+      : type === 'negative'
+        ? 'from-orange-500/30 via-transparent to-transparent'
+        : 'from-gray-500/20 via-transparent to-transparent';
 
   return (
     <div className="fixed inset-0 pointer-events-none animate-edge-glow">

@@ -27,10 +27,10 @@ export interface GradeStats {
 
 // Weighted random for initial grade
 export const GRADE_WEIGHTS = [
-  { min: 1, max: 5, weight: 35 },   // Common
-  { min: 6, max: 10, weight: 35 },  // Common
+  { min: 1, max: 5, weight: 35 }, // Common
+  { min: 6, max: 10, weight: 35 }, // Common
   { min: 11, max: 14, weight: 20 }, // Uncommon
-  { min: 15, max: 17, weight: 8 },  // Rare
+  { min: 15, max: 17, weight: 8 }, // Rare
   { min: 18, max: 19, weight: 1.8 }, // Very Rare
   { min: 20, max: 20, weight: 0.2 }, // Ultra Rare
 ];
@@ -38,7 +38,7 @@ export const GRADE_WEIGHTS = [
 export function generateRandomGrade(): number {
   const totalWeight = GRADE_WEIGHTS.reduce((sum, w) => sum + w.weight, 0);
   let random = Math.random() * totalWeight;
-  
+
   for (const bracket of GRADE_WEIGHTS) {
     if (random < bracket.weight) {
       return bracket.min + Math.floor(Math.random() * (bracket.max - bracket.min + 1));
@@ -48,7 +48,9 @@ export function generateRandomGrade(): number {
   return 1;
 }
 
-export function getGradeTier(grade: number): 'common' | 'uncommon' | 'rare' | 'veryRare' | 'ultraRare' {
+export function getGradeTier(
+  grade: number
+): 'common' | 'uncommon' | 'rare' | 'veryRare' | 'ultraRare' {
   if (grade >= 20) return 'ultraRare';
   if (grade >= 18) return 'veryRare';
   if (grade >= 15) return 'rare';
@@ -59,37 +61,47 @@ export function getGradeTier(grade: number): 'common' | 'uncommon' | 'rare' | 'v
 export function getGradeColor(grade: number): string {
   const tier = getGradeTier(grade);
   switch (tier) {
-    case 'ultraRare': return 'text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-pink-500 to-red-500';
-    case 'veryRare': return 'text-yellow-500';
-    case 'rare': return 'text-purple-500';
-    case 'uncommon': return 'text-blue-500';
-    default: return 'text-muted-foreground';
+    case 'ultraRare':
+      return 'text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-pink-500 to-red-500';
+    case 'veryRare':
+      return 'text-yellow-500';
+    case 'rare':
+      return 'text-purple-500';
+    case 'uncommon':
+      return 'text-blue-500';
+    default:
+      return 'text-muted-foreground';
   }
 }
 
 export function getGradeBorderClass(grade: number): string {
   const tier = getGradeTier(grade);
   switch (tier) {
-    case 'ultraRare': return 'border-2 animate-rainbow-glow';
-    case 'veryRare': return 'border-2 border-yellow-400 animate-golden-glow';
-    case 'rare': return 'border-2 border-purple-400 animate-purple-glow';
-    case 'uncommon': return 'border-2 border-blue-400 shadow-[0_0_12px_2px_rgba(59,130,246,0.35)] hover:shadow-[0_0_18px_4px_rgba(59,130,246,0.5)]';
-    default: return 'border border-border';
+    case 'ultraRare':
+      return 'border-2 animate-rainbow-glow';
+    case 'veryRare':
+      return 'border-2 border-yellow-400 animate-golden-glow';
+    case 'rare':
+      return 'border-2 border-purple-400 animate-purple-glow';
+    case 'uncommon':
+      return 'border-2 border-blue-400 shadow-[0_0_12px_2px_rgba(59,130,246,0.35)] hover:shadow-[0_0_18px_4px_rgba(59,130,246,0.5)]';
+    default:
+      return 'border border-border';
   }
 }
 
 export function getGradeGlowClass(grade: number): string {
   const tier = getGradeTier(grade);
   switch (tier) {
-    case 'ultraRare': 
+    case 'ultraRare':
       return 'shadow-[0_0_30px_8px_rgba(236,72,153,0.6)] hover:shadow-[0_0_40px_12px_rgba(236,72,153,0.8)]';
-    case 'veryRare': 
+    case 'veryRare':
       return 'shadow-[0_0_25px_6px_rgba(234,179,8,0.5)] hover:shadow-[0_0_35px_10px_rgba(234,179,8,0.7)]';
-    case 'rare': 
+    case 'rare':
       return 'shadow-[0_0_20px_4px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_8px_rgba(168,85,247,0.6)]';
-    case 'uncommon': 
+    case 'uncommon':
       return 'shadow-[0_0_15px_2px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_4px_rgba(59,130,246,0.5)]';
-    default: 
+    default:
       return '';
   }
 }

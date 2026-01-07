@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import { RelationshipEvent } from '@/types/relationships';
-import { HeartParticles, SparkParticles, InteractionBubble, EdgeGlow } from './RelationshipParticles';
+import {
+  HeartParticles,
+  SparkParticles,
+  InteractionBubble,
+  EdgeGlow,
+} from './RelationshipParticles';
 import { useSound } from '@/contexts/SoundContext';
 import { useCatReactions } from '@/contexts/CatReactionContext';
 
@@ -45,8 +50,8 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
 
   useEffect(() => {
     if (!lastEventId || events.length === 0) return;
-    
-    const latestEvent = events.find(e => e.id === lastEventId);
+
+    const latestEvent = events.find((e) => e.id === lastEventId);
     if (!latestEvent) return;
 
     // Play sound based on interaction type
@@ -62,32 +67,39 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
     addReaction(latestEvent.catId1, latestEvent.type);
     addReaction(latestEvent.catId2, latestEvent.type);
     // Add notification bubble
-    setNotifications(prev => [...prev, {
-      id: lastEventId,
-      catName1: latestEvent.catName1,
-      catName2: latestEvent.catName2,
-      message: latestEvent.message,
-      scoreChange: latestEvent.scoreChange,
-      type: latestEvent.type,
-    }]);
+    setNotifications((prev) => [
+      ...prev,
+      {
+        id: lastEventId,
+        catName1: latestEvent.catName1,
+        catName2: latestEvent.catName2,
+        message: latestEvent.message,
+        scoreChange: latestEvent.scoreChange,
+        type: latestEvent.type,
+      },
+    ]);
 
     // Add particle effects
-    setParticles(prev => [...prev, {
-      id: lastEventId,
-      type: latestEvent.type,
-      x: 30 + Math.random() * 40,
-      y: 30 + Math.random() * 30,
-    }]);
+    setParticles((prev) => [
+      ...prev,
+      {
+        id: lastEventId,
+        type: latestEvent.type,
+        x: 30 + Math.random() * 40,
+        y: 30 + Math.random() * 30,
+      },
+    ]);
 
     // Show edge glow
     setShowGlow(latestEvent.type);
 
     // Generate enhanced floating emojis
-    const emojis = latestEvent.type === 'positive' 
-      ? ['💕', '💚', '✨', '💖', '🥰', '💗', '💓', '💝']
-      : latestEvent.type === 'negative'
-      ? ['😾', '💔', '😤', '⚡', '💢', '😿', '🙀']
-      : ['😐', '🤔', '😶'];
+    const emojis =
+      latestEvent.type === 'positive'
+        ? ['💕', '💚', '✨', '💖', '🥰', '💗', '💓', '💝']
+        : latestEvent.type === 'negative'
+          ? ['😾', '💔', '😤', '⚡', '💢', '😿', '🙀']
+          : ['😐', '🤔', '😶'];
 
     const newEmojis: FloatingEmoji[] = Array.from({ length: 10 }).map((_, i) => ({
       id: `${lastEventId}-${i}`,
@@ -99,20 +111,20 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
       type: latestEvent.type,
     }));
 
-    setFloatingEmojis(prev => [...prev, ...newEmojis]);
+    setFloatingEmojis((prev) => [...prev, ...newEmojis]);
 
     // Clear glow quickly
     const glowTimer = setTimeout(() => setShowGlow(null), 800);
 
     // Remove notifications after animation
     const notifTimer = setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== lastEventId));
+      setNotifications((prev) => prev.filter((n) => n.id !== lastEventId));
     }, 3500);
 
     // Remove particles and emojis after animation completes
     const cleanupTimer = setTimeout(() => {
-      setFloatingEmojis(prev => prev.filter(e => !e.id.startsWith(lastEventId)));
-      setParticles(prev => prev.filter(p => p.id !== lastEventId));
+      setFloatingEmojis((prev) => prev.filter((e) => !e.id.startsWith(lastEventId)));
+      setParticles((prev) => prev.filter((p) => p.id !== lastEventId));
     }, 2500);
 
     return () => {
@@ -122,7 +134,12 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
     };
   }, [lastEventId, events]);
 
-  if (floatingEmojis.length === 0 && notifications.length === 0 && particles.length === 0 && !showGlow) {
+  if (
+    floatingEmojis.length === 0 &&
+    notifications.length === 0 &&
+    particles.length === 0 &&
+    !showGlow
+  ) {
     return null;
   }
 
@@ -133,19 +150,19 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
 
       {/* Notification bubbles */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 space-y-2 z-60">
-        {notifications.map(notification => (
+        {notifications.map((notification) => (
           <InteractionBubble key={notification.id} {...notification} />
         ))}
       </div>
 
       {/* Particle effects */}
-      {particles.map(particle => (
-        particle.type === 'positive' 
-          ? <HeartParticles key={particle.id} x={particle.x} y={particle.y} />
-          : particle.type === 'negative'
-          ? <SparkParticles key={particle.id} x={particle.x} y={particle.y} />
-          : null
-      ))}
+      {particles.map((particle) =>
+        particle.type === 'positive' ? (
+          <HeartParticles key={particle.id} x={particle.x} y={particle.y} />
+        ) : particle.type === 'negative' ? (
+          <SparkParticles key={particle.id} x={particle.x} y={particle.y} />
+        ) : null
+      )}
 
       {/* Enhanced floating emojis */}
       {floatingEmojis.map((emoji) => (
@@ -159,7 +176,9 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
             fontSize: `${emoji.size * 2}rem`,
           }}
         >
-          <span className={`inline-block ${emoji.type === 'positive' ? 'animate-heart-pop' : 'animate-shake'}`}>
+          <span
+            className={`inline-block ${emoji.type === 'positive' ? 'animate-heart-pop' : 'animate-shake'}`}
+          >
             {emoji.emoji}
           </span>
         </div>

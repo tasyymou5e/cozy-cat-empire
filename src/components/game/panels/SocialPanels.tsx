@@ -6,11 +6,21 @@ import { Cat, Resources } from '@/types/game';
 import { CatRelationship, CatGroup, RelationshipEvent } from '@/types/relationships';
 
 // Lazy load panels for performance
-const SocializePanel = lazy(() => import('../SocializePanel').then(m => ({ default: m.SocializePanel })));
-const MatchmakingPanel = lazy(() => import('../MatchmakingPanel').then(m => ({ default: m.MatchmakingPanel })));
-const GroupActivitiesPanel = lazy(() => import('../GroupActivitiesPanel').then(m => ({ default: m.GroupActivitiesPanel })));
-const RelationshipPanel = lazy(() => import('../RelationshipPanel').then(m => ({ default: m.RelationshipPanel })));
-const BulkActionsPanel = lazy(() => import('../BulkActionsPanel').then(m => ({ default: m.BulkActionsPanel })));
+const SocializePanel = lazy(() =>
+  import('../SocializePanel').then((m) => ({ default: m.SocializePanel }))
+);
+const MatchmakingPanel = lazy(() =>
+  import('../MatchmakingPanel').then((m) => ({ default: m.MatchmakingPanel }))
+);
+const GroupActivitiesPanel = lazy(() =>
+  import('../GroupActivitiesPanel').then((m) => ({ default: m.GroupActivitiesPanel }))
+);
+const RelationshipPanel = lazy(() =>
+  import('../RelationshipPanel').then((m) => ({ default: m.RelationshipPanel }))
+);
+const BulkActionsPanel = lazy(() =>
+  import('../BulkActionsPanel').then((m) => ({ default: m.BulkActionsPanel }))
+);
 
 interface SocialPanelsProps {
   cats: Cat[];
@@ -66,7 +76,7 @@ export function SocialPanels({
       <TabsContent value="bulk" className="mt-0">
         <PanelErrorBoundary panelName="BulkActionsPanel">
           <Suspense fallback={<PanelSkeleton rows={5} />}>
-            <BulkActionsPanel 
+            <BulkActionsPanel
               cats={cats}
               resources={resources}
               day={currentDay}
@@ -85,47 +95,49 @@ export function SocialPanels({
       <TabsContent value="social" className="mt-0 space-y-4">
         <PanelErrorBoundary panelName="SocialPanels">
           <Suspense fallback={<PanelSkeleton rows={3} />}>
-            <SocializePanel 
-              cats={cats} 
+            <SocializePanel
+              cats={cats}
               treats={resources.treats}
-              getRelationship={getRelationship} 
-              onSocialize={(cat1Id, cat2Id) => dispatchAction('SOCIALIZE_CATS', { cat1Id, cat2Id })} 
+              getRelationship={getRelationship}
+              onSocialize={(cat1Id, cat2Id) => dispatchAction('SOCIALIZE_CATS', { cat1Id, cat2Id })}
               catCostumes={catCostumes}
-              initialCat1Id={quickSocializePair?.cat1Id} 
-              initialCat2Id={quickSocializePair?.cat2Id} 
-              onClearSelection={onClearSelection} 
+              initialCat1Id={quickSocializePair?.cat1Id}
+              initialCat2Id={quickSocializePair?.cat2Id}
+              onClearSelection={onClearSelection}
             />
           </Suspense>
           <Suspense fallback={<PanelSkeleton rows={2} showHeader={false} />}>
-            <MatchmakingPanel 
-              cats={cats} 
+            <MatchmakingPanel
+              cats={cats}
               relationships={relationships}
-              onSocialize={(cat1Id, cat2Id) => dispatchAction('SOCIALIZE_CATS', { cat1Id, cat2Id })} 
-              treats={resources.treats} 
-              catCostumes={catCostumes} 
+              onSocialize={(cat1Id, cat2Id) => dispatchAction('SOCIALIZE_CATS', { cat1Id, cat2Id })}
+              treats={resources.treats}
+              catCostumes={catCostumes}
             />
           </Suspense>
           <Suspense fallback={<PanelSkeleton rows={2} showHeader={false} />}>
-            <GroupActivitiesPanel 
-              cats={cats} 
+            <GroupActivitiesPanel
+              cats={cats}
               groups={groups}
-              treats={resources.treats} 
-              toys={resources.toys} 
-              onGroupActivity={(groupId, activityType) => dispatchAction('GROUP_ACTIVITY', { groupId, activityType })} 
-              catCostumes={catCostumes} 
+              treats={resources.treats}
+              toys={resources.toys}
+              onGroupActivity={(groupId, activityType) =>
+                dispatchAction('GROUP_ACTIVITY', { groupId, activityType })
+              }
+              catCostumes={catCostumes}
             />
           </Suspense>
           <Suspense fallback={<PanelSkeleton rows={3} showHeader={false} />}>
-            <RelationshipPanel 
-              cats={cats} 
+            <RelationshipPanel
+              cats={cats}
               relationships={relationships}
-              groups={groups} 
-              events={events} 
+              groups={groups}
+              events={events}
               catCostumes={catCostumes}
-              currentDay={currentDay} 
-              maintenanceStreak={maintenanceStreak} 
-              needsAttentionCount={needsAttentionCount} 
-              onQuickSocialize={onQuickSocialize} 
+              currentDay={currentDay}
+              maintenanceStreak={maintenanceStreak}
+              needsAttentionCount={needsAttentionCount}
+              onQuickSocialize={onQuickSocialize}
             />
           </Suspense>
         </PanelErrorBoundary>
