@@ -144,3 +144,38 @@ export { CHANGELOG, CURRENT_VERSION } from './changelog';
 
 // Admin types
 export type { AdminUserProfile, AdminChallenge } from './admin';
+
+// Type guards for runtime validation
+export {
+  // Primitive value guards
+  isStatValue,
+  isGradeValue,
+  isMoneyValue,
+  // Enum type guards
+  isCatBreed,
+  isCatPersonality,
+  isCatType,
+  isHouseSize,
+  isTrickId,
+  isFurColor,
+  isFurPattern,
+  isEyeColor,
+  isHairLength,
+  // Complex type guards
+  isCatAppearance,
+  isCatSpecializationData,
+  isCat,
+  isResources,
+  isMarketListing,
+  isAchievement,
+  isValidGameState,
+  isCatRelationship,
+  isRelationshipEvent,
+  // Validation utilities
+  validateCat,
+  validateGameState,
+  parseCat,
+  parseGameState,
+} from './guards';
+
+export type { ValidationResult, ValidationError, ValidationOutcome } from './guards';
