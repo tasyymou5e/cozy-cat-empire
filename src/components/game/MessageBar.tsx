@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { GameMessage } from '@/hooks/useGameMessages';
@@ -40,22 +40,45 @@ export const MessageBar = React.forwardRef<HTMLDivElement, MessageBarProps>(func
   ref
 ) {
   // Support both legacy and new props
-  const displayText = gameMessage?.text ?? message ?? '';
-  const displayType = gameMessage?.type ?? type ?? 'info';
+  const incomingText = gameMessage?.text ?? message ?? '';
+  const incomingType = gameMessage?.type ?? type ?? 'info';
 
-  if (!displayText.trim()) return null;
+  // Track displayed message for exit animation
+  const [displayedMessage, setDisplayedMessage] = useState<{ text: string; type: string } | null>(
+    incomingText ? { text: incomingText, type: incomingType } : null
+  );
+  const [isExiting, setIsExiting] = useState(false);
+
+  useEffect(() => {
+    if (!incomingText && displayedMessage && !isExiting) {
+      // Message cleared - start exit animation
+      setIsExiting(true);
+      const timer = setTimeout(() => {
+        setDisplayedMessage(null);
+        setIsExiting(false);
+      }, 300); // Match animation duration
+      return () => clearTimeout(timer);
+    } else if (incomingText) {
+      // New message arrived - show immediately
+      setDisplayedMessage({ text: incomingText, type: incomingType });
+      setIsExiting(false);
+    }
+  }, [incomingText, incomingType, displayedMessage, isExiting]);
+
+  if (!displayedMessage) return null;
 
   return (
     <div
       ref={ref}
       className={cn(
-        'message-bar relative transition-all duration-300',
-        displayType === 'success' && 'message-success',
-        displayType === 'warning' && 'message-warning',
-        displayType === 'error' && 'message-error'
+        'message-bar relative',
+        isExiting ? 'animate-message-out' : 'animate-message-in',
+        displayedMessage.type === 'success' && 'message-success',
+        displayedMessage.type === 'warning' && 'message-warning',
+        displayedMessage.type === 'error' && 'message-error'
       )}
     >
-      <p className="text-center font-medium pr-8">{displayText}</p>
+      <p className="text-center font-medium pr-8">{displayedMessage.text}</p>
 
       {/* Queue indicator */}
       {queueCount > 0 && (
