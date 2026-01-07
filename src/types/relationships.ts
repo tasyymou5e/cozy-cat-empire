@@ -1,33 +1,85 @@
 import { CatPersonality } from './game';
 
+// ============================================================================
+// Relationship Types
+// ============================================================================
+
+/** Relationship levels from most negative to most positive */
 export type RelationshipLevel = 'enemy' | 'rival' | 'neutral' | 'friend' | 'bestFriend';
 
+/** Relationship event sentiment */
+export type RelationshipEventType = 'positive' | 'negative' | 'neutral';
+
+/** Cat group type based on member relationships */
+export type CatGroupType = 'friendly' | 'outcasts' | 'rivals';
+
+/** Relationship score range (-100 to 100) */
+export type RelationshipScore = number;
+
+/** Decay severity levels */
+export type DecayLevel = 'none' | 'light' | 'moderate' | 'severe';
+
+// ============================================================================
+// Relationship Interfaces
+// ============================================================================
+
+/**
+ * Relationship between two cats.
+ * Score ranges from -100 (enemy) to +100 (best friend).
+ */
 export interface CatRelationship {
+  /** First cat's ID */
   catId1: string;
+  /** Second cat's ID */
   catId2: string;
+  /** Current relationship level */
   level: RelationshipLevel;
-  score: number; // -100 to 100
-  lastInteraction: number; // day number
+  /** Numeric score (-100 to 100) */
+  score: RelationshipScore;
+  /** Game day of last interaction */
+  lastInteraction: number;
 }
 
+/**
+ * A recorded relationship event.
+ * Events affect relationship scores and are shown in history.
+ */
 export interface RelationshipEvent {
+  /** Unique event ID */
   id: string;
+  /** First cat's ID */
   catId1: string;
+  /** Second cat's ID */
   catId2: string;
+  /** First cat's name (for display) */
   catName1: string;
+  /** Second cat's name (for display) */
   catName2: string;
-  type: 'positive' | 'negative' | 'neutral';
+  /** Event sentiment */
+  type: RelationshipEventType;
+  /** Human-readable event description */
   message: string;
+  /** Score change from this event */
   scoreChange: number;
+  /** Game day when event occurred */
   day: number;
 }
 
+/**
+ * A group of cats with shared relationships.
+ * Formed automatically based on friendship patterns.
+ */
 export interface CatGroup {
+  /** Unique group ID */
   id: string;
+  /** Display name for the group */
   name: string;
+  /** IDs of cats in the group */
   memberIds: string[];
+  /** ID of the group leader cat */
   leaderCatId: string;
-  type: 'friendly' | 'outcasts' | 'rivals';
+  /** Type of group based on relationships */
+  type: CatGroupType;
 }
 
 // Personality compatibility matrix: how well personalities get along
@@ -97,13 +149,24 @@ export function getRelationshipColor(level: RelationshipLevel): string {
   }
 }
 
-// === Phase 1: Decay Warning Helpers ===
+// ============================================================================
+// Decay Warning Types
+// ============================================================================
 
+/**
+ * Information about relationship decay status.
+ * Used to display warnings and prioritize interactions.
+ */
 export interface RelationshipDecayInfo {
+  /** Days since cats last interacted */
   daysSinceInteraction: number;
+  /** Whether still in grace period (no decay) */
   isInGracePeriod: boolean;
+  /** Whether relationship is currently decaying */
   isDecaying: boolean;
-  decayLevel: 'none' | 'light' | 'moderate' | 'severe';
+  /** Current decay severity level */
+  decayLevel: DecayLevel;
+  /** Days remaining until decay starts */
   daysUntilDecay: number;
 }
 
