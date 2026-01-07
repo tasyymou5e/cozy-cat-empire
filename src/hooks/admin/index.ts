@@ -32,4 +32,9 @@ export {
 } from './useAdminData';
 
 // AI metrics
-export { useAdminAIStats, useAdminAILogs } from './useAdminAIData';
+export {
+  useAdminAIStats,
+  useAdminAILogs,
+  useAdminUserCredits,
+  useAdminCreditSummary,
+} from './useAdminAIData';

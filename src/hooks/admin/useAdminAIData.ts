@@ -137,3 +137,66 @@ export function useAdminAILogs(page: number = 1, pageSize: number = 10) {
     },
   });
 }
+
+export function useAdminUserCredits(page: number = 1, pageSize: number = 10) {
+  return useQuery({
+    queryKey: ['admin-user-credits', page, pageSize],
+    queryFn: async () => {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      const [creditsResult, countResult] = await Promise.all([
+        supabase
+          .from('player_portrait_credits')
+          .select(
+            `
+            *,
+            profiles:user_id (
+              display_name,
+              avatar_emoji,
+              email
+            )
+          `
+          )
+          .order('updated_at', { ascending: false })
+          .range(from, to),
+        supabase.from('player_portrait_credits').select('id', { count: 'exact', head: true }),
+      ]);
+
+      if (creditsResult.error) throw creditsResult.error;
+
+      return {
+        credits: creditsResult.data || [],
+        totalCount: countResult.count || 0,
+        totalPages: Math.ceil((countResult.count || 0) / pageSize),
+      };
+    },
+  });
+}
+
+export function useAdminCreditSummary() {
+  return useQuery({
+    queryKey: ['admin-credit-summary'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('player_portrait_credits')
+        .select('credits_remaining, total_used, total_purchased');
+
+      if (error) throw error;
+
+      const totals = (data || []).reduce(
+        (acc, row) => ({
+          totalRemaining: acc.totalRemaining + (row.credits_remaining || 0),
+          totalUsed: acc.totalUsed + (row.total_used || 0),
+          totalPurchased: acc.totalPurchased + (row.total_purchased || 0),
+        }),
+        { totalRemaining: 0, totalUsed: 0, totalPurchased: 0 }
+      );
+
+      return {
+        ...totals,
+        userCount: data?.length || 0,
+      };
+    },
+  });
+}

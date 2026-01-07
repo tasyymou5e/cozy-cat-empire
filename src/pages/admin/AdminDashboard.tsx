@@ -1,9 +1,19 @@
+import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ActivityFeed } from '@/components/admin/ActivityFeed';
 import { useAdminStats, useAdminLiveActivity } from '@/hooks/admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Users,
   Gamepad2,
@@ -47,18 +57,57 @@ const StatCard = ({
   </Card>
 );
 
+const REFRESH_INTERVALS: Record<string, number | undefined> = {
+  off: undefined,
+  '30s': 30000,
+  '1m': 60000,
+  '5m': 300000,
+};
+
 export default function AdminDashboard() {
-  const { data: stats, isLoading } = useAdminStats();
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState<string>('30s');
+
+  const currentInterval = autoRefresh ? REFRESH_INTERVALS[refreshInterval] : undefined;
+
+  const { data: stats, isLoading, dataUpdatedAt: statsUpdatedAt } = useAdminStats(currentInterval);
   const { data: liveActivity, isLoading: liveLoading, dataUpdatedAt } = useAdminLiveActivity();
 
   const lastUpdated = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : '--';
+  const statsLastUpdated = statsUpdatedAt ? new Date(statsUpdatedAt).toLocaleTimeString() : '--';
 
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome to the Cat King Admin Panel</p>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground">Welcome to the Cat King Admin Panel</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Switch id="auto-refresh" checked={autoRefresh} onCheckedChange={setAutoRefresh} />
+              <Label htmlFor="auto-refresh" className="text-sm">
+                Auto-refresh
+              </Label>
+            </div>
+            {autoRefresh && (
+              <Select value={refreshInterval} onValueChange={setRefreshInterval}>
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30s">30s</SelectItem>
+                  <SelectItem value="1m">1m</SelectItem>
+                  <SelectItem value="5m">5m</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+            <div className="text-xs text-muted-foreground flex items-center gap-1">
+              <RefreshCw className={`h-3 w-3 ${autoRefresh ? 'animate-spin' : ''}`} />
+              {statsLastUpdated}
+            </div>
+          </div>
         </div>
 
         {/* Live Activity Monitor */}
@@ -160,8 +209,8 @@ export default function AdminDashboard() {
             color="text-red-500"
           />
           <StatCard
-            title="Active Players"
-            value={stats?.gameSaveCount ?? 0}
+            title="Active Players (24h)"
+            value={stats?.activePlayersCount ?? 0}
             icon={Gamepad2}
             loading={isLoading}
             color="text-purple-500"

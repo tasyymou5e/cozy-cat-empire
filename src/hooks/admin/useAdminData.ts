@@ -80,21 +80,29 @@ interface UseAdminPlayerActivityParams {
  * }
  * ```
  */
-export function useAdminStats() {
+export function useAdminStats(refetchInterval?: number) {
   return useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const [profilesResult, gameSavesResult, errorsResult, playerStatsResult] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('game_saves').select('id', { count: 'exact', head: true }),
-        supabase
-          .from('error_logs')
-          .select('id', { count: 'exact', head: true })
-          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
-        supabase
-          .from('player_stats')
-          .select('total_show_wins, total_cats_owned, total_kittens_bred, total_money_earned'),
-      ]);
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+      const [profilesResult, gameSavesResult, errorsResult, playerStatsResult, activePlayersResult] =
+        await Promise.all([
+          supabase.from('profiles').select('id', { count: 'exact', head: true }),
+          supabase.from('game_saves').select('id', { count: 'exact', head: true }),
+          supabase
+            .from('error_logs')
+            .select('id', { count: 'exact', head: true })
+            .gte('created_at', twentyFourHoursAgo),
+          supabase
+            .from('player_stats')
+            .select('total_show_wins, total_cats_owned, total_kittens_bred, total_money_earned'),
+          // Active players: users who have played in the last 24 hours
+          supabase
+            .from('game_saves')
+            .select('id', { count: 'exact', head: true })
+            .gte('last_played_at', twentyFourHoursAgo),
+        ]);
 
       const aggregateStats = playerStatsResult.data?.reduce(
         (acc, stat) => ({
@@ -113,10 +121,13 @@ export function useAdminStats() {
         gameSaveCount: gameSavesResult.count || 0,
         /** Number of errors in the last 24 hours */
         errorCount24h: errorsResult.count || 0,
+        /** Number of active players in the last 24 hours */
+        activePlayersCount: activePlayersResult.count || 0,
         ...aggregateStats,
       };
     },
     staleTime: 30000,
+    refetchInterval,
   });
 }
 
