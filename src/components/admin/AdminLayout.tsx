@@ -19,6 +19,7 @@ import {
   Bell,
   Star,
   Wrench,
+  Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +34,7 @@ const ADMIN_NAV_ITEMS = [
   { id: 'announcements', label: 'Announcements', icon: Megaphone, path: '/catking/announcements' },
   { id: 'battle-pass', label: 'Battle Pass', icon: Star, path: '/catking/battle-pass' },
   { id: 'notifications', label: 'Notifications', icon: Bell, path: '/catking/notifications' },
+  { id: 'scheduled-jobs', label: 'Scheduled Jobs', icon: Clock, path: '/catking/scheduled-jobs' },
   { id: 'config', label: 'Game Config', icon: Sliders, path: '/catking/config' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/catking/settings' },
 ];

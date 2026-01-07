@@ -32,6 +32,7 @@ import AdminGameConfig from './pages/admin/AdminGameConfig';
 import AdminBattlePass from './pages/admin/AdminBattlePass';
 import AdminNotifications from './pages/admin/AdminNotifications';
 import AdminProfileRepair from './pages/admin/AdminProfileRepair';
+import AdminScheduledJobs from './pages/admin/AdminScheduledJobs';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -153,6 +154,14 @@ const App = () => {
                           element={
                             <AdminRoute>
                               <AdminNotifications />
+                            </AdminRoute>
+                          }
+                        />
+                        <Route
+                          path="/catking/scheduled-jobs"
+                          element={
+                            <AdminRoute>
+                              <AdminScheduledJobs />
                             </AdminRoute>
                           }
                         />
