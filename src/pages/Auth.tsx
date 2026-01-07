@@ -610,7 +610,7 @@ export default function Auth() {
 
   if (loading || isProcessingRecovery) {
     return (
-      <AnimatedBackground variant="cozy" className="flex items-center justify-center">
+      <AnimatedBackground variant="auth" className="flex items-center justify-center">
         <LoadingCat
           size="lg"
           text={isProcessingRecovery ? 'Verifying reset link...' : 'Preparing your cozy kingdom...'}
@@ -636,8 +636,8 @@ export default function Auth() {
     nameError || usernameError || nameAvailable === false || usernameAvailable === false;
 
   return (
-    <AnimatedBackground variant="cozy" className="flex items-center justify-center p-4">
-      <FloatingDecorations variant="cats" density="medium" />
+    <AnimatedBackground variant="auth" className="flex items-center justify-center p-4">
+      <FloatingDecorations variant="kawaii-cats" density="high" />
 
       <div className="w-full max-w-md space-y-6 animate-fade-in-up">
         {/* Hero Section */}
