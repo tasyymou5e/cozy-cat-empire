@@ -3,15 +3,22 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:dev": "vite build --mode development",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\""
-  },
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "build:dev": "vite build --mode development",
+  "lint": "eslint .",
+  "lint:fix": "eslint . --fix",
+  "lint:strict": "eslint . --max-warnings 0",
+  "check": "tsc --noEmit && eslint . && prettier --check .",
+  "preview": "vite preview",
+  "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+  "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+  "test": "vitest",
+  "test:run": "vitest run",
+  "test:coverage": "vitest run --coverage",
+  "prepare": "husky"
+},
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.11",
