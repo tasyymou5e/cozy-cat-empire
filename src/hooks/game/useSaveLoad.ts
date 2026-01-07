@@ -14,6 +14,7 @@
 import { useCallback } from 'react';
 import { GameState } from '@/types/game';
 import { isValidGameState } from '@/types/guards';
+import { migrateSaveData, needsMigration, getSaveVersionInfo } from '@/lib/saveMigration';
 import { GameHookDependencies, SAVE_KEY, createInitialState, RelationshipSaveData } from './types';
 
 /**
@@ -122,11 +123,37 @@ export function useSaveLoad(deps: GameHookDependencies): SaveLoadActions {
         throw new Error('Invalid save format');
       }
 
-      const saveData = data as Record<string, unknown>;
+      let saveData = data as Record<string, unknown>;
+
+      // Check if migration is needed and apply it
+      if (needsMigration(saveData)) {
+        const versionInfo = getSaveVersionInfo(saveData);
+        console.log(`Migrating save from v${versionInfo.currentVersion} to v${versionInfo.targetVersion}`);
+        
+        const migrationResult = migrateSaveData(saveData);
+        
+        if (!migrationResult.success) {
+          const errorResult = migrationResult as { success: false; error: string };
+          console.error('Migration failed:', errorResult.error);
+          showMessage('Save data could not be migrated. Starting new game.', 'error');
+          localStorage.removeItem(SAVE_KEY);
+          return;
+        }
+        
+        if (migrationResult.warnings.length > 0) {
+          console.warn('Migration warnings:', migrationResult.warnings);
+        }
+        
+        saveData = migrationResult.data as unknown as Record<string, unknown>;
+        
+        // Save the migrated data back to localStorage
+        localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+        console.log('Save migrated and updated in localStorage');
+      }
 
       // Validate game state using type guard
       if (!isValidGameState(saveData.state)) {
-        console.error('Local save: Invalid game state structure');
+        console.error('Local save: Invalid game state structure after migration');
         showMessage('Save data is corrupted. Starting new game.', 'error');
         localStorage.removeItem(SAVE_KEY);
         return;
