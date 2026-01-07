@@ -44,6 +44,7 @@ import {
   Target,
   Trophy,
   TrendingUp,
+  XCircle,
 } from 'lucide-react';
 
 export default function AdminModeration() {
@@ -51,6 +52,8 @@ export default function AdminModeration() {
   const [challengeFormOpen, setChallengeFormOpen] = useState(false);
   const [editingChallenge, setEditingChallenge] = useState<AdminChallenge | null>(null);
   const [deletingChallenge, setDeletingChallenge] = useState<AdminChallenge | null>(null);
+  const [cancellingTradeId, setCancellingTradeId] = useState<string | null>(null);
+  const [revokingGiftId, setRevokingGiftId] = useState<string | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -200,6 +203,44 @@ export default function AdminModeration() {
     }
   };
 
+  // Cancel trade mutation
+  const cancelTradeMutation = useMutation({
+    mutationFn: async (tradeId: string) => {
+      const { error } = await supabase
+        .from('trade_offers')
+        .update({ status: 'cancelled_by_admin' })
+        .eq('id', tradeId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: 'Trade Cancelled' });
+      queryClient.invalidateQueries({ queryKey: ['admin-trades'] });
+      setCancellingTradeId(null);
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Revoke gift mutation
+  const revokeGiftMutation = useMutation({
+    mutationFn: async (giftId: string) => {
+      const { error } = await supabase
+        .from('cat_gifts')
+        .update({ status: 'revoked_by_admin' })
+        .eq('id', giftId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: 'Gift Revoked' });
+      queryClient.invalidateQueries({ queryKey: ['admin-gifts'] });
+      setRevokingGiftId(null);
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -209,7 +250,10 @@ export default function AdminModeration() {
       case 'rejected':
         return <Badge variant="destructive">Rejected</Badge>;
       case 'cancelled':
+      case 'cancelled_by_admin':
         return <Badge variant="secondary">Cancelled</Badge>;
+      case 'revoked_by_admin':
+        return <Badge variant="destructive">Revoked</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -279,13 +323,14 @@ export default function AdminModeration() {
                         <TableHead>Offered</TableHead>
                         <TableHead>Requested</TableHead>
                         <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {tradesLoading ? (
                         Array.from({ length: 5 }).map((_, i) => (
                           <TableRow key={i}>
-                            {Array.from({ length: 6 }).map((_, j) => (
+                            {Array.from({ length: 7 }).map((_, j) => (
                               <TableCell key={j}>
                                 <Skeleton className="h-6 w-16" />
                               </TableCell>
@@ -294,7 +339,7 @@ export default function AdminModeration() {
                         ))
                       ) : trades?.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                             No trades found
                           </TableCell>
                         </TableRow>
@@ -325,6 +370,19 @@ export default function AdminModeration() {
                                 ? format(new Date(trade.created_at), 'MMM d, HH:mm')
                                 : '-'}
                             </TableCell>
+                            <TableCell>
+                              {trade.status === 'pending' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() => setCancellingTradeId(trade.id)}
+                                >
+                                  <XCircle className="h-3 w-3 mr-1" />
+                                  Cancel
+                                </Button>
+                              )}
+                            </TableCell>
                           </TableRow>
                         ))
                       )}
@@ -351,13 +409,14 @@ export default function AdminModeration() {
                         <TableHead>Recipient</TableHead>
                         <TableHead>Message</TableHead>
                         <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {giftsLoading ? (
                         Array.from({ length: 5 }).map((_, i) => (
                           <TableRow key={i}>
-                            {Array.from({ length: 5 }).map((_, j) => (
+                            {Array.from({ length: 6 }).map((_, j) => (
                               <TableCell key={j}>
                                 <Skeleton className="h-6 w-16" />
                               </TableCell>
@@ -366,7 +425,7 @@ export default function AdminModeration() {
                         ))
                       ) : gifts?.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                             No gifts found
                           </TableCell>
                         </TableRow>
@@ -387,6 +446,19 @@ export default function AdminModeration() {
                               {gift.created_at
                                 ? format(new Date(gift.created_at), 'MMM d, HH:mm')
                                 : '-'}
+                            </TableCell>
+                            <TableCell>
+                              {gift.status === 'pending' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() => setRevokingGiftId(gift.id)}
+                                >
+                                  <XCircle className="h-3 w-3 mr-1" />
+                                  Revoke
+                                </Button>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))
@@ -809,6 +881,48 @@ export default function AdminModeration() {
               className="bg-destructive hover:bg-destructive/90"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel Trade Confirmation */}
+      <AlertDialog open={!!cancellingTradeId} onOpenChange={() => setCancellingTradeId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Trade</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel this trade? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Trade</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => cancellingTradeId && cancelTradeMutation.mutate(cancellingTradeId)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Cancel Trade
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Revoke Gift Confirmation */}
+      <AlertDialog open={!!revokingGiftId} onOpenChange={() => setRevokingGiftId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revoke Gift</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to revoke this gift? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Gift</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => revokingGiftId && revokeGiftMutation.mutate(revokingGiftId)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Revoke Gift
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
