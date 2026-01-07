@@ -13,6 +13,7 @@
 
 import { useCallback } from 'react';
 import { GameState } from '@/types/game';
+import { isValidGameState } from '@/types/guards';
 import { GameHookDependencies, SAVE_KEY, createInitialState, RelationshipSaveData } from './types';
 
 /**
@@ -114,18 +115,38 @@ export function useSaveLoad(deps: GameHookDependencies): SaveLoadActions {
       return;
     }
     try {
-      const data = JSON.parse(saved);
-      setState(data.state);
-      if (data.kittensBreed !== undefined) {
-        setKittensBreed(data.kittensBreed);
+      const data = JSON.parse(saved) as unknown;
+
+      // Validate parsed data structure
+      if (typeof data !== 'object' || data === null) {
+        throw new Error('Invalid save format');
       }
-      if (data.relationships) {
-        relationshipSystem.loadRelationships(data.relationships);
-        relationshipSystem.detectGroups(data.state.cats);
+
+      const saveData = data as Record<string, unknown>;
+
+      // Validate game state using type guard
+      if (!isValidGameState(saveData.state)) {
+        console.error('Local save: Invalid game state structure');
+        showMessage('Save data is corrupted. Starting new game.', 'error');
+        localStorage.removeItem(SAVE_KEY);
+        return;
       }
-      showMessage(`Welcome back! Day ${data.state.day}. 🎮`, 'success');
+
+      setState(saveData.state);
+
+      if (typeof saveData.kittensBreed === 'number') {
+        setKittensBreed(saveData.kittensBreed);
+      }
+
+      if (saveData.relationships && typeof saveData.relationships === 'object') {
+        relationshipSystem.loadRelationships(saveData.relationships as RelationshipSaveData);
+        relationshipSystem.detectGroups(saveData.state.cats);
+      }
+
+      showMessage(`Welcome back! Day ${saveData.state.day}. 🎮`, 'success');
       playSound?.('success');
     } catch (e) {
+      console.error('Load game error:', e);
       showMessage('Error loading save!', 'error');
     }
   }, [setState, setKittensBreed, relationshipSystem, playSound, showMessage]);
@@ -138,7 +159,14 @@ export function useSaveLoad(deps: GameHookDependencies): SaveLoadActions {
     const saved = localStorage.getItem(SAVE_KEY);
     if (!saved) return null;
     try {
-      return JSON.parse(saved).state.day;
+      const data = JSON.parse(saved) as unknown;
+      if (typeof data === 'object' && data !== null) {
+        const saveData = data as Record<string, unknown>;
+        if (isValidGameState(saveData.state)) {
+          return saveData.state.day;
+        }
+      }
+      return null;
     } catch {
       return null;
     }
