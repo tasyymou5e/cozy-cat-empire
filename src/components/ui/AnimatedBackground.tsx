@@ -35,7 +35,7 @@ export function AnimatedBackground({
     <div
       className={cn(
         'relative min-h-screen overflow-hidden',
-        variant === 'auth' && 'animated-gradient-bg',
+        variant === 'auth' && 'auth-cozy-bg',
         variant === 'cozy' &&
           'bg-gradient-to-br from-[hsl(var(--primary)/0.1)] via-background to-[hsl(var(--accent)/0.15)]',
         variant === 'game' && 'bg-background',
@@ -43,12 +43,17 @@ export function AnimatedBackground({
         className
       )}
     >
-      {/* Floating Decorative Orbs - Only for auth variant */}
+      {/* Bokeh bubbles for auth variant */}
       {variant === 'auth' && (
         <>
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/15 rounded-full blur-3xl animate-float animate-delay-200" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-2xl animate-float animate-delay-400" />
+          <div className="bokeh-bubble w-32 h-32 top-[8%] left-[5%]" style={{ animationDelay: '0s' }} />
+          <div className="bokeh-bubble w-48 h-48 top-[15%] right-[8%]" style={{ animationDelay: '1s' }} />
+          <div className="bokeh-bubble w-24 h-24 bottom-[25%] left-[12%]" style={{ animationDelay: '2s' }} />
+          <div className="bokeh-bubble w-40 h-40 bottom-[18%] right-[15%]" style={{ animationDelay: '0.5s' }} />
+          <div className="bokeh-bubble w-20 h-20 top-[40%] left-[25%]" style={{ animationDelay: '1.5s' }} />
+          <div className="bokeh-bubble w-36 h-36 top-[55%] right-[5%]" style={{ animationDelay: '2.5s' }} />
+          <div className="bokeh-bubble w-28 h-28 bottom-[40%] left-[3%]" style={{ animationDelay: '3s' }} />
+          <div className="bokeh-bubble w-16 h-16 top-[75%] right-[25%]" style={{ animationDelay: '0.8s' }} />
         </>
       )}
 
