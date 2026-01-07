@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/GlassCard';
 import { LoadingCat } from '@/components/ui/LoadingCat';
 import { FloatingDecorations } from '@/components/ui/FloatingDecorations';
+import { useAuthBackground } from '@/hooks/useAuthBackground';
 import {
   Mail,
   Lock,
@@ -76,6 +77,7 @@ const AVATAR_OPTIONS = ['😺', '😸', '😹', '😻', '😼', '😽', '🙀', 
 export default function Auth() {
   const navigate = useNavigate();
   const { user, signIn, signUp, loading } = useAuth();
+  const { backgroundUrl, isLoading: bgLoading } = useAuthBackground();
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -636,10 +638,42 @@ export default function Auth() {
     nameError || usernameError || nameAvailable === false || usernameAvailable === false;
 
   return (
-    <AnimatedBackground variant="auth" className="flex items-center justify-center p-4">
-      <FloatingDecorations variant="kawaii-cats" density="high" />
+    <div className="relative min-h-screen flex items-center justify-center p-4">
+      {/* AI-generated background image layer */}
+      {backgroundUrl && (
+        <div 
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700"
+          style={{ 
+            backgroundImage: `url(${backgroundUrl})`,
+            opacity: bgLoading ? 0 : 1,
+          }}
+        />
+      )}
+      
+      {/* Fallback gradient (shows while loading or on error) */}
+      <div 
+        className={`fixed inset-0 transition-opacity duration-700 ${backgroundUrl ? 'opacity-0' : 'opacity-100'}`}
+      >
+        <AnimatedBackground variant="auth" className="h-full">
+          <div />
+        </AnimatedBackground>
+      </div>
+      
+      {/* Semi-transparent overlay for form readability */}
+      <div className="fixed inset-0 bg-white/25 backdrop-blur-[1px]" />
+      
+      {/* Bokeh bubbles overlay for depth */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="bokeh-bubble w-32 h-32 top-[8%] left-[5%] opacity-40" style={{ animationDelay: '0s' }} />
+        <div className="bokeh-bubble w-48 h-48 top-[15%] right-[8%] opacity-40" style={{ animationDelay: '1s' }} />
+        <div className="bokeh-bubble w-24 h-24 bottom-[25%] left-[12%] opacity-40" style={{ animationDelay: '2s' }} />
+        <div className="bokeh-bubble w-40 h-40 bottom-[18%] right-[15%] opacity-40" style={{ animationDelay: '0.5s' }} />
+      </div>
+      
+      {/* Floating cat decorations with parallax */}
+      <FloatingDecorations variant="kawaii-cats" density="high" parallax className="opacity-60" />
 
-      <div className="w-full max-w-md space-y-6 animate-fade-in-up">
+      <div className="relative z-10 w-full max-w-md space-y-6 animate-fade-in-up">
         {/* Hero Section */}
         <div className="text-center space-y-3">
           <div className="flex justify-center items-end gap-1">
@@ -1018,6 +1052,6 @@ export default function Auth() {
           <p className="text-muted-foreground text-xs">Made with 💜 for cat lovers</p>
         </div>
       </div>
-    </AnimatedBackground>
+    </div>
   );
 }
