@@ -253,6 +253,39 @@ export function useFriends(userId: string | undefined) {
     fetchFriends();
   }, [fetchFriends]);
 
+  // Realtime subscription for friend updates
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`friends-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'player_friends',
+          filter: `friend_id=eq.${userId}`,
+        },
+        () => fetchFriends()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'player_friends',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => fetchFriends()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, fetchFriends]);
+
   /**
    * Sends a friend request to another player
    *
