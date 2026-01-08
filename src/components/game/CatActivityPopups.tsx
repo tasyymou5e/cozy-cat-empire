@@ -136,6 +136,9 @@ export function CatActivityPopups({
 
     const interval = setInterval(
       () => {
+        // Limit concurrent popups to 2
+        if (popups.length >= 2) return;
+        
         const randomCat = cats[Math.floor(Math.random() * cats.length)];
         const randomActivity = ACTIVITIES[Math.floor(Math.random() * ACTIVITIES.length)];
         const randomEmoji =
@@ -160,15 +163,15 @@ export function CatActivityPopups({
           playSound(soundType);
         }
 
-        // Remove popup AFTER animation completes (5s animation + 200ms buffer)
+        // Remove popup AFTER animation completes (3s animation + 200ms buffer)
         const timeoutId = setTimeout(() => {
           setPopups((prev) => prev.filter((p) => p.id !== newPopup.id));
           timeoutsRef.current.delete(timeoutId);
-        }, 5200);
+        }, 3200);
 
         timeoutsRef.current.add(timeoutId);
       },
-      8000 + Math.random() * 4000
+      15000 + Math.random() * 5000
     );
 
     return () => {
