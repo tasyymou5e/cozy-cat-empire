@@ -36,19 +36,33 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
   // Load cloud save on login
   useEffect(() => {
     if (auth.user && !ui.hasLoadedCloud) {
-      cloudSave.cloudLoad().then(({ data }) => {
+      console.log('[CloudSync] Starting cloud load for user:', auth.user.id);
+      
+      cloudSave.cloudLoad().then(({ data, error }) => {
+        if (error) {
+          console.error('[CloudSync] Cloud load failed:', error);
+          ui.setHasLoadedCloud(true); // Mark as loaded to prevent save issues
+          return;
+        }
+        
         if (data) {
+          console.log(`[CloudSync] Load success: ${data.game_state.cats?.length ?? 0} cats, day ${data.game_state.day}`);
           actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
           ui.setLastCloudSave(data.last_played_at);
+        } else {
+          console.log('[CloudSync] No cloud save found - starting fresh');
         }
         ui.setHasLoadedCloud(true);
+      }).catch((err) => {
+        console.error('[CloudSync] Cloud load exception:', err);
+        ui.setHasLoadedCloud(true); // Prevent future issues
       });
     }
   }, [auth.user, ui.hasLoadedCloud, cloudSave, actions, ui]);
 
-  // Auto-save to cloud every 5 minutes
+  // Auto-save to cloud every 5 minutes - ONLY after cloud data has loaded
   useEffect(() => {
-    if (!auth.user) return;
+    if (!auth.user || !ui.hasLoadedCloud) return;
 
     const interval = setInterval(
       async () => {
@@ -67,10 +81,14 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
     );
 
     return () => clearInterval(interval);
-  }, [auth.user, state, kittensBreed, relationshipSystem, cloudSave, ui]);
+  }, [auth.user, ui.hasLoadedCloud, state, kittensBreed, relationshipSystem, cloudSave, ui]);
 
   const handleCloudSave = useCallback(async () => {
     if (!auth.user) return;
+    if (!ui.hasLoadedCloud) {
+      console.warn('[CloudSync] Skipping cloud save - cloud data not yet loaded');
+      return;
+    }
     ui.setCloudSyncing(true);
     const result = await cloudSave.cloudSave(
       state,
@@ -90,6 +108,7 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
     ui.setCloudSyncing(false);
   }, [
     auth.user,
+    ui.hasLoadedCloud,
     state,
     kittensBreed,
     relationshipSystem,

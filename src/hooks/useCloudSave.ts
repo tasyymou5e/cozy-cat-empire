@@ -71,6 +71,13 @@ export function useCloudSave(userId: string | undefined) {
         return { success: false, error: 'Not logged in' };
       }
 
+      // SAFETY CHECK: Prevent saving empty cat arrays that might indicate unloaded state
+      // Only allow empty cats if day is 1 (fresh game)
+      if (gameState.cats.length === 0 && gameState.day > 1) {
+        console.warn('[CloudSync] Blocked save: Empty cats array on day > 1 suggests data loss');
+        return { success: false, error: 'Save blocked - possible data loss detected' };
+      }
+
       try {
         const saveData = {
           user_id: userId,
@@ -89,7 +96,7 @@ export function useCloudSave(userId: string | undefined) {
         lastSaveRef.current = new Date().toISOString();
         return { success: true };
       } catch (err) {
-        console.error('Cloud save error:', err);
+        console.error('[CloudSync] Save error:', err);
         return { success: false, error: 'Failed to save to cloud' };
       }
     },

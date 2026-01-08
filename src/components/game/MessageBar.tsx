@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { GameMessage } from '@/hooks/useGameMessages';
@@ -48,22 +48,31 @@ export const MessageBar = React.forwardRef<HTMLDivElement, MessageBarProps>(func
     incomingText ? { text: incomingText, type: incomingType } : null
   );
   const [isExiting, setIsExiting] = useState(false);
+  
+  // Track previous values to avoid dependency on displayedMessage
+  const prevTextRef = useRef(incomingText);
+  const prevTypeRef = useRef(incomingType);
 
   useEffect(() => {
-    if (!incomingText && displayedMessage && !isExiting) {
-      // Message cleared - start exit animation
-      setIsExiting(true);
-      const timer = setTimeout(() => {
-        setDisplayedMessage(null);
+    // Only update if incoming message changed
+    if (incomingText !== prevTextRef.current || incomingType !== prevTypeRef.current) {
+      prevTextRef.current = incomingText;
+      prevTypeRef.current = incomingType;
+      
+      if (incomingText) {
+        setDisplayedMessage({ text: incomingText, type: incomingType });
         setIsExiting(false);
-      }, 300); // Match animation duration
-      return () => clearTimeout(timer);
-    } else if (incomingText) {
-      // New message arrived - show immediately
-      setDisplayedMessage({ text: incomingText, type: incomingType });
-      setIsExiting(false);
+      } else if (displayedMessage && !isExiting) {
+        // Message cleared - start exit animation
+        setIsExiting(true);
+        const timer = setTimeout(() => {
+          setDisplayedMessage(null);
+          setIsExiting(false);
+        }, 300);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [incomingText, incomingType, displayedMessage, isExiting]);
+  }, [incomingText, incomingType]); // Removed displayedMessage and isExiting from deps
 
   if (!displayedMessage) return null;
 
