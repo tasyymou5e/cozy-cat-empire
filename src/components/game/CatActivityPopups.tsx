@@ -129,15 +129,21 @@ export function CatActivityPopups({
   const [popups, setPopups] = useState<ActivityPopup[]>([]);
   const positionIndexRef = useRef(0);
   const timeoutsRef = useRef<Set<NodeJS.Timeout>>(new Set());
+  const popupCountRef = useRef(0);
   const { playSound } = useSound();
+
+  // Keep ref in sync with popups state to avoid stale closure
+  useEffect(() => {
+    popupCountRef.current = popups.length;
+  }, [popups.length]);
 
   useEffect(() => {
     if (cats.length === 0) return;
 
     const interval = setInterval(
       () => {
-        // Limit concurrent popups to 2
-        if (popups.length >= 2) return;
+        // Use ref to get current popup count (avoids stale closure)
+        if (popupCountRef.current >= 2) return;
         
         const randomCat = cats[Math.floor(Math.random() * cats.length)];
         const randomActivity = ACTIVITIES[Math.floor(Math.random() * ACTIVITIES.length)];
