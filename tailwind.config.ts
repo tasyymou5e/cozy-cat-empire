@@ -540,7 +540,7 @@ export default {
 			'eye-shimmer': 'eye-shimmer 2s ease-in-out infinite',
 			'whisker-wiggle': 'whisker-wiggle 3s ease-in-out infinite',
 			'cat-breathe': 'cat-breathe 3s ease-in-out infinite',
-			'activity-popup': 'activity-popup 5s ease-in-out forwards',
+			'activity-popup': 'activity-popup 3s ease-in-out forwards',
 			// Gift and Trade animations
 			'gift-sparkle': 'gift-sparkle 2s ease-in-out infinite',
 			'gift-unwrap': 'gift-unwrap 0.5s ease-out forwards',
