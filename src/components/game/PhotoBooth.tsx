@@ -1,6 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { toPng, toBlob } from 'html-to-image';
 import {
   Download,
   Copy,
@@ -116,6 +115,9 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
 
     setIsExporting(true);
     try {
+      // Lazy-load html-to-image for better bundle splitting
+      const { toPng } = await import('html-to-image');
+      
       // Wait for state update to hide delete buttons
       await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -140,6 +142,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
 
     setIsExporting(true);
     try {
+      const { toBlob } = await import('html-to-image');
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const blob = await toBlob(stageRef.current, { pixelRatio: 2 });
@@ -170,6 +173,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
 
     setIsExporting(true);
     try {
+      const { toBlob } = await import('html-to-image');
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const blob = await toBlob(stageRef.current, { pixelRatio: 2 });
@@ -204,6 +208,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
 
     setIsExporting(true);
     try {
+      const { toPng } = await import('html-to-image');
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const dataUrl = await toPng(stageRef.current, {
