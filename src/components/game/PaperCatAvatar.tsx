@@ -4,11 +4,12 @@
  * This component generates detailed vector cat faces programmatically
  * using Paper.js. It supports all appearance options and creates
  * breed-specific shapes for each cat type.
+ * 
+ * Paper.js is lazy-loaded to reduce initial bundle size.
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Cat } from '@/types/game';
-import { generateCatAvatarUrl } from '@/lib/catVectorGenerator';
 import { generateFullAvatarHash, getCachedAvatar, setCachedAvatar } from '@/lib/avatarCache';
 import { CatAvatar } from './CatAvatar';
 import { AnimatedCostumeSVG } from './AnimatedCostumeSVG';
@@ -17,6 +18,13 @@ import { GRAPHICS_CONFIG } from '@/config/graphics';
 import { useGraphicsSettings } from '@/hooks/useGraphicsSettings';
 import { COSTUME_VECTORS } from '@/lib/costumeVectors';
 import { COSTUMES } from '@/types/costumes';
+
+// Type for the dynamically imported function
+type GenerateCatAvatarUrlFn = (
+  cat: Cat,
+  costumeId?: string,
+  size?: string
+) => string | null;
 
 export interface PaperCatAvatarProps {
   cat: Cat;
@@ -55,16 +63,49 @@ export function PaperCatAvatar({
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  
+  // State for the dynamically loaded generator function
+  const [generateFn, setGenerateFn] = useState<GenerateCatAvatarUrlFn | null>(null);
+  const [isModuleLoaded, setIsModuleLoaded] = useState(false);
 
   // Generate hash for caching
   const avatarHash = useMemo(() => {
     return generateFullAvatarHash(cat, equippedCostumeId, size);
   }, [cat, equippedCostumeId, size]);
 
-  // Generate or retrieve cached avatar
+  // Dynamically import the Paper.js generator module
   useEffect(() => {
-    if (!GRAPHICS_CONFIG.vectorEngine || GRAPHICS_CONFIG.vectorEngine !== 'paperjs') {
+    if (GRAPHICS_CONFIG.vectorEngine !== 'paperjs') {
       setHasError(true);
+      setIsModuleLoaded(true);
+      return;
+    }
+
+    let isMounted = true;
+
+    import('@/lib/catVectorGenerator')
+      .then((module) => {
+        if (isMounted) {
+          setGenerateFn(() => module.generateCatAvatarUrl);
+          setIsModuleLoaded(true);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load catVectorGenerator:', error);
+        if (isMounted) {
+          setHasError(true);
+          setIsModuleLoaded(true);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Generate or retrieve cached avatar once module is loaded
+  useEffect(() => {
+    if (!generateFn || !isModuleLoaded) {
       return;
     }
 
@@ -83,7 +124,7 @@ export function PaperCatAvatar({
 
     // Generate new avatar
     try {
-      const url = generateCatAvatarUrl(cat, equippedCostumeId, size);
+      const url = generateFn(cat, equippedCostumeId, size);
       if (url) {
         setAvatarUrl(url);
         if (GRAPHICS_CONFIG.cacheGeneratedAvatars) {
@@ -98,7 +139,20 @@ export function PaperCatAvatar({
     }
 
     setIsLoading(false);
-  }, [cat, equippedCostumeId, size, avatarHash]);
+  }, [generateFn, isModuleLoaded, cat, equippedCostumeId, size, avatarHash]);
+
+  // Show loading skeleton while module is being fetched
+  if (!isModuleLoaded) {
+    return (
+      <div
+        className={cn(
+          'bg-muted animate-pulse rounded-full',
+          sizeClasses[size],
+          className
+        )}
+      />
+    );
+  }
 
   // Fallback to CatAvatar on error
   if (hasError) {
