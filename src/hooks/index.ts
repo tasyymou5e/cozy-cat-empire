@@ -8,7 +8,7 @@
 
 // Game hooks
 export * from './game';
-export { useRelationships } from './useRelationships';
+export { useRelationships } from './relationships';
 export { useGameEvents } from './useGameEvents';
 
 // CatFarm state management
