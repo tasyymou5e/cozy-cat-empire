@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/game';
 import { useSound } from '@/contexts/SoundContext';
@@ -62,7 +63,7 @@ export default function CatCollection() {
   const { user } = useAuth();
   const { cloudLoad, cloudSave } = useCloudSave(user?.id);
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch, debouncedSearch] = useDebouncedSearch('', 300);
   const [sortBy, setSortBy] = useState<SortOption>('grade');
   const [sortDesc, setSortDesc] = useState(true);
   const [filterBreed, setFilterBreed] = useState<FilterBreed>('all');
@@ -124,9 +125,9 @@ export default function CatCollection() {
       cats = cats.filter((c) => c.portraitUrl && isPortraitOutdated(c, state.catCostumes[c.id]));
     }
 
-    // Filter by search
-    if (search) {
-      cats = cats.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
+    // Filter by search (using debounced value)
+    if (debouncedSearch) {
+      cats = cats.filter((c) => c.name.toLowerCase().includes(debouncedSearch.toLowerCase()));
     }
 
     // Filter by breed
@@ -168,7 +169,7 @@ export default function CatCollection() {
     return cats;
   }, [
     state.cats,
-    search,
+    debouncedSearch,
     sortBy,
     sortDesc,
     filterBreed,

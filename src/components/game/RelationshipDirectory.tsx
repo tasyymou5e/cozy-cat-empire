@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
+import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { Cat } from '@/types/game';
 import {
   CatRelationship,
@@ -38,7 +39,7 @@ interface RelationshipDirectoryProps {
 type FilterOption = 'all' | 'bestFriend' | 'friend' | 'rival' | 'enemy' | 'needs-attention';
 type SortOption = 'score-desc' | 'score-asc' | 'recent' | 'name' | 'neglected';
 
-export function RelationshipDirectory({
+export const RelationshipDirectory = memo(function RelationshipDirectory({
   cats,
   relationships,
   catCostumes,
@@ -46,7 +47,7 @@ export function RelationshipDirectory({
   currentDay = 1,
   onCatClick,
 }: RelationshipDirectoryProps) {
-  const [search, setSearch] = useState('');
+  const [search, setSearch, debouncedSearch] = useDebouncedSearch('', 300);
   const [filter, setFilter] = useState<FilterOption>('all');
   const [sortBy, setSortBy] = useState<SortOption>('score-desc');
   const [expandedPair, setExpandedPair] = useState<string | null>(null);
@@ -57,9 +58,9 @@ export function RelationshipDirectory({
   const filteredRelationships = useMemo(() => {
     let rels = [...relationships];
 
-    // Filter by search
-    if (search) {
-      const searchLower = search.toLowerCase();
+    // Filter by search (using debounced value)
+    if (debouncedSearch) {
+      const searchLower = debouncedSearch.toLowerCase();
       rels = rels.filter((r) => {
         const name1 = getCatName(r.catId1).toLowerCase();
         const name2 = getCatName(r.catId2).toLowerCase();
@@ -101,7 +102,7 @@ export function RelationshipDirectory({
     }
 
     return rels;
-  }, [relationships, search, filter, sortBy, cats, currentDay]);
+  }, [relationships, debouncedSearch, filter, sortBy, cats, currentDay]);
 
   const getPairEvents = (catId1: string, catId2: string) => {
     return events
@@ -375,8 +376,8 @@ export function RelationshipDirectory({
               </div>
             )}
           </ScrollArea>
-        </CardContent>
-      </Card>
-    </TooltipProvider>
-  );
-}
+      </CardContent>
+    </Card>
+  </TooltipProvider>
+);
+});

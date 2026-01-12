@@ -1,3 +1,4 @@
+import React, { memo, useMemo } from 'react';
 import { Achievement } from '@/types/game';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -36,7 +37,42 @@ interface AchievementsPanelProps {
  * ```
  */
 
-export function AchievementsPanel({ achievements, currentStats }: AchievementsPanelProps) {
+// Memoized achievement item component
+const AchievementItem = memo(function AchievementItem({
+  achievement,
+  progress,
+}: {
+  achievement: Achievement;
+  progress: number;
+}) {
+  return (
+    <div
+      className={`p-3 rounded-lg border transition-colors ${
+        achievement.unlocked ? 'bg-accent/20 border-accent' : 'bg-muted/50 border-muted'
+      }`}
+    >
+      <div className="flex items-center justify-between mb-1">
+        <span
+          className={`font-medium ${achievement.unlocked ? 'text-accent-foreground' : 'text-muted-foreground'}`}
+        >
+          {achievement.unlocked ? '✅' : '🔒'} {achievement.name}
+        </span>
+      </div>
+      <p className="text-xs text-muted-foreground mb-2">{achievement.description}</p>
+      {!achievement.unlocked && <Progress value={progress} className="h-1.5" />}
+      {achievement.unlocked && achievement.unlockedAt && (
+        <p className="text-xs text-accent-foreground">
+          Unlocked on Day {achievement.unlockedAt}
+        </p>
+      )}
+    </div>
+  );
+});
+
+export const AchievementsPanel = memo(function AchievementsPanel({
+  achievements,
+  currentStats,
+}: AchievementsPanelProps) {
   const getProgress = (achievement: Achievement) => {
     if (achievement.unlocked) return 100;
 
@@ -76,7 +112,10 @@ export function AchievementsPanel({ achievements, currentStats }: AchievementsPa
     return Math.min(100, (current / achievement.target) * 100);
   };
 
-  const unlockedCount = achievements.filter((a) => a.unlocked).length;
+  const unlockedCount = useMemo(
+    () => achievements.filter((a) => a.unlocked).length,
+    [achievements]
+  );
 
   return (
     <Card className="border-accent/30">
@@ -89,33 +128,14 @@ export function AchievementsPanel({ achievements, currentStats }: AchievementsPa
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
-        {achievements.map((achievement) => {
-          const progress = getProgress(achievement);
-          return (
-            <div
-              key={achievement.id}
-              className={`p-3 rounded-lg border transition-colors ${
-                achievement.unlocked ? 'bg-accent/20 border-accent' : 'bg-muted/50 border-muted'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span
-                  className={`font-medium ${achievement.unlocked ? 'text-accent-foreground' : 'text-muted-foreground'}`}
-                >
-                  {achievement.unlocked ? '✅' : '🔒'} {achievement.name}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mb-2">{achievement.description}</p>
-              {!achievement.unlocked && <Progress value={progress} className="h-1.5" />}
-              {achievement.unlocked && achievement.unlockedAt && (
-                <p className="text-xs text-accent-foreground">
-                  Unlocked on Day {achievement.unlockedAt}
-                </p>
-              )}
-            </div>
-          );
-        })}
+        {achievements.map((achievement) => (
+          <AchievementItem
+            key={achievement.id}
+            achievement={achievement}
+            progress={getProgress(achievement)}
+          />
+        ))}
       </CardContent>
     </Card>
   );
-}
+});

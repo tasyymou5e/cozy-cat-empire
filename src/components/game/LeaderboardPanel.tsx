@@ -1,3 +1,4 @@
+import React, { useMemo, memo } from 'react';
 import { Cat, BREEDS } from '@/types/game';
 import { CatRelationship, getRelationshipLevel } from '@/types/relationships';
 import { GradeBadge } from './GradeBadge';
@@ -19,84 +20,131 @@ interface RankedCat extends Cat {
   score: number;
 }
 
-export function LeaderboardPanel({ cats, relationships, catCostumes }: LeaderboardPanelProps) {
-  // Sort by show wins
-  const byWins: RankedCat[] = [...cats]
-    .sort((a, b) => b.showWins - a.showWins)
-    .slice(0, 5)
-    .map((cat, i) => ({ ...cat, rank: i + 1, score: cat.showWins }));
+// Memoized list item component
+const LeaderboardListItem = memo(function LeaderboardListItem({
+  cat,
+  icon,
+  costumeId,
+}: {
+  cat: RankedCat;
+  icon: React.ReactNode;
+  costumeId?: string;
+}) {
+  return (
+    <div
+      className={`flex items-center gap-3 p-2 rounded-lg ${
+        cat.rank === 1
+          ? 'bg-yellow-100/50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700'
+          : cat.rank === 2
+            ? 'bg-gray-100/50 dark:bg-gray-800/30 border border-gray-300 dark:border-gray-600'
+            : cat.rank === 3
+              ? 'bg-orange-100/50 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-700'
+              : 'bg-secondary/30'
+      }`}
+    >
+      <span className="text-lg w-6 text-center">
+        {rankEmojis[cat.rank - 1] || `${cat.rank}`}
+      </span>
+      <CatVisual cat={cat} size="xs" equippedCostumeId={costumeId} />
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-sm truncate">{cat.name}</p>
+        <p className="text-xs text-muted-foreground">{BREEDS[cat.breed].name}</p>
+      </div>
+      <div className="flex items-center gap-1">
+        {icon}
+        <span className="font-bold text-sm">{cat.score}</span>
+      </div>
+      <GradeBadge grade={cat.grade} size="sm" />
+    </div>
+  );
+});
 
-  // Sort by grade
-  const byGrade: RankedCat[] = [...cats]
-    .sort((a, b) => b.grade - a.grade)
-    .slice(0, 5)
-    .map((cat, i) => ({ ...cat, rank: i + 1, score: cat.grade }));
-
-  // Sort by value
-  const byValue: RankedCat[] = [...cats]
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 5)
-    .map((cat, i) => ({ ...cat, rank: i + 1, score: cat.value }));
-
-  // Sort by popularity (friends count)
-  const byPopularity: RankedCat[] = [...cats]
-    .map((cat) => {
-      const catRels = relationships.filter((r) => r.catId1 === cat.id || r.catId2 === cat.id);
-      const friendCount = catRels.filter((r) => {
-        const level = getRelationshipLevel(r.score);
-        return level === 'friend' || level === 'bestFriend';
-      }).length;
-      return { ...cat, friendCount };
-    })
-    .sort((a, b) => b.friendCount - a.friendCount)
-    .slice(0, 5)
-    .map((cat, i) => ({ ...cat, rank: i + 1, score: (cat as any).friendCount }));
-
-  const LeaderboardList = ({
-    rankedCats,
-    label,
-    icon,
-  }: {
-    rankedCats: RankedCat[];
-    label: string;
-    icon: React.ReactNode;
-  }) => (
+// Memoized list component
+const LeaderboardList = memo(function LeaderboardList({
+  rankedCats,
+  label,
+  icon,
+  catCostumes,
+}: {
+  rankedCats: RankedCat[];
+  label: string;
+  icon: React.ReactNode;
+  catCostumes?: Record<string, string>;
+}) {
+  return (
     <div className="space-y-2">
       {rankedCats.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-4">No cats yet!</p>
       ) : (
         rankedCats.map((cat) => (
-          <div
+          <LeaderboardListItem
             key={cat.id}
-            className={`flex items-center gap-3 p-2 rounded-lg ${
-              cat.rank === 1
-                ? 'bg-yellow-100/50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700'
-                : cat.rank === 2
-                  ? 'bg-gray-100/50 dark:bg-gray-800/30 border border-gray-300 dark:border-gray-600'
-                  : cat.rank === 3
-                    ? 'bg-orange-100/50 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-700'
-                    : 'bg-secondary/30'
-            }`}
-          >
-            <span className="text-lg w-6 text-center">
-              {rankEmojis[cat.rank - 1] || `${cat.rank}`}
-            </span>
-            <CatVisual cat={cat} size="xs" equippedCostumeId={catCostumes?.[cat.id]} />
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm truncate">{cat.name}</p>
-              <p className="text-xs text-muted-foreground">{BREEDS[cat.breed].name}</p>
-            </div>
-            <div className="flex items-center gap-1">
-              {icon}
-              <span className="font-bold text-sm">{cat.score}</span>
-            </div>
-            <GradeBadge grade={cat.grade} size="sm" />
-          </div>
+            cat={cat}
+            icon={icon}
+            costumeId={catCostumes?.[cat.id]}
+          />
         ))
       )}
     </div>
   );
+});
 
+export const LeaderboardPanel = memo(function LeaderboardPanel({
+  cats,
+  relationships,
+  catCostumes,
+}: LeaderboardPanelProps) {
+  // Memoize sorted lists
+  const byWins = useMemo<RankedCat[]>(
+    () =>
+      [...cats]
+        .sort((a, b) => b.showWins - a.showWins)
+        .slice(0, 5)
+        .map((cat, i) => ({ ...cat, rank: i + 1, score: cat.showWins })),
+    [cats]
+  );
+
+  const byGrade = useMemo<RankedCat[]>(
+    () =>
+      [...cats]
+        .sort((a, b) => b.grade - a.grade)
+        .slice(0, 5)
+        .map((cat, i) => ({ ...cat, rank: i + 1, score: cat.grade })),
+    [cats]
+  );
+
+  const byValue = useMemo<RankedCat[]>(
+    () =>
+      [...cats]
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 5)
+        .map((cat, i) => ({ ...cat, rank: i + 1, score: cat.value })),
+    [cats]
+  );
+
+  const byPopularity = useMemo<RankedCat[]>(
+    () =>
+      [...cats]
+        .map((cat) => {
+          const catRels = relationships.filter(
+            (r) => r.catId1 === cat.id || r.catId2 === cat.id
+          );
+          const friendCount = catRels.filter((r) => {
+            const level = getRelationshipLevel(r.score);
+            return level === 'friend' || level === 'bestFriend';
+          }).length;
+          return { ...cat, friendCount };
+        })
+        .sort((a, b) => b.friendCount - a.friendCount)
+        .slice(0, 5)
+        .map((cat, i) => ({ ...cat, rank: i + 1, score: (cat as any).friendCount })),
+    [cats, relationships]
+  );
+
+  const totalWins = useMemo(
+    () => cats.reduce((sum, c) => sum + c.showWins, 0),
+    [cats]
+  );
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-2">
@@ -125,6 +173,7 @@ export function LeaderboardPanel({ cats, relationships, catCostumes }: Leaderboa
             rankedCats={byWins}
             label="Wins"
             icon={<Trophy className="h-3 w-3 text-yellow-500" />}
+            catCostumes={catCostumes}
           />
         </TabsContent>
 
@@ -133,6 +182,7 @@ export function LeaderboardPanel({ cats, relationships, catCostumes }: Leaderboa
             rankedCats={byGrade}
             label="Grade"
             icon={<Star className="h-3 w-3 text-purple-500" />}
+            catCostumes={catCostumes}
           />
         </TabsContent>
 
@@ -141,6 +191,7 @@ export function LeaderboardPanel({ cats, relationships, catCostumes }: Leaderboa
             rankedCats={byValue}
             label="Value"
             icon={<span className="text-xs text-green-600">$</span>}
+            catCostumes={catCostumes}
           />
         </TabsContent>
 
@@ -149,6 +200,7 @@ export function LeaderboardPanel({ cats, relationships, catCostumes }: Leaderboa
             rankedCats={byPopularity}
             label="Friends"
             icon={<Heart className="h-3 w-3 text-pink-500" />}
+            catCostumes={catCostumes}
           />
         </TabsContent>
       </Tabs>
@@ -162,11 +214,11 @@ export function LeaderboardPanel({ cats, relationships, catCostumes }: Leaderboa
             </div>
             <div className="p-2 bg-secondary/30 rounded">
               <div className="text-muted-foreground">Total Wins</div>
-              <div className="font-bold">{cats.reduce((sum, c) => sum + c.showWins, 0)}</div>
+              <div className="font-bold">{totalWins}</div>
             </div>
           </div>
         </div>
       )}
     </div>
   );
-}
+});

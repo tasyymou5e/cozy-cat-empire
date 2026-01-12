@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useAdminUsers, useAdminActivityLog } from '@/hooks/admin';
 import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
@@ -78,7 +79,7 @@ const getDisplayName = (user: { display_name?: string | null; email?: string | n
 };
 
 export default function AdminUsers() {
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput, debouncedSearch] = useDebouncedSearch('', 300);
   const [page, setPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState<AdminUserProfile | null>(null);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
@@ -93,7 +94,12 @@ export default function AdminUsers() {
   const [isSuspending, setIsSuspending] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
 
-  const { data, isLoading } = useAdminUsers({ search, page, pageSize: 10 });
+  const { data, isLoading } = useAdminUsers({ search: debouncedSearch, page, pageSize: 10 });
+
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
   const { logActivity } = useAdminActivityLog();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -488,11 +494,8 @@ export default function AdminUsers() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search users..."
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   className="pl-9"
                 />
               </div>
