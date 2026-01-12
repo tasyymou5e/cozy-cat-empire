@@ -355,21 +355,55 @@ supabase/
 
 ## Performance Optimizations
 
-### React Optimizations
-- `React.memo` for expensive components
-- `useCallback` for stable function references
-- `useMemo` for computed values
-- Lazy loading for route components
+### Route-Level Code Splitting
+All 24 pages are lazy-loaded using React.lazy() with Suspense boundaries:
+- Main pages: Index, CatCollection, CatGallery, Stats, Leaderboard, etc.
+- Admin pages: AdminDashboard, AdminUsers, AdminStatistics, etc.
+- Fallback: PageLoader component with animated cat emoji
+
+### Bundle Splitting Strategy (vite.config.ts)
+| Chunk | Contents | Purpose |
+|-------|----------|---------|
+| vendor-react | react, react-dom, react-router-dom | Core framework |
+| vendor-query | @tanstack/react-query | Data fetching |
+| vendor-supabase | @supabase/supabase-js | Backend client |
+| ui-radix | 23 @radix-ui components | UI primitives |
+| charts | recharts | Data visualization |
+| paper-avatar | paper, catVectorGenerator | Vector cat avatars |
+| virtualization | react-virtuoso | List virtualization |
+| date-utils | date-fns, react-day-picker | Date handling |
+| forms | react-hook-form, zod | Form management |
+| effects | canvas-confetti, html-to-image | Visual effects |
+| icons | lucide-react | Icon library |
+
+### Route Prefetching
+- **Critical routes** (`/`, `/collection`) prefetched on app load via requestIdleCallback
+- **Hover prefetching** via PrefetchLink component
+- **Admin prefetching** when admin routes accessed
+- Files: `src/lib/routePrefetch.ts`, `src/hooks/usePrefetch.ts`, `src/components/PrefetchLink.tsx`
+
+### Service Worker Caching
+| Request Type | Strategy | Details |
+|--------------|----------|---------|
+| JS/CSS chunks | Cache-first | Long-term caching for versioned assets |
+| Images | Cache-first | Served from cache when available |
+| HTML pages | Network-first | Fresh content, cache fallback offline |
+| Supabase API | Network-only | Always fresh data |
+
+### Component Optimizations
+- **React.memo**: UnifiedCatCard (with custom arePropsEqual), VirtualizedCatGrid, LeaderboardPanel, AchievementsPanel, RelationshipDirectory
+- **Debounced search**: useDebouncedSearch hook (300ms) used in CatCollection, AdminUsers, RelationshipDirectory
+- **Virtual scrolling**: VirtualizedCatGrid uses react-virtuoso for 20+ cats
+- **useCallback/useMemo**: Stable references and computed value memoization
+
+### Lazy Loading
+- **PaperCatAvatar**: Dynamically imports Paper.js module
+- **Pages**: All routes lazy-loaded via React.lazy
 
 ### Data Fetching
 - React Query for caching and deduplication
 - Optimistic updates for UI responsiveness
 - Background refetching for fresh data
-
-### Bundle Optimization
-- Vite code splitting
-- Dynamic imports for routes
-- Tree shaking for unused code
 
 ---
 
