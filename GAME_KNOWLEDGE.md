@@ -189,7 +189,39 @@ const { settings, updateSetting, resetToDefaults, isReducedMotion, effectiveAnim
 
 See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full details on all 14 settings.
 
-### 8. Costume System (`src/types/costumes.ts`, `src/lib/costumeVectors.ts`)
+### 9. Performance Systems
+
+**Route-Level Code Splitting:**
+- All 24 pages use React.lazy() for on-demand loading
+- PageLoader fallback with animated cat emoji
+- Admin pages loaded separately from main game
+
+**Bundle Optimization (`vite.config.ts`):**
+- 11 manual chunks separating vendor, UI, and feature code
+- Paper.js lazy-loaded only when PaperCatAvatar used
+- Charts only loaded on Stats/Admin pages
+
+**Prefetching (`src/lib/routePrefetch.ts`, `src/hooks/usePrefetch.ts`):**
+- Critical routes prefetched during idle time
+- PrefetchLink component for hover-based prefetching
+- Admin routes prefetched when admin section accessed
+
+**Service Worker (`public/sw.js`):**
+- Cache-first for static assets (JS, CSS, images)
+- Network-first for HTML with offline fallback
+- Automatic cache cleanup on version updates
+
+**Virtual Scrolling (`src/components/game/VirtualizedCatGrid.tsx`):**
+- Uses react-virtuoso for lists >20 cats
+- Falls back to regular grid for smaller lists
+- Memoized CatCardItem wrapper for efficient rendering
+
+**Debounced Search (`src/hooks/useDebouncedSearch.ts`):**
+- 300ms debounce delay
+- Used in CatCollection, AdminUsers, RelationshipDirectory
+- Prevents expensive filtering on every keystroke
+
+### 10. Costume System (`src/types/costumes.ts`, `src/lib/costumeVectors.ts`)
 
 **Categories:**
 - Hats (8 costumes): Party Hat, Crown, Wizard Hat, etc.
