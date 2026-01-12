@@ -6,7 +6,7 @@ import { useSound } from '@/contexts/SoundContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
-import { UnifiedCatCard } from '@/components/game/UnifiedCatCard';
+import { VirtualizedCatGrid } from '@/components/game/VirtualizedCatGrid';
 import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { CatDetailModal } from '@/components/game/CatDetailModal';
 import { BatchPortraitGenerator } from '@/components/game/BatchPortraitGenerator';
@@ -404,21 +404,17 @@ export default function CatCollection() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {filteredAndSortedCats.map((cat) => (
-              <UnifiedCatCard
-                key={cat.id}
-                cat={cat}
-                variant="trading"
-                relationships={relationshipSystem.relationships}
-                allCats={state.cats}
-                onClick={() => setSelectedCat(cat)}
-                equippedCostumeId={state.catCostumes[cat.id]}
-                showFlip
-                animated
-              />
-            ))}
-          </div>
+          <VirtualizedCatGrid
+            cats={filteredAndSortedCats}
+            relationships={relationshipSystem.relationships}
+            allCats={state.cats}
+            catCostumes={state.catCostumes}
+            variant="trading"
+            onClick={(cat) => setSelectedCat(cat)}
+            showFlip
+            animated
+            className="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+          />
         )}
       </main>
 
