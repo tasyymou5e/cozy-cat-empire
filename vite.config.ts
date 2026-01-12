@@ -15,4 +15,18 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Isolate Paper.js and vector generation into separate chunk
+          // This prevents the heavy Paper.js library from loading on initial page load
+          'paper-avatar': [
+            'paper',
+            './src/lib/catVectorGenerator.ts',
+          ],
+        },
+      },
+    },
+  },
 }));
