@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, memo } from 'react';
 import { Cat, BREEDS, CatBreed, CatPersonality } from '@/types/game';
 import { CatRelationship, getRelationshipLevel } from '@/types/relationships';
 import {
@@ -804,4 +804,42 @@ function TradingCardView({
   );
 }
 
-export default UnifiedCatCard;
+// Memoize TradingCardView to prevent unnecessary re-renders
+const MemoizedTradingCardView = React.memo(TradingCardView);
+
+// Custom comparison function for UnifiedCatCard
+function arePropsEqual(
+  prevProps: UnifiedCatCardProps,
+  nextProps: UnifiedCatCardProps
+): boolean {
+  // Quick reference equality check for most props
+  if (prevProps.cat !== nextProps.cat) return false;
+  if (prevProps.variant !== nextProps.variant) return false;
+  if (prevProps.equippedCostumeId !== nextProps.equippedCostumeId) return false;
+  if (prevProps.className !== nextProps.className) return false;
+  if (prevProps.showPortrait !== nextProps.showPortrait) return false;
+  if (prevProps.showStats !== nextProps.showStats) return false;
+  if (prevProps.showRelationships !== nextProps.showRelationships) return false;
+  if (prevProps.showActions !== nextProps.showActions) return false;
+  if (prevProps.showFlip !== nextProps.showFlip) return false;
+  if (prevProps.animated !== nextProps.animated) return false;
+
+  // Reaction changes should trigger re-render
+  if (prevProps.reaction?.type !== nextProps.reaction?.type) return false;
+  if (prevProps.reaction?.emoji !== nextProps.reaction?.emoji) return false;
+
+  // Check relationships array length (shallow comparison)
+  if (prevProps.relationships?.length !== nextProps.relationships?.length) return false;
+  if (prevProps.allCats?.length !== nextProps.allCats?.length) return false;
+
+  // Functions - only check if they changed from defined to undefined or vice versa
+  if (!!prevProps.onClick !== !!nextProps.onClick) return false;
+  if (!!prevProps.onSell !== !!nextProps.onSell) return false;
+  if (!!prevProps.onHeal !== !!nextProps.onHeal) return false;
+  if (!!prevProps.onComfort !== !!nextProps.onComfort) return false;
+  if (!!prevProps.onRename !== !!nextProps.onRename) return false;
+
+  return true;
+}
+
+export default React.memo(UnifiedCatCard, arePropsEqual);
