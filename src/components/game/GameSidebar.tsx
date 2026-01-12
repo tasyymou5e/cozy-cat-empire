@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
+import { PrefetchLink } from '@/components/PrefetchLink';
 import { Separator } from '@/components/ui/separator';
 import {
   Sidebar,
@@ -190,10 +190,10 @@ export function GameSidebar({
               {EXTERNAL_LINKS.map((link) => (
                 <SidebarMenuItem key={link.href}>
                   <SidebarMenuButton asChild tooltip={isCollapsed ? link.label : undefined}>
-                    <Link to={link.href} className="w-full justify-start gap-2">
+                    <PrefetchLink to={link.href} className="w-full justify-start gap-2">
                       {link.icon}
                       {!isCollapsed && <span>{link.label}</span>}
-                    </Link>
+                    </PrefetchLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

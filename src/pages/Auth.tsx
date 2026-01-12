@@ -20,6 +20,7 @@ import { AnimatedFarmCats } from '@/components/ui/AnimatedFarmCats';
 import { SeasonalParticles } from '@/components/ui/SeasonalParticles';
 import { useAuthBackground } from '@/hooks/useAuthBackground';
 import { useAdminAuth } from '@/hooks/admin/useAdminAuth';
+import { useCriticalPrefetch } from '@/hooks/usePrefetch';
 import { getCurrentRealSeason } from '@/lib/seasonUtils';
 import { cn } from '@/lib/utils';
 import {
@@ -85,6 +86,10 @@ export default function Auth() {
   const { user, signIn, signUp, loading } = useAuth();
   const { backgroundUrl, isLoading: bgLoading, regenerate, currentSeason } = useAuthBackground();
   const { isAdmin } = useAdminAuth();
+  
+  // Prefetch main game route while user is on login page
+  useCriticalPrefetch();
+  
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
