@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { PrefetchLink } from '@/components/PrefetchLink';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -59,7 +60,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       {ADMIN_NAV_ITEMS.map((item) => {
         const isActive = location.pathname === item.path;
         return (
-          <Link
+          <PrefetchLink
             key={item.id}
             to={item.path}
             onClick={() => mobile && setMobileMenuOpen(false)}
@@ -73,7 +74,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           >
             <item.icon className="h-4 w-4" />
             <span>{item.label}</span>
-          </Link>
+          </PrefetchLink>
         );
       })}
     </>
@@ -103,10 +104,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </Sheet>
 
           {/* Brand */}
-          <Link to="/catking/dashboard" className="flex items-center gap-2">
+          <PrefetchLink to="/catking/dashboard" className="flex items-center gap-2">
             <Crown className="h-6 w-6 text-yellow-500" />
             <span className="font-bold text-lg hidden sm:inline">Cat King Admin</span>
-          </Link>
+          </PrefetchLink>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1 ml-6">

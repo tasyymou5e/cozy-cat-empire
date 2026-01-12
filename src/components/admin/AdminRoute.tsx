@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth, logAuthAttempt } from '@/hooks/admin';
+import { useAdminPrefetch } from '@/hooks/usePrefetch';
 import { Loader2 } from 'lucide-react';
 
 interface AdminRouteProps {
@@ -10,6 +11,9 @@ interface AdminRouteProps {
 export function AdminRoute({ children }: AdminRouteProps) {
   const { isAdmin, loading, user } = useAdminAuth();
   const navigate = useNavigate();
+  
+  // Prefetch other admin routes once user is confirmed admin
+  useAdminPrefetch();
 
   useEffect(() => {
     if (loading) return;

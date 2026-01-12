@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { PrefetchLink } from '@/components/PrefetchLink';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,10 +80,10 @@ export function QuickAccessMenu({ recentTabs = [], onNavigateTab }: QuickAccessM
         <DropdownMenuLabel>Pages</DropdownMenuLabel>
         {EXTERNAL_LINKS.map((link) => (
           <DropdownMenuItem key={link.href} asChild>
-            <Link to={link.href} className="flex items-center cursor-pointer">
+            <PrefetchLink to={link.href} className="flex items-center cursor-pointer">
               <span className="mr-2">{link.icon}</span>
               {link.label}
-            </Link>
+            </PrefetchLink>
           </DropdownMenuItem>
         ))}
 
