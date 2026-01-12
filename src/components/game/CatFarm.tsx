@@ -22,7 +22,7 @@ import {
 // Panel and UI components
 import { CompactStatusBar } from './CompactStatusBar';
 import { MessageBar } from './MessageBar';
-import { UnifiedCatCard } from './UnifiedCatCard';
+import { VirtualizedCatGrid } from './VirtualizedCatGrid';
 import { MobileNavBar } from './MobileNavBar';
 import { MobileGameDrawer } from './MobileGameDrawer';
 
@@ -202,26 +202,21 @@ export function CatFarm() {
                   </p>
                 </div>
               ) : (
-                <div className="cat-grid">
-                  {state.cats.map((cat) => (
-                    <UnifiedCatCard
-                      key={cat.id}
-                      cat={cat}
-                      variant="card"
-                      equippedCostumeId={state.catCostumes[cat.id]}
-                      onSell={(catId) => dispatchAction('SELL_CAT', { catId })}
-                      onHeal={(catId) => dispatchAction('USE_MEDICINE', { catId })}
-                      onComfort={(catId) => dispatchAction('COMFORT_CAT', { catId })}
-                      onRename={actions.renameCat}
-                      relationships={relationshipSystem.relationships}
-                      allCats={state.cats}
-                      reaction={getCatReaction(cat.id)}
-                      showStats
-                      showRelationships
-                      showActions
-                    />
-                  ))}
-                </div>
+                <VirtualizedCatGrid
+                  cats={state.cats}
+                  relationships={relationshipSystem.relationships}
+                  allCats={state.cats}
+                  catCostumes={state.catCostumes}
+                  variant="card"
+                  getCatReaction={getCatReaction}
+                  onSell={(catId) => dispatchAction('SELL_CAT', { catId })}
+                  onHeal={(catId) => dispatchAction('USE_MEDICINE', { catId })}
+                  onComfort={(catId) => dispatchAction('COMFORT_CAT', { catId })}
+                  onRename={actions.renameCat}
+                  showStats
+                  showRelationships
+                  showActions
+                />
               )}
             </section>
 
@@ -542,26 +537,21 @@ export function CatFarm() {
                       </p>
                     </div>
                   ) : (
-                    <div className="cat-grid">
-                      {state.cats.map((cat) => (
-                        <UnifiedCatCard
-                          key={cat.id}
-                          cat={cat}
-                          variant="card"
-                          equippedCostumeId={state.catCostumes[cat.id]}
-                          onSell={(catId) => dispatchAction('SELL_CAT', { catId })}
-                          onHeal={(catId) => dispatchAction('USE_MEDICINE', { catId })}
-                          onComfort={(catId) => dispatchAction('COMFORT_CAT', { catId })}
-                          onRename={actions.renameCat}
-                          relationships={relationshipSystem.relationships}
-                          allCats={state.cats}
-                          reaction={getCatReaction(cat.id)}
-                          showStats
-                          showRelationships
-                          showActions
-                        />
-                      ))}
-                    </div>
+                    <VirtualizedCatGrid
+                      cats={state.cats}
+                      relationships={relationshipSystem.relationships}
+                      allCats={state.cats}
+                      catCostumes={state.catCostumes}
+                      variant="card"
+                      getCatReaction={getCatReaction}
+                      onSell={(catId) => dispatchAction('SELL_CAT', { catId })}
+                      onHeal={(catId) => dispatchAction('USE_MEDICINE', { catId })}
+                      onComfort={(catId) => dispatchAction('COMFORT_CAT', { catId })}
+                      onRename={actions.renameCat}
+                      showStats
+                      showRelationships
+                      showActions
+                    />
                   )}
                 </section>
 
