@@ -43,17 +43,19 @@ describe('useAdminRateLimit', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     
-    // Reset mock chain
+    // Reset mock chain - the actual implementation uses .single()
     mockSelect.mockReturnValue({ eq: mockEq });
     mockEq.mockReturnValue({ eq: mockEq, maybeSingle: mockMaybeSingle, single: mockSingle });
+    // Default: no existing rate limit record (PGRST116 = no rows)
+    mockSingle.mockResolvedValue({ data: null, error: { code: 'PGRST116' } });
     mockMaybeSingle.mockResolvedValue({ data: null, error: null });
     mockInsert.mockReturnValue({ select: mockSelect });
     mockUpdate.mockReturnValue({ eq: mockEq });
   });
 
   it('should allow action within rate limit', async () => {
-    // No existing rate limit record
-    mockMaybeSingle.mockResolvedValue({ data: null, error: null });
+    // No existing rate limit record (PGRST116 = no rows returned)
+    mockSingle.mockResolvedValue({ data: null, error: { code: 'PGRST116' } });
 
     const { result } = renderHook(() => useAdminRateLimit());
 
@@ -68,7 +70,7 @@ describe('useAdminRateLimit', () => {
 
   it('should block action when rate limit exceeded', async () => {
     // Existing record at limit
-    mockMaybeSingle.mockResolvedValue({
+    mockSingle.mockResolvedValue({
       data: {
         action_count: 5,
         window_start: new Date().toISOString(),
@@ -92,7 +94,7 @@ describe('useAdminRateLimit', () => {
     const oldDate = new Date();
     oldDate.setHours(oldDate.getHours() - 25); // 25 hours ago
     
-    mockMaybeSingle.mockResolvedValue({
+    mockSingle.mockResolvedValue({
       data: {
         action_count: 5,
         window_start: oldDate.toISOString(),
@@ -113,7 +115,7 @@ describe('useAdminRateLimit', () => {
 
   it('should track different action types separately', async () => {
     // First action type at limit
-    mockMaybeSingle.mockResolvedValueOnce({
+    mockSingle.mockResolvedValueOnce({
       data: {
         action_count: 5,
         window_start: new Date().toISOString(),
@@ -121,10 +123,10 @@ describe('useAdminRateLimit', () => {
       error: null,
     });
     
-    // Second action type has room
-    mockMaybeSingle.mockResolvedValueOnce({
+    // Second action type (bulk_suspend) has room - use an action that exists in RATE_LIMITS
+    mockSingle.mockResolvedValueOnce({
       data: {
-        action_count: 2,
+        action_count: 1,
         window_start: new Date().toISOString(),
       },
       error: null,
@@ -133,23 +135,24 @@ describe('useAdminRateLimit', () => {
     const { result } = renderHook(() => useAdminRateLimit());
 
     let deleteResult: any;
-    let suspendResult: any;
+    let bulkSuspendResult: any;
 
     await act(async () => {
       deleteResult = await result.current.checkRateLimit('user_delete');
     });
 
     await act(async () => {
-      suspendResult = await result.current.checkRateLimit('user_suspend');
+      // Use bulk_suspend which exists in RATE_LIMITS (limit: 3)
+      bulkSuspendResult = await result.current.checkRateLimit('bulk_suspend');
     });
 
     expect(deleteResult.allowed).toBe(false);
-    expect(suspendResult.allowed).toBe(true);
+    expect(bulkSuspendResult.allowed).toBe(true);
   });
 
   it('should record action and increment count', async () => {
-    mockMaybeSingle.mockResolvedValue({ data: null, error: null });
-    mockSingle.mockResolvedValue({ data: { id: '123' }, error: null });
+    // No existing record - will trigger insert
+    mockSingle.mockResolvedValue({ data: null, error: { code: 'PGRST116' } });
 
     const { result } = renderHook(() => useAdminRateLimit());
 

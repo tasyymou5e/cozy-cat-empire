@@ -82,9 +82,9 @@ describe('useResources', () => {
       });
 
       expect(mockDeps.getState().resources.food).toBe(3); // 5 - 2 cats
-      mockDeps.getState().cats.forEach((cat) => {
-        expect(cat.hunger).toBe(80); // 50/40 + 30, capped at max increase
-      });
+      // Each cat gets +30 hunger, capped at 100
+      expect(mockDeps.getState().cats[0].hunger).toBe(80); // 50 + 30
+      expect(mockDeps.getState().cats[1].hunger).toBe(70); // 40 + 30
     });
 
     it('should increase happiness and health when feeding', () => {
@@ -174,9 +174,9 @@ describe('useResources', () => {
 
       // ceil(2/3) = 1 toy used
       expect(mockDeps.getState().resources.toys).toBe(4);
-      mockDeps.getState().cats.forEach((cat) => {
-        expect(cat.happiness).toBe(75 + 15); // Max at happiness + 15
-      });
+      // Each cat gets +15 happiness, capped at 100
+      expect(mockDeps.getState().cats[0].happiness).toBe(75); // 60 + 15
+      expect(mockDeps.getState().cats[1].happiness).toBe(85); // 70 + 15
     });
 
     it('should create bonding event between cats', () => {
