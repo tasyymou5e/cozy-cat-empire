@@ -230,7 +230,7 @@ Deno.serve(async (req) => {
       }
       
       // Check availability
-      let query = supabase
+      const query = supabase
         .from('profiles')
         .select('id, username')
         .ilike('username', sanitized)
@@ -313,7 +313,7 @@ Deno.serve(async (req) => {
     }
 
     // Check availability in database
-    let query = supabase
+    const query = supabase
       .from('profiles')
       .select('id, display_name')
       .ilike('display_name', sanitized)

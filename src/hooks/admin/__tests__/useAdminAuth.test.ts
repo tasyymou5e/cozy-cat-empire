@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 
 // Mock Supabase client
 vi.mock('@/integrations/supabase/client', () => ({
@@ -23,6 +23,15 @@ vi.mock('@/contexts/AuthContext', () => ({
 import { useAdminAuth } from '../useAdminAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+
+/**
+ * Helper to wait for async updates in hook
+ */
+async function waitForHookUpdate(): Promise<void> {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  });
+}
 
 describe('useAdminAuth', () => {
   beforeEach(() => {
@@ -47,8 +56,8 @@ describe('useAdminAuth', () => {
 
   it('should return isAdmin=false when user has no admin role', async () => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { id: 'user-123', email: 'test@example.com' } as any,
-      session: {} as any,
+      user: { id: 'user-123', email: 'test@example.com' } as ReturnType<typeof useAuth>['user'],
+      session: {} as ReturnType<typeof useAuth>['session'],
       loading: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
@@ -58,21 +67,20 @@ describe('useAdminAuth', () => {
     vi.mocked(supabase.rpc).mockResolvedValue({
       data: false,
       error: null,
-    } as any);
+    } as unknown as Awaited<ReturnType<typeof supabase.rpc>>);
 
     const { result } = renderHook(() => useAdminAuth());
 
-    await waitFor(() => {
-      expect(result.current.checked).toBe(true);
-    });
+    await waitForHookUpdate();
 
+    expect(result.current.checked).toBe(true);
     expect(result.current.isAdmin).toBe(false);
   });
 
   it('should return isAdmin=true when user has admin role', async () => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { id: 'admin-123', email: 'admin@example.com' } as any,
-      session: {} as any,
+      user: { id: 'admin-123', email: 'admin@example.com' } as ReturnType<typeof useAuth>['user'],
+      session: {} as ReturnType<typeof useAuth>['session'],
       loading: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
@@ -82,21 +90,20 @@ describe('useAdminAuth', () => {
     vi.mocked(supabase.rpc).mockResolvedValue({
       data: true,
       error: null,
-    } as any);
+    } as unknown as Awaited<ReturnType<typeof supabase.rpc>>);
 
     const { result } = renderHook(() => useAdminAuth());
 
-    await waitFor(() => {
-      expect(result.current.checked).toBe(true);
-    });
+    await waitForHookUpdate();
 
+    expect(result.current.checked).toBe(true);
     expect(result.current.isAdmin).toBe(true);
   });
 
   it('should handle RPC errors gracefully', async () => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { id: 'user-123', email: 'test@example.com' } as any,
-      session: {} as any,
+      user: { id: 'user-123', email: 'test@example.com' } as ReturnType<typeof useAuth>['user'],
+      session: {} as ReturnType<typeof useAuth>['session'],
       loading: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
@@ -106,14 +113,13 @@ describe('useAdminAuth', () => {
     vi.mocked(supabase.rpc).mockResolvedValue({
       data: null,
       error: { message: 'RPC error' },
-    } as any);
+    } as unknown as Awaited<ReturnType<typeof supabase.rpc>>);
 
     const { result } = renderHook(() => useAdminAuth());
 
-    await waitFor(() => {
-      expect(result.current.checked).toBe(true);
-    });
+    await waitForHookUpdate();
 
+    expect(result.current.checked).toBe(true);
     // Should default to false on error
     expect(result.current.isAdmin).toBe(false);
   });
