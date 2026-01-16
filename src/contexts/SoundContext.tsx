@@ -565,12 +565,16 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       oscillators.forEach((osc) => {
         try {
           osc.stop();
-        } catch (e) {}
+        } catch (error) {
+          console.debug('Oscillator cleanup:', error);
+        }
       });
       if (lfo) {
         try {
           lfo.stop();
-        } catch (e) {}
+        } catch (error) {
+          console.debug('LFO cleanup:', error);
+        }
       }
       musicNodesRef.current = null;
       musicPlayingRef.current = false;
@@ -668,12 +672,16 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         musicNodesRef.current.oscillators.forEach((osc) => {
           try {
             osc.stop();
-          } catch (e) {}
+          } catch (error) {
+            console.debug('Oscillator cleanup on unmount:', error);
+          }
         });
         if (musicNodesRef.current.lfo) {
           try {
             musicNodesRef.current.lfo.stop();
-          } catch (e) {}
+          } catch (error) {
+            console.debug('LFO cleanup on unmount:', error);
+          }
         }
       }
     };

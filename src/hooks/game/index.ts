@@ -157,7 +157,7 @@ export function useGameState(
         bestFriendBreed: wasBestFriendBreed,
       };
 
-      let newUnlocks: string[] = [];
+      const newUnlocks: string[] = [];
       const updatedAchievements = newState.achievements.map((a) => {
         if (a.unlocked) return a;
 

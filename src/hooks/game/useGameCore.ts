@@ -179,14 +179,15 @@ export function useGameCore(deps: GameCoreDependencies): GameCoreActions {
 
   const nextDay = useCallback(() => {
     setState((prev) => {
-      let deadCats: string[] = [];
+      const deadCats: string[] = [];
 
       // Process daily cat stat changes
       const updatedCats = prev.cats
         .map((cat) => {
+          const baseHappiness = Math.max(0, cat.happiness - 3);
+          const hunger = Math.max(0, cat.hunger - 10);
           let health = cat.health;
-          let happiness = Math.max(0, cat.happiness - 3);
-          let hunger = Math.max(0, cat.hunger - 10);
+          let happiness = baseHappiness;
 
           // Relationships affect happiness
           const relationshipMod = relationshipSystem.getHappinessModifier(cat.id);
@@ -264,7 +265,7 @@ export function useGameCore(deps: GameCoreDependencies): GameCoreActions {
     playSound?.('dailyEvent');
 
     setState((prev) => {
-      let newState = { ...prev };
+      const newState = { ...prev };
 
       // Apply event effects
       if (event.moneyChange) {
