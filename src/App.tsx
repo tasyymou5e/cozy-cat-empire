@@ -39,6 +39,7 @@ const AdminAuth = lazy(() => import('./pages/AdminAuth'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'));
 const AdminStatistics = lazy(() => import('./pages/admin/AdminStatistics'));
+const AdminTutorialAnalytics = lazy(() => import('./pages/admin/AdminTutorialAnalytics'));
 const AdminErrorLogs = lazy(() => import('./pages/admin/AdminErrorLogs'));
 const AdminModeration = lazy(() => import('./pages/admin/AdminModeration'));
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
@@ -115,6 +116,14 @@ const App = () => {
                             element={
                               <AdminRoute>
                                 <AdminAIMetrics />
+                              </AdminRoute>
+                            }
+                          />
+                          <Route
+                            path="/catking/tutorial"
+                            element={
+                              <AdminRoute>
+                                <AdminTutorialAnalytics />
                               </AdminRoute>
                             }
                           />
