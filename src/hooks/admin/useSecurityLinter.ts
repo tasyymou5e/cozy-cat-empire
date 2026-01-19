@@ -8,13 +8,15 @@ import { useState, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import type { LinterIssue, LinterResults } from '@/types/admin';
+import type { LinterResults } from '@/types/admin';
+import { useSecurityHistory } from './useSecurityHistory';
 
 const LINTER_CACHE_KEY = 'security-linter-results';
 
 export function useSecurityLinter() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { saveScan, history, previousScore, isLoading: isHistoryLoading } = useSecurityHistory();
   const [lastScanTime, setLastScanTime] = useState<string | null>(() => {
     // Try to restore from localStorage
     const cached = localStorage.getItem(LINTER_CACHE_KEY);
@@ -75,10 +77,17 @@ export function useSecurityLinter() {
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       // Cache results
       localStorage.setItem(LINTER_CACHE_KEY, JSON.stringify(data));
       setLastScanTime(data.scannedAt);
+      
+      // Save to history for trend tracking
+      try {
+        await saveScan(data);
+      } catch (e) {
+        console.error('Failed to save scan to history:', e);
+      }
       
       // Invalidate cached query to update UI
       queryClient.invalidateQueries({ queryKey: ['security-linter-cached'] });
@@ -112,13 +121,17 @@ export function useSecurityLinter() {
     results: cachedResults,
     lastScanTime,
     
+    // History for trends
+    history,
+    previousScore,
+    
     // Actions
     runLinter,
     clearCache,
     
     // State
     isScanning: runLinterMutation.isPending,
-    isLoading: isLoadingCache,
+    isLoading: isLoadingCache || isHistoryLoading,
     error: runLinterMutation.error,
   };
 }

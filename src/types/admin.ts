@@ -71,3 +71,21 @@ export interface LinterResults {
   infos: number;
   issues: LinterIssue[];
 }
+
+/**
+ * Security scan history record from database
+ */
+export interface SecurityScanHistory {
+  id: string;
+  scanned_at: string;
+  scan_duration_ms: number;
+  total_issues: number;
+  errors: number;
+  warnings: number;
+  infos: number;
+  security_score: number;
+  security_grade: string;
+  issues: LinterIssue[];
+  scanned_by: string | null;
+  created_at: string | null;
+}

@@ -44,6 +44,8 @@ import {
 } from 'lucide-react';
 import { useSecurityLinter } from '@/hooks/admin/useSecurityLinter';
 import { formatDistanceToNow } from 'date-fns';
+import { SecurityScoreCard } from '@/components/admin/SecurityScoreCard';
+import { SecurityTrendChart } from '@/components/admin/SecurityTrendChart';
 
 // Define RLS policy audit data
 interface PolicyInfo {
@@ -477,13 +479,16 @@ export default function AdminSecurity() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set());
   
-  // Live security linter
+  // Live security linter with history
   const { 
     results: linterResults, 
     lastScanTime, 
     runLinter, 
     clearCache,
-    isScanning 
+    isScanning,
+    history,
+    previousScore,
+    isLoading: isHistoryLoading,
   } = useSecurityLinter();
 
   const filteredData =
@@ -575,6 +580,19 @@ export default function AdminSecurity() {
               )}
             </Button>
           </div>
+        </div>
+
+        {/* Security Score Dashboard */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SecurityScoreCard 
+            results={linterResults} 
+            previousScore={previousScore}
+            isLoading={isScanning}
+          />
+          <SecurityTrendChart 
+            history={history} 
+            isLoading={isHistoryLoading}
+          />
         </div>
 
         {/* Live Linter Results */}
