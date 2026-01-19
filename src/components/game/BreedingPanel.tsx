@@ -12,7 +12,13 @@ import {
 } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Target } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { ChevronDown, Heart, Target } from 'lucide-react';
 import { CatVisual } from './CatVisual';
 import { GradeBadge } from './GradeBadge';
 
@@ -147,6 +153,19 @@ export function BreedingPanel({
     }
   };
 
+  const handleDirectBreed = (cat1Id: string, cat2Id: string) => {
+    if (cooldown === 0 && hasSpace) {
+      onBreed(cat1Id, cat2Id);
+    }
+  };
+
+  const getDisabledReason = (pairCanBreed: boolean) => {
+    if (cooldown > 0) return `Cooldown: ${cooldown} days remaining`;
+    if (!hasSpace) return 'No space for kittens!';
+    if (!pairCanBreed) return 'Cannot breed this pair';
+    return '';
+  };
+
   return (
     <Card className="border-accent/30">
       <CardHeader className="pb-2">
@@ -184,53 +203,79 @@ export function BreedingPanel({
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-2 pt-2">
-                  {breedingPairSuggestions.map((pair, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-2 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <div className="flex items-center gap-1">
-                          <CatVisual
-                            cat={pair.cat1}
-                            size="xs"
-                            equippedCostumeId={catCostumes?.[pair.cat1.id]}
-                          />
-                          <span className="text-xs truncate max-w-[60px]">{pair.cat1.name}</span>
+                  {breedingPairSuggestions.map((pair, idx) => {
+                    const canDirectBreed = cooldown === 0 && hasSpace && pair.canBreed;
+                    const disabledReason = getDisabledReason(pair.canBreed);
+
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-2 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <div className="flex items-center gap-1">
+                            <CatVisual
+                              cat={pair.cat1}
+                              size="xs"
+                              equippedCostumeId={catCostumes?.[pair.cat1.id]}
+                            />
+                            <span className="text-xs truncate max-w-[60px]">{pair.cat1.name}</span>
+                          </div>
+                          <span className="text-muted-foreground">+</span>
+                          <div className="flex items-center gap-1">
+                            <CatVisual
+                              cat={pair.cat2}
+                              size="xs"
+                              equippedCostumeId={catCostumes?.[pair.cat2.id]}
+                            />
+                            <span className="text-xs truncate max-w-[60px]">{pair.cat2.name}</span>
+                          </div>
                         </div>
-                        <span className="text-muted-foreground">+</span>
-                        <div className="flex items-center gap-1">
-                          <CatVisual
-                            cat={pair.cat2}
-                            size="xs"
-                            equippedCostumeId={catCostumes?.[pair.cat2.id]}
-                          />
-                          <span className="text-xs truncate max-w-[60px]">{pair.cat2.name}</span>
+                        <div className="flex items-center gap-1.5">
+                          <Badge
+                            variant={getRelationshipBadgeVariant(pair.relationshipLevel)}
+                            className="text-xs"
+                          >
+                            {getRelationshipEmoji(pair.relationshipLevel as any)}
+                            {pair.bonus > 0
+                              ? `+${pair.bonus}%`
+                              : pair.bonus < 0
+                                ? `${pair.bonus}%`
+                                : '0%'}
+                          </Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 text-xs px-2"
+                            onClick={() => handleSelectPair(pair.cat1.id, pair.cat2.id)}
+                          >
+                            Select
+                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span>
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    className="h-6 text-xs px-2"
+                                    disabled={!canDirectBreed}
+                                    onClick={() => handleDirectBreed(pair.cat1.id, pair.cat2.id)}
+                                  >
+                                    <Heart className="h-3 w-3 mr-1" />
+                                    Breed
+                                  </Button>
+                                </span>
+                              </TooltipTrigger>
+                              {!canDirectBreed && disabledReason && (
+                                <TooltipContent>{disabledReason}</TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant={getRelationshipBadgeVariant(pair.relationshipLevel)}
-                          className="text-xs"
-                        >
-                          {getRelationshipEmoji(pair.relationshipLevel as any)}
-                          {pair.bonus > 0
-                            ? `+${pair.bonus}%`
-                            : pair.bonus < 0
-                              ? `${pair.bonus}%`
-                              : '0%'}
-                        </Badge>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-6 text-xs px-2"
-                          onClick={() => handleSelectPair(pair.cat1.id, pair.cat2.id)}
-                        >
-                          Select
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </CollapsibleContent>
               </Collapsible>
             )}
