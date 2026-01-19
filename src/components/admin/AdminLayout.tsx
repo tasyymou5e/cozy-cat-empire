@@ -32,6 +32,7 @@ const ADMIN_NAV_ITEMS = [
   { id: 'ai-metrics', label: 'AI Metrics', icon: Sparkles, path: '/catking/ai-metrics' },
   { id: 'errors', label: 'Error Logs', icon: AlertTriangle, path: '/catking/errors' },
   { id: 'moderation', label: 'Moderation', icon: Shield, path: '/catking/moderation' },
+  { id: 'security', label: 'Security Audit', icon: Shield, path: '/catking/security' },
   { id: 'announcements', label: 'Announcements', icon: Megaphone, path: '/catking/announcements' },
   { id: 'battle-pass', label: 'Battle Pass', icon: Star, path: '/catking/battle-pass' },
   { id: 'notifications', label: 'Notifications', icon: Bell, path: '/catking/notifications' },
