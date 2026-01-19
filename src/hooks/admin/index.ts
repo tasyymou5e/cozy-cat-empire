@@ -41,3 +41,4 @@ export {
 
 // Security linter
 export { useSecurityLinter } from './useSecurityLinter';
+export { useSecurityHistory } from './useSecurityHistory';

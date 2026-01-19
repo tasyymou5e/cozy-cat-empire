@@ -1269,6 +1269,66 @@ export type Database = {
         }
         Relationships: []
       }
+      security_scan_history: {
+        Row: {
+          created_at: string | null
+          errors: number
+          id: string
+          infos: number
+          issues: Json
+          scan_duration_ms: number
+          scanned_at: string
+          scanned_by: string | null
+          security_grade: string
+          security_score: number
+          total_issues: number
+          warnings: number
+        }
+        Insert: {
+          created_at?: string | null
+          errors?: number
+          id?: string
+          infos?: number
+          issues?: Json
+          scan_duration_ms: number
+          scanned_at?: string
+          scanned_by?: string | null
+          security_grade?: string
+          security_score?: number
+          total_issues?: number
+          warnings?: number
+        }
+        Update: {
+          created_at?: string | null
+          errors?: number
+          id?: string
+          infos?: number
+          issues?: Json
+          scan_duration_ms?: number
+          scanned_at?: string
+          scanned_by?: string | null
+          security_grade?: string
+          security_score?: number
+          total_issues?: number
+          warnings?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_scan_history_scanned_by_fkey"
+            columns: ["scanned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_scan_history_scanned_by_fkey"
+            columns: ["scanned_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trade_offers: {
         Row: {
           created_at: string | null
