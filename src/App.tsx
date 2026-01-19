@@ -49,6 +49,7 @@ const AdminBattlePass = lazy(() => import('./pages/admin/AdminBattlePass'));
 const AdminNotifications = lazy(() => import('./pages/admin/AdminNotifications'));
 const AdminProfileRepair = lazy(() => import('./pages/admin/AdminProfileRepair'));
 const AdminScheduledJobs = lazy(() => import('./pages/admin/AdminScheduledJobs'));
+const AdminSecurity = lazy(() => import('./pages/admin/AdminSecurity'));
 
 const queryClient = new QueryClient();
 
@@ -178,6 +179,14 @@ const App = () => {
                             element={
                               <AdminRoute>
                                 <AdminScheduledJobs />
+                              </AdminRoute>
+                            }
+                          />
+                          <Route
+                            path="/catking/security"
+                            element={
+                              <AdminRoute>
+                                <AdminSecurity />
                               </AdminRoute>
                             }
                           />
