@@ -1425,6 +1425,7 @@ export type Database = {
     }
     Functions: {
       admin_delete_user: { Args: { _user_id: string }; Returns: boolean }
+      get_auth_config_status: { Args: never; Returns: Json }
       get_cron_job_history: {
         Args: { limit_count?: number }
         Returns: {
@@ -1457,6 +1458,34 @@ export type Database = {
           jobname: string
           nodename: string
           schedule: string
+        }[]
+      }
+      get_dangerous_public_policies: {
+        Args: never
+        Returns: {
+          cmd: string
+          policyname: string
+          tablename: string
+        }[]
+      }
+      get_permissive_policies: {
+        Args: never
+        Returns: {
+          cmd: string
+          policyname: string
+          tablename: string
+        }[]
+      }
+      get_tables_without_admin_access: {
+        Args: never
+        Returns: {
+          tablename: string
+        }[]
+      }
+      get_tables_without_rls: {
+        Args: never
+        Returns: {
+          tablename: string
         }[]
       }
       has_role: {

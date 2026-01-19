@@ -38,3 +38,6 @@ export {
   useAdminUserCredits,
   useAdminCreditSummary,
 } from './useAdminAIData';
+
+// Security linter
+export { useSecurityLinter } from './useSecurityLinter';

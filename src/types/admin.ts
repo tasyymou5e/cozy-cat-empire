@@ -44,3 +44,30 @@ export type AdminCatGift = Tables<'cat_gifts'>;
  * Friend request record from database
  */
 export type AdminFriendRequest = Tables<'player_friends'>;
+
+/**
+ * Security linter issue detected during scan
+ */
+export interface LinterIssue {
+  id: string;
+  level: 'error' | 'warn' | 'info';
+  category: 'RLS' | 'AUTH' | 'POLICY' | 'PERMISSIONS';
+  title: string;
+  description: string;
+  tables?: string[];
+  recommendation: string;
+  docLink?: string;
+}
+
+/**
+ * Results from a security linter scan
+ */
+export interface LinterResults {
+  scannedAt: string;
+  scanDurationMs: number;
+  totalIssues: number;
+  errors: number;
+  warnings: number;
+  infos: number;
+  issues: LinterIssue[];
+}
