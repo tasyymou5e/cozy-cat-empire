@@ -3,11 +3,13 @@
  *
  * Manages cloud synchronization including auto-save intervals,
  * manual save/load, and initial cloud load on login.
+ * Also handles external updates (e.g., admin modifications).
  *
  * @module hooks/handlers/useCloudHandlers
  */
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import type { CatFarmState } from '../useCatFarmState';
 
 interface CloudHandlersDeps {
@@ -32,6 +34,39 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
   } = farmState;
 
   const { playSound } = sound;
+  const { toast } = useToast();
+  const isReloadingRef = useRef(false);
+
+  // Auto-reload when external update is detected (e.g., admin modified the save)
+  useEffect(() => {
+    if (cloudSave.hasExternalUpdate && ui.hasLoadedCloud && !isReloadingRef.current) {
+      isReloadingRef.current = true;
+      console.log('[CloudSync] External update detected - reloading game state');
+      
+      cloudSave.cloudLoad().then(({ data, error }) => {
+        if (error) {
+          console.error('[CloudSync] Failed to reload after external update:', error);
+          toast({
+            title: 'Sync Error',
+            description: 'Failed to sync updated data. Please refresh the page.',
+            variant: 'destructive',
+          });
+        } else if (data) {
+          console.log('[CloudSync] Reloaded after external update');
+          actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
+          ui.setLastCloudSave(data.last_played_at);
+          playSound?.('success');
+          toast({
+            title: 'Game Updated',
+            description: 'Your game data has been updated.',
+          });
+        }
+        isReloadingRef.current = false;
+      }).catch(() => {
+        isReloadingRef.current = false;
+      });
+    }
+  }, [cloudSave.hasExternalUpdate, ui.hasLoadedCloud, cloudSave, actions, ui, playSound, toast]);
 
   // Load cloud save on login
   useEffect(() => {
