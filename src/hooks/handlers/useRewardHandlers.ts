@@ -180,10 +180,20 @@ export function useRewardHandlers({ farmState }: RewardHandlersDeps) {
         actions.addReward?.(totalReward, {});
         fireConfetti();
       }
-      return result;
+    return result;
     },
     [coopChallenges, actions, fireConfetti]
   );
+
+  // Handle tutorial completion reward
+  const handleTutorialComplete = useCallback(() => {
+    // Award 100 bonus coins for completing the tutorial
+    actions.addReward?.(100, {});
+    playSound?.('achievement');
+    vibrateAchievement?.();
+    fireConfetti();
+    fireCelebration();
+  }, [actions, playSound, vibrateAchievement, fireConfetti, fireCelebration]);
 
   return {
     handleClaimDailyReward,
@@ -194,5 +204,6 @@ export function useRewardHandlers({ farmState }: RewardHandlersDeps) {
     handleClaimBPReward,
     handleUpgradePremium,
     handleClaimCoopReward,
+    handleTutorialComplete,
   };
 }

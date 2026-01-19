@@ -193,6 +193,14 @@ export function useGameState(
           case 'perfect_match':
             achieved = stats.bestFriendBreed;
             break;
+          case 'tutorial_graduate': {
+            // Check localStorage for tutorial completion
+            const tutorialRewardClaimed = typeof window !== 'undefined' 
+              ? localStorage.getItem('cat-farm-tutorial-reward-claimed') === 'true'
+              : false;
+            achieved = tutorialRewardClaimed;
+            break;
+          }
         }
 
         if (achieved) {
