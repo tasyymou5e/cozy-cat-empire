@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Cat } from '@/types/game';
+import { Cat, BREEDS } from '@/types/game';
 import { CatRelationship, getRelationshipLevel, getRelationshipEmoji } from '@/types/relationships';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,18 +18,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { ChevronDown, Heart, Target } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { ChevronDown, Heart, Sparkles, Target, TrendingUp } from 'lucide-react';
 import { CatVisual } from './CatVisual';
 import { GradeBadge } from './GradeBadge';
-
-interface BreedingSuggestion {
-  cat1: Cat;
-  cat2: Cat;
-  canBreed: boolean;
-  bonus: number;
-  message: string;
-  relationshipLevel: string;
-}
+import {
+  findOptimalBreedingMatches,
+  getTierEmoji,
+  BreedingMatch,
+} from '@/lib/breedingMatchmaking';
 
 /**
  * Props for the BreedingPanel component
@@ -100,27 +97,26 @@ export function BreedingPanel({
     );
   };
 
-  const breedingPairSuggestions = useMemo(() => {
-    if (!getBreedingCompatibility || eligibleCats.length < 2) return [];
+  // Use the advanced matchmaking algorithm
+  const optimalMatches = useMemo(() => {
+    if (eligibleCats.length < 2 || !relationships) return [];
+    return findOptimalBreedingMatches(cats, relationships, 8);
+  }, [cats, eligibleCats.length, relationships]);
 
-    const pairs: BreedingSuggestion[] = [];
-    for (let i = 0; i < eligibleCats.length; i++) {
-      for (let j = i + 1; j < eligibleCats.length; j++) {
-        const compat = getBreedingCompatibility(eligibleCats[i].id, eligibleCats[j].id);
-        if (compat.canBreed) {
-          const rel = getRelationshipBetween(eligibleCats[i].id, eligibleCats[j].id);
-          const level = rel ? getRelationshipLevel(rel.score) : 'neutral';
-          pairs.push({
-            cat1: eligibleCats[i],
-            cat2: eligibleCats[j],
-            ...compat,
-            relationshipLevel: level,
-          });
-        }
-      }
+  const getTierBadgeClass = (tier: BreedingMatch['tier']) => {
+    switch (tier) {
+      case 'legendary':
+        return 'bg-amber-500/20 text-amber-600 border-amber-500/30';
+      case 'excellent':
+        return 'bg-purple-500/20 text-purple-600 border-purple-500/30';
+      case 'good':
+        return 'bg-blue-500/20 text-blue-600 border-blue-500/30';
+      case 'average':
+        return 'bg-emerald-500/20 text-emerald-600 border-emerald-500/30';
+      case 'poor':
+        return 'bg-muted text-muted-foreground border-border';
     }
-    return pairs.sort((a, b) => b.bonus - a.bonus).slice(0, 5);
-  }, [eligibleCats, getBreedingCompatibility, relationships]);
+  };
 
   const getRelationshipBadgeVariant = (level: string) => {
     switch (level) {
@@ -184,8 +180,8 @@ export function BreedingPanel({
           </p>
         ) : (
           <>
-            {/* Best Breeding Pairs Section */}
-            {breedingPairSuggestions.length > 0 && (
+            {/* Smart Matchmaking Section */}
+            {optimalMatches.length > 0 && (
               <Collapsible open={showSuggestions} onOpenChange={setShowSuggestions}>
                 <CollapsibleTrigger asChild>
                   <Button
@@ -194,8 +190,11 @@ export function BreedingPanel({
                     className="w-full justify-between text-sm font-medium hover:bg-secondary/50"
                   >
                     <span className="flex items-center gap-2">
-                      <Target className="h-4 w-4" />
-                      Best Breeding Pairs
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      Smart Matchmaking
+                      <Badge variant="secondary" className="text-xs">
+                        {optimalMatches.length} matches
+                      </Badge>
                     </span>
                     <ChevronDown
                       className={`h-4 w-4 transition-transform ${showSuggestions ? 'rotate-180' : ''}`}
@@ -203,67 +202,171 @@ export function BreedingPanel({
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-2 pt-2">
-                  {breedingPairSuggestions.map((pair, idx) => {
-                    const canDirectBreed = cooldown === 0 && hasSpace && pair.canBreed;
-                    const disabledReason = getDisabledReason(pair.canBreed);
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Ranked by genetics, grades, relationship, and personality compatibility
+                  </p>
+                  {optimalMatches.map((match, idx) => {
+                    const canDirectBreed = cooldown === 0 && hasSpace && match.canBreed;
+                    const disabledReason = getDisabledReason(match.canBreed);
 
                     return (
                       <div
-                        key={idx}
-                        className="flex items-center justify-between p-2 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                        key={`${match.cat1.id}-${match.cat2.id}`}
+                        className="p-3 rounded-lg border border-border bg-secondary/20 hover:bg-secondary/40 transition-colors space-y-2"
                       >
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <div className="flex items-center gap-1">
-                            <CatVisual
-                              cat={pair.cat1}
-                              size="xs"
-                              equippedCostumeId={catCostumes?.[pair.cat1.id]}
-                            />
-                            <span className="text-xs truncate max-w-[60px]">{pair.cat1.name}</span>
+                        {/* Header row with cats and tier */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <CatVisual
+                                cat={match.cat1}
+                                size="xs"
+                                equippedCostumeId={catCostumes?.[match.cat1.id]}
+                              />
+                              <div className="flex flex-col">
+                                <span className="text-xs font-medium truncate max-w-[70px]">
+                                  {match.cat1.name}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {BREEDS[match.cat1.breed].name} G{match.cat1.grade}
+                                </span>
+                              </div>
+                            </div>
+                            <Heart className="h-3 w-3 text-pink-400" />
+                            <div className="flex items-center gap-1">
+                              <CatVisual
+                                cat={match.cat2}
+                                size="xs"
+                                equippedCostumeId={catCostumes?.[match.cat2.id]}
+                              />
+                              <div className="flex flex-col">
+                                <span className="text-xs font-medium truncate max-w-[70px]">
+                                  {match.cat2.name}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {BREEDS[match.cat2.breed].name} G{match.cat2.grade}
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                          <span className="text-muted-foreground">+</span>
-                          <div className="flex items-center gap-1">
-                            <CatVisual
-                              cat={pair.cat2}
-                              size="xs"
-                              equippedCostumeId={catCostumes?.[pair.cat2.id]}
-                            />
-                            <span className="text-xs truncate max-w-[60px]">{pair.cat2.name}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Badge
-                            variant={getRelationshipBadgeVariant(pair.relationshipLevel)}
-                            className="text-xs"
-                          >
-                            {getRelationshipEmoji(pair.relationshipLevel as any)}
-                            {pair.bonus > 0
-                              ? `+${pair.bonus}%`
-                              : pair.bonus < 0
-                                ? `${pair.bonus}%`
-                                : '0%'}
+                          <Badge variant="outline" className={`text-xs ${getTierBadgeClass(match.tier)}`}>
+                            {getTierEmoji(match.tier)} {match.tier}
                           </Badge>
+                        </div>
+
+                        {/* Match score bar */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Match Score</span>
+                            <span className="font-medium">{match.overallScore}%</span>
+                          </div>
+                          <Progress value={match.overallScore} className="h-1.5" />
+                        </div>
+
+                        {/* Score breakdown */}
+                        <div className="grid grid-cols-5 gap-1 text-[10px]">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="text-center p-1 rounded bg-background/50">
+                                  <div className="font-medium">{match.scores.genetics}%</div>
+                                  <div className="text-muted-foreground">Genes</div>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>Breed rarity & synergy</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="text-center p-1 rounded bg-background/50">
+                                  <div className="font-medium">{match.scores.grades}%</div>
+                                  <div className="text-muted-foreground">Grade</div>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>Parent grade quality</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="text-center p-1 rounded bg-background/50">
+                                  <div className="font-medium">{match.scores.relationship}%</div>
+                                  <div className="text-muted-foreground">Bond</div>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>Relationship level bonus</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="text-center p-1 rounded bg-background/50">
+                                  <div className="font-medium">{match.scores.personality}%</div>
+                                  <div className="text-muted-foreground">Pers.</div>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>Personality compatibility</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="text-center p-1 rounded bg-background/50">
+                                  <div className="font-medium">{match.scores.health}%</div>
+                                  <div className="text-muted-foreground">Health</div>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>Current health & condition</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+
+                        {/* Kitten estimate */}
+                        <div className="flex items-center gap-2 text-xs bg-background/50 p-2 rounded">
+                          <TrendingUp className="h-3 w-3 text-primary" />
+                          <span className="text-muted-foreground">Kitten:</span>
+                          <span className="font-medium">
+                            Grade {match.estimatedKittenGrade.min}-{match.estimatedKittenGrade.max}
+                          </span>
+                          <span className="text-muted-foreground">•</span>
+                          <span className="font-medium">
+                            ${match.estimatedKittenValue.min}-${match.estimatedKittenValue.max}
+                          </span>
+                          {match.relationshipBonus > 0 && (
+                            <Badge variant="secondary" className="text-[10px] h-4">
+                              +{match.relationshipBonus}% bonus
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Match reason */}
+                        <p className="text-xs text-muted-foreground italic">{match.matchReason}</p>
+
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-2 pt-1">
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-6 text-xs px-2"
-                            onClick={() => handleSelectPair(pair.cat1.id, pair.cat2.id)}
+                            className="flex-1 h-7 text-xs"
+                            onClick={() => handleSelectPair(match.cat1.id, match.cat2.id)}
                           >
+                            <Target className="h-3 w-3 mr-1" />
                             Select
                           </Button>
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span>
+                                <span className="flex-1">
                                   <Button
                                     variant="default"
                                     size="sm"
-                                    className="h-6 text-xs px-2"
+                                    className="w-full h-7 text-xs"
                                     disabled={!canDirectBreed}
-                                    onClick={() => handleDirectBreed(pair.cat1.id, pair.cat2.id)}
+                                    onClick={() => handleDirectBreed(match.cat1.id, match.cat2.id)}
                                   >
                                     <Heart className="h-3 w-3 mr-1" />
-                                    Breed
+                                    Breed Now
                                   </Button>
                                 </span>
                               </TooltipTrigger>
