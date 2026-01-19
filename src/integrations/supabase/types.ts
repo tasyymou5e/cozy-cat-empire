@@ -1377,6 +1377,69 @@ export type Database = {
         }
         Relationships: []
       }
+      tutorial_analytics: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          from_step: number | null
+          id: string
+          metadata: Json | null
+          section: string | null
+          session_id: string
+          step_id: string | null
+          step_index: number | null
+          time_on_step_ms: number | null
+          to_step: number | null
+          total_time_ms: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          from_step?: number | null
+          id?: string
+          metadata?: Json | null
+          section?: string | null
+          session_id: string
+          step_id?: string | null
+          step_index?: number | null
+          time_on_step_ms?: number | null
+          to_step?: number | null
+          total_time_ms?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          from_step?: number | null
+          id?: string
+          metadata?: Json | null
+          section?: string | null
+          session_id?: string
+          step_id?: string | null
+          step_index?: number | null
+          time_on_step_ms?: number | null
+          to_step?: number | null
+          total_time_ms?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutorial_analytics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tutorial_analytics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
