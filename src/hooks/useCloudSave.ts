@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { GameState } from '@/types/game';
 import { CatRelationship, RelationshipEvent } from '@/types/relationships';
@@ -44,22 +44,69 @@ function isValidRelationshipData(value: unknown): value is RelationshipSaveData 
  * Requires user authentication to function.
  *
  * @param userId - The authenticated user's ID
+ * @param onExternalUpdate - Optional callback when save is updated externally (e.g., by admin)
  *
  * @returns Object containing:
  * - `cloudSave` - Save game state to cloud
  * - `cloudLoad` - Load game state from cloud
  * - `hasCloudSave` - Check if cloud save exists
  * - `getLastSaveTime` - Get timestamp of last save
+ * - `hasExternalUpdate` - Whether there's a pending external update
+ * - `clearExternalUpdate` - Clear the external update flag
  *
  * @example
  * ```tsx
- * const { cloudSave, cloudLoad, hasCloudSave } = useCloudSave(user?.id);
+ * const { cloudSave, cloudLoad, hasCloudSave, hasExternalUpdate } = useCloudSave(user?.id);
  * await cloudSave(gameState, kittensBreed, relationshipData);
  * const { data } = await cloudLoad();
  * ```
  */
-export function useCloudSave(userId: string | undefined) {
+export function useCloudSave(userId: string | undefined, onExternalUpdate?: () => void) {
   const lastSaveRef = useRef<string | null>(null);
+  const lastSaveTimestampRef = useRef<string | null>(null);
+  const [hasExternalUpdate, setHasExternalUpdate] = useState(false);
+
+  // Subscribe to real-time updates on the user's game_saves row
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`game_saves:${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'game_saves',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const newRecord = payload.new as { last_played_at?: string };
+          const newTimestamp = newRecord.last_played_at;
+          
+          // Ignore if this update was from our own save (within 5 seconds)
+          if (lastSaveTimestampRef.current && newTimestamp) {
+            const ourSaveTime = new Date(lastSaveTimestampRef.current).getTime();
+            const updateTime = new Date(newTimestamp).getTime();
+            const timeDiff = Math.abs(updateTime - ourSaveTime);
+            
+            if (timeDiff < 5000) {
+              console.log('[CloudSync] Ignoring own save update');
+              return;
+            }
+          }
+          
+          console.log('[CloudSync] External update detected on game_saves');
+          setHasExternalUpdate(true);
+          onExternalUpdate?.();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, onExternalUpdate]);
 
   const cloudSave = useCallback(
     async (
@@ -79,12 +126,13 @@ export function useCloudSave(userId: string | undefined) {
       }
 
       try {
+        const now = new Date().toISOString();
         const saveData = {
           user_id: userId,
           game_state: gameState as unknown as Json,
           kittens_bred: kittensBreed,
           relationships: relationshipData as unknown as Json,
-          last_played_at: new Date().toISOString(),
+          last_played_at: now,
         };
 
         const { error } = await supabase
@@ -93,7 +141,10 @@ export function useCloudSave(userId: string | undefined) {
 
         if (error) throw error;
 
-        lastSaveRef.current = new Date().toISOString();
+        lastSaveRef.current = now;
+        lastSaveTimestampRef.current = now;
+        // Clear external update flag after we save (our state is now authoritative)
+        setHasExternalUpdate(false);
         return { success: true };
       } catch (err) {
         console.error('[CloudSync] Save error:', err);
@@ -122,6 +173,11 @@ export function useCloudSave(userId: string | undefined) {
 
       if (!data) {
         return { data: null };
+      }
+
+      // Update our timestamp reference to prevent false external update detection
+      if (data.last_played_at) {
+        lastSaveTimestampRef.current = data.last_played_at;
       }
 
       // Build raw save data for migration check
@@ -166,6 +222,9 @@ export function useCloudSave(userId: string | undefined) {
           console.log('Cloud save migrated and updated');
         }
 
+        // Clear external update flag after loading
+        setHasExternalUpdate(false);
+
         return {
           data: {
             game_state: migrationResult.data.state,
@@ -188,6 +247,9 @@ export function useCloudSave(userId: string | undefined) {
       const relationships: RelationshipSaveData = isValidRelationshipData(rawRelationships)
         ? rawRelationships
         : { relationships: [], events: [] };
+
+      // Clear external update flag after loading
+      setHasExternalUpdate(false);
 
       return {
         data: {
@@ -221,10 +283,16 @@ export function useCloudSave(userId: string | undefined) {
 
   const getLastSaveTime = useCallback(() => lastSaveRef.current, []);
 
+  const clearExternalUpdate = useCallback(() => {
+    setHasExternalUpdate(false);
+  }, []);
+
   return {
     cloudSave,
     cloudLoad,
     hasCloudSave,
     getLastSaveTime,
+    hasExternalUpdate,
+    clearExternalUpdate,
   };
 }
