@@ -35,9 +35,15 @@ import {
   Bell,
   Gamepad2,
   UserCog,
+  Play,
+  Loader2,
+  Clock,
+  AlertCircle,
+  ExternalLink,
+  Trash2,
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useSecurityLinter } from '@/hooks/admin/useSecurityLinter';
+import { formatDistanceToNow } from 'date-fns';
 
 // Define RLS policy audit data
 interface PolicyInfo {
@@ -470,15 +476,15 @@ const SECURITY_WARNINGS = [
 export default function AdminSecurity() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set());
-
-  // Fetch actual table count from database
-  const { data: tableCount } = useQuery({
-    queryKey: ['admin-table-count'],
-    queryFn: async () => {
-      // We'll count unique tables from our audit data
-      return RLS_AUDIT_DATA.length;
-    },
-  });
+  
+  // Live security linter
+  const { 
+    results: linterResults, 
+    lastScanTime, 
+    runLinter, 
+    clearCache,
+    isScanning 
+  } = useSecurityLinter();
 
   const filteredData =
     selectedCategory === 'all'
@@ -544,11 +550,168 @@ export default function AdminSecurity() {
               Comprehensive RLS policy audit for admin moderation access
             </p>
           </div>
-          <Button variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh Audit
-          </Button>
+          <div className="flex gap-2">
+            {lastScanTime && (
+              <Button variant="ghost" size="sm" onClick={clearCache} title="Clear cached results">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={runLinter}
+              disabled={isScanning}
+            >
+              {isScanning ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Scanning...
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4 mr-2" />
+                  Run Security Scan
+                </>
+              )}
+            </Button>
+          </div>
         </div>
+
+        {/* Live Linter Results */}
+        <Card className="border-primary/50">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="h-5 w-5 text-primary" />
+                Live Security Scan
+              </div>
+              {lastScanTime && (
+                <div className="flex items-center gap-1 text-sm font-normal text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  {formatDistanceToNow(new Date(lastScanTime), { addSuffix: true })}
+                </div>
+              )}
+            </CardTitle>
+            <CardDescription>
+              {linterResults 
+                ? `Scanned in ${linterResults.scanDurationMs}ms` 
+                : 'Click "Run Security Scan" to check your database security'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!linterResults && !isScanning && (
+              <div className="text-center py-8 text-muted-foreground">
+                <ShieldCheck className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p>No scan results yet</p>
+                <Button variant="outline" size="sm" className="mt-3" onClick={runLinter}>
+                  Run First Scan
+                </Button>
+              </div>
+            )}
+
+            {isScanning && (
+              <div className="text-center py-8">
+                <Loader2 className="h-12 w-12 mx-auto mb-3 animate-spin text-primary" />
+                <p className="text-muted-foreground">Scanning database security...</p>
+              </div>
+            )}
+
+            {linterResults && !isScanning && (
+              <div className="space-y-4">
+                {/* Scan Stats */}
+                <div className="grid grid-cols-4 gap-3">
+                  <div className="p-3 rounded-lg bg-muted text-center">
+                    <p className="text-2xl font-bold">{linterResults.totalIssues}</p>
+                    <p className="text-xs text-muted-foreground">Total Issues</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-destructive/10 text-center">
+                    <p className="text-2xl font-bold text-destructive">{linterResults.errors}</p>
+                    <p className="text-xs text-muted-foreground">Errors</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-yellow-500/10 text-center">
+                    <p className="text-2xl font-bold text-yellow-600">{linterResults.warnings}</p>
+                    <p className="text-xs text-muted-foreground">Warnings</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-blue-500/10 text-center">
+                    <p className="text-2xl font-bold text-blue-600">{linterResults.infos}</p>
+                    <p className="text-xs text-muted-foreground">Info</p>
+                  </div>
+                </div>
+
+                {/* Issue Cards */}
+                {linterResults.issues.length === 0 ? (
+                  <div className="text-center py-6 text-green-600">
+                    <CheckCircle2 className="h-10 w-10 mx-auto mb-2" />
+                    <p className="font-medium">No security issues detected!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {linterResults.issues.map((issue) => (
+                      <div
+                        key={issue.id}
+                        className={`p-4 rounded-lg border ${
+                          issue.level === 'error' 
+                            ? 'border-destructive/50 bg-destructive/5' 
+                            : issue.level === 'warn'
+                            ? 'border-yellow-500/50 bg-yellow-500/5'
+                            : 'border-blue-500/50 bg-blue-500/5'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          {issue.level === 'error' ? (
+                            <XCircle className="h-5 w-5 mt-0.5 text-destructive" />
+                          ) : issue.level === 'warn' ? (
+                            <AlertTriangle className="h-5 w-5 mt-0.5 text-yellow-500" />
+                          ) : (
+                            <AlertCircle className="h-5 w-5 mt-0.5 text-blue-500" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="font-medium">{issue.title}</h4>
+                              <Badge 
+                                variant="outline" 
+                                className={`text-xs ${
+                                  issue.level === 'error' ? 'border-destructive text-destructive' :
+                                  issue.level === 'warn' ? 'border-yellow-500 text-yellow-600' :
+                                  'border-blue-500 text-blue-600'
+                                }`}
+                              >
+                                {issue.category}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">{issue.description}</p>
+                            {issue.tables && issue.tables.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {issue.tables.map((table) => (
+                                  <Badge key={table} variant="secondary" className="text-xs">
+                                    {table}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                            <p className="text-sm text-muted-foreground mt-2 italic">
+                              💡 {issue.recommendation}
+                            </p>
+                            {issue.docLink && (
+                              <a 
+                                href={issue.docLink} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"
+                              >
+                                View Documentation <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -606,14 +769,14 @@ export default function AdminSecurity() {
           </Card>
         </div>
 
-        {/* Security Warnings */}
+        {/* Static Security Warnings (kept for reference) */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-yellow-500" />
-              Security Warnings
+              Known Security Considerations
             </CardTitle>
-            <CardDescription>Issues detected by the security linter</CardDescription>
+            <CardDescription>Pre-documented policy patterns to review</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
