@@ -10,137 +10,172 @@ interface TutorialStep {
   content: string;
   emoji: string;
   highlight?: string;
-  category?: 'basics' | 'economy' | 'cats' | 'social' | 'features';
+  category?: 'basics' | 'economy' | 'cats' | 'social' | 'features' | 'progress';
 }
 
 const TUTORIAL_STEPS: TutorialStep[] = [
+  // Basics Category (Steps 1-5)
   {
     title: 'Welcome to Cat Farm!',
     content:
-      "Build your cat empire from a small apartment to a 100-acre farm! Let's learn the basics.",
-    emoji: '👋',
+      "Build your cat empire from a small apartment to a sprawling 100-acre farm! Let's learn the basics.",
+    emoji: '🐱',
     category: 'basics',
   },
   {
     title: 'Getting Your First Cat',
-    content: 'Click "Add Stray" in the Actions tab to get a free cat, or buy one from the Market.',
-    emoji: '🐾',
+    content:
+      'Start by adding a stray cat for free, or adopt one for $50. Pure breeds cost more but earn higher value!',
+    emoji: '🏠',
     highlight: 'actions',
     category: 'basics',
   },
   {
     title: 'Caring for Your Cats',
     content:
-      'Keep cats happy and healthy by buying food, toys, and medicine from the Supplies tab.',
-    emoji: '❤️',
+      'Keep your cats happy and healthy! Buy food, medicine, toys, and treats from the Supplies tab.',
+    emoji: '🍲',
     highlight: 'supplies',
     category: 'basics',
   },
   {
     title: 'Earning Money',
-    content: 'Do chores to earn coins. You can also enter cat shows or sell cats at the market.',
+    content:
+      'Complete chores like cleaning litter, grooming cats, and play sessions to earn coins for upgrades.',
     emoji: '💰',
     highlight: 'chores',
     category: 'economy',
   },
   {
-    title: 'Cat Grades & Training',
-    content: 'Each cat has a grade (1-20). Train tricks to boost grades and win more shows!',
-    emoji: '⭐',
+    title: 'Bulk Actions',
+    content:
+      'Manage all your cats at once! Heal sick cats, rest tired ones, or train everyone with a single click.',
+    emoji: '⚡',
+    highlight: 'bulk',
+    category: 'basics',
+  },
+
+  // Cats Category (Steps 6-9)
+  {
+    title: 'Training & Grades',
+    content:
+      'Train cats to learn tricks like Sit, Paw, and Roll Over. Higher grades mean better show performance and value!',
+    emoji: '🎓',
     highlight: 'training',
     category: 'cats',
   },
   {
     title: 'Dress Up Your Cats',
     content:
-      'Buy costumes to make your cats look amazing! Costumes also give bonuses in cat shows.',
-    emoji: '👗',
+      'Buy costumes from hats to superhero capes! Dressed-up cats look amazing in shows and photos.',
+    emoji: '👑',
     highlight: 'costumes',
     category: 'cats',
   },
   {
     title: 'Breeding Kittens',
     content:
-      'Breed two cats to get kittens! Best friends have higher success rates and better offspring.',
+      'Pair compatible cats to breed adorable kittens! Kittens inherit traits and grades from their parents.',
     emoji: '💕',
     highlight: 'breeding',
     category: 'cats',
   },
   {
-    title: 'Cat Relationships',
-    content: 'Cats form friendships and rivalries. Use treats and the Social tab to improve bonds.',
-    emoji: '🤝',
-    highlight: 'social',
+    title: 'Cat Specializations',
+    content:
+      'High-grade cats can specialize! Choose Performer, Socialite, Breeder, or Mentor paths for unique bonuses.',
+    emoji: '✨',
+    highlight: 'specializations',
     category: 'cats',
   },
+
+  // Social Category (Steps 10-12)
   {
-    title: 'Bulk Actions',
+    title: 'Cat Relationships',
     content:
-      'Save time with bulk actions! Heal all sick cats, rest tired ones, or train everyone at once.',
-    emoji: '⚡',
-    highlight: 'bulk',
-    category: 'features',
+      'Cats form friendships and rivalries! Best friends breed better, while enemies may refuse to cooperate.',
+    emoji: '💞',
+    highlight: 'social',
+    category: 'social',
   },
   {
-    title: 'Make Friends & Trade',
+    title: 'Friends, Gifts & Trading',
     content:
-      'Add friends to gift cats or trade with other players. Check the Friends and Trading tabs!',
+      'Add friends to gift cats, trade resources, and compete together. Check the Friends tab to get started!',
     emoji: '🎁',
     highlight: 'friends',
     category: 'social',
   },
   {
-    title: 'Weekly Challenges',
+    title: 'Co-op Challenges',
     content:
-      'Complete weekly challenges for bonus rewards. Keep your streak going for extra perks!',
-    emoji: '🎯',
-    highlight: 'challenges',
+      'Team up with friends on cooperative challenges! Both players contribute progress and share the rewards.',
+    emoji: '🤝',
+    highlight: 'coop',
     category: 'social',
   },
+
+  // Progress Category (Steps 13-17)
   {
-    title: 'Photo Booth & Portraits',
+    title: 'Daily Objectives',
     content:
-      'Take custom photos of your cats! You can even generate AI portraits that show their look.',
-    emoji: '📸',
+      'Complete 3 daily tasks to earn bonus coins. Finish all objectives for an extra completion reward!',
+    emoji: '📋',
+    highlight: 'objectives',
+    category: 'progress',
+  },
+  {
+    title: 'Weekly Challenges',
+    content:
+      'Take on weekly challenges for big rewards! Win shows, breed kittens, or earn money to complete them.',
+    emoji: '🏆',
+    highlight: 'challenges',
+    category: 'progress',
+  },
+  {
+    title: 'Season Pass',
+    content:
+      'Earn XP from activities to unlock tiered rewards! Premium pass holders get exclusive costumes and bonuses.',
+    emoji: '📜',
+    highlight: 'battlepass',
     category: 'features',
   },
   {
-    title: 'Cat Collection',
+    title: 'Lucky Wheel',
     content:
-      'View your cats as beautiful trading cards! Click the grid icon in the header to explore.',
-    emoji: '🃏',
+      'Spin the wheel daily for free prizes including coins, resources, and rare items! VIP players get extra spins.',
+    emoji: '🎰',
+    highlight: 'wheel',
     category: 'features',
   },
   {
-    title: 'Save Your Progress',
+    title: 'Hall of Fame & Collection',
     content:
-      'Sign in to save your game to the cloud! Your cats will be safe across all your devices.',
-    emoji: '☁️',
+      'Retire legendary cats to the Hall of Fame for permanent bonuses. Track your breed and costume collection progress!',
+    emoji: '👑',
+    highlight: 'legacy',
     category: 'features',
   },
-  {
-    title: 'Expanding Your Empire',
-    content: 'Upgrade from an apartment to a house, mansion, and eventually a 100-acre farm!',
-    emoji: '🏠',
-    highlight: 'actions',
-    category: 'basics',
-  },
+
+  // Finale (Step 18)
   {
     title: "You're Ready!",
     content:
-      'Explore all the tabs, care for your cats, and build your empire. Good luck, cat farmer!',
+      'Visit the Photo Booth for custom portraits, check the Gallery, and sign in to save progress and unlock VIP login rewards!',
     emoji: '🎉',
+    category: 'features',
   },
 ];
 
 const STORAGE_KEY = 'cat-farm-tutorial-complete';
 
-const categoryStyles = {
+const categoryStyles: Record<string, string> = {
   basics: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
   economy: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
   cats: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
   social: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
   features: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
+  progress: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
 };
 
 interface TutorialSystemProps {
@@ -220,7 +255,7 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
               {step.category && (
                 <span
                   className={cn(
-                    'text-xs px-2 py-0.5 rounded-full font-medium w-fit',
+                    'text-xs px-2 py-0.5 rounded-full font-medium w-fit capitalize',
                     categoryStyles[step.category]
                   )}
                 >
@@ -261,7 +296,7 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
             <ChevronLeft className="h-4 w-4 mr-1" /> Back
           </Button>
 
-          <div className="flex gap-1 flex-wrap justify-center max-w-[120px]">
+          <div className="flex gap-1 flex-wrap justify-center max-w-[140px]">
             {TUTORIAL_STEPS.map((_, i) => (
               <button
                 key={i}
