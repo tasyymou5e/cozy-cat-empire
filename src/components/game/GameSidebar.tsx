@@ -30,6 +30,7 @@ interface GameSidebarProps {
   badges: Record<string, number>;
   day: number;
   money: number;
+  highlightedTab?: string | null;
 }
 
 const EXTERNAL_LINKS = [
@@ -47,6 +48,7 @@ export function GameSidebar({
   badges,
   day,
   money,
+  highlightedTab,
 }: GameSidebarProps) {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
@@ -137,6 +139,7 @@ export function GameSidebar({
                       {category.tabs.map((tab) => {
                         const isActive = tab.id === activeTab;
                         const tabBadge = badges[tab.id] || 0;
+                        const isHighlighted = tab.id === highlightedTab;
 
                         return (
                           <SidebarMenuItem key={tab.id}>
@@ -146,7 +149,8 @@ export function GameSidebar({
                               tooltip={isCollapsed ? tab.label : undefined}
                               className={cn(
                                 'w-full justify-start gap-2 transition-colors',
-                                isActive && 'bg-primary text-primary-foreground hover:bg-primary/90'
+                                isActive && 'bg-primary text-primary-foreground hover:bg-primary/90',
+                                isHighlighted && !isActive && 'tutorial-hotspot-active ring-2 ring-primary ring-offset-2 ring-offset-background'
                               )}
                             >
                               <span className="text-sm shrink-0">

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ChevronRight, ChevronLeft, X, Sparkles } from 'lucide-react';
+import { ChevronRight, ChevronLeft, X, Sparkles, Gift } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TutorialStep {
@@ -167,7 +167,17 @@ const TUTORIAL_STEPS: TutorialStep[] = [
   },
 ];
 
+// Section definitions for skip-to-section feature
+const CATEGORY_SECTIONS = {
+  basics: { start: 0, end: 4, label: 'Basics', icon: '🏠' },
+  cats: { start: 5, end: 8, label: 'Cats', icon: '🐱' },
+  social: { start: 9, end: 11, label: 'Social', icon: '👥' },
+  progress: { start: 12, end: 14, label: 'Progress', icon: '📈' },
+  features: { start: 15, end: 17, label: 'Features', icon: '✨' },
+} as const;
+
 const STORAGE_KEY = 'cat-farm-tutorial-complete';
+const REWARD_KEY = 'cat-farm-tutorial-reward-claimed';
 
 const categoryStyles: Record<string, string> = {
   basics: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
@@ -180,9 +190,10 @@ const categoryStyles: Record<string, string> = {
 
 interface TutorialSystemProps {
   onHighlightTab?: (tab: string | null) => void;
+  onTutorialComplete?: () => void;
 }
 
-export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
+export function TutorialSystem({ onHighlightTab, onTutorialComplete }: TutorialSystemProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [hasSeenTutorial, setHasSeenTutorial] = useState(true);
@@ -199,6 +210,16 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
     const step = TUTORIAL_STEPS[currentStep];
     onHighlightTab?.(step.highlight || null);
   }, [currentStep, onHighlightTab]);
+
+  // Get current section based on step
+  const currentSection = useMemo(() => {
+    for (const [key, section] of Object.entries(CATEGORY_SECTIONS)) {
+      if (currentStep >= section.start && currentStep <= section.end) {
+        return { key, ...section };
+      }
+    }
+    return { key: 'basics', ...CATEGORY_SECTIONS.basics };
+  }, [currentStep]);
 
   const handleNext = () => {
     if (currentStep < TUTORIAL_STEPS.length - 1) {
@@ -219,6 +240,13 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
     setHasSeenTutorial(true);
     setIsOpen(false);
     onHighlightTab?.(null);
+
+    // Award completion rewards if this is the first time completing all steps
+    const hasClaimedReward = localStorage.getItem(REWARD_KEY);
+    if (!hasClaimedReward && currentStep === TUTORIAL_STEPS.length - 1) {
+      localStorage.setItem(REWARD_KEY, 'true');
+      onTutorialComplete?.();
+    }
   };
 
   const handleRestart = () => {
@@ -226,8 +254,17 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
     setIsOpen(true);
   };
 
+  const handleJumpToSection = (sectionKey: string) => {
+    const section = CATEGORY_SECTIONS[sectionKey as keyof typeof CATEGORY_SECTIONS];
+    if (section) {
+      setCurrentStep(section.start);
+    }
+  };
+
   const step = TUTORIAL_STEPS[currentStep];
   const progress = ((currentStep + 1) / TUTORIAL_STEPS.length) * 100;
+  const isLastStep = currentStep === TUTORIAL_STEPS.length - 1;
+  const hasClaimedReward = typeof window !== 'undefined' && localStorage.getItem(REWARD_KEY);
 
   if (!isOpen) {
     return (
@@ -269,16 +306,49 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
           </Button>
         </div>
 
+        {/* Section Jump Buttons */}
+        <div className="flex gap-1 mb-3 justify-center flex-wrap">
+          {Object.entries(CATEGORY_SECTIONS).map(([key, section]) => {
+            const isCurrentSection = currentStep >= section.start && currentStep <= section.end;
+            return (
+              <Button
+                key={key}
+                variant={isCurrentSection ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleJumpToSection(key)}
+                className={cn(
+                  'text-xs px-2 py-1 h-7',
+                  isCurrentSection && 'shadow-sm'
+                )}
+              >
+                <span className="mr-1">{section.icon}</span>
+                <span className="hidden sm:inline">{section.label}</span>
+              </Button>
+            );
+          })}
+        </div>
+
         {/* Progress */}
         <div className="mb-4">
           <div className="flex justify-between text-xs text-muted-foreground mb-1">
             <span>
-              Step {currentStep + 1} of {TUTORIAL_STEPS.length}
+              {currentSection.label} - Step {currentStep - currentSection.start + 1} of{' '}
+              {currentSection.end - currentSection.start + 1}
             </span>
             <span>{Math.round(progress)}%</span>
           </div>
           <Progress value={progress} className="h-2" />
         </div>
+
+        {/* Completion Reward Banner (on last step only) */}
+        {isLastStep && !hasClaimedReward && (
+          <div className="mb-4 p-3 rounded-lg bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30">
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+              <Gift className="h-5 w-5" />
+              <span className="font-medium">Complete the tutorial for 100 bonus coins!</span>
+            </div>
+          </div>
+        )}
 
         {/* Content */}
         <p className="text-muted-foreground mb-6 min-h-[60px]">{step.content}</p>
@@ -309,7 +379,7 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
           </div>
 
           <Button onClick={handleNext}>
-            {currentStep === TUTORIAL_STEPS.length - 1 ? (
+            {isLastStep ? (
               <>Start Playing! 🎮</>
             ) : (
               <>
@@ -320,7 +390,7 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
         </div>
 
         {/* Skip */}
-        {currentStep < TUTORIAL_STEPS.length - 1 && (
+        {!isLastStep && (
           <button
             onClick={handleComplete}
             className="w-full mt-4 text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -331,4 +401,12 @@ export function TutorialSystem({ onHighlightTab }: TutorialSystemProps) {
       </Card>
     </div>
   );
+}
+
+/**
+ * Check if the tutorial has been completed (for achievement tracking)
+ */
+export function hasTutorialRewardClaimed(): boolean {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(REWARD_KEY) === 'true';
 }

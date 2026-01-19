@@ -496,6 +496,14 @@ export const ACHIEVEMENT_DEFS = [
     target: 90,
     type: 'loginStreak',
   },
+  // Tutorial achievement
+  {
+    id: 'tutorial_graduate',
+    name: 'Tutorial Graduate',
+    description: 'Complete the entire tutorial',
+    target: 1,
+    type: 'tutorial',
+  },
 ] as const;
 
 export type AchievementType = (typeof ACHIEVEMENT_DEFS)[number]['type'];

@@ -86,6 +86,7 @@ export function CatFarm() {
     handleUpgradePremium,
     handleClaimCoopReward,
     handleRetireCat,
+    handleTutorialComplete,
     dispatchAction,
     handleQuickSocialize,
     clearQuickSocializePair,
@@ -107,8 +108,9 @@ export function CatFarm() {
       <AnimatedBackground variant="game" className="min-h-screen">
         <FloatingDecorations variant="paws" density="low" className="opacity-20" />
 
-        <CatFarmOverlays
-          onHighlightTab={ui.setHighlightedTab}
+            <CatFarmOverlays
+              onHighlightTab={ui.setHighlightedTab}
+              onTutorialComplete={handleTutorialComplete}
           showShortcutsHelp={ui.showShortcutsHelp}
           onCloseShortcutsHelp={() => ui.setShowShortcutsHelp(false)}
           events={relationshipSystem.events}
@@ -422,6 +424,7 @@ export function CatFarm() {
           badges={badgeCounts.tabBadges}
           day={state.day}
           money={state.money}
+          highlightedTab={ui.highlightedTab}
         />
 
         <SidebarInset className="flex flex-col flex-1 overflow-hidden">
@@ -430,6 +433,7 @@ export function CatFarm() {
 
             <CatFarmOverlays
               onHighlightTab={ui.setHighlightedTab}
+              onTutorialComplete={handleTutorialComplete}
               showShortcutsHelp={ui.showShortcutsHelp}
               onCloseShortcutsHelp={() => ui.setShowShortcutsHelp(false)}
               events={relationshipSystem.events}

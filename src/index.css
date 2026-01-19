@@ -1029,3 +1029,27 @@
     filter: drop-shadow(0 0 6px #ffd700);
   }
 }
+
+/* Tutorial hotspot pulse animation */
+@keyframes tutorial-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 8px hsl(var(--primary) / 0);
+  }
+}
+
+.tutorial-hotspot-active {
+  animation: tutorial-pulse 1.5s ease-in-out infinite;
+  position: relative;
+  z-index: 10;
+}
+
+/* Ring style for highlighted tabs */
+.tutorial-hotspot-ring {
+  ring-width: 2px;
+  ring-color: hsl(var(--primary));
+  ring-offset-width: 2px;
+  ring-offset-color: hsl(var(--background));
+}

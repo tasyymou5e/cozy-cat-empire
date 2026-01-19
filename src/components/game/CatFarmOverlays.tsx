@@ -11,6 +11,7 @@ import { DailyEvent } from '@/types/dailyEvents';
 interface CatFarmOverlaysProps {
   // Tutorial
   onHighlightTab: (tab: string | null) => void;
+  onTutorialComplete?: () => void;
 
   // Keyboard shortcuts
   showShortcutsHelp: boolean;
@@ -38,6 +39,7 @@ interface CatFarmOverlaysProps {
 
 export function CatFarmOverlays({
   onHighlightTab,
+  onTutorialComplete,
   showShortcutsHelp,
   onCloseShortcutsHelp,
   events,
@@ -54,7 +56,7 @@ export function CatFarmOverlays({
 }: CatFarmOverlaysProps) {
   return (
     <>
-      <TutorialSystem onHighlightTab={onHighlightTab} />
+      <TutorialSystem onHighlightTab={onHighlightTab} onTutorialComplete={onTutorialComplete} />
       <KeyboardShortcutsHelp open={showShortcutsHelp} onClose={onCloseShortcutsHelp} />
       <RelationshipAnimations events={events} lastEventId={lastEventId} />
       <MoodAnimations cats={cats} />
