@@ -21,7 +21,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-import { ChevronDown, BarChart3, LayoutGrid, Heart, Camera, Image, Globe } from 'lucide-react';
+import { ChevronDown, BarChart3, LayoutGrid, Heart, Camera, Image, Globe, Castle } from 'lucide-react';
 import { CATEGORIES, getCategoryForTab } from './CategoryTabBar';
 
 interface GameSidebarProps {
@@ -34,6 +34,7 @@ interface GameSidebarProps {
 }
 
 const EXTERNAL_LINKS = [
+  { href: '/empire', icon: <Castle className="h-4 w-4" />, label: 'My Empire' },
   { href: '/stats', icon: <BarChart3 className="h-4 w-4" />, label: 'My Stats' },
   { href: '/collection', icon: <LayoutGrid className="h-4 w-4" />, label: 'Collection' },
   { href: '/relationships', icon: <Heart className="h-4 w-4" />, label: 'Relationships' },

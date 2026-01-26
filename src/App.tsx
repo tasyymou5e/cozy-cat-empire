@@ -31,6 +31,7 @@ const CatGallery = lazy(() => import('./pages/CatGallery'));
 const CatRelationships = lazy(() => import('./pages/CatRelationships'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const Stats = lazy(() => import('./pages/Stats'));
+const Empire = lazy(() => import('./pages/Empire'));
 const Auth = lazy(() => import('./pages/Auth'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
@@ -77,6 +78,7 @@ const App = () => {
                           <Route path="/relationships" element={<CatRelationships />} />
                           <Route path="/leaderboard" element={<Leaderboard />} />
                           <Route path="/stats" element={<Stats />} />
+                          <Route path="/empire" element={<Empire />} />
                           <Route path="/auth" element={<Auth />} />
                           <Route path="/catking" element={<AdminAuth />} />
                           <Route
