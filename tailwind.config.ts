@@ -496,6 +496,11 @@ export default {
 			'bounce-gentle': {
 				'0%, 100%': { transform: 'translateY(0)' },
 				'50%': { transform: 'translateY(-3px)' }
+			},
+			'cat-walk': {
+				'0%, 100%': { transform: 'translateY(0)' },
+				'25%': { transform: 'translateY(-2px)' },
+				'75%': { transform: 'translateY(-2px)' }
 			}
 		},
   		animation: {
@@ -547,7 +552,9 @@ export default {
 			'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
 			'float-heart': 'float-heart 1.5s ease-out forwards',
 			'trade-pulse': 'trade-pulse 1s ease-in-out infinite',
-			'zoomies': 'zoomies 0.2s ease-in-out infinite'
+			'zoomies': 'zoomies 0.2s ease-in-out infinite',
+			// Empire roaming animation
+			'cat-walk': 'cat-walk 0.5s ease-in-out infinite'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',
