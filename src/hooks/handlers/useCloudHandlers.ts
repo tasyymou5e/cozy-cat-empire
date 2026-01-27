@@ -10,8 +10,9 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useAutoSave } from '@/hooks/useAutoSave';
+import { useAutoSave, AutoSaveStats } from '@/hooks/useAutoSave';
 import type { CatFarmState } from '../useCatFarmState';
+import type { AutoSaveStatus } from '@/components/game/AutoSaveIndicator';
 
 interface CloudHandlersDeps {
   farmState: CatFarmState;
@@ -98,7 +99,7 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
 
   // Auto-save to cloud every 1 minute using the enhanced useAutoSave hook
   // CRITICAL: Only enabled after cloud data has loaded to prevent data loss
-  useAutoSave(
+  const { stats: autoSaveStats, saveNow } = useAutoSave(
     auth.user?.id,
     state,
     kittensBreed,
@@ -127,6 +128,16 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
       },
     }
   );
+
+  // Build auto-save status for the indicator component
+  const autoSaveStatus: AutoSaveStatus = {
+    isSyncing: ui.cloudSyncing,
+    isRetrying: autoSaveStats.isRetrying,
+    lastSaveTime: autoSaveStats.lastSaveTime || ui.lastCloudSave,
+    lastError: autoSaveStats.lastError,
+    saveCount: autoSaveStats.saveCount,
+    errorCount: autoSaveStats.errorCount,
+  };
 
   const handleCloudSave = useCallback(async () => {
     if (!auth.user) return;
@@ -177,5 +188,7 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
   return {
     handleCloudSave,
     handleCloudLoad,
+    autoSaveStatus,
+    triggerManualSave: saveNow,
   };
 }

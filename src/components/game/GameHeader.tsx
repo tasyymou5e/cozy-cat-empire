@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import { NotificationCenter } from './NotificationCenter';
+import { AutoSaveIndicator, AutoSaveStatus } from './AutoSaveIndicator';
 import {
   Volume2,
   VolumeX,
@@ -13,7 +14,6 @@ import {
   LogIn,
   LogOut,
   User,
-  Cloud,
   Sun,
   Moon,
   CalendarDays,
@@ -51,10 +51,12 @@ interface GameHeaderProps {
   // User
   user: { id: string; email?: string } | null;
   onSignOut: () => void;
-  lastCloudSave: string | null;
-  cloudSyncing: boolean;
-  onCloudSave: () => void;
+  onManualSave: () => void;
   onResetGame: () => void;
+
+  // Auto-save status
+  autoSaveStatus: AutoSaveStatus;
+  hasLoadedCloud: boolean;
 
   // VIP
   isVIP: boolean;
@@ -83,10 +85,10 @@ export function GameHeader({
   onShowDailyRewards,
   user,
   onSignOut,
-  lastCloudSave,
-  cloudSyncing,
-  onCloudSave,
+  onManualSave,
   onResetGame,
+  autoSaveStatus,
+  hasLoadedCloud,
   isVIP,
   vipTier,
   canClaimDailyReward,
@@ -254,18 +256,14 @@ export function GameHeader({
           </PopoverContent>
         </Popover>
 
-        {/* Cloud Sync */}
-        {user && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onCloudSave}
-            disabled={cloudSyncing}
-            title={cloudSyncing ? 'Syncing...' : `Last sync: ${lastCloudSave ? new Date(lastCloudSave).toLocaleTimeString() : 'Never'}`}
-          >
-            <Cloud className={cn('h-4 w-4', cloudSyncing ? 'animate-pulse text-primary' : 'text-green-500')} />
-          </Button>
-        )}
+        {/* Auto-Save Status Indicator */}
+        <AutoSaveIndicator
+          status={autoSaveStatus}
+          isLoggedIn={!!user}
+          hasLoadedCloud={hasLoadedCloud}
+          onManualSave={user ? onManualSave : undefined}
+          compact={isMobile}
+        />
 
         {/* User / Auth */}
         {user ? (
@@ -278,9 +276,9 @@ export function GameHeader({
             <PopoverContent className="w-48" align="end">
               <div className="space-y-2">
                 <p className="text-sm font-medium truncate">{user.email}</p>
-                {lastCloudSave && (
+                {autoSaveStatus.lastSaveTime && (
                   <p className="text-xs text-muted-foreground">
-                    Last sync: {new Date(lastCloudSave).toLocaleTimeString()}
+                    Last sync: {new Date(autoSaveStatus.lastSaveTime).toLocaleTimeString()}
                   </p>
                 )}
                 <Button variant="outline" size="sm" className="w-full" onClick={onSignOut}>
