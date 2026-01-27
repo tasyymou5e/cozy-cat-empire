@@ -71,8 +71,13 @@ export default function Empire() {
     loadSavedGame();
   }, [user, hasLoadedCloud, cloudLoad, actions]);
 
-  // Save after interactions
+  // Save after interactions - guarded by cloud load state
   const saveGame = useCallback(async () => {
+    // Guard: Only save if cloud data has been loaded
+    if (!hasLoadedCloud) {
+      console.warn('[Empire] Skipping save - cloud data not loaded');
+      return;
+    }
     if (user) {
       const relationshipData = relationshipSystem.getRelationshipSaveData();
       await cloudSave(state, kittensBreed, relationshipData);

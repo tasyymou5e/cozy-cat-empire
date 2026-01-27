@@ -61,10 +61,17 @@ function isValidRelationshipData(value: unknown): value is RelationshipSaveData 
  * const { data } = await cloudLoad();
  * ```
  */
+interface CloudSaveOptions {
+  /** Mark this save as explicitly from a new user (allows day 1 empty state) */
+  isNewUser?: boolean;
+}
+
 export function useCloudSave(userId: string | undefined, onExternalUpdate?: () => void) {
   const lastSaveRef = useRef<string | null>(null);
   const lastSaveTimestampRef = useRef<string | null>(null);
   const [hasExternalUpdate, setHasExternalUpdate] = useState(false);
+  /** Tracks whether initial cloud load has been attempted */
+  const isLoadedRef = useRef(false);
 
   // Subscribe to real-time updates on the user's game_saves row
   useEffect(() => {
@@ -112,18 +119,44 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
     async (
       gameState: GameState,
       kittensBreed: number,
-      relationshipData: RelationshipSaveData
+      relationshipData: RelationshipSaveData,
+      options?: CloudSaveOptions
     ): Promise<{ success: boolean; error?: string }> => {
       if (!userId) {
         return { success: false, error: 'Not logged in' };
       }
 
+      // CRITICAL: Block saves if cloud data hasn't been loaded yet (race condition prevention)
+      if (!isLoadedRef.current) {
+        console.warn('[CloudSync] Blocked save: Cloud data not yet loaded', {
+          catsCount: gameState.cats.length,
+          day: gameState.day,
+          userId: userId.slice(0, 8) + '...',
+        });
+        return { success: false, error: 'Cloud data not loaded yet' };
+      }
+
       // SAFETY CHECK: Prevent saving empty cat arrays that might indicate unloaded state
-      // Only allow empty cats if day is 1 (fresh game)
+      // Only allow empty cats if day is 1 AND explicitly marked as new user
       if (gameState.cats.length === 0 && gameState.day > 1) {
         console.warn('[CloudSync] Blocked save: Empty cats array on day > 1 suggests data loss');
         return { success: false, error: 'Save blocked - possible data loss detected' };
       }
+
+      // ENHANCED: Block day 1 empty saves unless explicitly a new user
+      if (gameState.cats.length === 0 && gameState.day === 1 && !options?.isNewUser) {
+        console.warn('[CloudSync] Blocked save: Empty state on day 1 without isNewUser flag', {
+          userId: userId.slice(0, 8) + '...',
+        });
+        return { success: false, error: 'Blocked potential race condition save' };
+      }
+
+      console.log('[CloudSync] Save attempt', {
+        isLoaded: isLoadedRef.current,
+        catsCount: gameState.cats.length,
+        day: gameState.day,
+        userId: userId.slice(0, 8) + '...',
+      });
 
       try {
         const now = new Date().toISOString();
@@ -172,6 +205,9 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
       if (error) throw error;
 
       if (!data) {
+        // No cloud save exists - mark as loaded (new user)
+        isLoadedRef.current = true;
+        console.log('[CloudSync] No cloud save found, marking as loaded (new user)');
         return { data: null };
       }
 
@@ -179,6 +215,10 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
       if (data.last_played_at) {
         lastSaveTimestampRef.current = data.last_played_at;
       }
+      
+      // Mark as loaded after successful data retrieval
+      isLoadedRef.current = true;
+      console.log('[CloudSync] Cloud data loaded successfully');
 
       // Build raw save data for migration check
       const rawSaveData = {
@@ -294,5 +334,7 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
     getLastSaveTime,
     hasExternalUpdate,
     clearExternalUpdate,
+    /** Whether initial cloud load has been completed */
+    isLoaded: isLoadedRef.current,
   };
 }

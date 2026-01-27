@@ -20,7 +20,7 @@ interface RelationshipSaveData {
 interface UseAutoSaveOptions {
   /** Interval in milliseconds between auto-save attempts (default: 5 minutes) */
   intervalMs?: number;
-  /** Whether auto-save is enabled (default: true) */
+  /** Whether auto-save is enabled - CRITICAL: Should include hasLoadedCloud check */
   enabled?: boolean;
   /** Callback when save completes successfully */
   onSaveComplete?: () => void;
@@ -86,7 +86,12 @@ export function useAutoSave(
 
   // Perform auto-save if state has changed
   const performAutoSave = useCallback(async () => {
-    if (!userId || !enabled || isSavingRef.current) return;
+    if (!userId || !enabled || isSavingRef.current) {
+      if (!enabled && userId) {
+        console.log('[AutoSave] Skipped: auto-save disabled (cloud not loaded or user logged out)');
+      }
+      return;
+    }
 
     const currentHash = generateStateHash(gameState, kittensBreed);
 
