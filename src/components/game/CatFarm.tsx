@@ -92,6 +92,8 @@ export function CatFarm() {
     clearQuickSocializePair,
     handleCloudSave,
     handleCloudLoad,
+    autoSaveStatus,
+    triggerManualSave,
     toggleSound,
     toggleMusic,
     handleSfxVolumeChange,
@@ -169,14 +171,14 @@ export function CatFarm() {
           onShowDailyRewards={() => dailyRewards.setShowModal(true)}
           user={auth.user}
           onSignOut={auth.signOut}
-          lastCloudSave={ui.lastCloudSave}
-          cloudSyncing={ui.cloudSyncing}
-          onCloudSave={handleCloudSave}
+          onManualSave={triggerManualSave}
           onResetGame={actions.resetGame}
+          autoSaveStatus={autoSaveStatus}
+          hasLoadedCloud={ui.hasLoadedCloud}
           isVIP={dailyRewards.isVIP}
           vipTier={dailyRewards.vipTier}
           canClaimDailyReward={dailyRewards.canClaim}
-          isMobile={isMobile}
+          isMobile
         />
 
         <MessageBar
@@ -492,10 +494,10 @@ export function CatFarm() {
               onShowDailyRewards={() => dailyRewards.setShowModal(true)}
               user={auth.user}
               onSignOut={auth.signOut}
-              lastCloudSave={ui.lastCloudSave}
-              cloudSyncing={ui.cloudSyncing}
-              onCloudSave={handleCloudSave}
+              onManualSave={triggerManualSave}
               onResetGame={actions.resetGame}
+              autoSaveStatus={autoSaveStatus}
+              hasLoadedCloud={ui.hasLoadedCloud}
               isVIP={dailyRewards.isVIP}
               vipTier={dailyRewards.vipTier}
               canClaimDailyReward={dailyRewards.canClaim}
