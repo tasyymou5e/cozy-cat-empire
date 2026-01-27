@@ -16,6 +16,8 @@ This document provides a comprehensive overview of all pages and components in t
 | Cat Customization | `src/pages/CatCustomization.tsx` | `/customize` | Customize cat appearance |
 | Cat Gallery | `src/pages/CatGallery.tsx` | `/gallery` | Photo gallery of cats |
 | Cat Photo Booth | `src/pages/CatPhotoBooth.tsx` | `/photo-booth` | Take photos of cats |
+| Cat Relationships | `src/pages/CatRelationships.tsx` | `/relationships` | Cat relationship network |
+| Empire | `src/pages/Empire.tsx` | `/empire` | Interactive cat dwelling visualization |
 | Leaderboard | `src/pages/Leaderboard.tsx` | `/leaderboard` | Global player rankings |
 | Stats | `src/pages/Stats.tsx` | `/stats` | Player statistics dashboard |
 | Not Found | `src/pages/NotFound.tsx` | `*` | 404 error page |

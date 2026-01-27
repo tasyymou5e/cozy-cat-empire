@@ -415,12 +415,20 @@ function breedCats(cat1, cat2): Cat | null {
     return null; // 50% fail for rivals
   }
   
+  // Calculate mutation chance based on relationship
+  const mutationChance = compatibility.bonus > 20 ? 0.05
+    : compatibility.bonus > 10 ? 0.08
+    : compatibility.bonus < 0 ? 0.15 : 0.10;
+  
+  // Inherit appearance from parents (genetic inheritance)
+  const kittenAppearance = inheritAppearance(cat1, cat2, { mutationChance });
+  
   const kitten = {
     type: 'pure',
     breed: Math.random() < 0.5 ? cat1.breed : cat2.breed,
     grade: averageGrade(cat1, cat2) + compatibility.bonus/10,
     personality: inheritPersonality(cat1, cat2),
-    appearance: inheritAppearance(cat1, cat2), // Mix parent appearances
+    appearance: kittenAppearance, // Inherited appearance with mutations
     // ... other stats
   };
   
@@ -435,6 +443,37 @@ function breedCats(cat1, cat2): Cat | null {
   return kitten;
 }
 ```
+
+### Appearance Inheritance System (`src/lib/appearanceInheritance.ts`)
+
+Kittens inherit visual traits from their parents using a genetic-style inheritance system:
+
+**Trait Inheritance Logic:**
+| Trait | Parent 1 | Parent 2 | Mutation |
+|-------|----------|----------|----------|
+| Fur Color | 45% | 45% | 10% |
+| Pattern | 45% | 45% | 10% |
+| Eye Color | 45% | 45% | 10% |
+| Pattern Color | 50% | 50% | 0% |
+| Hair Length | Dominance-based | | 10% |
+| Facial Feature | 10% | 5% | 5% (80% normal) |
+
+**Hair Length Dominance:**
+```text
+Dominance order: fluffy > medium > short
+
+Examples:
+- fluffy + short → 70% fluffy, 20% recessive, 10% mutation
+- medium + medium → 90% medium, 10% variance
+```
+
+**Relationship Bonus Effects on Genetics:**
+| Relationship Bonus | Mutation Chance | Notes |
+|--------------------|-----------------|-------|
+| > 20 (best friends) | 5% | Stable genetics |
+| > 10 (good friends) | 8% | Slightly stable |
+| 0-10 (neutral) | 10% | Default |
+| < 0 (rivals) | 15% | Unstable genetics |
 
 ### Breeding Cooldown
 - 5 days after successful breeding
