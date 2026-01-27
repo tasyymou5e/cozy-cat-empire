@@ -111,6 +111,11 @@ function isNonNegativeInt(value: unknown): value is number {
   return isNumber(value) && Number.isInteger(value) && value >= 0;
 }
 
+/** Check if value is a non-negative number (allows decimals) */
+function isNonNegative(value: unknown): value is number {
+  return isNumber(value) && value >= 0;
+}
+
 /** Check if value is a stat value (0-100) */
 export function isStatValue(value: unknown): value is number {
   return isNumber(value) && value >= 0 && value <= 100;
@@ -224,7 +229,7 @@ export function isCat(value: unknown): value is Cat {
     isStatValue(value.happiness) &&
     isStatValue(value.hunger) &&
     isMoneyValue(value.value) &&
-    isNonNegativeInt(value.age) &&
+    isNonNegative(value.age) &&
     isCatPersonality(value.personality) &&
     isNonNegativeInt(value.showWins) &&
     isBoolean(value.isForSale) &&
