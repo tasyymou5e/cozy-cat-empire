@@ -20,6 +20,7 @@ import {
   Keyboard,
   Sparkles,
   RotateCcw,
+  Castle,
 } from 'lucide-react';
 import { VIPTier } from '@/types/dailyRewards';
 
@@ -118,6 +119,21 @@ export function GameHeader({
 
       {/* Right: Essential Actions */}
       <div className="flex items-center gap-1">
+        {/* Empire Button - Featured */}
+        {user && (
+          <Link to="/empire">
+            <Button
+              variant="outline"
+              size={isMobile ? 'icon' : 'sm'}
+              className="gap-1.5 border-primary/50 hover:bg-primary/10 hover:border-primary"
+              title="My Empire"
+            >
+              <Castle className="h-4 w-4 text-primary" />
+              {!isMobile && <span className="font-medium">Empire</span>}
+            </Button>
+          </Link>
+        )}
+
         {/* VIP Badge */}
         {user && isVIP && vipTier && (
           <Badge
