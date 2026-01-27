@@ -319,7 +319,7 @@ export function isValidGameState(value: unknown): value is GameState {
     isNumber(value.reputation) &&
     isNonNegativeInt(value.totalShowWins) &&
     isNonNegativeInt(value.catsAdopted) &&
-    isMoneyValue(value.totalMoneyEarned) &&
+    isNumber(value.totalMoneyEarned) &&
     isArray(value.marketListings) &&
     value.marketListings.every(isMarketListing) &&
     isArray(value.achievements) &&
