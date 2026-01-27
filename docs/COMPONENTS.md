@@ -838,6 +838,10 @@ Located in `src/components/admin/`:
 - BulkActionsBar.tsx
 - ChallengeForm.tsx
 - ExportButton.tsx
+- PlayerInventoryEditor.tsx
+- ProfileEditor.tsx
+- SecurityScoreCard.tsx
+- SecurityTrendChart.tsx
 - UserDetailModal.tsx
 
 ---

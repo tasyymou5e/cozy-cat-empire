@@ -72,6 +72,32 @@ Reusable component for profile editing:
 - Username field (optional)
 - Reason field (required for audit trail)
 
+### 4. Game Save Repair Tool (`/catking/game-repair`)
+
+Detect and repair corrupted game saves automatically:
+- **Corruption Detection Dashboard**: Statistics showing saves with issues by category
+- **Issue Types Detected**:
+  - Negative `totalMoneyEarned` values
+  - Invalid/NaN money values
+  - Negative money balances
+  - Invalid cat ages or stats
+  - Corrupted resources (negative counts)
+  - Invalid house sizes
+- **Affected Users Table**: List users with corrupted saves with issue details
+- **Individual Repair**: Preview changes before applying with confirmation
+- **Bulk Repair**: Select multiple saves and repair all at once
+- **Audit Logging**: All repairs logged to `admin_activity_log`
+
+#### Detection Logic
+| Issue Type | Detection Logic | Severity |
+|------------|-----------------|----------|
+| Negative totalMoneyEarned | `totalMoneyEarned < 0` | High |
+| NaN/Undefined money | `!isFinite(money)` | Critical |
+| Negative money | `money < 0` | High |
+| Invalid cat ages | `age < 0` or `!isFinite(age)` | Medium |
+| Corrupted resources | Negative resource counts | Medium |
+| Invalid house sizes | Not in valid enum | Low |
+
 ### 4. Statistics (`/catking/stats`)
 
 Game analytics with three tabs:
@@ -343,6 +369,12 @@ Collection of data fetching hooks:
 - `useAdminChallengeAnalytics()` - Challenge completion analytics
 - `useAdminRetentionAnalytics()` - DAU/WAU/MAU and streak analytics
 
+### useAdminCorruptedSaves
+Game save corruption detection and repair:
+- `useAdminCorruptedSaves()` - Fetch corrupted saves with issue details
+- `useRepairGameSave()` - Repair individual game saves
+- `useBulkRepairGameSaves()` - Bulk repair multiple saves
+
 ### useAdminRateLimit
 Rate limiting for destructive actions:
 - `checkLimit()` - Verify action is within limits
@@ -375,21 +407,31 @@ src/
 │   ├── AdminLayout.tsx           # Navigation wrapper
 │   ├── AdminRoute.tsx            # Route protection
 │   ├── PlayerInventoryEditor.tsx # Inventory modification
+│   ├── ProfileEditor.tsx         # Profile editing component
 │   ├── ActivityFeed.tsx          # Activity feed display
 │   ├── BulkActionsBar.tsx        # Bulk user actions (with notification)
 │   ├── ChallengeForm.tsx         # Challenge creation form
+│   ├── SecurityScoreCard.tsx     # Security score display
+│   ├── SecurityTrendChart.tsx    # Security trend visualization
+│   ├── UserDetailModal.tsx       # User detail modal
 │   └── ExportButton.tsx          # CSV export utility
 ├── components/game/
 │   └── AnnouncementBanner.tsx    # Player-facing announcement display
-├── hooks/
+├── hooks/admin/
 │   ├── useAdminAuth.ts           # Admin role check
 │   ├── useAdminActivityLog.ts    # Activity logging
 │   ├── useAdminData.ts           # Data fetching hooks
 │   ├── useAdminAIData.ts         # AI usage metrics
-│   └── useAdminRateLimit.ts      # Rate limiting
+│   ├── useAdminCorruptedSaves.ts # Game save repair hooks
+│   ├── useAdminRateLimit.ts      # Rate limiting
+│   ├── useSecurityLinter.ts      # Security scanning
+│   ├── useSecurityHistory.ts     # Security scan history
+│   └── useTutorialAnalytics.ts   # Tutorial analytics
 ├── pages/admin/
 │   ├── AdminDashboard.tsx        # Main dashboard with live activity
 │   ├── AdminUsers.tsx            # User management
+│   ├── AdminProfileRepair.tsx    # Profile repair tool
+│   ├── AdminGameSaveRepair.tsx   # Game save repair tool
 │   ├── AdminStatistics.tsx       # Game statistics (overview, economy, retention)
 │   ├── AdminErrorLogs.tsx        # Error monitoring
 │   ├── AdminModeration.tsx       # Moderation tools with analytics
@@ -398,6 +440,9 @@ src/
 │   ├── AdminBattlePass.tsx       # Battle pass management
 │   ├── AdminNotifications.tsx    # Push notification center
 │   ├── AdminAIMetrics.tsx        # AI usage monitoring
+│   ├── AdminSecurity.tsx         # Security scanning dashboard
+│   ├── AdminScheduledJobs.tsx    # Cron job management
+│   ├── AdminTutorialAnalytics.tsx # Tutorial analytics
 │   └── AdminSettings.tsx         # Admin settings
 └── pages/
     └── AdminAuth.tsx             # Admin login page
@@ -440,3 +485,10 @@ Or via the Admin Users page after initial admin is set up.
 ### Phase 5: Security Hardening
 - Rate Limiting for Admin Actions
 - Enhanced Audit Logging
+
+### Phase 6: Data Integrity
+- Game Save Repair Tool (`/catking/game-repair`)
+- Corrupted save detection (negative earnings, invalid money, bad cat data)
+- Individual and bulk repair functionality
+- `totalMoneyEarned` safeguards in `addReward()` and `cloudSave()`
+- Pre-save validation to auto-correct corruption before persisting

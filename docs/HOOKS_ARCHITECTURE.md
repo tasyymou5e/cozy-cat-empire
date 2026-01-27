@@ -33,7 +33,11 @@ src/hooks/
 ├── admin/                     # Admin dashboard hooks
 │   ├── useAdminAuth.ts
 │   ├── useAdminData.ts
-│   └── useAdminActivityLog.ts
+│   ├── useAdminActivityLog.ts
+│   ├── useAdminCorruptedSaves.ts  # Game save corruption detection/repair
+│   ├── useAdminRateLimit.ts
+│   ├── useSecurityLinter.ts
+│   └── useSecurityHistory.ts
 ├── useCatFarmState.ts         # Master aggregator for CatFarm
 ├── useCatFarmSystems.ts       # Core systems (auth, sound, haptics)
 ├── useCatFarmUIState.ts       # UI state (tabs, modals, dialogs)
@@ -361,6 +365,25 @@ const cloudSave = useCallback(async (gameState, kittensBreed, relationships, opt
     return { success: false, error: 'Blocked potential race condition save' };
   }
   
+  // Layer 3: Pre-save integrity checks (auto-correct corruption)
+  const correctedState = { ...gameState };
+  const integrityIssues: string[] = [];
+  
+  if (correctedState.totalMoneyEarned < 0) {
+    integrityIssues.push(`totalMoneyEarned: ${correctedState.totalMoneyEarned} → 0`);
+    correctedState.totalMoneyEarned = 0;
+  }
+  
+  if (correctedState.money < 0) {
+    integrityIssues.push(`money: ${correctedState.money} → 0`);
+    correctedState.money = 0;
+  }
+  
+  // Log integrity issues if any were found
+  if (integrityIssues.length > 0) {
+    console.warn('[CloudSync] Auto-corrected integrity issues:', integrityIssues);
+  }
+  
   // ... proceed with save
 }, []);
 ```
@@ -370,6 +393,31 @@ const cloudSave = useCallback(async (gameState, kittensBreed, relationships, opt
 - `CatCollection.tsx`: Guards `handlePortraitGenerated` with loading check
 - `CatCustomization.tsx`: Guards `handleSave` with loading check
 - `useAutoSave.ts`: `enabled` flag must include `hasLoadedCloud`
+
+### Pattern 4: Data Integrity Safeguards
+
+The `addReward` function in `useResources.ts` includes safeguards to prevent corruption:
+
+```typescript
+const addReward = useCallback(
+  (coins: number, resources?: Partial<Resources>) => {
+    // Safeguard: Never allow negative coin rewards
+    if (coins < 0) {
+      console.warn('[addReward] Attempted to add negative coins:', coins);
+      return;
+    }
+    
+    setState((prev) => ({
+      ...prev,
+      money: prev.money + coins,
+      // Safeguard: Ensure totalMoneyEarned only increases
+      totalMoneyEarned: Math.max(prev.totalMoneyEarned, prev.totalMoneyEarned + coins),
+      resources: { /* ... */ },
+    }));
+  },
+  [setState]
+);
+```
 
 ---
 
