@@ -342,24 +342,34 @@ const addCat = useCallback((type: Cat['type']) => {
 }, [checkAchievements]);
 ```
 
-### Pattern 3: Cloud Sync
+### Pattern 3: Cloud Sync with Race Condition Protection
 
-Progress hooks sync to cloud when user is authenticated:
+Cloud save hooks include multi-layer protection against race conditions:
 
 ```typescript
-// Generic pattern used in progress hooks
-useEffect(() => {
-  if (!userId) return;
+// In useCloudSave.ts
+const cloudSave = useCallback(async (gameState, kittensBreed, relationships, options) => {
+  // Layer 1: Block saves until initial cloud load completes
+  if (!isLoadedRef.current) {
+    console.warn('[CloudSync] Blocked save: Cloud data not yet loaded');
+    return { success: false, error: 'Cloud data not loaded yet' };
+  }
   
-  const syncToCloud = async () => {
-    await supabase
-      .from('table_name')
-      .upsert({ user_id: userId, ...state }, { onConflict: 'user_id' });
-  };
+  // Layer 2: Block empty state saves on day 1 (likely race condition)
+  if (gameState.cats.length === 0 && gameState.day === 1 && !options?.isNewUser) {
+    console.warn('[CloudSync] Blocked save: Empty state on day 1');
+    return { success: false, error: 'Blocked potential race condition save' };
+  }
   
-  syncToCloud();
-}, [state, userId]);
+  // ... proceed with save
+}, []);
 ```
+
+**Additional Page-Level Guards:**
+- `Empire.tsx`: Checks `hasLoadedCloud` before `saveGame()`
+- `CatCollection.tsx`: Guards `handlePortraitGenerated` with loading check
+- `CatCustomization.tsx`: Guards `handleSave` with loading check
+- `useAutoSave.ts`: `enabled` flag must include `hasLoadedCloud`
 
 ---
 

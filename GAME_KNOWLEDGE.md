@@ -342,6 +342,16 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 - Auto-save every 5 minutes when logged in
 - Manual save/load buttons
 - Syncs game state, kittens bred, relationships
+- **Race Condition Protection:** Multi-layer defense preventing saves before cloud data loads
+- **Restore from Cloud:** Manual restore button in Settings for suspected data issues
+
+**Race Condition Safeguards:**
+| Layer | Protection |
+|-------|------------|
+| Hook-level gate | `isLoaded` ref blocks saves until first `cloudLoad()` completes |
+| Page-level guards | Empire, CatCollection, CatCustomization check `hasLoadedCloud` before saving |
+| Empty state detection | Blocks saves with 0 cats on day 1 (unless `isNewUser` flag set) |
+| Auto-save gating | `useAutoSave` checks `enabled` flag which includes `hasLoadedCloud` |
 
 ### 15. Global Leaderboard (`src/hooks/useGlobalLeaderboard.ts`, `src/components/game/GlobalLeaderboardPanel.tsx`)
 
@@ -416,12 +426,14 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 - Category-based tab navigation (5 categories with sub-tabs)
 - Audio controls in header
 - Quick Access dropdown menu
+- **Empire Button in Header** - Featured button for logged-in users (Castle icon)
 - Notification center
 - Cloud sync indicator
 - What's New popup for returning players
 - Mobile bottom navigation support
 
 ### Navigation Components:
+- **GameHeader.tsx**: Header with Empire button, audio controls, Quick Access menu, notifications
 - **CategoryTabBar.tsx**: Two-tier grouped tab navigation with 5 categories (Farm, Cats, Social, Progress, Settings)
 - **QuickAccessMenu.tsx**: Header dropdown with recent tabs and external page links
 - **MobileBottomNav.tsx**: Fixed bottom navigation for mobile devices
@@ -482,7 +494,7 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 - **StatusBar.tsx**: Money, day, house, cat show
 - **StatusBarSkeleton.tsx**: Loading skeleton for status bar
 - **MessageBar.tsx**: Game notifications
-- **SaveLoadPanel.tsx**: Persist game state
+- **SaveLoadPanel.tsx**: Persist game state with **Restore from Cloud** button for manual recovery
 - **BulkActionsPanel.tsx**: Mass cat management operations
 - **ComfortButton.tsx**: 20-second comfort timer
 

@@ -7,7 +7,7 @@
 
 ## Overview
 
-Cat Farm includes extensive social features enabling player-to-player interaction and cat-to-cat relationships. This document covers friends systems, trading, gifting, notifications, player profiles, content validation, and cat relationship mechanics.
+Cat Farm includes extensive social features enabling player-to-player interaction and cat-to-cat relationships. This document covers friends systems, trading, gifting, notifications, player profiles, content validation, cloud sync safety, and cat relationship mechanics.
 
 ---
 

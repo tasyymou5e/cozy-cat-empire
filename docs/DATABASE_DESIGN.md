@@ -86,7 +86,13 @@ CREATE TABLE public.game_saves (
 );
 ```
 
-**Purpose:** Cloud save functionality for game progress.
+**Purpose:** Cloud save functionality for game progress with race condition protection.
+
+**Race Condition Safeguards:**
+- Hook-level `isLoaded` ref blocks saves until initial cloud load completes
+- Page-level guards (Empire, CatCollection, CatCustomization) check `hasLoadedCloud`
+- Empty state detection blocks saves with 0 cats on day 1 (unless `isNewUser` flag)
+- Auto-save gating requires `hasLoadedCloud` in enabled flag
 
 **JSONB Structure - game_state:**
 ```typescript

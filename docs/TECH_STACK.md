@@ -177,6 +177,7 @@ src/
 ├── components/
 │   ├── game/           # 82+ game components
 │   │   ├── CatFarm.tsx         # Main game orchestrator
+│   │   ├── GameHeader.tsx      # Header with Empire button, Quick Access, notifications
 │   │   ├── CatCard.tsx         # Cat display + inline rename
 │   │   ├── CatVisual.tsx       # Unified cat visual
 │   │   ├── PhotoBooth.tsx      # Photo booth interface
@@ -185,6 +186,7 @@ src/
 │   │   ├── DraggableSticker.tsx
 │   │   ├── TutorialSystem.tsx  # 16-step tutorial
 │   │   ├── WhatsNewPopup.tsx   # Changelog popup
+│   │   ├── SaveLoadPanel.tsx   # Save/load with Restore from Cloud button
 │   │   ├── SocialCalendarPanel.tsx  # Relationship maintenance view
 │   │   ├── MilestonePopup.tsx  # Milestone celebrations
 │   │   ├── HallOfFamePanel.tsx # Retired cats gallery
@@ -213,7 +215,8 @@ src/
 │   ├── useRelationships.ts  # Cat relationships + maintenance streak
 │   ├── useRelationshipReminders.ts # Decay reminder toasts
 │   ├── useSoundEffects.ts   # Audio system
-│   ├── useCloudSave.ts      # Cloud persistence
+│   ├── useCloudSave.ts      # Cloud persistence with race condition protection
+│   ├── useAutoSave.ts       # Auto-save with loading gate
 │   ├── useFriends.ts        # Social features
 │   ├── usePhotoGallery.ts   # Local + cloud gallery
 │   ├── useCloudGallery.ts   # Cloud gallery operations
@@ -270,10 +273,11 @@ src/
 ├── pages/
 │   ├── Index.tsx            # Main game
 │   ├── Auth.tsx             # Login/signup
-│   ├── CatCollection.tsx    # Trading cards
+│   ├── CatCollection.tsx    # Trading cards (with cloud save guard)
 │   ├── CatPhotoBooth.tsx    # Photo booth page
 │   ├── CatGallery.tsx       # Photo gallery page
-│   ├── CatCustomization.tsx # Cat appearance editor
+│   ├── CatCustomization.tsx # Cat appearance editor (with cloud save guard)
+│   ├── Empire.tsx           # Interactive cat dwelling (with cloud save guard)
 │   ├── Leaderboard.tsx      # Global rankings
 │   ├── Stats.tsx            # Personal stats
 │   ├── AdminAuth.tsx        # Admin login
