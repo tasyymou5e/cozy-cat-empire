@@ -1,7 +1,18 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Cloud, CloudOff, LogIn } from 'lucide-react';
+import { Cloud, LogIn, RotateCcw } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface SaveLoadPanelProps {
   onSave: () => void;
@@ -56,6 +67,38 @@ export function SaveLoadPanel({
             <Button onClick={onLoad} className="w-full" variant="outline">
               📂 Load from Cloud
             </Button>
+
+            {/* Restore from Cloud - for suspected data issues */}
+            <div className="pt-2 border-t border-border">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="secondary" className="w-full gap-2">
+                    <RotateCcw className="h-4 w-4" />
+                    Restore from Cloud
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Restore from Cloud?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will replace your current game state with your cloud save. 
+                      Use this if you suspect your local data is incorrect or outdated.
+                      <br /><br />
+                      <strong>Any unsaved local changes will be lost.</strong>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={onLoad}>
+                      Restore
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                Use if you suspect data sync issues
+              </p>
+            </div>
 
             {lastCloudSave && (
               <p className="text-xs text-muted-foreground text-center">
