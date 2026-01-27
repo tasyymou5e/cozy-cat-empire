@@ -175,10 +175,28 @@ const { settings, updateSetting, resetToDefaults, isReducedMotion } = useGraphic
 ## Data Flow
 
 1. **Cat Creation**: Cat gets default appearance based on breed
-2. **Customization**: User can modify appearance via CatCustomization page
-3. **Portrait Generation**: AI generates portrait from appearance data
-4. **Display**: CatVisual checks for portrait, falls back to avatar
-5. **Caching**: Generated avatars cached for performance
+2. **Breeding**: Kittens inherit appearance from parents via `inheritAppearance()` with mutation chance
+3. **Customization**: User can modify appearance via CatCustomization page
+4. **Portrait Generation**: AI generates portrait from appearance data
+5. **Display**: CatVisual checks for portrait, falls back to avatar
+6. **Caching**: Generated avatars cached for performance
+
+---
+
+## Appearance Inheritance
+
+When breeding cats, kittens inherit visual traits from their parents:
+
+**File:** `src/lib/appearanceInheritance.ts`
+
+**Inheritance Rules:**
+- Fur color, pattern, eye color: 45% from each parent, 10% mutation
+- Hair length: Dominance-based (fluffy > medium > short)
+- Facial features: 80% normal, 20% inherited/mutated
+
+**Relationship Bonus Effect:**
+- Better relationship = lower mutation chance (stable genetics)
+- Enemies = higher mutation chance (unstable genetics)
 
 ---
 

@@ -73,6 +73,25 @@ interface CatAppearance {
 **Hair Lengths:** short, medium, fluffy
 **Facial Features:** normal, scar, eyepatch, whiskers_long, grumpy, cute_blush
 
+### Appearance Inheritance (`src/lib/appearanceInheritance.ts`)
+
+When breeding cats, kittens inherit visual traits from their parents:
+
+**Inheritance Rules:**
+| Trait | Parent 1 | Parent 2 | Mutation |
+|-------|----------|----------|----------|
+| Fur Color | 45% | 45% | 10% |
+| Pattern | 45% | 45% | 10% |
+| Eye Color | 45% | 45% | 10% |
+| Hair Length | Dominance (fluffy > medium > short) | | 10% |
+| Facial Feature | 10% | 5% | 5% |
+
+**Relationship Bonus Effects:**
+- Best friends (>20 bonus): 5% mutation (stable genetics)
+- Good friends (>10 bonus): 8% mutation
+- Neutral: 10% mutation (default)
+- Rivals (<0 bonus): 15% mutation (unstable genetics)
+
 ### 3. Grading System (`src/types/grading.ts`)
 
 **Grade Tiers (1-20):**
@@ -498,7 +517,7 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 
 ---
 
-## Custom Hooks (42 total)
+## Custom Hooks (44 total)
 
 ### Core Game Hooks:
 - **useGameState.ts**: Core game logic + bulk actions
@@ -508,6 +527,9 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 - **useHaptics.ts**: Mobile haptic feedback
 - **useKeyboardShortcuts.ts**: Keyboard navigation
 - **useGraphicsSettings.ts**: Runtime graphics customization
+
+### Empire Hooks:
+- **useRoamingCats.ts**: AI movement for Empire scene
 
 ### Cloud & Persistence:
 - **useCloudSave.ts**: Cloud persistence
@@ -564,6 +586,8 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 - **CatPhotoBooth.tsx**: Photo booth page
 - **CatGallery.tsx**: Photo gallery page
 - **CatCustomization.tsx**: Cat appearance editor
+- **CatRelationships.tsx**: Full-page relationship network
+- **Empire.tsx**: Interactive cat dwelling visualization
 - **Leaderboard.tsx**: Global leaderboard page
 - **Stats.tsx**: Player statistics
 - **AdminAuth.tsx**: Admin login
@@ -576,6 +600,45 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
   - AdminAnnouncements.tsx
   - AdminSettings.tsx
   - AdminAIMetrics.tsx
+
+---
+
+## Empire System
+
+### Overview
+The Empire page (`/empire`) provides an interactive visual dwelling where players can watch their cats roam, play, and interact. The scene adapts based on the player's current house tier.
+
+### Files
+- `src/pages/Empire.tsx` - Main page component
+- `src/components/empire/EmpireScene.tsx` - Scene container with background
+- `src/components/empire/RoamingCat.tsx` - Individual roaming cat
+- `src/components/empire/EmpireInteractionMenu.tsx` - Quick action popover
+- `src/hooks/empire/useRoamingCats.ts` - AI movement logic
+- `src/config/empire.ts` - Zone themes and configuration
+- `src/types/empire.ts` - TypeScript types
+
+### Zone Themes
+| House Tier | Background | Floor | Ambiance |
+|------------|------------|-------|----------|
+| Apartment | Warm beige walls | Gray carpet | Cozy small space |
+| House | Light blue walls | Wooden floor | Spacious home |
+| Mansion | Purple/gold walls | Marble floor | Luxurious |
+| Farm | Green sky/nature | Grass field | Open countryside |
+
+### Roaming AI
+Cats move randomly within the scene:
+- Movement interval: 3-8 seconds per cat
+- Position bounds: x(10-90%), y(30-90%)
+- Facing direction calculated from movement delta
+- Z-index based on Y position (depth illusion)
+
+### Quick Actions
+Click any cat to open interaction menu:
+- **Pet**: +5 happiness, plays purr sound
+- **Feed**: -1 food, +15 hunger
+- **Play**: -1 toy, +10 happiness
+- **View Details**: Navigate to cat customization
+- **Photo Booth**: Navigate with cat selected
 
 ---
 

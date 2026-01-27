@@ -841,6 +841,48 @@ Located in `src/components/admin/`:
 
 ---
 
+## Empire Components
+
+Located in `src/components/empire/`:
+
+### EmpireScene.tsx
+Interactive cat dwelling visualization.
+
+**Features:**
+- Zone-based backgrounds matching house tier
+- Roaming cats with AI movement
+- Depth-based z-indexing (cats lower on screen appear in front)
+- Quick interaction menu on cat click
+
+**Props:**
+- `cats: Cat[]`
+- `houseSize: HouseSize`
+- `catCostumes: Record<string, string>`
+- `onPet: (catId: string) => void`
+- `onFeed: (catId: string) => void`
+- `onPlay: (catId: string) => void`
+
+### RoamingCat.tsx
+Individual roaming cat wrapper with movement animation.
+
+**Features:**
+- CSS-based position transitions
+- Facing direction (left/right flip)
+- Popover interaction menu on click
+- Walking state animation
+
+### EmpireInteractionMenu.tsx
+Quick action popover for cats in Empire view.
+
+**Actions:**
+- Pet (+5 happiness)
+- Feed (-1 food, +15 hunger)
+- Play (-1 toy, +10 happiness)
+- View Details
+- Photo Booth
+
+---
+
 ## Component Hierarchy
 
 ```
@@ -858,6 +900,8 @@ App.tsx
 │                           ├── CatPhotoBooth
 │                           ├── CatGallery
 │                           ├── CatCustomization
+│                           ├── CatRelationships
+│                           ├── Empire (→ EmpireScene)
 │                           ├── Leaderboard
 │                           ├── Stats
 │                           ├── AdminAuth
