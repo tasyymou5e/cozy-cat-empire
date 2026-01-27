@@ -6,14 +6,14 @@
 
 | File | Description |
 |------|-------------|
-| [COMPONENTS.md](COMPONENTS.md) | Component architecture (82+ game components, 42 hooks) |
+| [COMPONENTS.md](COMPONENTS.md) | Component architecture (82+ game components, 44 hooks) |
 | [GAME_LOGIC.md](GAME_LOGIC.md) | Core game mechanics, breeding, training, relationships |
 | [DATABASE_DESIGN.md](DATABASE_DESIGN.md) | Database schema (30+ tables), JSONB structures |
 | [GRAPHICS_SETTINGS.md](GRAPHICS_SETTINGS.md) | Graphics settings panel (14 configurable options) |
 | [SECURITY.md](SECURITY.md) | RLS policies, authentication, admin roles |
 | [TECH_STACK.md](TECH_STACK.md) | Technology stack, dependencies, file structure |
 | [ERROR_LOGGING.md](ERROR_LOGGING.md) | Error tracking, logging system |
-| [ADMIN_DASHBOARD.md](ADMIN_DASHBOARD.md) | Admin panel features, 8 admin pages |
+| [ADMIN_DASHBOARD.md](ADMIN_DASHBOARD.md) | Admin panel features, 15+ admin pages |
 | [SOCIAL_FEATURES.md](SOCIAL_FEATURES.md) | Friends, trading, gifting, relationships, decay system |
 | [CAT_RELATIONSHIPS_PAGE.md](CAT_RELATIONSHIPS_PAGE.md) | Dedicated relationships page implementation |
 | [BREEDING_COMPATIBILITY.md](BREEDING_COMPATIBILITY.md) | Breeding panel compatibility indicators |
@@ -27,6 +27,8 @@
 | [PANEL_DATA_FETCHING.md](PANEL_DATA_FETCHING.md) | Panel data fetching patterns (props vs hooks) |
 | [HOOKS_ARCHITECTURE.md](HOOKS_ARCHITECTURE.md) | Hooks architecture, progress tracking, state management |
 | [ARCHITECTURE_AUDIT.md](ARCHITECTURE_AUDIT.md) | Architecture audit findings and resolutions |
+| [PERFORMANCE_OPTIMIZATIONS.md](PERFORMANCE_OPTIMIZATIONS.md) | Performance optimizations and caching |
+| [AI_PORTRAIT_CREDITS.md](AI_PORTRAIT_CREDITS.md) | AI portrait credit system documentation |
 
 ---
 
@@ -42,7 +44,8 @@
 | **Social** | `useFriends.ts`, `useTrading.ts`, `useCatGifts.ts`, `useNotifications.ts` |
 | **Rewards** | `useDailyLoginRewards.ts`, `useWeeklyChallenges.ts`, `useBattlePass.ts`, `useLuckyWheel.ts` |
 | **Photo Booth** | `PhotoBooth.tsx`, `usePhotoGallery.ts`, `useCloudGallery.ts` |
-| **Admin** | `AdminLayout.tsx`, `useAdminAuth.ts`, `useAdminData.ts` |
+| **Admin** | `AdminLayout.tsx`, `useAdminAuth.ts`, `useAdminData.ts`, `useAdminCorruptedSaves.ts` |
+| **Data Integrity** | `saveMigration.ts`, `useCloudSave.ts` (pre-save validation), `useResources.ts` (addReward safeguards) |
 
 ### Database Tables (30+)
 
@@ -59,7 +62,8 @@
 | **Gallery** | `gallery_photos` |
 | **Notifications** | `push_subscriptions`, `announcements` |
 | **Logging** | `error_logs`, `player_activity_log`, `ai_usage_log` |
-| **Admin** | `user_roles`, `admin_activity_log`, `auth_attempts_log`, `rewards_processing_log` |
+| **Admin** | `user_roles`, `admin_activity_log`, `auth_attempts_log`, `rewards_processing_log`, `security_scan_history` |
+| **Config** | `game_config`, `admin_rate_limits` |
 
 ### Storage Buckets
 
@@ -68,7 +72,7 @@
 | `photo-gallery` | Photo booth images |
 | `cat-portraits` | AI-generated cat portraits |
 
-### Edge Functions (8)
+### Edge Functions (11)
 
 | Function | Purpose |
 |----------|---------|
@@ -80,6 +84,10 @@
 | `send-password-reset` | Password reset emails |
 | `admin-delete-user` | Admin user deletion |
 | `cleanup-error-logs` | Daily cleanup of error logs (30-day retention) |
+| `manage-portrait-credits` | Portrait credit management |
+| `validate-display-name` | Display name validation with profanity filter |
+| `run-security-linter` | Database security scanning |
+| `send-admin-alert` | Admin alert notifications |
 
 ---
 
@@ -121,7 +129,9 @@ Visit → Auto-login → Cloud Sync → What's New Popup → Game
 **Cloud Sync Safety:**
 - Race condition protection prevents data loss during login
 - Auto-save waits for cloud load completion
+- Pre-save integrity checks auto-correct corrupted data
 - Manual "Restore from Cloud" button available in Settings
+- Admin Game Save Repair tool for bulk corruption fixes
 
 ### Game Loop
 ```
@@ -165,3 +175,15 @@ Manage Cats → Do Chores → Buy/Sell → Train → Socialize → Shows → Bre
 - ✅ Input validation with Zod
 - ✅ Error sanitization
 - ✅ Audit logging (admin actions, auth attempts, player activity, AI usage)
+- ✅ Rate limiting for admin actions
+- ✅ Security scanning with historical tracking
+
+---
+
+## Data Integrity Safeguards
+
+- ✅ `totalMoneyEarned` only increases (never decreases when spending)
+- ✅ Pre-save validation auto-corrects negative money/earnings
+- ✅ Admin Game Save Repair tool detects and fixes corrupted saves
+- ✅ Cloud load migration repairs invalid data on load
+- ✅ Type guards validate game state structure

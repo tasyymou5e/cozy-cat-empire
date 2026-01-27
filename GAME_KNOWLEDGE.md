@@ -580,6 +580,10 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 - **useAdminData.ts**: Admin data queries
 - **useAdminActivityLog.ts**: Admin activity logging
 - **useAdminAIData.ts**: AI usage metrics
+- **useAdminCorruptedSaves.ts**: Game save corruption detection and repair
+- **useAdminRateLimit.ts**: Admin action rate limiting
+- **useSecurityLinter.ts**: Database security scanning
+- **useSecurityHistory.ts**: Security scan history tracking
 
 ### Utility Hooks:
 - **useErrorLogger.ts**: Error logging system with rate limiting
@@ -606,12 +610,20 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 - **admin/**: Admin dashboard pages
   - AdminDashboard.tsx
   - AdminUsers.tsx
+  - AdminProfileRepair.tsx
+  - AdminGameSaveRepair.tsx (corrupted save detection & repair)
   - AdminStatistics.tsx
   - AdminErrorLogs.tsx
   - AdminModeration.tsx
   - AdminAnnouncements.tsx
-  - AdminSettings.tsx
+  - AdminGameConfig.tsx
+  - AdminBattlePass.tsx
+  - AdminNotifications.tsx
   - AdminAIMetrics.tsx
+  - AdminSecurity.tsx
+  - AdminScheduledJobs.tsx
+  - AdminTutorialAnalytics.tsx
+  - AdminSettings.tsx
 
 ---
 
