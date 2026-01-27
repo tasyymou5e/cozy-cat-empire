@@ -14,6 +14,7 @@
 import { useCallback } from 'react';
 import { Cat, CAT_NAMES, BREEDS, PERSONALITIES } from '@/types/game';
 import { GameHookDependencies, generateId, createDefaultTrickProgress } from './types';
+import { inheritAppearance } from '@/lib/appearanceInheritance';
 
 /**
  * Actions available for cat breeding
@@ -120,6 +121,22 @@ export function useBreeding(deps: GameHookDependencies): BreedingActions {
           Math.min(20, parentAvgGrade + gradeVariance + Math.floor(compatibility.bonus / 10))
         );
 
+        // Calculate mutation chance based on relationship bonus
+        const mutationChance =
+          compatibility.bonus > 20
+            ? 0.05
+            : compatibility.bonus > 10
+              ? 0.08
+              : compatibility.bonus < 0
+                ? 0.15
+                : 0.1;
+
+        // Inherit appearance from parents
+        const kittenAppearance = inheritAppearance(parent1, parent2, {
+          mutationChance,
+          inheritedBreed: breed,
+        });
+
         // Create the kitten
         const kitten: Cat = {
           id: generateId(),
@@ -144,6 +161,7 @@ export function useBreeding(deps: GameHookDependencies): BreedingActions {
           restLevel: 100,
           feedingScore: 0,
           lastTrainingDay: 0,
+          appearance: kittenAppearance,
         };
 
         // Add positive relationship event for parents
