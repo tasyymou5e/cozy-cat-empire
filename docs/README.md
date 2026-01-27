@@ -118,6 +118,11 @@ Visit → Auto-login → Cloud Sync → What's New Popup → Game
                    Decay Reminders → Daily Rewards → Challenges
 ```
 
+**Cloud Sync Safety:**
+- Race condition protection prevents data loss during login
+- Auto-save waits for cloud load completion
+- Manual "Restore from Cloud" button available in Settings
+
 ### Game Loop
 ```
 Manage Cats → Do Chores → Buy/Sell → Train → Socialize → Shows → Breed → Repeat

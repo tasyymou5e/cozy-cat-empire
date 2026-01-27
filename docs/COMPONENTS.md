@@ -574,6 +574,7 @@ Local save management.
 - Manual save/load
 - Export/import JSON
 - Cloud sync status
+- **Restore from Cloud** - Manual recovery button with confirmation dialog for suspected data sync issues
 
 ### BulkActionsPanel.tsx
 Mass cat management operations.

@@ -123,7 +123,7 @@ This document provides a comprehensive overview of all pages and components in t
 |-----------|-------------|
 | `PlayerProfilePanel.tsx` | Player profile display |
 | `ProfileSetupDialog.tsx` | Initial profile setup |
-| `SaveLoadPanel.tsx` | Save/load game functionality |
+| `SaveLoadPanel.tsx` | Save/load game with Restore from Cloud button |
 
 #### Relationships
 
@@ -305,7 +305,7 @@ Standard shadcn/ui components available:
 | `useWeeklyChallenges` | Weekly challenges tracking |
 | `useChallengeAchievements` | Achievement unlocking |
 | `useDailyLoginRewards` | Daily login rewards |
-| `useCloudSave` | Cloud save/load |
+| `useCloudSave` | Cloud save/load with race condition protection |
 | `useCloudGallery` | Cloud photo storage |
 | `useMilestones` | Milestone celebration tracking |
 | `useLegacy` | Cat retirement/Hall of Fame |

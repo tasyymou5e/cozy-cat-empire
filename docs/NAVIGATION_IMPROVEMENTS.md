@@ -40,14 +40,19 @@ Created a two-tier navigation system:
 ### Current Problem
 External page links (Collection, Leaderboard, Relationships, Stats) are scattered as individual buttons with inconsistent styling.
 
-### Solution: Created a "Quick Access" Dropdown Menu
+### Solution: Created a "Quick Access" Dropdown + Featured Empire Button
 
-Replaced individual header buttons with organized dropdown:
+Replaced individual header buttons with organized dropdown plus a prominent Empire button:
+
+**GameHeader.tsx Changes:**
+- Added featured "Empire" button with Castle icon for logged-in users
+- Responsive: icon-only on mobile, icon + text on desktop
+- Quick Access dropdown for other navigation
 
 ```
-[🎮 Quick Access ▼]
-├── ⏱️ Recent
-│   ├── 💕 Breeding (2m ago)
+[🏰 Empire] [🎮 Quick Access ▼]
+            ├── ⏱️ Recent
+            │   ├── 💕 Breeding (2m ago)
 │   └── 🤝 Trading (5m ago)
 ├── ───────────────
 ├── 📊 My Stats
