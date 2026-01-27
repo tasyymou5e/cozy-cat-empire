@@ -24,6 +24,7 @@ const routeModules: Record<string, () => Promise<unknown>> = {
   '/catking/notifications': () => import('@/pages/admin/AdminNotifications'),
   '/catking/profile-repair': () => import('@/pages/admin/AdminProfileRepair'),
   '/catking/scheduled-jobs': () => import('@/pages/admin/AdminScheduledJobs'),
+  '/catking/game-repair': () => import('@/pages/admin/AdminGameSaveRepair'),
 };
 
 // Track prefetched routes to avoid duplicate fetches

@@ -52,6 +52,7 @@ const AdminNotifications = lazy(() => import('./pages/admin/AdminNotifications')
 const AdminProfileRepair = lazy(() => import('./pages/admin/AdminProfileRepair'));
 const AdminScheduledJobs = lazy(() => import('./pages/admin/AdminScheduledJobs'));
 const AdminSecurity = lazy(() => import('./pages/admin/AdminSecurity'));
+const AdminGameSaveRepair = lazy(() => import('./pages/admin/AdminGameSaveRepair'));
 
 const queryClient = new QueryClient();
 
@@ -198,6 +199,14 @@ const App = () => {
                             element={
                               <AdminRoute>
                                 <AdminSecurity />
+                              </AdminRoute>
+                            }
+                          />
+                          <Route
+                            path="/catking/game-repair"
+                            element={
+                              <AdminRoute>
+                                <AdminGameSaveRepair />
                               </AdminRoute>
                             }
                           />

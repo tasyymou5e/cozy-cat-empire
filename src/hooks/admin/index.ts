@@ -42,3 +42,19 @@ export {
 // Security linter
 export { useSecurityLinter } from './useSecurityLinter';
 export { useSecurityHistory } from './useSecurityHistory';
+
+// Game save repair
+export {
+  useAdminCorruptedSaves,
+  useRepairGameSave,
+  useBulkRepairGameSaves,
+  detectCorruption,
+  repairGameState,
+} from './useAdminCorruptedSaves';
+export type {
+  CorruptionType,
+  CorruptionIssue,
+  CorruptedSave,
+  CorruptionStats,
+  RepairResult,
+} from './useAdminCorruptedSaves';
