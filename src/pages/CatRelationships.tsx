@@ -4,6 +4,7 @@ import { useGameState } from '@/hooks/game';
 import { useSound } from '@/contexts/SoundContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
+import { GameLayout } from '@/components/layouts/GameLayout';
 import { FullScreenNetworkGraph } from '@/components/game/FullScreenNetworkGraph';
 import { RelationshipDirectory } from '@/components/game/RelationshipDirectory';
 import { CatSocialProfile } from '@/components/game/CatSocialProfile';
@@ -25,7 +26,6 @@ import { Cat } from '@/types/game';
 import { CatGroup, RelationshipEvent, getRelationshipLevel } from '@/types/relationships';
 import { CatVisual } from '@/components/game/CatVisual';
 import {
-  ArrowLeft,
   Settings,
   Volume2,
   VolumeX,
@@ -129,17 +129,20 @@ export default function CatRelationships() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading relationships...</p>
+      <GameLayout currentPage="/relationships">
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-muted-foreground">Loading relationships...</p>
+          </div>
         </div>
-      </div>
+      </GameLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <GameLayout currentPage="/relationships" day={state.day} money={state.money}>
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -553,6 +556,7 @@ export default function CatRelationships() {
         treats={state.resources.treats}
         equippedCostumeId={detailCat ? state.catCostumes[detailCat.id] : undefined}
       />
-    </div>
+      </div>
+    </GameLayout>
   );
 }

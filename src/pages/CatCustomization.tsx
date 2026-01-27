@@ -5,6 +5,7 @@ import { useSound } from '@/contexts/SoundContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
 import { usePortraitOutdatedToast } from '@/hooks/usePortraitOutdatedToast';
+import { GameLayout } from '@/components/layouts/GameLayout';
 import { CatAvatar } from '@/components/game/CatAvatar';
 import { GradeBadge } from '@/components/game/GradeBadge';
 import { Button } from '@/components/ui/button';
@@ -230,26 +231,31 @@ export default function CatCustomization() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
+      <GameLayout currentPage="/customize">
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+      </GameLayout>
     );
   }
 
   if (state.cats.length === 0) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <span className="text-6xl">🐾</span>
-        <p className="text-muted-foreground">No cats to customize yet!</p>
-        <Link to="/">
-          <Button>Go adopt some cats</Button>
-        </Link>
-      </div>
+      <GameLayout currentPage="/customize">
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+          <span className="text-6xl">🐾</span>
+          <p className="text-muted-foreground">No cats to customize yet!</p>
+          <Link to="/">
+            <Button>Go adopt some cats</Button>
+          </Link>
+        </div>
+      </GameLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <GameLayout currentPage="/customize" day={state.day} money={state.money}>
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -634,6 +640,7 @@ export default function CatCustomization() {
           </Card>
         </div>
       </main>
-    </div>
+      </div>
+    </GameLayout>
   );
 }
