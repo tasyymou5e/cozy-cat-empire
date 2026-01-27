@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Cat as CatIcon, Image as ImageIcon } from 'lucide-react';
+import { Cat as CatIcon, Image as ImageIcon } from 'lucide-react';
+import { GameLayout } from '@/components/layouts/GameLayout';
 import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,11 +24,6 @@ import { PhotoBooth } from '@/components/game/PhotoBooth';
  * from cloud or local storage and renders the PhotoBooth component.
  *
  * @route /photobooth/:catId?
- *
- * @example
- * ```tsx
- * <Route path="/photobooth/:catId?" element={<CatPhotoBooth />} />
- * ```
  */
 const CatPhotoBooth: React.FC = () => {
   const { catId } = useParams<{ catId?: string }>();
@@ -86,27 +82,31 @@ const CatPhotoBooth: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <CatIcon className="w-12 h-12 mx-auto mb-4 text-primary animate-bounce" />
-          <p className="text-muted-foreground">Loading Photo Booth...</p>
+      <GameLayout currentPage="/photobooth">
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <CatIcon className="w-12 h-12 mx-auto mb-4 text-primary animate-bounce" />
+            <p className="text-muted-foreground">Loading Photo Booth...</p>
+          </div>
         </div>
-      </div>
+      </GameLayout>
     );
   }
 
   if (gameState.cats.length === 0) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <CatIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-xl font-bold mb-2">No Cats Yet!</h2>
-          <p className="text-muted-foreground mb-4">
-            You need at least one cat to use the photo booth.
-          </p>
-          <Button onClick={() => navigate('/')}>Go Adopt a Cat</Button>
+      <GameLayout currentPage="/photobooth">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <div className="text-center max-w-md">
+            <CatIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-xl font-bold mb-2">No Cats Yet!</h2>
+            <p className="text-muted-foreground mb-4">
+              You need at least one cat to use the photo booth.
+            </p>
+            <Button onClick={() => navigate('/')}>Go Adopt a Cat</Button>
+          </div>
         </div>
-      </div>
+      </GameLayout>
     );
   }
 
@@ -115,49 +115,51 @@ const CatPhotoBooth: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Breadcrumbs
-              items={[{ label: 'Photo Booth' }, { label: selectedCat?.name || 'Select Cat' }]}
-            />
+    <GameLayout currentPage="/photobooth" day={gameState.day} money={gameState.money}>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
+          <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Breadcrumbs
+                items={[{ label: 'Photo Booth' }, { label: selectedCat?.name || 'Select Cat' }]}
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigate('/gallery')}>
+                <ImageIcon className="w-4 h-4 mr-2" />
+                Gallery
+              </Button>
+
+              <Select
+                value={selectedCatId || ''}
+                onValueChange={(value) => {
+                  setSelectedCatId(value);
+                  playSound('click');
+                }}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select a cat" />
+                </SelectTrigger>
+                <SelectContent>
+                  {gameState.cats.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name} ({cat.breed})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+        </header>
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate('/gallery')}>
-              <ImageIcon className="w-4 h-4 mr-2" />
-              Gallery
-            </Button>
-
-            <Select
-              value={selectedCatId || ''}
-              onValueChange={(value) => {
-                setSelectedCatId(value);
-                playSound('click');
-              }}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a cat" />
-              </SelectTrigger>
-              <SelectContent>
-                {gameState.cats.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {cat.name} ({cat.breed})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
-        <PhotoBooth cat={selectedCat} equippedCostumeId={equippedCostumeId} />
-      </main>
-    </div>
+        {/* Main Content */}
+        <main className="container mx-auto px-4 py-6">
+          <PhotoBooth cat={selectedCat} equippedCostumeId={equippedCostumeId} />
+        </main>
+      </div>
+    </GameLayout>
   );
 };
 

@@ -4,6 +4,7 @@ import { useGameState } from '@/hooks/game';
 import { useSound } from '@/contexts/SoundContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
+import { GameLayout } from '@/components/layouts/GameLayout';
 import { EmpireScene } from '@/components/empire/EmpireScene';
 import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { Button } from '@/components/ui/button';
@@ -121,98 +122,95 @@ export default function Empire() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading your empire...</p>
+      <GameLayout currentPage="/empire">
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-muted-foreground">Loading your empire...</p>
+          </div>
         </div>
-      </div>
+      </GameLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <Breadcrumbs items={[{ label: 'Empire' }]} />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="min-h-10 min-w-10">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-popover">
-                <DropdownMenuLabel>Settings</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setEnabled(!isEnabled())}
-                  className="cursor-pointer"
-                >
-                  {isEnabled() ? (
-                    <Volume2 className="h-4 w-4 mr-2" />
-                  ) : (
-                    <VolumeX className="h-4 w-4 mr-2" />
-                  )}
-                  {isEnabled() ? 'Mute Sounds' : 'Unmute Sounds'}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  className="cursor-pointer"
-                >
-                  {theme === 'dark' ? (
-                    <Sun className="h-4 w-4 mr-2" />
-                  ) : (
-                    <Moon className="h-4 w-4 mr-2" />
-                  )}
-                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <Link to="/collection">
-                  <DropdownMenuItem className="cursor-pointer">📋 Collection</DropdownMenuItem>
-                </Link>
-                <Link to="/photobooth">
-                  <DropdownMenuItem className="cursor-pointer">📸 Photo Booth</DropdownMenuItem>
-                </Link>
-              </DropdownMenuContent>
-            </DropdownMenu>
+    <GameLayout currentPage="/empire" day={state.day} money={state.money}>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Breadcrumbs items={[{ label: 'Empire' }]} />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="min-h-10 min-w-10">
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-popover">
+                  <DropdownMenuLabel>Settings</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => setEnabled(!isEnabled())}
+                    className="cursor-pointer"
+                  >
+                    {isEnabled() ? (
+                      <Volume2 className="h-4 w-4 mr-2" />
+                    ) : (
+                      <VolumeX className="h-4 w-4 mr-2" />
+                    )}
+                    {isEnabled() ? 'Mute Sounds' : 'Unmute Sounds'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className="cursor-pointer"
+                  >
+                    {theme === 'dark' ? (
+                      <Sun className="h-4 w-4 mr-2" />
+                    ) : (
+                      <Moon className="h-4 w-4 mr-2" />
+                    )}
+                    {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className="flex items-center gap-2 sm:gap-4 text-sm">
+              <Badge variant="secondary" className="gap-1.5">
+                <span>📅</span>
+                <span>Day {state.day}</span>
+              </Badge>
+              <Badge variant="secondary" className="gap-1.5">
+                <span>💰</span>
+                <span>${state.money}</span>
+              </Badge>
+              <Badge variant="secondary" className="gap-1.5">
+                <span>🐱</span>
+                <span>{state.cats.length}/{state.space}</span>
+              </Badge>
+            </div>
           </div>
+        </header>
 
-          <div className="flex items-center gap-2 sm:gap-4 text-sm">
-            <Badge variant="secondary" className="gap-1.5">
-              <span>📅</span>
-              <span>Day {state.day}</span>
-            </Badge>
-            <Badge variant="secondary" className="gap-1.5">
-              <span>💰</span>
-              <span>${state.money}</span>
-            </Badge>
-            <Badge variant="secondary" className="gap-1.5">
-              <span>🐱</span>
-              <span>{state.cats.length}/{state.space}</span>
-            </Badge>
+        {/* Main content */}
+        <main className="max-w-7xl mx-auto px-4 py-6">
+          <EmpireScene
+            cats={state.cats}
+            houseSize={state.houseSize}
+            catCostumes={state.catCostumes}
+            resources={state.resources}
+            onPetCat={handlePetCat}
+            onFeedCat={handleFeedCat}
+            onPlayWithCat={handlePlayWithCat}
+          />
+
+          {/* Info text */}
+          <div className="mt-6 text-center text-sm text-muted-foreground">
+            <p>Click on a cat to interact • Cats will roam around automatically</p>
           </div>
-        </div>
-      </header>
-
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        <EmpireScene
-          cats={state.cats}
-          houseSize={state.houseSize}
-          catCostumes={state.catCostumes}
-          resources={state.resources}
-          onPetCat={handlePetCat}
-          onFeedCat={handleFeedCat}
-          onPlayWithCat={handlePlayWithCat}
-        />
-
-        {/* Info text */}
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          <p>Click on a cat to interact • Cats will roam around automatically</p>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </GameLayout>
   );
 }
