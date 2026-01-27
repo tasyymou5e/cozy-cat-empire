@@ -1,197 +1,329 @@
 
-# Cloud Save Race Condition Fix
+# Comprehensive Race Condition Audit & Fix Plan
 
-## Problem Analysis
+## Executive Summary
 
-The current system has a race condition where saves can occur before cloud data has loaded, causing data loss:
-
-### Root Cause Chain
-```text
-1. User logs in
-2. Cloud load starts (async operation)
-3. BEFORE load completes, one of these happens:
-   - Auto-save interval triggers (useAutoSave.ts)
-   - User interacts with cat on Empire page (saveGame callback)
-   - User navigates to CatCustomization/CatCollection and edits
-   - beforeunload event fires (page close/refresh)
-4. Save writes fresh/default state to cloud
-5. Cloud load finally completes, but too late - data overwritten
-6. User's progress is lost
-```
-
-### Current Safety Mechanisms
-| Location | Protection | Gap |
-|----------|------------|-----|
-| `useCloudHandlers.ts:100` | Checks `ui.hasLoadedCloud` for interval save | ✅ Works for CatFarm |
-| `useCloudHandlers.ts:123` | Checks `ui.hasLoadedCloud` for manual save | ✅ Works for CatFarm |
-| `useCloudSave.ts:123` | Blocks empty cats if `day > 1` | ❌ Fails when `day === 1` |
-| `Empire.tsx:75-80` | Has own `hasLoadedCloud` state | ❌ Not checked in `saveGame()` |
-| `CatCollection.tsx:206` | No check | ❌ Can save before cloud loaded |
-| `CatCustomization.tsx:179` | No check | ❌ Can save before cloud loaded |
-| `useAutoSave.ts` | No loading gate check | ❌ Can fire during load |
+After a thorough audit of the codebase, I've identified **8 categories of race conditions** across 15+ files. The recently implemented cloud save fix addresses the most critical issue, but several other race conditions remain that could cause data inconsistencies, stale state, or UI glitches.
 
 ---
 
-## Solution Strategy
+## Race Conditions Identified
 
-### Approach: Multi-Layer Defense
+### Category 1: Async Effects Without Cancellation (HIGH Priority)
 
-1. **Hook-Level Gate** - Add `hasLoadedCloud` check inside `useCloudSave.cloudSave()` itself
-2. **Page-Level Guards** - Add guards in each page's save function
-3. **Enhanced Safety Check** - Improve the existing "empty cats" check in `useCloudSave.ts`
-4. **Loading State Sharing** - Create a shared loading state for cross-page consistency
+**Issue:** Several pages have `useEffect` hooks with async operations that update state after the component unmounts or after the userId changes.
+
+| File | Location | Problem |
+|------|----------|---------|
+| `src/pages/Empire.tsx` | Lines 40-54 | `loadSavedGame()` can update state after unmount |
+| `src/pages/CatRelationships.tsx` | Lines 57-89 | Same pattern - no cancellation token |
+| `src/pages/CatCollection.tsx` | Load effect | Async cloudLoad without isMounted check |
+| `src/pages/CatCustomization.tsx` | Load effect | Async cloudLoad without isMounted check |
+
+**Root Cause:** When a user navigates away quickly or logs out while loading, the async `.then()` callback still fires and calls `setState()` on an unmounted component.
+
+**Impact:** Console warnings, potential memory leaks, and in rare cases corrupted state if the callback sets data for the wrong user.
+
+---
+
+### Category 2: Real-time Subscription User Context (MEDIUM Priority)
+
+**Issue:** Real-time subscriptions don't validate that the userId hasn't changed between subscription creation and payload arrival.
+
+| File | Location | Problem |
+|------|----------|---------|
+| `src/hooks/usePlayerProfile.ts` | Lines 80-106 | `setProfile()` called without checking current userId |
+| `src/hooks/useCatGifts.ts` | Lines 216-266 | New gift handler doesn't verify user context |
+| `src/hooks/useTrading.ts` | Lines 272-320 | Trade INSERT handler lacks user validation |
+| `src/hooks/useNotifications.ts` | Lines 122-191 | Multiple subscriptions without context check |
+
+**Root Cause:** If a user logs out and another user logs in rapidly (or in different tabs), a payload from the old subscription could be applied to the new user's session.
+
+**Impact:** Data bleeding between user sessions (security/privacy concern), stale notifications.
+
+---
+
+### Category 3: External Update Handling Heuristic (LOW Priority)
+
+**Issue:** The "own save" detection in `useCloudSave.ts` uses a 5-second time window heuristic instead of strict sequence tracking.
+
+| File | Location | Problem |
+|------|----------|---------|
+| `src/hooks/useCloudSave.ts` | Lines 94-104 | Time-based check can fail with high latency or clock drift |
+
+**Root Cause:** In high-latency scenarios, a save's timestamp might arrive more than 5 seconds after the local save reference, triggering a false "external update" detection.
+
+**Impact:** Unnecessary reload prompts, potential confusion for users.
+
+---
+
+### Category 4: Daily Login Reward Double-Claim (LOW Priority)
+
+**Issue:** The daily reward claim doesn't use optimistic locking - rapid double-clicks could theoretically process twice.
+
+| File | Location | Problem |
+|------|----------|---------|
+| `src/hooks/useDailyLoginRewards.ts` | Lines 310-406 | No mutex/lock on `claimDailyReward()` |
+
+**Root Cause:** The `canClaim` check happens before the async database update, creating a small window for duplicate claims.
+
+**Impact:** Minor - could result in duplicate rewards (though cross-tab sync helps mitigate).
+
+---
+
+### Category 5: Challenge Progress Concurrent Updates (LOW Priority)
+
+**Issue:** Multiple simultaneous challenge progress updates could race against each other.
+
+| File | Location | Problem |
+|------|----------|---------|
+| `src/hooks/useWeeklyChallenges.ts` | Lines 228-313 | Parallel progress updates aren't serialized |
+
+**Root Cause:** If `updateProgress()` is called multiple times rapidly (e.g., batch wins), each call reads the current progress before any update completes.
+
+**Impact:** Progress could be under-counted if updates overlap.
+
+---
+
+### Category 6: Auth State Race During Initial Load (MEDIUM Priority)
+
+**Issue:** Pages that depend on auth state might render before `auth.loading` resolves, leading to incorrect branching.
+
+| File | Location | Problem |
+|------|----------|---------|
+| `src/contexts/AuthContext.tsx` | Lines 26-46 | Dual session check pattern |
+| Multiple pages | Load effects | May act on `user === null` before session check completes |
+
+**Root Cause:** The `getSession()` call and `onAuthStateChange` can resolve in different orders, and pages don't always wait for `loading === false`.
+
+**Impact:** Pages may assume "not logged in" when the user actually is logged in, leading to wrong behavior on initial load.
+
+---
+
+### Category 7: Broadcast Sync Message Order (LOW Priority)
+
+**Issue:** Cross-tab sync messages have no sequence ordering.
+
+| File | Location | Problem |
+|------|----------|---------|
+| `src/hooks/useBroadcastSync.ts` | All | Messages processed in arrival order, not logical order |
+
+**Root Cause:** If tab A sends claim → reward, but tab B receives reward → claim, state could be inconsistent.
+
+**Impact:** Minor UI inconsistencies between tabs.
+
+---
+
+### Category 8: Portrait Credits Concurrent Purchase (LOW Priority)
+
+**Issue:** Portrait credit purchase lacks client-side debounce or server-side idempotency.
+
+| File | Location | Problem |
+|------|----------|---------|
+| `src/hooks/usePortraitCredits.ts` | Lines 92-156 | No debounce, relies on `isPurchasing` flag |
+
+**Root Cause:** The `isPurchasing` flag provides basic protection, but rapid clicks before first state update could slip through.
+
+**Impact:** Potential duplicate purchases (would require server-side fix for full resolution).
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Enhance `useCloudSave` Hook (~25 lines)
+### Phase 1: Async Effect Cancellation (HIGH Priority)
+**Files:** Empire.tsx, CatRelationships.tsx, CatCollection.tsx, CatCustomization.tsx
+**Changes:** ~40 lines total
 
-**File:** `src/hooks/useCloudSave.ts`
+Add `isMounted` ref pattern to all async load effects:
 
-Add a new `isLoading` state that tracks whether initial load has occurred, and expose it for callers to check:
+```typescript
+useEffect(() => {
+  let isMounted = true;
+  
+  const loadSavedGame = async () => {
+    if (user) {
+      const { data } = await cloudLoad();
+      if (!isMounted) return; // CANCEL if unmounted
+      if (data) {
+        actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
+        setHasLoadedCloud(true);
+        setIsLoading(false);
+        return;
+      }
+    }
+    // ... rest of logic with isMounted checks
+    if (isMounted) {
+      setHasLoadedCloud(true);
+      setIsLoading(false);
+    }
+  };
 
-```text
-Changes:
-1. Add `isLoaded` state (default: false)
-2. Set `isLoaded = true` after first successful cloudLoad() call
-3. Add check in cloudSave() to reject saves when not loaded
-4. Improve the safety check to block ANY save on day 1 for logged-in users
-   unless explicitly marked as "new user first save"
-5. Return `isLoaded` from the hook
+  loadSavedGame();
+  
+  return () => { isMounted = false; };
+}, [user, hasLoadedCloud, cloudLoad, actions]);
 ```
 
-**New Logic in cloudSave():**
+### Phase 2: Real-time Subscription User Context Guards (MEDIUM Priority)
+**Files:** usePlayerProfile.ts, useCatGifts.ts, useTrading.ts, useNotifications.ts
+**Changes:** ~30 lines total
+
+Capture userId at subscription time and validate in handlers:
+
 ```typescript
-// NEW: Block saves if cloud data hasn't been loaded yet
-if (!isLoadedRef.current) {
-  console.warn('[CloudSync] Blocked save: Cloud data not yet loaded');
-  return { success: false, error: 'Cloud data not loaded yet' };
+useEffect(() => {
+  if (!userId) return;
+  
+  const subscribedUserId = userId; // Capture at subscription time
+  
+  const channel = supabase
+    .channel(`profile-${userId}`)
+    .on('postgres_changes', {...}, (payload) => {
+      // GUARD: Ensure we're still the same user
+      if (subscribedUserId !== userId) {
+        console.log('[ProfileSync] Ignoring stale update for different user');
+        return;
+      }
+      setProfile(payload.new);
+    })
+    .subscribe();
+
+  return () => supabase.removeChannel(channel);
+}, [userId]);
+```
+
+### Phase 3: Auth Loading Gate (MEDIUM Priority)
+**Files:** Empire.tsx, CatRelationships.tsx, CatCollection.tsx, CatCustomization.tsx
+**Changes:** ~20 lines total
+
+Wait for auth loading to complete before proceeding:
+
+```typescript
+const { user, loading: authLoading } = useAuth();
+
+useEffect(() => {
+  // Don't load until auth state is resolved
+  if (authLoading) return;
+  if (hasLoadedCloud) return;
+  
+  const loadSavedGame = async () => {
+    // ... existing logic
+  };
+  
+  loadSavedGame();
+}, [authLoading, user, hasLoadedCloud, cloudLoad, actions]);
+```
+
+### Phase 4: Claim Action Mutex (LOW Priority)
+**Files:** useDailyLoginRewards.ts, useWeeklyChallenges.ts
+**Changes:** ~20 lines total
+
+Add processing lock to prevent double-execution:
+
+```typescript
+const isClaimingRef = useRef(false);
+
+const claimDailyReward = useCallback(async () => {
+  if (isClaimingRef.current) return null; // Prevent double-claim
+  if (!userId || !canClaim) return null;
+  
+  isClaimingRef.current = true;
+  setCanClaim(false); // Optimistic UI update
+  
+  try {
+    // ... existing claim logic
+  } finally {
+    isClaimingRef.current = false;
+  }
+}, [...]);
+```
+
+### Phase 5: Challenge Progress Serialization (LOW Priority)
+**Files:** useWeeklyChallenges.ts
+**Changes:** ~15 lines total
+
+Queue progress updates to prevent overlap:
+
+```typescript
+const updateQueueRef = useRef<Promise<void>>(Promise.resolve());
+
+const updateProgress = useCallback(async (type: ChallengeType, increment: number = 1) => {
+  // Serialize updates to prevent race conditions
+  updateQueueRef.current = updateQueueRef.current.then(async () => {
+    // ... existing update logic
+  });
+  
+  await updateQueueRef.current;
+}, [userId, challenges, fetchChallenges]);
+```
+
+### Phase 6: External Update Tracking Enhancement (LOW Priority)
+**Files:** useCloudSave.ts
+**Changes:** ~10 lines total
+
+Add save ID tracking alongside timestamp:
+
+```typescript
+const lastSaveIdRef = useRef<string | null>(null);
+
+// In cloudSave():
+const saveId = crypto.randomUUID();
+lastSaveIdRef.current = saveId;
+
+// In subscription handler:
+if (payload.new.save_id === lastSaveIdRef.current) {
+  console.log('[CloudSync] Ignoring own save update');
+  return;
 }
-
-// ENHANCED: Block saves on day 1 with 0 cats (likely race condition)
-if (gameState.cats.length === 0 && gameState.day === 1 && !options?.isNewUser) {
-  console.warn('[CloudSync] Blocked save: Empty state on day 1 suggests race condition');
-  return { success: false, error: 'Blocked potential race condition save' };
-}
 ```
 
-### Phase 2: Update Page Components (~15 lines each)
-
-**File:** `src/pages/Empire.tsx`
-
-Add guard to `saveGame` callback:
-
-```typescript
-const saveGame = useCallback(async () => {
-  // Guard: Only save if cloud data has been loaded
-  if (!hasLoadedCloud) {
-    console.warn('[Empire] Skipping save - cloud data not loaded');
-    return;
-  }
-  if (user) {
-    const relationshipData = relationshipSystem.getRelationshipSaveData();
-    await cloudSave(state, kittensBreed, relationshipData);
-  }
-}, [user, hasLoadedCloud, cloudSave, state, kittensBreed, relationshipSystem]);
-```
-
-**File:** `src/pages/CatCollection.tsx`
-
-Add guard to `handlePortraitGenerated`:
-
-```typescript
-const handlePortraitGenerated = async (catId: string, portraitUrl: string) => {
-  // Guard: Only save if cloud data has been loaded
-  if (!hasLoadedCloud) {
-    console.warn('[CatCollection] Skipping cloud save - not loaded yet');
-    return;
-  }
-  // ... existing logic
-};
-```
-
-**File:** `src/pages/CatCustomization.tsx`
-
-Add guard to `handleSave`:
-
-```typescript
-const handleSave = async () => {
-  if (!selectedCat || !editedAppearance) return;
-  // Guard: Only save if cloud data has been loaded
-  if (!hasLoadedCloud && user) {
-    console.warn('[CatCustomization] Skipping cloud save - not loaded yet');
-    return;
-  }
-  // ... existing logic
-};
-```
-
-### Phase 3: Update `useAutoSave` Hook (~10 lines)
-
-**File:** `src/hooks/useAutoSave.ts`
-
-The hook already accepts an `enabled` option - callers must pass `hasLoadedCloud` to gate it:
-
-```typescript
-// Already has this capability - verify callers use it correctly
-const performAutoSave = useCallback(async () => {
-  if (!userId || !enabled || isSavingRef.current) return;
-  // ...
-});
-```
-
-Callers using `useAutoSave` must pass:
-```typescript
-useAutoSave(userId, state, kittensBreed, relationships, {
-  enabled: isLoggedIn && hasLoadedCloud, // CRITICAL: Include hasLoadedCloud
-});
-```
-
-### Phase 4: Add Comprehensive Logging (~5 lines)
-
-Enhance logging to trace save attempts for debugging:
-
-```typescript
-console.log('[CloudSync] Save attempt', {
-  isLoaded: isLoadedRef.current,
-  catsCount: gameState.cats.length,
-  day: gameState.day,
-  userId: userId?.slice(0, 8) + '...',
-});
-```
+Note: This requires adding a `save_id` column to the `game_saves` table.
 
 ---
 
-## File Summary
+## Implementation Order (By Priority)
 
-| File | Action | Lines Changed |
-|------|--------|---------------|
-| `src/hooks/useCloudSave.ts` | Modify | ~25 |
-| `src/pages/Empire.tsx` | Modify | ~5 |
-| `src/pages/CatCollection.tsx` | Modify | ~5 |
-| `src/pages/CatCustomization.tsx` | Modify | ~5 |
-| **Total** | | ~40 |
+| Phase | Priority | Files | Est. Lines | Risk |
+|-------|----------|-------|------------|------|
+| 1 | HIGH | 4 pages | ~40 | Low |
+| 2 | MEDIUM | 4 hooks | ~30 | Low |
+| 3 | MEDIUM | 4 pages | ~20 | Low |
+| 4 | LOW | 2 hooks | ~20 | Low |
+| 5 | LOW | 1 hook | ~15 | Low |
+| 6 | LOW | 1 hook + migration | ~15 | Medium (requires DB change) |
+| **Total** | | **16 files** | **~140** | |
 
 ---
 
 ## Validation Scenarios
 
-After implementation, these scenarios should work correctly:
+After implementation, these scenarios should pass:
 
 | Scenario | Expected Behavior |
 |----------|-------------------|
-| User logs in, auto-save fires during load | Save blocked, warning logged |
-| User logs in, clicks cat on Empire before load | Save blocked until load completes |
-| User with existing save opens CatCustomization | Loads cloud data first, then allows edits |
-| New user creates first cat | Allowed (day 1, but `isNewUser` flag set) |
-| Page refresh during gameplay | beforeunload save blocked if load not complete |
+| User navigates away during cloud load | No state update after unmount, no console warnings |
+| Rapid login/logout switching | No cross-user data bleeding |
+| Double-click on claim button | Only one claim processed |
+| Multiple challenge completions at once | All progress correctly counted |
+| Slow network + save detection | No false "external update" alerts |
+| Page load before auth resolves | Waits for auth, then loads correctly |
 
 ---
 
-## Technical Notes
+## Risk Assessment
 
-- **Backward Compatibility**: Existing saves unaffected
-- **Performance**: No additional network calls
-- **Error Recovery**: Failed loads still mark as "loaded" to prevent stuck states
-- **Logging**: Enhanced console output for debugging sync issues
+| Risk | Mitigation |
+|------|------------|
+| Breaking existing saves | No save format changes in Phases 1-5 |
+| Performance impact | Minimal - only adds lightweight checks |
+| Phase 6 DB migration | Optional - can skip if risk is unacceptable |
+| Testing complexity | Each phase is independent and testable |
+
+---
+
+## Notes
+
+- **Phase 6 is optional** - the time-based heuristic works in 99% of cases
+- **All fixes are backward compatible** - no data migration required except Phase 6
+- **Each phase can be deployed independently** for safer rollout
+- **Existing unit tests should still pass** - fixes add guards, don't change logic
