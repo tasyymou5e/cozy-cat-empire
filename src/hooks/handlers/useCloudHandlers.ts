@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useAutoSave } from '@/hooks/useAutoSave';
 import type { CatFarmState } from '../useCatFarmState';
 
 interface CloudHandlersDeps {
@@ -95,28 +96,37 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
     }
   }, [auth.user, ui.hasLoadedCloud, cloudSave, actions, ui]);
 
-  // Auto-save to cloud every 5 minutes - ONLY after cloud data has loaded
-  useEffect(() => {
-    if (!auth.user || !ui.hasLoadedCloud) return;
-
-    const interval = setInterval(
-      async () => {
+  // Auto-save to cloud every 1 minute using the enhanced useAutoSave hook
+  // CRITICAL: Only enabled after cloud data has loaded to prevent data loss
+  useAutoSave(
+    auth.user?.id,
+    state,
+    kittensBreed,
+    relationshipSystem.getRelationshipSaveData(),
+    {
+      intervalMs: 60 * 1000, // 1 minute
+      enabled: !!auth.user && ui.hasLoadedCloud,
+      onSaveStart: () => {
         ui.setCloudSyncing(true);
-        const result = await cloudSave.cloudSave(
-          state,
-          kittensBreed,
-          relationshipSystem.getRelationshipSaveData()
-        );
-        if (result.success) {
-          ui.setLastCloudSave(new Date().toISOString());
-        }
-        ui.setCloudSyncing(false);
       },
-      5 * 60 * 1000
-    );
-
-    return () => clearInterval(interval);
-  }, [auth.user, ui.hasLoadedCloud, state, kittensBreed, relationshipSystem, cloudSave, ui]);
+      onSaveComplete: () => {
+        ui.setCloudSyncing(false);
+        ui.setLastCloudSave(new Date().toISOString());
+      },
+      onSaveError: (error, retryCount) => {
+        ui.setCloudSyncing(false);
+        console.error(`[CloudSync] Auto-save failed after ${retryCount} retries:`, error.message);
+        // Optionally show toast for persistent errors
+        if (retryCount >= 2) {
+          toast({
+            title: 'Save Warning',
+            description: 'Auto-save failed. Your progress will be saved on your next action.',
+            variant: 'destructive',
+          });
+        }
+      },
+    }
+  );
 
   const handleCloudSave = useCallback(async () => {
     if (!auth.user) return;
