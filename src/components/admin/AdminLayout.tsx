@@ -22,6 +22,7 @@ import {
   Wrench,
   Clock,
   GraduationCap,
+  Database,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +30,7 @@ const ADMIN_NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/catking/dashboard' },
   { id: 'users', label: 'Users', icon: Users, path: '/catking/users' },
   { id: 'profiles', label: 'Profile Repair', icon: Wrench, path: '/catking/profiles' },
+  { id: 'game-repair', label: 'Game Save Repair', icon: Database, path: '/catking/game-repair' },
   { id: 'statistics', label: 'Statistics', icon: BarChart3, path: '/catking/stats' },
   { id: 'tutorial', label: 'Tutorial Analytics', icon: GraduationCap, path: '/catking/tutorial' },
   { id: 'ai-metrics', label: 'AI Metrics', icon: Sparkles, path: '/catking/ai-metrics' },

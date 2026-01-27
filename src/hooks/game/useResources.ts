@@ -251,10 +251,17 @@ export function useResources(deps: GameHookDependencies): ResourceActions {
 
   const addReward = useCallback(
     (coins: number, resources?: Partial<Resources>) => {
+      // Safeguard: Never allow negative coin rewards
+      if (coins < 0) {
+        console.warn('[addReward] Attempted to add negative coins:', coins);
+        return;
+      }
+
       setState((prev) => ({
         ...prev,
         money: prev.money + coins,
-        totalMoneyEarned: prev.totalMoneyEarned + coins,
+        // Safeguard: Ensure totalMoneyEarned only increases (never decreases)
+        totalMoneyEarned: Math.max(prev.totalMoneyEarned, prev.totalMoneyEarned + coins),
         resources: {
           food: prev.resources.food + (resources?.food || 0),
           medicine: prev.resources.medicine + (resources?.medicine || 0),

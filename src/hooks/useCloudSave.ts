@@ -158,11 +158,29 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
         userId: userId.slice(0, 8) + '...',
       });
 
+      // Pre-save integrity checks and auto-correction
+      const integrityIssues: string[] = [];
+      const correctedState = { ...gameState };
+
+      if (typeof correctedState.totalMoneyEarned !== 'number' || correctedState.totalMoneyEarned < 0) {
+        integrityIssues.push(`totalMoneyEarned: ${correctedState.totalMoneyEarned} → 0`);
+        correctedState.totalMoneyEarned = 0;
+      }
+
+      if (typeof correctedState.money !== 'number' || correctedState.money < 0) {
+        integrityIssues.push(`money: ${correctedState.money} → 0`);
+        correctedState.money = Math.max(0, correctedState.money || 0);
+      }
+
+      if (integrityIssues.length > 0) {
+        console.warn('[CloudSync] Auto-corrected integrity issues:', integrityIssues);
+      }
+
       try {
         const now = new Date().toISOString();
         const saveData = {
           user_id: userId,
-          game_state: gameState as unknown as Json,
+          game_state: correctedState as unknown as Json,
           kittens_bred: kittensBreed,
           relationships: relationshipData as unknown as Json,
           last_played_at: now,
