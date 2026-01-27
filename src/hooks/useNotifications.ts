@@ -119,9 +119,12 @@ export function useNotifications(userId: string | undefined) {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  // Real-time subscriptions
+  // Real-time subscriptions - with user context guard
   useEffect(() => {
     if (!userId) return;
+
+    // Phase 2: Capture userId at subscription time
+    const subscribedUserId = userId;
 
     const friendChannel = supabase
       .channel('friend-notifications')
@@ -134,6 +137,8 @@ export function useNotifications(userId: string | undefined) {
           filter: `friend_id=eq.${userId}`,
         },
         () => {
+          // Phase 2: Validate user context hasn't changed
+          if (subscribedUserId !== userId) return;
           toast({
             title: '👥 New Friend Request!',
             description: 'Someone wants to be your friend!',
@@ -154,6 +159,8 @@ export function useNotifications(userId: string | undefined) {
           filter: `recipient_id=eq.${userId}`,
         },
         () => {
+          // Phase 2: Validate user context hasn't changed
+          if (subscribedUserId !== userId) return;
           toast({
             title: '🎁 New Cat Gift!',
             description: 'Someone sent you a cat!',
@@ -174,6 +181,8 @@ export function useNotifications(userId: string | undefined) {
           filter: `recipient_id=eq.${userId}`,
         },
         () => {
+          // Phase 2: Validate user context hasn't changed
+          if (subscribedUserId !== userId) return;
           toast({
             title: '📦 New Trade Offer!',
             description: 'Someone wants to trade with you!',

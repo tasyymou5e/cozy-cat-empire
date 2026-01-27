@@ -16,7 +16,7 @@
  * @module hooks/useWeeklyChallenges
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useChallengeAchievements } from '@/hooks/useChallengeAchievements';
@@ -129,6 +129,9 @@ export function useWeeklyChallenges(
   const { totalChallengesCompleted, currentStreak, longestStreak, incrementCompleted } =
     useChallengeAchievements(userId, playSound, haptics?.vibrateAchievement);
 
+  // Phase 5: Queue for serializing progress updates
+  const updateQueueRef = useRef<Promise<void>>(Promise.resolve());
+
   /**
    * Fetch active challenges and user progress from database.
    * Combines challenge definitions with user-specific progress records.
@@ -229,54 +232,78 @@ export function useWeeklyChallenges(
     async (challengeType: ChallengeType, increment: number = 1) => {
       if (!userId) return;
 
-      // Find matching active challenges
-      const matchingChallenges = challenges.filter(
-        (c) => c.challenge_type === challengeType && !c.progress?.completed
-      );
+      // Phase 5: Serialize updates to prevent race conditions
+      updateQueueRef.current = updateQueueRef.current.then(async () => {
+        // Re-fetch challenges to get latest progress (avoid stale reads)
+        const { data: latestChallenges } = await supabase
+          .from('weekly_challenges')
+          .select('*')
+          .eq('is_active', true)
+          .gte('ends_at', new Date().toISOString())
+          .lte('starts_at', new Date().toISOString());
 
-      let progressMade = false;
+        if (!latestChallenges) return;
 
-      for (const challenge of matchingChallenges) {
-        const currentProgress = challenge.progress?.current_progress || 0;
-        const newProgress = currentProgress + increment;
-        const isCompleted = newProgress >= challenge.target_value;
+        const { data: latestProgress } = await supabase
+          .from('player_challenge_progress')
+          .select('*')
+          .eq('user_id', userId)
+          .in(
+            'challenge_id',
+            latestChallenges.map((c) => c.id)
+          );
 
-        if (challenge.progress) {
-          // Update existing progress
-          const { error } = await supabase
-            .from('player_challenge_progress')
-            .update({
+        const progressMap = new Map(latestProgress?.map((p) => [p.challenge_id, p]) || []);
+
+        // Find matching active challenges
+        const matchingChallenges = latestChallenges.filter((c) => {
+          const progress = progressMap.get(c.id);
+          return c.challenge_type === challengeType && !progress?.completed;
+        });
+
+        let progressMade = false;
+
+        for (const challenge of matchingChallenges) {
+          const existingProgress = progressMap.get(challenge.id);
+          const currentProgress = existingProgress?.current_progress || 0;
+          const newProgress = currentProgress + increment;
+          const isCompleted = newProgress >= challenge.target_value;
+
+          if (existingProgress) {
+            // Update existing progress
+            const { error } = await supabase
+              .from('player_challenge_progress')
+              .update({
+                current_progress: newProgress,
+                completed: isCompleted,
+                completed_at: isCompleted ? new Date().toISOString() : null,
+              })
+              .eq('id', existingProgress.id);
+
+            if (error) {
+              console.error('Error updating progress:', error);
+              continue;
+            }
+            progressMade = true;
+          } else {
+            // Create new progress record
+            const { error } = await supabase.from('player_challenge_progress').insert({
+              user_id: userId,
+              challenge_id: challenge.id,
               current_progress: newProgress,
               completed: isCompleted,
               completed_at: isCompleted ? new Date().toISOString() : null,
-            })
-            .eq('id', challenge.progress.id);
+            });
 
-          if (error) {
-            console.error('Error updating progress:', error);
-            continue;
+            if (error) {
+              console.error('Error creating progress:', error);
+              continue;
+            }
+            progressMade = true;
           }
-          progressMade = true;
-        } else {
-          // Create new progress record
-          const { error } = await supabase.from('player_challenge_progress').insert({
-            user_id: userId,
-            challenge_id: challenge.id,
-            current_progress: newProgress,
-            completed: isCompleted,
-            completed_at: isCompleted ? new Date().toISOString() : null,
-          });
 
-          if (error) {
-            console.error('Error creating progress:', error);
-            continue;
-          }
-          progressMade = true;
-        }
-
-        if (isCompleted) {
-          // Log challenge completed activity (non-blocking)
-          if (userId) {
+          if (isCompleted) {
+            // Log challenge completed activity (non-blocking)
             logPlayerActivity(userId, {
               activityType: 'challenge_completed',
               activityDescription: `Completed "${challenge.name}" challenge`,
@@ -287,29 +314,31 @@ export function useWeeklyChallenges(
                 reward_badge: challenge.reward_badge,
               },
             });
+
+            playSound?.('challengeComplete');
+            fireChallengeBurst?.();
+            haptics?.vibrateComplete();
+            toast({
+              title: `${challenge.emoji} Challenge Complete!`,
+              description: `You completed "${challenge.name}"! Claim your reward!`,
+            });
           }
-
-          playSound?.('challengeComplete');
-          fireChallengeBurst?.();
-          haptics?.vibrateComplete();
-          toast({
-            title: `${challenge.emoji} Challenge Complete!`,
-            description: `You completed "${challenge.name}"! Claim your reward!`,
-          });
         }
-      }
 
-      // Trigger animation and sound if progress was made
-      if (progressMade) {
-        playSound?.('challengeProgress');
-        haptics?.vibrateProgress();
-        setLastProgressUpdate({ type: challengeType, value: increment });
-      }
+        // Trigger animation and sound if progress was made
+        if (progressMade) {
+          playSound?.('challengeProgress');
+          haptics?.vibrateProgress();
+          setLastProgressUpdate({ type: challengeType, value: increment });
+        }
 
-      // Refresh challenges
-      fetchChallenges();
+        // Refresh challenges
+        fetchChallenges();
+      });
+
+      await updateQueueRef.current;
     },
-    [userId, challenges, fetchChallenges]
+    [userId, fetchChallenges, playSound, fireChallengeBurst, haptics]
   );
 
   /**

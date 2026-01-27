@@ -69,9 +69,12 @@ export function usePlayerProfile(userId: string | undefined) {
     fetchProfile();
   }, [fetchProfile]);
 
-  // Realtime subscription for profile updates
+  // Realtime subscription for profile updates - with user context guard
   useEffect(() => {
     if (!userId) return;
+
+    // Phase 2: Capture userId at subscription time
+    const subscribedUserId = userId;
 
     const channel = supabase
       .channel(`profile-${userId}`)
@@ -84,6 +87,11 @@ export function usePlayerProfile(userId: string | undefined) {
           filter: `id=eq.${userId}`,
         },
         (payload) => {
+          // Phase 2: Validate user context hasn't changed
+          if (subscribedUserId !== userId) {
+            console.log('[ProfileSync] Ignoring stale update for different user');
+            return;
+          }
           const newData = payload.new as {
             id: string;
             display_name: string | null;

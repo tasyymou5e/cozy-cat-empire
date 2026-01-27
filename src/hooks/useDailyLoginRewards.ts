@@ -15,7 +15,7 @@
  * @module hooks/useDailyLoginRewards
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LoginData,
@@ -307,12 +307,20 @@ export function useDailyLoginRewards(
    *
    * @returns Claimed rewards (coins + resources + costumes) or null on failure
    */
+  // Phase 4: Mutex to prevent double-claiming
+  const isClaimingRef = useRef(false);
+
   const claimDailyReward = useCallback(async (): Promise<{
     coins: number;
     resources: Partial<Resources>;
     unlockedCostumes?: string[];
   } | null> => {
+    // Phase 4: Check mutex to prevent double-execution
+    if (isClaimingRef.current) return null;
     if (!userId || !loginData || !todayReward || !canClaim) return null;
+
+    isClaimingRef.current = true;
+    setCanClaim(false); // Optimistic UI update
 
     try {
       const today = getToday();
@@ -386,12 +394,15 @@ export function useDailyLoginRewards(
       };
     } catch (err) {
       console.error('Error claiming reward:', err);
+      setCanClaim(true); // Restore on failure
       toast({
         title: 'Error',
         description: 'Failed to claim reward. Please try again.',
         variant: 'destructive',
       });
       return null;
+    } finally {
+      isClaimingRef.current = false;
     }
   }, [
     userId,

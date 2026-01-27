@@ -269,9 +269,12 @@ export function useTrading(userId: string | undefined) {
     fetchTrades();
   }, [fetchTrades]);
 
-  // Real-time subscription for incoming trade updates
+  // Real-time subscription for incoming trade updates - with user context guard
   useEffect(() => {
     if (!userId) return;
+
+    // Phase 2: Capture userId at subscription time
+    const subscribedUserId = userId;
 
     const channel = supabase
       .channel('trade-offers-changes')
@@ -284,6 +287,11 @@ export function useTrading(userId: string | undefined) {
           filter: `recipient_id=eq.${userId}`,
         },
         async (payload) => {
+          // Phase 2: Validate user context hasn't changed
+          if (subscribedUserId !== userId) {
+            console.log('[TradeSync] Ignoring stale trade for different user');
+            return;
+          }
           if (payload.eventType === 'INSERT') {
             // Fetch sender name for the popup
             const newTrade = payload.new as any;

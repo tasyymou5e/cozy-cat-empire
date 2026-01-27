@@ -212,9 +212,12 @@ export function useCatGifts(userId: string | undefined) {
     fetchGifts();
   }, [fetchGifts]);
 
-  // Real-time subscription for new gifts
+  // Real-time subscription for new gifts - with user context guard
   useEffect(() => {
     if (!userId) return;
+
+    // Phase 2: Capture userId at subscription time
+    const subscribedUserId = userId;
 
     const channel = supabase
       .channel('cat-gifts-changes')
@@ -227,6 +230,11 @@ export function useCatGifts(userId: string | undefined) {
           filter: `recipient_id=eq.${userId}`,
         },
         async (payload) => {
+          // Phase 2: Validate user context hasn't changed
+          if (subscribedUserId !== userId) {
+            console.log('[GiftSync] Ignoring stale gift for different user');
+            return;
+          }
           // Fetch sender name for the new gift popup
           const newGift = payload.new as any;
           const { data: senderProfile } = await supabase
@@ -255,6 +263,11 @@ export function useCatGifts(userId: string | undefined) {
           filter: `recipient_id=eq.${userId}`,
         },
         () => {
+          // Phase 2: Validate user context hasn't changed
+          if (subscribedUserId !== userId) {
+            console.log('[GiftSync] Ignoring stale update for different user');
+            return;
+          }
           fetchGifts();
         }
       )

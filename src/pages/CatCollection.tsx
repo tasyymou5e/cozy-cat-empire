@@ -60,7 +60,7 @@ export default function CatCollection() {
   const { theme, setTheme } = useTheme();
   const { state, kittensBreed, relationshipSystem, actions } = useGameState(playSound);
   const isMobile = useIsMobile();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { cloudLoad, cloudSave } = useCloudSave(user?.id);
 
   const [search, setSearch, debouncedSearch] = useDebouncedSearch('', 300);
@@ -73,14 +73,19 @@ export default function CatCollection() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
 
-  // Load saved game on mount - with guard to prevent multiple loads
+  // Load saved game on mount - with isMounted guard and auth loading gate
   useEffect(() => {
+    // Phase 3: Wait for auth state to resolve before loading
+    if (authLoading) return;
     if (hasLoadedCloud) return;
+
+    let isMounted = true; // Phase 1: Async cancellation guard
 
     const loadSavedGame = async () => {
       // Try cloud save first if logged in
       if (user) {
         const { data } = await cloudLoad();
+        if (!isMounted) return; // Cancel if unmounted
         if (data) {
           actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
           setHasLoadedCloud(true);
@@ -88,6 +93,8 @@ export default function CatCollection() {
           return;
         }
       }
+
+      if (!isMounted) return; // Cancel if unmounted
 
       // Fall back to localStorage
       const saved = localStorage.getItem('cat-farm-save');
@@ -103,12 +110,18 @@ export default function CatCollection() {
           console.error('Failed to load local save:', e);
         }
       }
-      setHasLoadedCloud(true);
-      setIsLoading(false);
+      if (isMounted) {
+        setHasLoadedCloud(true);
+        setIsLoading(false);
+      }
     };
 
     loadSavedGame();
-  }, [user, hasLoadedCloud, cloudLoad, actions]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authLoading, user, hasLoadedCloud, cloudLoad, actions]);
 
   // Calculate outdated portrait count
   const outdatedCount = useMemo(() => {
