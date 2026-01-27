@@ -44,7 +44,7 @@ export default function CatRelationships() {
   const { playSound, isEnabled, setEnabled } = useSound();
   const { theme, setTheme } = useTheme();
   const { state, kittensBreed, relationshipSystem, actions } = useGameState(playSound);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { cloudLoad } = useCloudSave(user?.id);
 
   const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
@@ -53,13 +53,18 @@ export default function CatRelationships() {
   const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
   const [eventFilter, setEventFilter] = useState<'all' | 'positive' | 'negative'>('all');
 
-  // Load saved game on mount
+  // Load saved game on mount - with isMounted guard and auth loading gate
   useEffect(() => {
+    // Phase 3: Wait for auth state to resolve before loading
+    if (authLoading) return;
     if (hasLoadedCloud) return;
+
+    let isMounted = true; // Phase 1: Async cancellation guard
 
     const loadSavedGame = async () => {
       if (user) {
         const { data } = await cloudLoad();
+        if (!isMounted) return; // Cancel if unmounted
         if (data) {
           actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
           setHasLoadedCloud(true);
@@ -67,6 +72,8 @@ export default function CatRelationships() {
           return;
         }
       }
+
+      if (!isMounted) return; // Cancel if unmounted
 
       const saved = localStorage.getItem('cat-farm-save');
       if (saved) {
@@ -81,12 +88,18 @@ export default function CatRelationships() {
           console.error('Failed to load local save:', e);
         }
       }
-      setHasLoadedCloud(true);
-      setIsLoading(false);
+      if (isMounted) {
+        setHasLoadedCloud(true);
+        setIsLoading(false);
+      }
     };
 
     loadSavedGame();
-  }, [user, hasLoadedCloud, cloudLoad, actions]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authLoading, user, hasLoadedCloud, cloudLoad, actions]);
 
   // Calculate stats
   const stats = useMemo(() => {

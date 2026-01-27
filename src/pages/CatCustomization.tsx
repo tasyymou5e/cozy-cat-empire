@@ -71,7 +71,7 @@ export default function CatCustomization() {
   const navigate = useNavigate();
   const { playSound } = useSound();
   const { state, kittensBreed, relationshipSystem, actions } = useGameState(playSound);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { cloudLoad, cloudSave } = useCloudSave(user?.id);
   const { showOutdatedToast } = usePortraitOutdatedToast();
 
@@ -82,13 +82,18 @@ export default function CatCustomization() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
 
-  // Load saved game on mount
+  // Load saved game on mount - with isMounted guard and auth loading gate
   useEffect(() => {
+    // Phase 3: Wait for auth state to resolve before loading
+    if (authLoading) return;
     if (hasLoadedCloud) return;
+
+    let isMounted = true; // Phase 1: Async cancellation guard
 
     const loadSavedGame = async () => {
       if (user) {
         const { data } = await cloudLoad();
+        if (!isMounted) return; // Cancel if unmounted
         if (data) {
           actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
           setHasLoadedCloud(true);
@@ -96,6 +101,8 @@ export default function CatCustomization() {
           return;
         }
       }
+
+      if (!isMounted) return; // Cancel if unmounted
 
       const saved = localStorage.getItem('cat-farm-save');
       if (saved) {
@@ -110,12 +117,18 @@ export default function CatCustomization() {
           console.error('Failed to load local save:', e);
         }
       }
-      setHasLoadedCloud(true);
-      setIsLoading(false);
+      if (isMounted) {
+        setHasLoadedCloud(true);
+        setIsLoading(false);
+      }
     };
 
     loadSavedGame();
-  }, [user, hasLoadedCloud, cloudLoad, actions]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authLoading, user, hasLoadedCloud, cloudLoad, actions]);
 
   const selectedCat = state.cats.find((c) => c.id === selectedCatId) || state.cats[0];
   const currentAppearance =
