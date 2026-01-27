@@ -189,10 +189,16 @@ export default function CatCollection() {
     actions.trainCat(catId, trickId as any);
   };
 
-  // Handle portrait generation with cloud save
+  // Handle portrait generation with cloud save - guarded by cloud load state
   const handlePortraitGenerated = async (catId: string, portraitUrl: string, hash?: string) => {
     // Update local state first
     actions.updateCatPortrait(catId, portraitUrl, hash);
+
+    // Guard: Only save if cloud data has been loaded
+    if (!hasLoadedCloud) {
+      console.warn('[CatCollection] Skipping cloud save - not loaded yet');
+      return;
+    }
 
     // Save to cloud if logged in
     if (user) {

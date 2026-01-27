@@ -167,6 +167,13 @@ export default function CatCustomization() {
     // Save to local
     actions.saveGame();
 
+    // Guard: Only save to cloud if data has been loaded
+    if (!hasLoadedCloud && user) {
+      console.warn('[CatCustomization] Skipping cloud save - not loaded yet');
+      setIsSaving(false);
+      return;
+    }
+
     // Save to cloud if logged in
     if (user) {
       const updatedGameState = {
