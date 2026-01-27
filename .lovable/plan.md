@@ -1,275 +1,177 @@
 
-# Empire Page Implementation Plan
+
+# Appearance Inheritance for Kitten Creation
 
 ## Overview
 
-This plan implements the **Empire Page** — an interactive, animated visual dwelling where players watch their cats roam, play, and interact. The implementation follows the existing architecture patterns and reuses the robust visual framework (`CatVisual`, `CatAvatar`, `CatReaction`).
+Add genetic appearance inheritance to the breeding system so kittens inherit visual traits (fur color, pattern, eye color, hair length) from their parents instead of using breed defaults.
 
 ---
 
-## Architecture Validation
+## Current State
 
-The proposed plan aligns perfectly with the existing codebase:
-
-| Aspect | Existing Pattern | Empire Page Approach |
-|--------|------------------|---------------------|
-| **State Access** | `useGameState()` hook in pages | Same - uses `useGameState()` |
-| **Sound Effects** | `useSound()` context | Same - triggers `meow`, `purr`, etc. |
-| **Cat Visuals** | `CatVisual` component | Same - wraps in `RoamingCat` |
-| **Reactions** | `CatReactionContext` + `CatCardReaction` | Same - triggers on interactions |
-| **Page Structure** | Lazy-loaded pages with Suspense | Same pattern |
-| **Navigation** | `EXTERNAL_LINKS` in `GameSidebar.tsx` | Add `/empire` entry |
-| **Animations** | CSS keyframes in Tailwind config | Add new roaming animations |
+| Component | Current Behavior | Issue |
+|-----------|------------------|-------|
+| `useBreeding.ts` | Creates kitten without `appearance` property | Kitten uses breed defaults when rendered |
+| `CatAvatar.tsx` | Falls back to `generateDefaultAppearance(breed)` if no appearance | All kittens of same breed look identical |
+| `catAppearance.ts` | Has `generateDefaultAppearance()` and `randomizeAppearance()` | No inheritance function exists |
 
 ---
 
-## Implementation Steps
+## Implementation Plan
 
-### Phase 1: Configuration & Types (~50 lines)
+### Phase 1: Create Appearance Inheritance Utility (~80 lines)
 
-**File: `src/config/empire.ts`**
+**File:** `src/lib/appearanceInheritance.ts`
+
+Create a utility that generates kitten appearance based on parent genetics:
 
 ```text
-Define zone themes for each house tier:
-- apartment: Warm beige walls, grey carpet floor
-- house: Light blue walls, green rug floor  
-- mansion: Purple walls, marble floor
-- farm: Green walls, grass floor
-
-Each zone includes:
-- name: Display name
-- backgroundClass: Tailwind gradient/color for walls
-- floorClass: Tailwind class for floor area
-- floorPattern: Optional pattern (wood grain, grass, marble)
+Inheritance Rules:
+┌─────────────────────────────────────────────────────────────┐
+│ Trait           │ Inheritance Logic                        │
+├─────────────────┼──────────────────────────────────────────┤
+│ Fur Color       │ 45% parent1, 45% parent2, 10% mutation   │
+│ Pattern         │ 45% parent1, 45% parent2, 10% mutation   │
+│ Pattern Color   │ 50% parent1, 50% parent2                 │
+│ Eye Color       │ 45% parent1, 45% parent2, 10% mutation   │
+│ Hair Length     │ Dominant gene logic (fluffy > medium >   │
+│                 │ short), with 20% chance of recessive     │
+│ Facial Feature  │ 80% "normal", 20% random mutation        │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**File: `src/types/empire.ts`**
+**Key Functions:**
 
-```text
-Interfaces for:
-- ZoneTheme: Theme configuration per house tier
-- CatPosition: { x, y, facing, state }
-- CatState: 'idle' | 'walking' | 'interacting' | 'sleeping'
+```typescript
+// Main inheritance function
+export function inheritAppearance(
+  parent1: Cat,
+  parent2: Cat,
+  options?: InheritanceOptions
+): CatAppearance;
+
+// Individual trait inheritance
+function inheritTrait<T>(
+  trait1: T, 
+  trait2: T, 
+  allOptions: T[], 
+  mutationChance?: number
+): T;
+
+// Hair length uses dominance logic
+function inheritHairLength(
+  length1: HairLength, 
+  length2: HairLength
+): HairLength;
 ```
+
+**Mutation System:**
+- 10% chance for fur color/pattern/eye color to mutate to a random option
+- Creates visual variety while maintaining family resemblance
+- Relationship bonus can influence mutation (better relationship = lower mutation)
 
 ---
 
-### Phase 2: Roaming Logic Hook (~100 lines)
+### Phase 2: Modify Breeding Hook (~15 lines changed)
 
-**File: `src/hooks/empire/useRoamingCats.ts`**
+**File:** `src/hooks/game/useBreeding.ts`
 
-This hook manages cat AI movement:
+Add appearance inheritance when creating the kitten:
 
 ```text
-Algorithm:
-1. Initialize cats with random positions (x: 10-90%, y: 30-90%)
-2. Every 3-8 seconds (random interval per cat):
-   - Pick random destination within zone bounds
-   - Calculate facing direction (left/right based on x delta)
-   - Update cat state to 'walking'
-   - After transition duration, set state back to 'idle'
-
-Returns:
-- positions: Map<catId, CatPosition>
-- interactWithCat: (catId, action) => void
+Changes:
+1. Import the new inheritAppearance function
+2. Get parent appearances (or generate defaults)
+3. Call inheritAppearance() to generate kitten appearance
+4. Add appearance property to kitten object
 ```
 
-**Z-Index Logic:**
-- Cats with higher Y values (lower on screen) have higher z-index
-- Creates natural depth illusion
-
----
-
-### Phase 3: Roaming Cat Component (~120 lines)
-
-**File: `src/components/empire/RoamingCat.tsx`**
-
-Wrapper component for each cat in the scene:
-
-```text
-Structure:
-<Popover>
-  <PopoverTrigger>
-    <div 
-      style={{ left: x%, top: y%, zIndex: y }}
-      className="absolute transition-all duration-3000 ease-in-out"
-    >
-      <CatVisual 
-        cat={cat}
-        animated={true}
-        size="lg"
-        style={{ transform: facing === 'left' ? 'scaleX(-1)' : 'none' }}
-      />
-      {/* Reaction bubble renders here via CatCardReaction */}
-    </div>
-  </PopoverTrigger>
-  <PopoverContent>
-    <EmpireInteractionMenu cat={cat} onAction={handleAction} />
-  </PopoverContent>
-</Popover>
+**Before (lines 123-147):**
+```typescript
+const kitten: Cat = {
+  id: generateId(),
+  type: 'pure',
+  breed,
+  name,
+  // ... other properties
+  // NO appearance property
+};
 ```
 
-**Hover Effects:**
-- Scale up slightly (`hover:scale-110`)
-- Subtle shadow glow
+**After:**
+```typescript
+import { inheritAppearance } from '@/lib/appearanceInheritance';
 
----
+// Inside breedCats function, before creating kitten:
+const kittenAppearance = inheritAppearance(parent1, parent2, {
+  mutationChance: compatibility.bonus > 10 ? 0.05 : 0.10,
+  inheritedBreed: breed,
+});
 
-### Phase 4: Interaction Menu (~60 lines)
-
-**File: `src/components/empire/EmpireInteractionMenu.tsx`**
-
-Quick action menu when clicking a cat:
-
-```text
-┌─────────────────────────┐
-│ 🐱 Whiskers             │
-│ ───────────────────────  │
-│ 💕 Pet        → +5 😊   │
-│ 🍖 Feed       → -1 🥫   │
-│ 🎾 Play       → -1 🧸   │
-│ 📸 Photo Booth →        │
-│ 👤 View Details →       │
-└─────────────────────────┘
-
-Actions:
-- Pet: playSound('purr'), addReaction(catId, 'positive'), +5 happiness
-- Feed: playSound('catEating'), addReaction(catId, 'positive'), -1 food, +15 hunger
-- Play: playSound('catPlaying'), addReaction(catId, 'positive'), -1 toy, +10 happiness
+const kitten: Cat = {
+  id: generateId(),
+  type: 'pure',
+  breed,
+  name,
+  // ... other properties
+  appearance: kittenAppearance, // NEW: Inherited appearance
+};
 ```
 
 ---
 
-### Phase 5: Empire Scene (~150 lines)
+### Phase 3: Add Test Coverage (~50 lines)
 
-**File: `src/components/empire/EmpireScene.tsx`**
+**File:** `src/hooks/game/__tests__/useBreeding.test.ts`
 
-Main scene container:
+Add tests for appearance inheritance:
 
 ```text
-Structure:
-<div className="relative w-full h-[600px] overflow-hidden rounded-xl">
-  {/* Background (walls) */}
-  <div className={zone.backgroundClass} />
-  
-  {/* Floor (bottom 50%) */}
-  <div className="absolute bottom-0 h-1/2 w-full" style={{ background: zone.floorPattern }} />
-  
-  {/* Ambient decorations based on tier */}
-  {zone.decorations?.map(deco => <img ... />)}
-  
-  {/* Roaming cats */}
-  {cats.map(cat => (
-    <RoamingCat 
-      key={cat.id}
-      cat={cat}
-      position={positions.get(cat.id)}
-      costumes={catCostumes}
-      onInteract={handleInteract}
-    />
-  ))}
-  
-  {/* Quick stats overlay */}
-  <div className="absolute top-4 right-4">
-    <Badge>{cats.length} cats</Badge>
-    <Badge>{zone.name}</Badge>
-  </div>
-</div>
+New test cases:
+1. "should inherit appearance from parents"
+2. "should handle parents without custom appearances"
+3. "should apply mutation based on relationship bonus"
+4. "should create valid CatAppearance structure"
 ```
 
 ---
 
-### Phase 6: Page Wrapper (~80 lines)
+## Inheritance Algorithm Details
 
-**File: `src/pages/Empire.tsx`**
-
-Full page with header and controls:
+### Trait Selection Logic
 
 ```text
-Layout:
-┌─────────────────────────────────────────────────┐
-│ 🏠 Your Empire          [🔊] [☀️] [⬅️ Back]    │
-├─────────────────────────────────────────────────┤
-│                                                 │
-│              [EmpireScene Component]            │
-│                                                 │
-├─────────────────────────────────────────────────┤
-│ 💰 $1,234 | 📅 Day 45 | 🏰 Mansion | 25/25 🐱  │
-└─────────────────────────────────────────────────┘
-
-Features:
-- Cloud save integration (same as CatCollection)
-- Theme toggle
-- Sound toggle
-- Back to main game link
+For each trait (furColor, pattern, eyeColor):
+  roll = random(0, 1)
+  if roll < 0.45:
+    return parent1.trait
+  else if roll < 0.90:
+    return parent2.trait
+  else:
+    return randomMutation()  // 10% chance
 ```
 
----
-
-### Phase 7: Animation CSS (~30 lines)
-
-**File: `tailwind.config.ts` additions**
+### Hair Length Dominance
 
 ```text
-New keyframes:
-- 'cat-walk': Subtle bobbing motion during movement
-- 'cat-sit-down': Transition from standing to sitting
-- 'cat-stand-up': Transition from sitting to standing
+Dominance order: fluffy > medium > short
 
-New classes:
-- animate-cat-walk
-- animate-cat-sit
-- animate-cat-stand
+Example combinations:
+- fluffy + short → 70% fluffy, 20% medium, 10% short
+- medium + medium → 90% medium, 10% variance
+- fluffy + fluffy → 95% fluffy, 5% medium
 ```
 
----
-
-### Phase 8: Routing & Navigation (~15 lines)
-
-**File: `src/App.tsx`**
+### Relationship Bonus Effect
 
 ```text
-Add lazy import:
-const Empire = lazy(() => import('./pages/Empire'));
-
-Add route:
-<Route path="/empire" element={<Empire />} />
+Higher relationship bonus = more stable genetics:
+- bonus > 20: 5% mutation chance (stable genes)
+- bonus > 10: 8% mutation chance
+- bonus <= 10: 10% mutation chance
+- bonus < 0: 15% mutation chance (unstable)
 ```
-
-**File: `src/components/game/GameSidebar.tsx`**
-
-```text
-Add to EXTERNAL_LINKS:
-{ href: '/empire', icon: <Castle className="h-4 w-4" />, label: 'My Empire' }
-```
-
----
-
-## Integration Points
-
-### Sound Effects (Already Available)
-| Action | Sound Type | Exists? |
-|--------|-----------|---------|
-| Pet | `purr` | ✅ |
-| Feed | `catEating` | ✅ |
-| Play | `catPlaying` | ✅ |
-| Click | `click` | ✅ |
-
-### Reaction Emojis (Already Available)
-| Reaction | Emojis | From |
-|----------|--------|------|
-| Positive | 💕 🥰 💖 ✨ 😻 | `CatReactionContext` |
-| Negative | 😾 💢 😤 😿 ⚡ | `CatReactionContext` |
-
-### Cat Visuals (Already Available)
-| Feature | Component | Inherited? |
-|---------|-----------|------------|
-| Breed appearance | `CatVisual` | ✅ |
-| Costumes | `CatVisual` | ✅ |
-| Tier effects | `CatVisual` | ✅ |
-| Breathing animation | `CatAvatar` | ✅ |
-| Blinking | `CatAvatar` | ✅ |
-| Ear twitches | `CatAvatar` | ✅ |
 
 ---
 
@@ -277,34 +179,41 @@ Add to EXTERNAL_LINKS:
 
 | File | Action | Lines |
 |------|--------|-------|
-| `src/config/empire.ts` | Create | ~50 |
-| `src/types/empire.ts` | Create | ~30 |
-| `src/hooks/empire/useRoamingCats.ts` | Create | ~100 |
-| `src/components/empire/RoamingCat.tsx` | Create | ~120 |
-| `src/components/empire/EmpireInteractionMenu.tsx` | Create | ~60 |
-| `src/components/empire/EmpireScene.tsx` | Create | ~150 |
-| `src/pages/Empire.tsx` | Create | ~80 |
-| `tailwind.config.ts` | Modify | +30 |
-| `src/App.tsx` | Modify | +5 |
-| `src/components/game/GameSidebar.tsx` | Modify | +2 |
-| **Total** | | **~627 lines** |
+| `src/lib/appearanceInheritance.ts` | Create | ~80 |
+| `src/hooks/game/useBreeding.ts` | Modify | ~15 |
+| `src/hooks/game/__tests__/useBreeding.test.ts` | Modify | ~50 |
+| **Total** | | ~145 |
 
 ---
 
-## Future Extensibility (As Outlined)
+## Example Output
 
-The configuration-driven approach enables easy future additions:
+**Parents:**
+- Parent 1: Orange tabby, green eyes, medium fur
+- Parent 2: White solid, blue eyes, fluffy fur
 
-1. **Furniture**: Add `decorations: DecorationSlot[]` to `ZoneTheme`
-2. **Visitors**: Add `visitors: Cat[]` to scene state  
-3. **New Zones**: Add keys to `EMPIRE_ZONES` (e.g., `garden`, `basement`)
-4. **Activities**: Extend `CatState` with new behaviors
+**Possible Kittens:**
+```text
+Kitten A: Orange tabby, green eyes, fluffy fur (inherited dominant fluffy)
+Kitten B: White tabby, blue eyes, medium fur (mixed traits)
+Kitten C: Gray solid, amber eyes, fluffy fur (double mutation!)
+```
+
+---
+
+## Benefits
+
+1. **Visual Variety**: Kittens now look unique based on their lineage
+2. **Family Resemblance**: Players can see traits passed down generations
+3. **Breeding Strategy**: Encourages thoughtful pairing for desired appearances
+4. **Engagement**: More meaningful breeding decisions beyond just grade/breed
 
 ---
 
 ## Technical Notes
 
-- **Performance**: With 50+ cats, consider virtualization or limiting visible cats to viewport
-- **Mobile**: Touch-friendly popover menus already work via Radix UI
-- **Accessibility**: Add aria-labels to interactive cat elements
-- **State Sync**: Actions modify game state directly via `actions` from `useGameState()`
+- **Backward Compatibility**: Existing cats without appearances continue to work (render with breed defaults)
+- **Performance**: Simple random selection, no performance impact
+- **Determinism**: Not seeded - each breeding is unique (intentional for variety)
+- **Portrait Updates**: New kittens get unique `appearanceHash` for future AI portraits
+
