@@ -1269,6 +1269,42 @@ export type Database = {
         }
         Relationships: []
       }
+      save_snapshots: {
+        Row: {
+          cat_count: number
+          cat_names: string[]
+          created_at: string | null
+          day: number
+          game_state_hash: string
+          id: string
+          money: number
+          snapshot_type: string
+          user_id: string
+        }
+        Insert: {
+          cat_count: number
+          cat_names: string[]
+          created_at?: string | null
+          day: number
+          game_state_hash: string
+          id?: string
+          money: number
+          snapshot_type: string
+          user_id: string
+        }
+        Update: {
+          cat_count?: number
+          cat_names?: string[]
+          created_at?: string | null
+          day?: number
+          game_state_hash?: string
+          id?: string
+          money?: number
+          snapshot_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       security_scan_history: {
         Row: {
           created_at: string | null
@@ -1328,6 +1364,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sync_health_log: {
+        Row: {
+          created_at: string | null
+          execution_time_ms: number | null
+          id: string
+          issue_summary: Json | null
+          run_at: string
+          saves_checked: number
+          saves_with_issues: number
+          total_issues: number
+        }
+        Insert: {
+          created_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          issue_summary?: Json | null
+          run_at?: string
+          saves_checked?: number
+          saves_with_issues?: number
+          total_issues?: number
+        }
+        Update: {
+          created_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          issue_summary?: Json | null
+          run_at?: string
+          saves_checked?: number
+          saves_with_issues?: number
+          total_issues?: number
+        }
+        Relationships: []
       }
       trade_offers: {
         Row: {
