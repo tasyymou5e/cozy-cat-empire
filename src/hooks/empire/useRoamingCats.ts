@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Cat } from '@/types/game';
-import { CatPosition, CatFacing } from '@/types/empire';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { Cat, CatPersonality } from '@/types/game';
+import { CatPosition, CatFacing, CatState, EmpireProp, AttractionZone } from '@/types/empire';
 import { MOVEMENT_BOUNDS, MOVEMENT_TIMING } from '@/config/empire';
 
 /**
@@ -28,11 +28,84 @@ function calculateFacing(oldX: number, newX: number): CatFacing {
 }
 
 /**
- * Hook to manage roaming cat positions and movements
+ * Map prop interaction type to cat state
  */
-export function useRoamingCats(cats: Cat[]) {
+function propInteractionToState(interaction: EmpireProp['onInteract']): CatState {
+  switch (interaction) {
+    case 'sleep': return 'sleeping';
+    case 'play': return 'playing';
+    case 'perch': return 'perching';
+    case 'hide': return 'idle'; // Hidden cats are still idle
+    default: return 'idle';
+  }
+}
+
+/**
+ * Get weighted position considering furniture attraction
+ */
+function getWeightedPosition(
+  currentPos: { x: number; y: number },
+  attractionZones: AttractionZone[],
+  catPersonality?: CatPersonality
+): { x: number; y: number; nearPropId?: string; state?: CatState } {
+  // 35% chance to move toward attractive furniture
+  if (Math.random() < 0.35 && attractionZones.length > 0) {
+    const preferredZones = attractionZones.filter(zone => {
+      // Personality-based preferences
+      if (catPersonality === 'lazy' && zone.behavior === 'sleep') return true;
+      if (catPersonality === 'playful' && zone.behavior === 'play') return true;
+      if (catPersonality === 'curious' && zone.behavior === 'perch') return true;
+      if (catPersonality === 'affectionate' && zone.behavior === 'sunbathe') return true;
+      // Random chance for other zones
+      return Math.random() < 0.4;
+    });
+
+    if (preferredZones.length > 0) {
+      const target = preferredZones[Math.floor(Math.random() * preferredZones.length)];
+      const radius = target.radius * 0.5;
+      return {
+        x: Math.max(MOVEMENT_BOUNDS.minX, Math.min(MOVEMENT_BOUNDS.maxX, 
+          target.center.x + (Math.random() - 0.5) * radius)),
+        y: Math.max(MOVEMENT_BOUNDS.minY, Math.min(MOVEMENT_BOUNDS.maxY,
+          target.center.y + (Math.random() - 0.5) * radius)),
+        nearPropId: target.propId,
+        state: target.behavior === 'sleep' ? 'sleeping' : 
+               target.behavior === 'play' ? 'playing' :
+               target.behavior === 'perch' ? 'perching' :
+               target.behavior === 'sunbathe' ? 'sunbathing' : 'idle',
+      };
+    }
+  }
+
+  // Otherwise random position
+  return randomPosition();
+}
+
+/**
+ * Build attraction zones from props
+ */
+function buildAttractionZones(props: EmpireProp[]): AttractionZone[] {
+  return props
+    .filter(prop => prop.attractsCats && prop.attractionRadius)
+    .map(prop => ({
+      propId: prop.id,
+      center: prop.position,
+      radius: prop.attractionRadius!,
+      behavior: prop.onInteract === 'sleep' ? 'sleep' :
+                prop.onInteract === 'play' ? 'play' :
+                prop.onInteract === 'perch' ? 'perch' : 'sunbathe',
+    }));
+}
+
+/**
+ * Hook to manage roaming cat positions and movements with prop attraction
+ */
+export function useRoamingCats(cats: Cat[], props: EmpireProp[] = []) {
   const [positions, setPositions] = useState<Map<string, CatPosition>>(new Map());
   const timersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Build attraction zones from props
+  const attractionZones = useMemo(() => buildAttractionZones(props), [props]);
 
   // Initialize positions for new cats
   useEffect(() => {
@@ -66,60 +139,77 @@ export function useRoamingCats(cats: Cat[]) {
   }, [cats]);
 
   // Move a specific cat to a new position
-  const moveCat = useCallback((catId: string) => {
+  const moveCat = useCallback((catId: string, personality?: CatPersonality) => {
     setPositions((prev) => {
       const current = prev.get(catId);
       if (!current) return prev;
 
-      const newPos = randomPosition();
-      const facing = calculateFacing(current.x, newPos.x);
+      const weighted = getWeightedPosition(
+        { x: current.x, y: current.y },
+        attractionZones,
+        personality
+      );
+      const facing = calculateFacing(current.x, weighted.x);
 
       const next = new Map(prev);
       next.set(catId, {
         ...current,
-        x: newPos.x,
-        y: newPos.y,
+        x: weighted.x,
+        y: weighted.y,
         facing,
         state: 'walking',
-        targetX: newPos.x,
-        targetY: newPos.y,
+        targetX: weighted.x,
+        targetY: weighted.y,
+        nearPropId: weighted.nearPropId,
       });
       return next;
     });
 
-    // Set state back to idle after transition completes
+    // Set state after transition completes
     setTimeout(() => {
       setPositions((prev) => {
         const current = prev.get(catId);
         if (!current || current.state !== 'walking') return prev;
 
         const next = new Map(prev);
+        // If near a prop, use the attracted state
+        const attractedState = current.nearPropId 
+          ? attractionZones.find(z => z.propId === current.nearPropId)
+          : null;
+        
         next.set(catId, {
           ...current,
-          state: 'idle',
+          state: attractedState 
+            ? (attractedState.behavior === 'sleep' ? 'sleeping' :
+               attractedState.behavior === 'play' ? 'playing' :
+               attractedState.behavior === 'perch' ? 'perching' : 'idle')
+            : 'idle',
           targetX: undefined,
           targetY: undefined,
         });
         return next;
       });
     }, MOVEMENT_TIMING.transitionDuration);
-  }, []);
+  }, [attractionZones]);
 
   // Schedule next movement for a cat
-  const scheduleMovement = useCallback((catId: string) => {
+  const scheduleMovement = useCallback((catId: string, personality?: CatPersonality) => {
     // Clear existing timer
     const existingTimer = timersRef.current.get(catId);
     if (existingTimer) {
       clearTimeout(existingTimer);
     }
 
+    // Cats at furniture stay longer
+    const interval = randomInterval() * (positions.get(catId)?.nearPropId ? 1.5 : 1);
+
     const timer = setTimeout(() => {
-      moveCat(catId);
-      scheduleMovement(catId); // Schedule next movement
-    }, randomInterval());
+      moveCat(catId, personality);
+      scheduleMovement(catId, personality);
+    }, interval);
 
     timersRef.current.set(catId, timer);
-  }, [moveCat]);
+  }, [moveCat, positions]);
 
   // Start movement timers for all cats
   useEffect(() => {
@@ -128,8 +218,8 @@ export function useRoamingCats(cats: Cat[]) {
         // Add initial random delay so cats don't all move at once
         const initialDelay = Math.random() * MOVEMENT_TIMING.maxInterval;
         const timer = setTimeout(() => {
-          moveCat(cat.id);
-          scheduleMovement(cat.id);
+          moveCat(cat.id, cat.personality);
+          scheduleMovement(cat.id, cat.personality);
         }, initialDelay);
         timersRef.current.set(cat.id, timer);
       }
@@ -160,7 +250,7 @@ export function useRoamingCats(cats: Cat[]) {
       return next;
     });
 
-    // Return to idle after a short delay
+    // Return to previous state after a short delay
     setTimeout(() => {
       setPositions((prev) => {
         const current = prev.get(catId);
@@ -176,5 +266,6 @@ export function useRoamingCats(cats: Cat[]) {
   return {
     positions,
     setInteracting,
+    attractionZones,
   };
 }
