@@ -71,16 +71,86 @@ export default function AdminModeration() {
     },
   });
 
+  // Profile type for enriched gift data
+  interface GiftProfile {
+    display_name: string | null;
+    avatar_emoji: string | null;
+    email: string | null;
+  }
+
+  interface EnrichedGift {
+    id: string;
+    sender_id: string;
+    recipient_id: string;
+    cat_data: {
+      name?: string;
+      breed?: string;
+      grade?: number;
+      value?: number;
+    };
+    message: string | null;
+    status: string;
+    created_at: string;
+    sender_profile?: GiftProfile | null;
+    recipient_profile?: GiftProfile | null;
+  }
+
+  const getBreedEmoji = (breed?: string): string => {
+    const breedEmojis: Record<string, string> = {
+      stray: '🐱',
+      tabby: '🐈',
+      persian: '😸',
+      siamese: '😼',
+      'maine-coon': '🦁',
+      'british-shorthair': '🐱',
+      ragdoll: '😻',
+      bengal: '🐆',
+    };
+    return breedEmojis[breed || ''] || '🐱';
+  };
+
   const { data: gifts, isLoading: giftsLoading } = useQuery({
     queryKey: ['admin-gifts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
+    queryFn: async (): Promise<EnrichedGift[]> => {
+      // Fetch gifts
+      const { data: giftData, error } = await supabase
         .from('cat_gifts')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data;
+      if (!giftData || giftData.length === 0) return [];
+
+      // Collect unique user IDs (senders + recipients)
+      const userIds = [
+        ...new Set([...giftData.map((g) => g.sender_id), ...giftData.map((g) => g.recipient_id)]),
+      ];
+
+      // Batch fetch profiles
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_emoji, email')
+        .in('id', userIds);
+
+      // Create profile lookup map
+      const profileMap = new Map(
+        (profiles || []).map((p) => [
+          p.id,
+          {
+            display_name: p.display_name,
+            avatar_emoji: p.avatar_emoji,
+            email: p.email,
+          },
+        ])
+      );
+
+      // Enrich gifts with profile data
+      return giftData.map((gift) => ({
+        ...gift,
+        status: gift.status || 'pending',
+        sender_profile: profileMap.get(gift.sender_id) || null,
+        recipient_profile: profileMap.get(gift.recipient_id) || null,
+      })) as EnrichedGift[];
     },
   });
 
@@ -407,6 +477,7 @@ export default function AdminModeration() {
                         <TableHead>Status</TableHead>
                         <TableHead>Sender</TableHead>
                         <TableHead>Recipient</TableHead>
+                        <TableHead>Cat</TableHead>
                         <TableHead>Message</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Actions</TableHead>
@@ -416,7 +487,7 @@ export default function AdminModeration() {
                       {giftsLoading ? (
                         Array.from({ length: 5 }).map((_, i) => (
                           <TableRow key={i}>
-                            {Array.from({ length: 6 }).map((_, j) => (
+                            {Array.from({ length: 7 }).map((_, j) => (
                               <TableCell key={j}>
                                 <Skeleton className="h-6 w-16" />
                               </TableCell>
@@ -425,7 +496,7 @@ export default function AdminModeration() {
                         ))
                       ) : gifts?.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                             No gifts found
                           </TableCell>
                         </TableRow>
@@ -433,15 +504,57 @@ export default function AdminModeration() {
                         gifts?.map((gift) => (
                           <TableRow key={gift.id}>
                             <TableCell>{getStatusBadge(gift.status || 'pending')}</TableCell>
-                            <TableCell className="font-mono text-xs">
-                              {gift.sender_id?.slice(0, 8)}...
+                            {/* Sender */}
+                            <TableCell>
+                              <div className="flex items-center gap-1.5">
+                                <span>{gift.sender_profile?.avatar_emoji || '👤'}</span>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium truncate max-w-[120px]">
+                                    {gift.sender_profile?.display_name || 'Unknown'}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground truncate max-w-[120px]">
+                                    {gift.sender_profile?.email || gift.sender_id.slice(0, 8) + '...'}
+                                  </span>
+                                </div>
+                              </div>
                             </TableCell>
-                            <TableCell className="font-mono text-xs">
-                              {gift.recipient_id?.slice(0, 8)}...
+                            {/* Recipient */}
+                            <TableCell>
+                              <div className="flex items-center gap-1.5">
+                                <span>{gift.recipient_profile?.avatar_emoji || '👤'}</span>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium truncate max-w-[120px]">
+                                    {gift.recipient_profile?.display_name || 'Unknown'}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground truncate max-w-[120px]">
+                                    {gift.recipient_profile?.email ||
+                                      gift.recipient_id.slice(0, 8) + '...'}
+                                  </span>
+                                </div>
+                              </div>
                             </TableCell>
-                            <TableCell className="max-w-xs truncate">
-                              {gift.message || '-'}
+                            {/* Cat Details */}
+                            <TableCell>
+                              {(() => {
+                                const catData = gift.cat_data as EnrichedGift['cat_data'] | null;
+                                if (!catData) return '-';
+                                return (
+                                  <div className="flex items-center gap-1.5">
+                                    <span>{getBreedEmoji(catData.breed)}</span>
+                                    <div className="flex flex-col">
+                                      <span className="text-sm font-medium truncate max-w-[100px]">
+                                        {catData.name || 'Unknown Cat'}
+                                      </span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {catData.breed?.replace('-', ' ') || 'Unknown'} · Grade{' '}
+                                        {catData.grade ?? '?'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
                             </TableCell>
+                            <TableCell className="max-w-xs truncate">{gift.message || '-'}</TableCell>
                             <TableCell className="text-muted-foreground">
                               {gift.created_at
                                 ? format(new Date(gift.created_at), 'MMM d, HH:mm')
