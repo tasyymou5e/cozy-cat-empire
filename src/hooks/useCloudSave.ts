@@ -6,6 +6,20 @@ import { isValidGameState, isCatRelationship, isRelationshipEvent } from '@/type
 import { migrateSaveData, needsMigration, getSaveVersionInfo } from '@/lib/saveMigration';
 import { Json } from '@/integrations/supabase/types';
 
+/**
+ * Generate a simple hash of the game state for comparison
+ */
+function generateStateHash(gameState: GameState): string {
+  const key = `${gameState.cats.length}-${gameState.day}-${gameState.money}-${gameState.cats.map(c => c.id).join(',')}`;
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    const char = key.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash.toString(16);
+}
+
 interface RelationshipSaveData {
   relationships: CatRelationship[];
   events: RelationshipEvent[];
@@ -178,6 +192,54 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
 
       try {
         const now = new Date().toISOString();
+        
+        // Create a snapshot before saving for recovery purposes
+        const catNames = correctedState.cats.map(c => c.name);
+        const stateHash = generateStateHash(correctedState);
+        
+        // Insert snapshot (non-blocking, don't wait)
+        supabase.from('save_snapshots').insert({
+          user_id: userId,
+          snapshot_type: 'auto',
+          cat_count: correctedState.cats.length,
+          cat_names: catNames,
+          day: correctedState.day,
+          money: correctedState.money,
+          game_state_hash: stateHash,
+        }).then(({ error: snapError }) => {
+          if (snapError) {
+            console.warn('[CloudSync] Snapshot insert failed:', snapError.message);
+          } else {
+            // Prune old snapshots (keep last 10) - fire and forget
+            supabase
+              .from('save_snapshots')
+              .delete()
+              .eq('user_id', userId)
+              .order('created_at', { ascending: true })
+              .limit(100)
+              .then(() => {
+                // After getting all, keep only the latest 10
+                supabase
+                  .from('save_snapshots')
+                  .select('id, created_at')
+                  .eq('user_id', userId)
+                  .order('created_at', { ascending: false })
+                  .then(({ data: allSnapshots }) => {
+                    if (allSnapshots && allSnapshots.length > 10) {
+                      const toDelete = allSnapshots.slice(10).map(s => s.id);
+                      supabase
+                        .from('save_snapshots')
+                        .delete()
+                        .in('id', toDelete)
+                        .then(() => {
+                          console.log('[CloudSync] Pruned old snapshots');
+                        });
+                    }
+                  });
+              });
+          }
+        });
+
         const saveData = {
           user_id: userId,
           game_state: correctedState as unknown as Json,

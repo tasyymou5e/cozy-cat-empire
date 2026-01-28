@@ -58,3 +58,6 @@ export type {
   CorruptionStats,
   RepairResult,
 } from './useAdminCorruptedSaves';
+
+// Sync health monitoring
+export { useSyncHealthLogs, useSyncHealthSummary } from './useSyncHealth';
