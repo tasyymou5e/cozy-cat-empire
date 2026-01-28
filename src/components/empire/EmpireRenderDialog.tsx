@@ -26,7 +26,8 @@ interface EmpireRenderDialogProps {
   timeOfDay: TimeOfDay;
   season: RealSeason;
   catCostumes: Record<string, string>;
-  currentMoney: number;
+  cost: number;
+  canAfford: boolean;
   isRendering: boolean;
   onConfirm: () => void;
 }
@@ -64,11 +65,11 @@ export function EmpireRenderDialog({
   timeOfDay,
   season,
   catCostumes,
-  currentMoney,
+  cost,
+  canAfford,
   isRendering,
   onConfirm,
 }: EmpireRenderDialogProps) {
-  const canAfford = currentMoney >= EMPIRE_RENDER_COST;
   const catsWithPortraits = useMemo(() => 
     cats.filter(c => c.portraitUrl),
     [cats]
@@ -155,7 +156,6 @@ export function EmpireRenderDialog({
 
           <Separator />
 
-          {/* Cost section */}
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium">Render Cost</p>
@@ -165,23 +165,16 @@ export function EmpireRenderDialog({
             </div>
             <div className="text-right">
               <p className="text-lg font-bold">
-                💰 {EMPIRE_RENDER_COST.toLocaleString()}
-              </p>
-              <p className={cn(
-                'text-sm',
-                canAfford ? 'text-muted-foreground' : 'text-destructive'
-              )}>
-                Balance: {currentMoney.toLocaleString()}
+                💰 {cost.toLocaleString()}
               </p>
             </div>
           </div>
 
-          {/* Warning if can't afford */}
           {!canAfford && (
             <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 rounded-lg p-3">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               <p>
-                You need {(EMPIRE_RENDER_COST - currentMoney).toLocaleString()} more coins to render.
+                You need more coins to render your empire.
               </p>
             </div>
           )}
@@ -227,7 +220,7 @@ export function EmpireRenderDialog({
             ) : (
               <>
                 <Sparkles className="h-4 w-4" />
-                Render for {EMPIRE_RENDER_COST.toLocaleString()}
+                Render for {cost.toLocaleString()}
               </>
             )}
           </Button>

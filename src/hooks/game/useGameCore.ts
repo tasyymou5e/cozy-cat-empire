@@ -65,6 +65,12 @@ export interface GameCoreActions {
    * @param newMoney - New money value
    */
   setMoney: (newMoney: number) => void;
+
+  /**
+   * Set the AI-rendered Empire background URL.
+   * @param url - URL of the rendered image (or null to clear)
+   */
+  setEmpireRenderUrl: (url: string | null) => void;
 }
 
 /**
@@ -338,6 +344,16 @@ export function useGameCore(deps: GameCoreDependencies): GameCoreActions {
     [setState]
   );
 
+  const setEmpireRenderUrl = useCallback(
+    (url: string | null) => {
+      setState((prev) => ({
+        ...prev,
+        empireRenderUrl: url ?? undefined,
+      }));
+    },
+    [setState]
+  );
+
   return {
     doChore,
     upgradeHouse,
@@ -347,5 +363,6 @@ export function useGameCore(deps: GameCoreDependencies): GameCoreActions {
     dismissMessage,
     deductMoney,
     setMoney,
+    setEmpireRenderUrl,
   };
 }

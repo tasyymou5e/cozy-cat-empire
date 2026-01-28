@@ -28,10 +28,14 @@ interface EmpireSceneProps {
   houseSize: HouseSize;
   catCostumes: Record<string, string>;
   resources: GameState['resources'];
+  currentMoney: number;
+  empireRenderUrl?: string;
   gameDay?: number;
   onPetCat: (catId: string) => void;
   onFeedCat: (catId: string) => void;
   onPlayWithCat: (catId: string) => void;
+  onDeductMoney: (amount: number) => void;
+  onEmpireRendered: (url: string) => void;
 }
 
 /**
@@ -48,10 +52,14 @@ export function EmpireScene({
   houseSize,
   catCostumes,
   resources,
+  currentMoney,
+  empireRenderUrl,
   gameDay = 1,
   onPetCat,
   onFeedCat,
   onPlayWithCat,
+  onDeductMoney,
+  onEmpireRendered,
 }: EmpireSceneProps) {
   const navigate = useNavigate();
   const { playSound } = useSound();
@@ -76,6 +84,20 @@ export function EmpireScene({
   
   // Track props that are currently summoning cats (for visual feedback)
   const [summoningProps, setSummoningProps] = useState<Set<string>>(new Set());
+  
+  // Empire AI render state
+  const [renderDialogOpen, setRenderDialogOpen] = useState(false);
+  
+  // Empire render hook
+  const empireRender = useEmpireRender({
+    cats,
+    houseSize,
+    catCostumes,
+    gameDay,
+    currentMoney,
+    onSuccess: onEmpireRendered,
+    onDeductMoney,
+  });
 
   // Calculate which props have cats nearby
   const propCatCounts = useMemo(() => {
@@ -167,21 +189,33 @@ export function EmpireScene({
 
   return (
     <div className="relative w-full h-[500px] sm:h-[600px] overflow-hidden rounded-xl border border-border shadow-lg">
-      {/* Layer 0: Background - Minimal parallax (furthest) */}
+      {/* Layer 0: Background - AI rendered or SVG fallback */}
       <ParallaxLayer
         depth="background"
         offset={parallaxOffset}
         enabled={parallaxEnabled}
         zIndex={0}
         style={{
-          filter: settings.enableTimeOfDayEffects ? timeOverlay.filterStyle : undefined,
+          filter: settings.enableTimeOfDayEffects && !empireRenderUrl ? timeOverlay.filterStyle : undefined,
         }}
         className="transition-[filter] duration-1000"
       >
-        <EmpireBackground 
-          houseSize={houseSize} 
-          timeOfDay={timeOfDay} 
-        />
+        {empireRenderUrl ? (
+          <div className="absolute inset-0">
+            <img
+              src={empireRenderUrl}
+              alt="AI Rendered Empire"
+              className="w-full h-full object-cover"
+            />
+            {/* Subtle vignette overlay for blending */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-black/5 pointer-events-none" />
+          </div>
+        ) : (
+          <EmpireBackground 
+            houseSize={houseSize} 
+            timeOfDay={timeOfDay} 
+          />
+        )}
       </ParallaxLayer>
 
       {/* Layer 1: Mid-background - Wall decorations with slight parallax */}
@@ -325,7 +359,38 @@ export function EmpireScene({
         <Badge variant="outline" className="bg-background/80 backdrop-blur shadow-sm text-xs">
           {seasonDisplay}
         </Badge>
+        {empireRenderUrl && (
+          <Badge variant="default" className="bg-primary/90 text-primary-foreground shadow-sm text-xs">
+            ✨ AI Rendered
+          </Badge>
+        )}
       </div>
+
+      {/* AI Render Button - bottom right */}
+      <div className="absolute bottom-4 right-4 z-50">
+        <EmpireRenderButton
+          cost={empireRender.cost}
+          canAfford={empireRender.canAfford}
+          isRendering={empireRender.isRendering}
+          hasExistingRender={!!empireRenderUrl}
+          onClick={() => setRenderDialogOpen(true)}
+        />
+      </div>
+
+      {/* Empire Render Dialog */}
+      <EmpireRenderDialog
+        open={renderDialogOpen}
+        onOpenChange={setRenderDialogOpen}
+        cats={cats}
+        houseSize={houseSize}
+        catCostumes={catCostumes}
+        timeOfDay={timeOfDay}
+        season={season}
+        cost={empireRender.cost}
+        canAfford={empireRender.canAfford}
+        isRendering={empireRender.isRendering}
+        onConfirm={() => empireRender.renderEmpire(timeOfDay, season)}
+      />
 
       {/* Resource indicators */}
       <div className="absolute bottom-4 left-4 flex gap-2 z-50">

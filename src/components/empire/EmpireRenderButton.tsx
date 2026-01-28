@@ -6,8 +6,10 @@ import { cn } from '@/lib/utils';
 import { EMPIRE_RENDER_COST } from '@/hooks/useEmpireRender';
 
 interface EmpireRenderButtonProps {
+  cost: number;
   canAfford: boolean;
   isRendering: boolean;
+  hasExistingRender?: boolean;
   onClick: () => void;
   className?: string;
 }
@@ -17,8 +19,10 @@ interface EmpireRenderButtonProps {
  * Shows cost badge and loading state
  */
 export function EmpireRenderButton({
+  cost,
   canAfford,
   isRendering,
+  hasExistingRender = false,
   onClick,
   className,
 }: EmpireRenderButtonProps) {
@@ -47,7 +51,7 @@ export function EmpireRenderButton({
         ) : (
           <>
             <Sparkles className={cn('h-4 w-4', isHovered && canAfford && 'animate-pulse')} />
-            <span>Render Empire</span>
+            <span>{hasExistingRender ? 'Re-render' : 'Render Empire'}</span>
           </>
         )}
       </Button>
@@ -61,7 +65,7 @@ export function EmpireRenderButton({
           isHovered && 'scale-110'
         )}
       >
-        💰 {EMPIRE_RENDER_COST.toLocaleString()}
+        💰 {cost.toLocaleString()}
       </Badge>
     </div>
   );

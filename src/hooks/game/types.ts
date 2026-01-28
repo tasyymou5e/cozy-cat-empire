@@ -383,6 +383,12 @@ export interface GameActions {
    * @param newMoney - New money amount
    */
   setMoney: (newMoney: number) => void;
+
+  /**
+   * Set the AI-rendered Empire background URL
+   * @param url - URL of the rendered image (or null to clear)
+   */
+  setEmpireRenderUrl: (url: string | null) => void;
 }
 
 // ============================================================================
