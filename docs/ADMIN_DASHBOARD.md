@@ -23,8 +23,39 @@ Overview metrics displaying:
 - Kittens Bred
 - Total Economy
 - **Live Activity Monitor** (auto-refreshing widget showing recent saves, errors, trades, gifts)
+- **Live Activity Feed** (real-time player activity with user details)
 
 Quick action buttons for navigation to other admin sections.
+
+#### Live Activity Feed Component
+
+The Live Activity Feed displays real-time player activity with enhanced user visibility:
+
+**Features:**
+- **User Display**: Shows display name AND email (not just truncated ID)
+- **Clickable Entries**: Click any activity to open full UserDetailModal with user profile, cats, trades, gifts, errors
+- **Responsive Design**: Font and layout dynamically scale to screen size using Tailwind responsive classes
+- **Real-time Updates**: Supabase Realtime subscription for instant activity updates
+- **Error Handling**: Graceful error states with retry option
+
+**Activity Types Displayed:**
+| Type | Icon | Color |
+|------|------|-------|
+| `login` | LogIn | Green |
+| `logout` | LogIn | Gray |
+| `trade_created/completed` | ArrowLeftRight | Blue |
+| `gift_sent/received` | Gift | Pink |
+| `cat_bred` | Heart | Purple |
+| `show_win` | Trophy | Yellow |
+| `challenge_completed` | Target | Orange |
+| `friend_request_sent/accepted` | UserPlus | Cyan |
+| `friend_removed` | UserMinus | Red |
+| `purchase` | ShoppingCart | Default |
+
+**Race Condition Safeguards:**
+- `isMounted` ref guard prevents state updates after unmount
+- Async profile fetch checks mount status before updating state
+- Channel cleanup on component unmount
 
 ### 2. User Management (`/catking/users`)
 
