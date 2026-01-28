@@ -1,376 +1,214 @@
 
+# Fix Missing Cats and Data Integrity for eric@wccgroup.net
 
-# AI Cat Portrait System Enhancement Plan
+## Problem Summary
 
-## Goal
-Create a system where AI-generated cat portraits **exactly match** cat properties (appearance, breed, personality) and render costumes **effectively and cutely** - updating automatically when changes are detected.
+Investigation reveals a **critical data discrepancy**: The user reports cats named Chester, Mittens, Felix, Milo, Smokey as "AI rendered" but these cats **do not exist in the database**. The current save contains 11 different cats (Pepper, Max, Whiskers, Cookie, Luna, Ginger, Dumbledore, Gandalf, Biscuit, Bella, Muffin), none of which have AI portraits.
 
----
+### Root Cause Possibilities
+1. Data loss during a previous save operation
+2. Browser localStorage out of sync with cloud
+3. Multiple browser sessions with conflicting data
+4. A race condition that overwrote newer data with older state
 
-## Architecture Overview
+## Implementation Plan
 
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                    Enhanced Portrait System                      │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐      │
-│  │ Appearance   │───>│ Hash System  │───>│ Outdated     │      │
-│  │ Changes      │    │ Detection    │    │ Detection    │      │
-│  └──────────────┘    └──────────────┘    └──────────────┘      │
-│                                                 │                │
-│                                                 ▼                │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │              Auto-Regeneration Prompt                     │  │
-│  │  "Your cat's look has changed! Regenerate portrait?"     │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                                                 │                │
-│                                                 ▼                │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │           Enhanced Prompt Builder                         │  │
-│  │  - Precise appearance descriptors                        │  │
-│  │  - Costume-specific rendering instructions               │  │
-│  │  - Consistent cartoon style definition                   │  │
-│  │  - Breed-specific body language                          │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                                                 │                │
-│                                                 ▼                │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │           Lovable AI (gemini-2.5-flash-image)            │  │
-│  │           or gemini-3-pro-image-preview for quality      │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+### Phase 1: Immediate Data Recovery Attempt
+
+Create an edge function to check for backup data sources:
+
+**New File: `supabase/functions/recover-lost-cats/index.ts`**
+
+This function will:
+- Query the `player_activity_log` for any cat-related events mentioning the missing names
+- Check error_logs for save failures that might indicate when data was lost
+- Search cat-portraits bucket for any files with matching cat names/IDs
+- Return a recovery report with any found references
+
+### Phase 2: Add Save History Tracking
+
+Create a new table to track save snapshots for recovery purposes:
+
+```sql
+CREATE TABLE public.save_snapshots (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  snapshot_type TEXT NOT NULL, -- 'auto', 'manual', 'migration'
+  cat_count INTEGER NOT NULL,
+  cat_names TEXT[] NOT NULL,
+  day INTEGER NOT NULL,
+  money INTEGER NOT NULL,
+  game_state_hash TEXT NOT NULL, -- Quick comparison hash
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Index for efficient user lookups
+CREATE INDEX idx_save_snapshots_user ON save_snapshots(user_id, created_at DESC);
+
+-- RLS: Users can view their own snapshots, admins can see all
+ALTER TABLE save_snapshots ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own snapshots" ON save_snapshots
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Admins can view all snapshots" ON save_snapshots
+  FOR SELECT USING (has_role(auth.uid(), 'admin'::app_role));
 ```
 
----
+### Phase 3: Enhanced Cloud Save Protection
 
-## Phase 1: Enhanced Prompt Engineering
+**Modify: `src/hooks/useCloudSave.ts`**
 
-### 1.1 Create Comprehensive Prompt Builder
-
-**File:** `supabase/functions/generate-cat-portrait/index.ts`
-
-Improve the `buildPrompt()` function with:
-
-**Precise Appearance Mapping:**
-```typescript
-// Detailed fur color descriptions
-const FUR_DESCRIPTIONS = {
-  orange: 'warm orange tabby-like fur',
-  black: 'sleek jet-black fur',
-  white: 'pure snowy white fur',
-  gray: 'silvery gray fur',
-  brown: 'rich chocolate brown fur',
-  cream: 'soft creamy beige fur',
-  ginger: 'bright ginger-red fur',
-  calico: 'tri-colored calico patches of orange, black and white'
-};
-
-// Pattern descriptions
-const PATTERN_DESCRIPTIONS = {
-  solid: 'solid single color',
-  tabby: 'classic tabby stripes on forehead and body',
-  spotted: 'leopard-like spotted pattern',
-  tuxedo: 'formal tuxedo pattern with white chest and black body',
-  bicolor: 'two-tone bi-color pattern',
-  calico: 'random calico patches'
-};
-```
-
-**Consistent Style Definition:**
-```typescript
-const STYLE_PROMPT = `
-Style: Cute kawaii cartoon cat portrait in the style of Studio Ghibli meets 
-modern mobile game art. Soft rounded features, large expressive eyes with 
-sparkle reflections, small pink nose, subtle blush marks on cheeks. 
-Clean cel-shaded look with soft gradients. Warm cozy lighting.
-Background: Simple soft gradient, not distracting.
-Composition: Head and upper body portrait, cat facing slightly toward camera.
-Quality: High detail on fur texture, ultra-cute expression, professional 
-digital art quality.
-`;
-```
-
-**Costume-Specific Rendering:**
-```typescript
-const COSTUME_RENDER_INSTRUCTIONS = {
-  crown: {
-    description: 'wearing an ornate golden royal crown with red gems',
-    placement: 'crown sits properly on head between ears',
-    style: 'shiny metallic gold with jewel details'
-  },
-  wizard_hat: {
-    description: 'wearing a tall purple wizard hat decorated with golden stars and moons',
-    placement: 'hat sits at a slight jaunty angle',
-    style: 'deep purple fabric with magical sparkles'
-  },
-  // ... all costumes with specific visual instructions
-};
-```
-
-### 1.2 Add Breed-Specific Body Language
+Add snapshot creation before each save:
+- Before saving, record a snapshot of current state
+- Keep last 10 snapshots per user (auto-prune older ones)
+- Include cat names array for easy searching
 
 ```typescript
-const BREED_CHARACTERISTICS = {
-  persian: {
-    face: 'flat-faced Persian with round head and small ears',
-    expression: 'regal and slightly haughty',
-    fur: 'extremely fluffy long-haired coat'
-  },
-  siamese: {
-    face: 'elegant wedge-shaped face with large pointed ears',
-    expression: 'intelligent and curious',
-    fur: 'sleek short coat with darker points on ears, face, paws'
-  },
-  'maine-coon': {
-    face: 'large square muzzle with tufted ears',
-    expression: 'gentle giant, friendly',
-    fur: 'very fluffy with distinctive mane and bushy tail'
-  },
-  // ... all breeds
-};
+// Before cloudSave upsert, insert snapshot
+const catNames = gameState.cats.map(c => c.name);
+const stateHash = generateStateHash(gameState);
+
+await supabase.from('save_snapshots').insert({
+  user_id: userId,
+  snapshot_type: 'auto',
+  cat_count: gameState.cats.length,
+  cat_names: catNames,
+  day: gameState.day,
+  money: gameState.money,
+  game_state_hash: stateHash,
+});
+
+// Prune old snapshots (keep last 10)
+await supabase
+  .from('save_snapshots')
+  .delete()
+  .eq('user_id', userId)
+  .lt('created_at', tenSnapshotsAgoTimestamp);
 ```
 
----
+### Phase 4: Sync Health Check Cron Job
 
-## Phase 2: Automatic Outdated Portrait Detection
+**New File: `supabase/functions/sync-health-check/index.ts`**
 
-### 2.1 Create Portrait Status Hook
+Runs every 10 minutes to:
+1. Scan all active game saves (played within last 24 hours)
+2. Validate data integrity:
+   - Cat count vs space limit
+   - Required fields present on all cats
+   - No duplicate cat IDs
+   - portraitUrl validity (if set, URL should exist in storage)
+3. Log discrepancies to `error_logs` with type `sync_health`
+4. Alert if critical issues found (cat count suddenly drops to 0)
 
-**File:** `src/hooks/usePortraitStatus.ts` (New)
-
-```typescript
-interface UsePortraitStatusReturn {
-  outdatedCats: Cat[];
-  checkIfOutdated: (cat: Cat, costumeId?: string) => boolean;
-  markAsUpToDate: (catId: string, hash: string) => void;
-}
-
-export function usePortraitStatus(cats: Cat[], catCostumes: Record<string, string>) {
-  // Track which cats have outdated portraits
-  // Return list for batch regeneration UI
-}
+**Cron Schedule (pg_cron):**
+```sql
+SELECT cron.schedule(
+  'sync-health-check-10min',
+  '*/10 * * * *',
+  $$
+  SELECT net.http_post(
+    url:='https://bkkluziuyystiqkcpbnd.supabase.co/functions/v1/sync-health-check',
+    headers:=jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+    ),
+    body:='{}'::jsonb
+  );
+  $$
+);
 ```
 
-### 2.2 Add Inline Regeneration Prompt
+### Phase 5: Create Sync Health Log Table
 
-**File:** `src/components/game/PortraitOutdatedBadge.tsx` (New)
+```sql
+CREATE TABLE public.sync_health_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  run_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  saves_checked INTEGER NOT NULL DEFAULT 0,
+  saves_with_issues INTEGER NOT NULL DEFAULT 0,
+  total_issues INTEGER NOT NULL DEFAULT 0,
+  issue_summary JSONB DEFAULT '{}',
+  execution_time_ms INTEGER,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 
-When a cat's portrait is outdated, show a subtle badge:
-- Small ⚠️ icon on cat cards
-- Tooltip: "Portrait outdated - appearance changed"
-- Click to regenerate (if credits available)
+-- RLS: Admin only
+ALTER TABLE sync_health_log ENABLE ROW LEVEL SECURITY;
 
----
+CREATE POLICY "Admins can view sync health" ON sync_health_log
+  FOR SELECT USING (has_role(auth.uid(), 'admin'::app_role));
 
-## Phase 3: Quick Regeneration Flow
-
-### 3.1 Add Regeneration Button to Cat Cards
-
-**File:** `src/components/game/UnifiedCatCard.tsx` (Update)
-
-Add regeneration button when portrait is outdated:
-- Shows only when `isPortraitOutdated(cat, costumeId)` returns true
-- One-click regeneration with credit check
-- Loading state during generation
-
-### 3.2 Batch Portrait Regeneration
-
-**File:** `src/components/game/BatchPortraitGenerator.tsx` (Update existing)
-
-Enhance to:
-- Show all cats with outdated portraits
-- "Regenerate All" button with credit cost display
-- Progress indicator during batch generation
-
----
-
-## Phase 4: Enhanced Edge Function
-
-### 4.1 Update generate-cat-portrait Function
-
-**File:** `supabase/functions/generate-cat-portrait/index.ts`
-
-Key changes:
-
-1. **Use Better Model for Quality:**
-   ```typescript
-   // For premium quality, use the pro model
-   const MODEL = useHighQuality 
-     ? 'google/gemini-3-pro-image-preview' 
-     : 'google/gemini-2.5-flash-image';
-   ```
-
-2. **Enhanced Prompt Structure:**
-   ```typescript
-   function buildPrompt(cat: CatData): string {
-     const parts = [
-       buildStylePrompt(),           // Consistent cartoon style
-       buildBreedPrompt(cat),        // Breed-specific features
-       buildAppearancePrompt(cat),   // Exact colors/patterns
-       buildExpressionPrompt(cat),   // Personality-based expression
-       buildCostumePrompt(cat),      // Detailed costume rendering
-       buildQualityPrompt()          // Technical quality requirements
-     ];
-     return parts.join(' ');
-   }
-   ```
-
-3. **Costume Rendering Priority:**
-   ```typescript
-   // If costume equipped, make it prominent
-   if (costume) {
-     prompt += `IMPORTANT: The cat is wearing ${costume.name}. 
-       ${COSTUME_RENDER_INSTRUCTIONS[costume.id].description}. 
-       The costume must be clearly visible and ${COSTUME_RENDER_INSTRUCTIONS[costume.id].style}. 
-       ${COSTUME_RENDER_INSTRUCTIONS[costume.id].placement}.`;
-   }
-   ```
-
----
-
-## Phase 5: Graphics Settings Integration
-
-### 5.1 Add Portrait Quality Setting
-
-**File:** `src/hooks/useGraphicsSettings.ts` (Update)
-
-```typescript
-export interface GraphicsSettings {
-  // ... existing
-  
-  // Portrait settings
-  portraitQuality: 'standard' | 'premium';  // Uses different AI model
-  autoRegenerateOutdated: boolean;          // Prompt to regenerate on change
-  showOutdatedIndicator: boolean;           // Show badge on outdated portraits
-}
+CREATE POLICY "Service can insert sync health" ON sync_health_log
+  FOR INSERT WITH CHECK (true);
 ```
 
-### 5.2 Add Settings UI
+### Phase 6: Documentation
 
-**File:** `src/components/game/GraphicsSettingsPanel.tsx` (Update)
+**New File: `docs/CAT_DATA_SYNC.md`**
 
-Add new section:
-- Portrait Quality toggle (Standard/Premium)
-- Auto-regenerate prompt toggle
-- Outdated indicator toggle
+Contents:
+1. Overview of cat data flow (cloud save → game state → rendering)
+2. Save snapshot system for recovery
+3. Sync health check monitoring
+4. Troubleshooting guide for data loss
+5. Admin recovery procedures
 
----
+**New File: `docs/CRON_JOBS.md`**
 
-## Phase 6: Costume-Portrait Synchronization
+Contents:
+1. List of all active cron jobs
+2. Schedule and purpose for each
+3. Monitoring setup
+4. Manual trigger instructions
 
-### 6.1 Update Hash to Include Costume
+### Phase 7: Admin Dashboard Integration
 
-**File:** `src/lib/portraitUtils.ts` (Update)
+**Modify: `src/pages/admin/AdminDashboard.tsx`**
 
-```typescript
-export function computeAppearanceHash(cat: Cat, costumeId?: string): string {
-  const data = {
-    breed: cat.breed,
-    appearance: cat.appearance || null,
-    costumeId: costumeId || null,  // Already included
-    personality: cat.personality,   // Add personality for expression
-  };
-  // ... hash generation
-}
-```
+Add sync health status card showing:
+- Last 24h health check results
+- Any users with flagged issues
+- Quick link to detailed logs
 
-### 6.2 Detect Costume Changes
+**New File: `src/pages/admin/AdminSaveRecovery.tsx`**
 
-When costume is equipped/unequipped:
-- Check if portrait includes costume
-- Prompt for regeneration if mismatch
-- Store whether portrait includes costume in metadata
+Recovery tool for admins to:
+- View user's save snapshots history
+- Compare snapshots to find when cats disappeared
+- Restore from a previous snapshot if available
 
----
-
-## File Summary
+## Files to Create/Modify
 
 | File | Action | Description |
 |------|--------|-------------|
-| `supabase/functions/generate-cat-portrait/index.ts` | Update | Enhanced prompt builder with detailed appearance/costume/style instructions |
-| `src/hooks/usePortraitStatus.ts` | Create | Hook to track outdated portraits across all cats |
-| `src/components/game/PortraitOutdatedBadge.tsx` | Create | Visual indicator for outdated portraits |
-| `src/components/game/UnifiedCatCard.tsx` | Update | Add inline regeneration button |
-| `src/components/game/BatchPortraitGenerator.tsx` | Update | Enhance batch regeneration UI |
-| `src/lib/portraitUtils.ts` | Update | Include personality in hash |
-| `src/hooks/useGraphicsSettings.ts` | Update | Add portrait quality settings |
-| `src/components/game/GraphicsSettingsPanel.tsx` | Update | Add portrait settings UI |
-| `docs/CAT_VISUAL_SYSTEM.md` | Update | Document enhanced portrait system |
+| `supabase/functions/recover-lost-cats/index.ts` | **Create** | Attempt data recovery for specific user |
+| `supabase/functions/sync-health-check/index.ts` | **Create** | 10-minute cron job for integrity checks |
+| `src/hooks/useCloudSave.ts` | **Modify** | Add snapshot creation before saves |
+| `src/pages/admin/AdminSaveRecovery.tsx` | **Create** | Admin tool for save recovery |
+| `src/pages/admin/AdminDashboard.tsx` | **Modify** | Add sync health status card |
+| `docs/CAT_DATA_SYNC.md` | **Create** | Data sync documentation |
+| `docs/CRON_JOBS.md` | **Create** | Cron job documentation |
 
----
+## Database Changes
 
-## Prompt Engineering Examples
+| Table | Action | Description |
+|-------|--------|-------------|
+| `save_snapshots` | **Create** | Store save history for recovery |
+| `sync_health_log` | **Create** | Log sync check results |
 
-### Example 1: Orange Tabby with Crown
-```text
-Style: Cute kawaii cartoon cat portrait in Studio Ghibli style. 
-Soft rounded features, large expressive eyes with sparkle reflections.
+## Immediate Action for User
 
-Cat: A domestic tabby cat with warm orange tabby-like fur featuring 
-classic tabby stripes on forehead. Beautiful amber eyes with golden 
-highlights. Short fluffy coat. The cat has a playful, excited expression 
-with wide bright eyes and a slight smile.
+Unfortunately, the cats Chester, Mittens, Felix, Milo, Smokey cannot be recovered because they don't exist in any database records. The user will need to re-acquire these cats through normal gameplay.
 
-Costume: IMPORTANT - The cat is wearing an ornate golden royal crown 
-with red gems. The crown sits properly on the head between the ears. 
-The crown should be shiny metallic gold with visible jewel details.
+However, once this system is implemented:
+- Future data loss can be detected within 10 minutes
+- Save snapshots will allow rolling back to previous states
+- Admin tools will enable recovery from snapshots
 
-Quality: High detail fur texture, ultra-cute expression, professional 
-digital art, soft warm studio lighting, simple gradient background.
-```
+## Security Considerations
 
-### Example 2: Black Persian with Wizard Hat
-```text
-Style: Cute kawaii cartoon cat portrait in Studio Ghibli style.
-Soft rounded features, large expressive eyes with sparkle reflections.
-
-Cat: A beautiful Persian cat with sleek jet-black fur and extremely 
-fluffy long-haired coat. Flat-faced with round head and small ears. 
-Stunning heterochromia eyes - one blue, one green. The cat has a 
-regal, slightly haughty expression.
-
-Costume: IMPORTANT - The cat is wearing a tall purple wizard hat 
-decorated with golden stars and moons. The hat sits at a slight 
-jaunty angle between the ears. Deep purple fabric with magical 
-sparkles emanating from it.
-
-Quality: High detail fur texture, ultra-cute expression, professional 
-digital art, soft warm studio lighting, simple gradient background.
-```
-
----
-
-## Technical Considerations
-
-1. **Credit Economy**: Premium quality portraits could cost more credits
-2. **Rate Limiting**: Existing rate limit (10/hour) prevents abuse
-3. **Caching**: Store appearance hash with portrait to detect drift
-4. **Fallback**: If regeneration fails, keep existing portrait
-5. **Model Selection**: Use `gemini-3-pro-image-preview` for best quality
-
----
-
-## User Experience Flow
-
-1. User customizes cat appearance or equips costume
-2. System detects portrait is outdated (hash mismatch)
-3. Small badge appears on cat card: "🔄 Portrait outdated"
-4. User clicks badge → modal appears with:
-   - Current portrait vs. current appearance preview
-   - "Regenerate (1 credit)" button
-   - Credit balance display
-5. New portrait generated and saved
-6. Badge disappears, new portrait displays
-
----
-
-## Success Metrics
-
-- Portraits accurately reflect cat appearance 95%+ of the time
-- Costumes clearly visible and recognizable in portraits
-- Consistent art style across all generated portraits
-- Users regenerate outdated portraits within 1 session
-- Reduced support requests about portrait mismatches
-
+- Sync health check runs with service role (no user context needed)
+- Admin-only access to sync health logs and recovery tools
+- Snapshots don't store full game state (only metadata) to save storage
+- Rate limiting on recovery endpoints to prevent abuse
