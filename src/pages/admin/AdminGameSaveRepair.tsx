@@ -88,6 +88,7 @@ const ISSUE_TYPE_ICONS: Record<CorruptionType, React.ReactNode> = {
   bad_resources: <Package className="h-4 w-4" />,
   invalid_house: <Home className="h-4 w-4" />,
   missing_fields: <FileQuestion className="h-4 w-4" />,
+  earnings_mismatch: <DollarSign className="h-4 w-4" />,
 };
 
 const ISSUE_TYPE_LABELS: Record<CorruptionType, string> = {
@@ -98,11 +99,12 @@ const ISSUE_TYPE_LABELS: Record<CorruptionType, string> = {
   bad_resources: 'Bad Resources',
   invalid_house: 'Invalid House',
   missing_fields: 'Missing Fields',
+  earnings_mismatch: 'Earnings Mismatch',
 };
 
 export default function AdminGameSaveRepair() {
   const { toast } = useToast();
-  const { data, isLoading, refetch } = useAdminCorruptedSaves();
+  const { data, isLoading, isFetching, refetch } = useAdminCorruptedSaves();
   const repairMutation = useRepairGameSave();
   const bulkRepairMutation = useBulkRepairGameSaves();
 
@@ -194,8 +196,8 @@ export default function AdminGameSaveRepair() {
             </h1>
             <p className="text-muted-foreground">Detect and fix corrupted game saves</p>
           </div>
-          <Button onClick={() => refetch()} disabled={isLoading} variant="outline">
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          <Button onClick={() => refetch()} disabled={isFetching} variant="outline">
+            <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
