@@ -253,9 +253,12 @@ export function useFriends(userId: string | undefined) {
     fetchFriends();
   }, [fetchFriends]);
 
-  // Realtime subscription for friend updates
+  // Realtime subscription for friend updates - with user context guard
   useEffect(() => {
     if (!userId) return;
+
+    // Phase 3: Capture userId at subscription time to prevent stale updates
+    const subscribedUserId = userId;
 
     const channel = supabase
       .channel(`friends-${userId}`)
@@ -267,7 +270,14 @@ export function useFriends(userId: string | undefined) {
           table: 'player_friends',
           filter: `friend_id=eq.${userId}`,
         },
-        () => fetchFriends()
+        () => {
+          // Validate user context hasn't changed
+          if (subscribedUserId !== userId) {
+            console.log('[FriendsSync] Ignoring stale update for different user');
+            return;
+          }
+          fetchFriends();
+        }
       )
       .on(
         'postgres_changes',
@@ -277,7 +287,14 @@ export function useFriends(userId: string | undefined) {
           table: 'player_friends',
           filter: `user_id=eq.${userId}`,
         },
-        () => fetchFriends()
+        () => {
+          // Validate user context hasn't changed
+          if (subscribedUserId !== userId) {
+            console.log('[FriendsSync] Ignoring stale update for different user');
+            return;
+          }
+          fetchFriends();
+        }
       )
       .subscribe();
 

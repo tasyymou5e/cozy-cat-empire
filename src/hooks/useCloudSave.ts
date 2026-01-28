@@ -197,7 +197,7 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
         const catNames = correctedState.cats.map(c => c.name);
         const stateHash = generateStateHash(correctedState);
         
-        // Insert snapshot (non-blocking, don't wait)
+        // Insert snapshot (non-blocking, don't wait) - Phase 5: Enhanced error logging
         supabase.from('save_snapshots').insert({
           user_id: userId,
           snapshot_type: 'auto',
@@ -208,7 +208,20 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
           game_state_hash: stateHash,
         }).then(({ error: snapError }) => {
           if (snapError) {
-            console.warn('[CloudSync] Snapshot insert failed:', snapError.message);
+            console.error('[CloudSync] Snapshot insert failed:', snapError.message);
+            // Log to error_logs for monitoring
+            supabase.from('error_logs').insert({
+              user_id: userId,
+              error_type: 'snapshot_insert_failed',
+              error_message: snapError.message,
+              metadata: {
+                cat_count: correctedState.cats.length,
+                day: correctedState.day,
+                money: correctedState.money,
+              },
+            }).then(() => {
+              console.log('[CloudSync] Snapshot error logged to error_logs');
+            });
           } else {
             // Prune old snapshots (keep last 10) - fire and forget
             supabase

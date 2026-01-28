@@ -136,6 +136,19 @@ export function usePlayerProfile(userId: string | undefined) {
 
         if (error) throw error;
 
+        // Phase 2: Sync display_name and avatar to player_stats for leaderboard consistency
+        supabase
+          .from('player_stats')
+          .update({ display_name: displayName, avatar_emoji: avatarEmoji })
+          .eq('user_id', userId)
+          .then(({ error: statsError }) => {
+            if (statsError) {
+              console.warn('[ProfileSync] Failed to sync to player_stats:', statsError.message);
+            } else {
+              console.log('[ProfileSync] Synced profile to player_stats');
+            }
+          });
+
         setProfile((prev) =>
           prev
             ? {
