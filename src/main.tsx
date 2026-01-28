@@ -15,7 +15,9 @@ if ('serviceWorker' in navigator) {
         }, 60 * 60 * 1000);
       })
       .catch(error => {
-        console.error('SW registration failed:', error);
+        // Gracefully handle SW registration failure (common in dev/preview environments)
+        // Don't treat as fatal - app works fine without SW
+        console.warn('ServiceWorker registration skipped:', error.message || error);
       });
   });
 }
