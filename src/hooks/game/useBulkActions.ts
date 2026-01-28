@@ -281,12 +281,18 @@ export function useBulkActions(deps: GameHookDependencies): BulkActionsType {
           totalEarnings += sellPrice;
           relationshipSystem.removeCatRelationships(cat.id);
         });
+
+        // Clean up costume associations for all sold cats
+        const newCatCostumes = { ...prev.catCostumes };
+        catIds.forEach((id) => delete newCatCostumes[id]);
+
         showMessage(`Sold ${catsToSell.length} cats for $${totalEarnings}! 💰`, 'success');
         playSound?.('coin');
         return {
           ...prev,
           money: prev.money + totalEarnings,
           cats: prev.cats.filter((c) => !catIds.includes(c.id)),
+          catCostumes: newCatCostumes,
         };
       });
     },

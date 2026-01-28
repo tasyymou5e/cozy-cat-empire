@@ -141,6 +141,42 @@ describe('useCatManagement', () => {
 
       expect(mockDeps.deps.relationshipSystem.removeCatRelationships).toHaveBeenCalledWith('cat-1');
     });
+
+    it('should remove costume association when cat is sold', () => {
+      const cat = createMockCat({ id: 'cat-1', value: 100 });
+      mockDeps = createMockDependencies({
+        cats: [cat],
+        catCostumes: { 'cat-1': 'crown' },
+      });
+
+      const { result } = renderHook(() => useCatManagement(mockDeps.deps));
+
+      act(() => {
+        result.current.sellCat('cat-1');
+      });
+
+      expect(mockDeps.getState().catCostumes['cat-1']).toBeUndefined();
+    });
+
+    it('should not affect other cats costumes when selling one cat', () => {
+      const cats = [
+        createMockCat({ id: 'cat-1', value: 100 }),
+        createMockCat({ id: 'cat-2', value: 100 }),
+      ];
+      mockDeps = createMockDependencies({
+        cats,
+        catCostumes: { 'cat-1': 'crown', 'cat-2': 'party_hat' },
+      });
+
+      const { result } = renderHook(() => useCatManagement(mockDeps.deps));
+
+      act(() => {
+        result.current.sellCat('cat-1');
+      });
+
+      expect(mockDeps.getState().catCostumes['cat-1']).toBeUndefined();
+      expect(mockDeps.getState().catCostumes['cat-2']).toBe('party_hat');
+    });
   });
 
   describe('renameCat', () => {

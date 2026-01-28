@@ -935,3 +935,45 @@ App.tsx
 - Co-locate tests and styles
 - Export from index files
 - Use barrel imports
+
+---
+
+## Costume System Data Flow
+
+Costumes are managed through the `catCostumes` map in GameState:
+- `ownedCostumes: string[]` - List of costume IDs the player owns
+- `catCostumes: Record<string, string>` - Maps cat ID to equipped costume ID
+
+### Important Invariants
+
+1. **Ownership Validation**: A costume can only be equipped if it exists in `ownedCostumes`
+2. **Sale Cleanup**: When a cat is sold (single or bulk), its entry MUST be removed from `catCostumes`
+3. **Costume Validation**: The `getCostumeById()` function validates costume existence before equipping
+4. **Error Feedback**: Invalid operations (unowned costume, invalid ID, missing cat) produce user-visible error messages
+
+### Data Flow
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ CostumeShopPanel│────▶│   buyCostume()   │────▶│ ownedCostumes[] │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+                                                         │
+                                                         ▼
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  CatDetailModal │────▶│  equipCostume()  │────▶│ catCostumes{}   │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+                                                         │
+                                                         ▼
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ sellCat() /     │────▶│ Cleanup costume  │────▶│ delete entry    │
+│ sellSelectedCats│     │   association    │     │ from catCostumes│
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+```
+
+### Hooks Involved
+
+| Hook | Responsibility |
+|------|----------------|
+| `useCostumes` | Buy and equip/unequip costumes with validation |
+| `useCatManagement` | Cleans up `catCostumes` on single cat sale |
+| `useBulkActions` | Cleans up `catCostumes` on bulk cat sale |
