@@ -70,6 +70,7 @@ const JOB_FUNCTION_MAP: Record<string, string> = {
   'generate-weekly-challenges': 'generate-weekly-challenges',
   'process-leaderboard-rewards': 'process-leaderboard-rewards',
   'cleanup-error-logs-daily': 'cleanup-error-logs',
+  'sync-health-check-10min': 'sync-health-check',
 };
 
 // Job display info
@@ -86,6 +87,10 @@ const JOB_INFO: Record<string, { icon: string; description: string }> = {
     icon: '🗑️',
     description: 'Removes error logs older than 30 days',
   },
+  'sync-health-check-10min': {
+    icon: '🩺',
+    description: 'Validates data integrity across active game saves every 10 minutes',
+  },
 };
 
 // Color palette for chart lines
@@ -93,6 +98,7 @@ const JOB_COLORS: Record<string, string> = {
   'process-leaderboard-rewards': '#3b82f6',
   'generate-weekly-challenges': '#10b981',
   'cleanup-error-logs-daily': '#f59e0b',
+  'sync-health-check-10min': '#ec4899',
 };
 
 interface CronJob {

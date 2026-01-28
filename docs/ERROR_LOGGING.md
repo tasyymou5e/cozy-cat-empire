@@ -492,6 +492,44 @@ USING (auth.uid() = user_id);
 
 ---
 
+## Testing
+
+### Unit Tests
+Located in `src/hooks/__tests__/useErrorLogger.test.ts`:
+- Rate limiting validation (10 errors per minute)
+- Error type categorization (uncaught, promise, component, network, interaction)
+- Metadata capture verification (viewport, route, timestamp)
+- SVGAnimatedString handling for click targets
+
+### Component Tests
+Located in `src/components/__tests__/ErrorBoundary.test.tsx`:
+- Children rendering when no error
+- Fallback UI display on error
+- Error logging to database
+- Retry functionality with count tracking
+- Automatic page reload after 3 retries
+
+### Integration Tests
+Located in `src/test/errorHandling.test.ts`:
+- Full error flow validation
+- Database logging verification
+- Rate limiting integration
+- Error correlation (click tracking, viewport, route)
+- Graceful failure handling
+
+### Running Tests
+```bash
+# Run all error tests
+npm run test -- useErrorLogger
+npm run test -- ErrorBoundary
+npm run test -- errorHandling
+
+# Run with coverage
+npm run test -- --coverage useErrorLogger
+```
+
+---
+
 ## Error Handling Patterns
 
 ### API Call Error Handling

@@ -442,11 +442,38 @@ src/
 │   ├── AdminAIMetrics.tsx        # AI usage monitoring
 │   ├── AdminSecurity.tsx         # Security scanning dashboard
 │   ├── AdminScheduledJobs.tsx    # Cron job management
+│   ├── AdminSaveRecovery.tsx     # Save recovery and sync health
 │   ├── AdminTutorialAnalytics.tsx # Tutorial analytics
 │   └── AdminSettings.tsx         # Admin settings
 └── pages/
     └── AdminAuth.tsx             # Admin login page
 ```
+
+### 12. Scheduled Jobs (`/catking/scheduled-jobs`)
+
+Manage and monitor cron jobs:
+- **Active Jobs List**: View all scheduled cron jobs with status
+- **Job Details**: Schedule, description, last run time, success rate
+- **Manual Trigger**: Execute any job on-demand with confirmation
+- **Job Trends Chart**: Visualize job run history over 14 days
+- **Run History Table**: Detailed view of recent job executions
+- **Alert Configuration**: Enable/disable job failure notifications
+
+**Available Jobs:**
+| Job | Schedule | Purpose |
+|-----|----------|---------|
+| `sync-health-check-10min` | Every 10 min | Validates game save data integrity |
+| `generate-weekly-challenges` | Sundays midnight | Creates weekly player challenges |
+| `process-leaderboard-rewards` | Daily 1 AM | Awards leaderboard prizes |
+| `cleanup-error-logs-daily` | Daily 3 AM | Prunes old error logs |
+
+### 13. Save Recovery (`/catking/save-recovery`)
+
+Data integrity monitoring and recovery:
+- **Sync Health Summary**: Overview of recent integrity checks
+- **Issues Table**: List of saves with detected problems
+- **Recovery Actions**: Tools to restore lost data
+- **Snapshot History**: View save history for comparison
 
 ## Granting Admin Access
 
