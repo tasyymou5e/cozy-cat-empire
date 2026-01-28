@@ -8,6 +8,7 @@
 > - [docs/TECH_STACK.md](docs/TECH_STACK.md) - Technology stack
 > - [docs/ERROR_LOGGING.md](docs/ERROR_LOGGING.md) - Error logging system
 > - [docs/SOCIAL_FEATURES.md](docs/SOCIAL_FEATURES.md) - Social & multiplayer features
+> - [docs/MOBILE_TABLET_UI.md](docs/MOBILE_TABLET_UI.md) - Mobile & tablet responsive UI
 > - [docs/GAMIFICATION_IMPROVEMENTS_PLAN.md](docs/GAMIFICATION_IMPROVEMENTS_PLAN.md) - Gamification systems plan
 
 ## Overview
