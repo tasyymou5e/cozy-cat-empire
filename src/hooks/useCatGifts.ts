@@ -22,18 +22,21 @@ import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
  * @property {string} recipient_id - ID of the player receiving the gift
  * @property {Cat} cat_data - The cat being gifted (full Cat object)
  * @property {string | null} message - Optional message from the sender
- * @property {'pending' | 'accepted' | 'declined'} status - Gift status
+ * @property {CatGiftStatus} status - Gift status
  * @property {string} created_at - ISO timestamp of when gift was sent
  * @property {string} [sender_name] - Display name of sender (populated for received gifts)
  * @property {string} [recipient_name] - Display name of recipient (populated for sent gifts)
  */
+/** Valid gift status values */
+export type CatGiftStatus = 'pending' | 'accepted' | 'declined' | 'revoked_by_admin';
+
 interface CatGift {
   id: string;
   sender_id: string;
   recipient_id: string;
   cat_data: Cat;
   message: string | null;
-  status: 'pending' | 'accepted' | 'declined';
+  status: CatGiftStatus;
   created_at: string;
   sender_name?: string;
   recipient_name?: string;
@@ -183,7 +186,7 @@ export function useCatGifts(userId: string | undefined) {
           (received || []).map((g) => ({
             ...g,
             cat_data: g.cat_data as unknown as Cat,
-            status: g.status as 'pending' | 'accepted' | 'declined',
+            status: g.status as CatGiftStatus,
             sender_name: nameMap.get(g.sender_id) || 'Unknown',
           }))
         );
@@ -192,7 +195,7 @@ export function useCatGifts(userId: string | undefined) {
           (sent || []).map((g) => ({
             ...g,
             cat_data: g.cat_data as unknown as Cat,
-            status: g.status as 'pending' | 'accepted' | 'declined',
+            status: g.status as CatGiftStatus,
             recipient_name: nameMap.get(g.recipient_id) || 'Unknown',
           }))
         );
@@ -246,7 +249,7 @@ export function useCatGifts(userId: string | undefined) {
           const giftWithSender: CatGift = {
             ...newGift,
             cat_data: newGift.cat_data as Cat,
-            status: newGift.status as 'pending' | 'accepted' | 'declined',
+            status: newGift.status as CatGiftStatus,
             sender_name: senderProfile?.display_name || 'A friend',
           };
 

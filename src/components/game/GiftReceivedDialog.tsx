@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Gift, Check, X, Sparkles, Heart } from 'lucide-react';
 import { Cat, BREEDS } from '@/types/game';
 import { CatVisual } from './CatVisual';
+import { CatGiftStatus } from '@/hooks/useCatGifts';
 
 interface CatGift {
   id: string;
@@ -18,7 +19,7 @@ interface CatGift {
   recipient_id: string;
   cat_data: Cat;
   message: string | null;
-  status: 'pending' | 'accepted' | 'declined';
+  status: CatGiftStatus;
   created_at: string;
   sender_name?: string;
 }

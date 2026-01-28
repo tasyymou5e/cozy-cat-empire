@@ -6,6 +6,7 @@ import { WhatsNewPopup } from './WhatsNewPopup';
 import { Milestone } from '@/types/milestones';
 import { VIPTier } from '@/types/dailyRewards';
 import { Cat, Resources } from '@/types/game';
+import { CatGiftStatus } from '@/hooks/useCatGifts';
 
 interface CatGift {
   id: string;
@@ -13,7 +14,7 @@ interface CatGift {
   recipient_id: string;
   cat_data: Cat;
   message: string | null;
-  status: 'pending' | 'accepted' | 'declined';
+  status: CatGiftStatus;
   created_at: string;
   sender_name?: string;
 }
