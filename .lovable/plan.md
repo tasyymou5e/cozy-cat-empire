@@ -1,128 +1,167 @@
 
 
-# Security Audit Refinement Plan
+# Admin Dashboard Data Sync Issues - Fix Plan
 
-## Problem Analysis
+## Issues Identified
 
-The security linter is flagging issues that are either legitimate by design or not correctly detecting existing policies:
+### 1. Admin ProfileEditor Missing player_stats Sync
 
-### Issue 1: Permissive INSERT Policies
-| Table | Current Policy | Why It's Legitimate |
-|-------|---------------|---------------------|
-| `auth_attempts_log` | Anyone can INSERT | Must log failed login attempts from unauthenticated users |
-| `tutorial_analytics` | Anyone can INSERT | Must track anonymous users in tutorial |
+**Location:** `src/components/admin/ProfileEditor.tsx` (lines 314-321)
 
-**Solution:** Update `get_permissive_policies` function to exclude these tables from INSERT warnings.
+**Problem:** When an admin updates a user's profile, it only writes to the `profiles` table but does NOT sync `display_name` and `avatar_emoji` to the `player_stats` table. This is inconsistent with the user-facing `usePlayerProfile.ts` which DOES sync both tables.
 
-### Issue 2: Missing Admin SELECT Access
-| Table | Current Situation | Why It's Flagged |
-|-------|------------------|------------------|
-| `admin_notifications` | Has `ALL` policy for admins | Linter only checks `SELECT` command, not `ALL` |
-| `game_config` | Has public `SELECT` policy | No explicit admin policy (admins can read via public) |
-| `player_stats` | Has public `SELECT` policy | No explicit admin policy (admins can read via public) |
-
-**Solution:** Update `get_tables_without_admin_access` function to:
-1. Recognize `ALL` policies as covering SELECT
-2. Exclude intentionally public tables
-
----
-
-## Implementation
-
-### Database Migration
-
-```sql
--- ============================================================
--- Security Linter Refinement - Reduce False Positives
--- ============================================================
-
--- 1. Update get_permissive_policies to exclude legitimate public INSERT tables
-CREATE OR REPLACE FUNCTION public.get_permissive_policies()
-RETURNS TABLE(tablename text, policyname text, cmd text)
-LANGUAGE sql
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $$
-  SELECT 
-    p.tablename::text,
-    p.policyname::text,
-    p.cmd::text
-  FROM pg_policies p
-  WHERE p.schemaname = 'public'
-  AND (
-    p.qual = 'true' 
-    OR p.with_check = 'true'
-    OR p.qual LIKE '%true%'
-  )
-  -- Exclude tables that legitimately need public INSERT
-  AND NOT (
-    p.cmd = 'INSERT' 
-    AND p.tablename IN ('auth_attempts_log', 'tutorial_analytics', 'error_logs')
-  );
-$$;
-
--- 2. Update get_tables_without_admin_access to recognize ALL policies 
---    and exclude intentionally public tables
-CREATE OR REPLACE FUNCTION public.get_tables_without_admin_access()
-RETURNS TABLE(tablename text)
-LANGUAGE sql
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $$
-  SELECT DISTINCT c.relname::text as tablename
-  FROM pg_class c
-  JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-  AND c.relkind = 'r'
-  AND c.relrowsecurity = true
-  -- Exclude intentionally public tables (admins can read via public policies)
-  AND c.relname NOT IN ('game_config', 'player_stats', 'public_leaderboard')
-  AND NOT EXISTS (
-    SELECT 1 FROM pg_policies p
-    WHERE p.schemaname = 'public'
-    AND p.tablename = c.relname
-    -- Check for SELECT or ALL command (ALL includes SELECT)
-    AND p.cmd IN ('SELECT', 'ALL')
-    AND (
-      p.policyname ILIKE '%admin%'
-      OR p.qual ILIKE '%has_role%admin%'
-    )
-  );
-$$;
+**Evidence from code:**
+```typescript
+// ProfileEditor.tsx - ONLY updates profiles table
+const { error: updateError } = await supabase
+  .from('profiles')
+  .update({
+    display_name: trimmedName,
+    avatar_emoji: avatarEmoji,
+    username: trimmedUsername || null,
+  })
+  .eq('id', userId);
 ```
 
+vs `usePlayerProfile.ts`:
+```typescript
+// User's hook syncs BOTH tables
+supabase
+  .from('player_stats')
+  .update({ display_name: displayName, avatar_emoji: avatarEmoji })
+  .eq('user_id', userId)
+```
+
+### 2. Missing Query Invalidation for User Stats
+
+**Location:** `src/components/admin/ProfileEditor.tsx` (lines 297-302)
+
+**Problem:** After saving, only `admin-user-detail` and `admin-users` queries are invalidated, but `admin-user-stats` is NOT invalidated, causing stale stats data.
+
+### 3. Users Without player_stats Entries
+
+**Database Finding:** User "Toni" (id: `6117ab09...`) has a profile but no `player_stats` entry, which can cause display issues or null errors.
+
+### 4. Missing Null Safety in User Stats Display
+
+**Location:** `src/pages/admin/AdminUsers.tsx` (lines 585-586)
+
+**Current Code:**
+```typescript
+<TableCell>{user.stats?.total_cats_owned ?? 0}</TableCell>
+<TableCell>{user.stats?.total_show_wins ?? 0}</TableCell>
+```
+
+This is handled with `??` but should show a distinct indicator when stats are completely missing vs zero.
+
 ---
 
-## Expected Results After Fix
+## Solution
 
-| Warning Category | Before | After |
-|-----------------|--------|-------|
-| Permissive INSERT Policies | 2 tables | 0 tables |
-| Missing Admin SELECT | 3 tables | 0 tables |
+### Fix 1: Add player_stats Sync to ProfileEditor
 
----
+**File:** `src/components/admin/ProfileEditor.tsx`
 
-## Technical Notes
+After updating the profiles table, add sync to player_stats:
 
-1. **Legitimate Public INSERTs**:
-   - `auth_attempts_log` - Logs login failures before authentication
-   - `tutorial_analytics` - Tracks anonymous tutorial users
-   - `error_logs` - Already excluded in dangerous policies check
+```typescript
+// After profiles update succeeds (around line 323)
+// Sync to player_stats for leaderboard consistency
+const { error: statsError } = await supabase
+  .from('player_stats')
+  .update({ 
+    display_name: trimmedName, 
+    avatar_emoji: avatarEmoji 
+  })
+  .eq('user_id', userId);
 
-2. **Intentionally Public Tables**:
-   - `game_config` - Configuration readable by all players
-   - `player_stats` - Leaderboard data is public
-   - `public_leaderboard` - View specifically designed for public access
+if (statsError) {
+  console.warn('[ProfileEditor] Failed to sync to player_stats:', statsError.message);
+  // Non-blocking - continue even if stats sync fails
+}
+```
 
-3. **ALL Policy Recognition**:
-   - PostgreSQL `ALL` command covers SELECT, INSERT, UPDATE, DELETE
-   - `admin_notifications` correctly has admin access via ALL policy
+### Fix 2: Add player_stats Query Invalidation
+
+**File:** `src/components/admin/ProfileEditor.tsx`
+
+Update the `onSave` callback to also invalidate stats:
+
+```typescript
+// In the onSave callback (lines 297-302)
+onSave?.();
+queryClient.invalidateQueries({ queryKey: ['admin-user-stats', userId] });
+```
+
+### Fix 3: Show "No Stats" Indicator in User Table
+
+**File:** `src/pages/admin/AdminUsers.tsx`
+
+Modify the table cells to distinguish between "zero" and "no stats record":
+
+```typescript
+<TableCell>
+  {user.stats ? (
+    user.stats.total_cats_owned
+  ) : (
+    <span className="text-muted-foreground text-xs">—</span>
+  )}
+</TableCell>
+<TableCell>
+  {user.stats ? (
+    user.stats.total_show_wins
+  ) : (
+    <span className="text-muted-foreground text-xs">—</span>
+  )}
+</TableCell>
+```
+
+### Fix 4: Add Auto-Create player_stats Entry (Optional Enhancement)
+
+**File:** `src/components/admin/ProfileEditor.tsx`
+
+When saving a profile, if no player_stats entry exists, create one:
+
+```typescript
+// Check if player_stats exists, create if not
+const { data: existingStats } = await supabase
+  .from('player_stats')
+  .select('user_id')
+  .eq('user_id', userId)
+  .maybeSingle();
+
+if (!existingStats) {
+  await supabase.from('player_stats').insert({
+    user_id: userId,
+    display_name: trimmedName,
+    avatar_emoji: avatarEmoji,
+  });
+} else {
+  await supabase
+    .from('player_stats')
+    .update({ display_name: trimmedName, avatar_emoji: avatarEmoji })
+    .eq('user_id', userId);
+}
+```
 
 ---
 
 ## Files to Modify
 
-| Type | Description |
-|------|-------------|
-| Database Migration | Update two SQL functions to reduce false positives |
+| File | Changes |
+|------|---------|
+| `src/components/admin/ProfileEditor.tsx` | Add player_stats sync after profile update |
+| `src/pages/admin/AdminUsers.tsx` | Improve "no stats" indicator display |
+
+---
+
+## Technical Notes
+
+1. **Why sync is important**: The `player_stats` table is used for global leaderboards. Without sync, a user's display name could appear differently on the leaderboard vs their profile.
+
+2. **Non-blocking sync**: The player_stats sync should be non-blocking (fire-and-forget with warning log) to avoid blocking the admin action if the sync fails.
+
+3. **Backward compatibility**: The fix maintains existing behavior while adding the missing sync, ensuring no breaking changes.
+
+4. **Cache invalidation**: React Query's `staleTime: 10000` means data refreshes every 10 seconds automatically, but explicit invalidation after edits provides immediate UI updates.
 
