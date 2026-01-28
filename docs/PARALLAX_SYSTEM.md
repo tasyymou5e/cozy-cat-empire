@@ -169,6 +169,64 @@ foreground         1.0          Maximum    Cats, characters
 
 ---
 
+## Micro-Depth System
+
+The parallax system supports **per-object depth variation** within layers, creating a 3D diorama effect.
+
+### How It Works
+
+**File:** `src/lib/parallaxDepth.ts`
+
+Objects lower on screen (higher Y%) move more than objects higher up:
+
+```typescript
+import { calculateMicroDepth, getObjectParallaxTransform } from '@/lib/parallaxDepth';
+
+// Calculate depth based on Y position
+const depth = calculateMicroDepth(
+  0.5,    // baseDepth (layer's base)
+  75,     // yPercent (object's vertical position 0-100)
+  0.15    // microRange (variation amount)
+);
+// Result: 0.5 + (0.75 * 0.15) = 0.6125
+
+// Get full transform string
+const transform = getObjectParallaxTransform(offset, yPercent, baseDepth, microRange);
+// Result: "translate3d(Xpx, Ypx, 0)"
+```
+
+### Depth Variation by Object Type
+
+| Object | Base Depth | Micro Range | Bottom Depth |
+|:-------|:-----------|:------------|:-------------|
+| Props | 0.5 | 0.15 | 0.65 |
+| Cats | 1.0 | 0.18 | 1.18 |
+
+### Hover Pop Effect
+
+Objects get an extra depth boost on hover for tactile feedback:
+
+```typescript
+const HOVER_DEPTH_BOOST = 0.08;
+const totalDepth = microDepth + (isHovered ? HOVER_DEPTH_BOOST : 0);
+```
+
+### Visual Result
+
+```
+Mouse moves right →
+
+Without micro-depth (uniform):
+  All props shift 5px right together
+
+With micro-depth (Y-based variation):
+  Back props (Y=20%):   shift 3px right
+  Mid props (Y=50%):    shift 5px right  
+  Front props (Y=80%):  shift 7px right
+```
+
+---
+
 ## Usage Examples
 
 ### Basic Empire Scene
@@ -273,15 +331,18 @@ The parallax system respects user preferences:
 // In useGraphicsSettings.ts
 export interface GraphicsSettings {
   // ... other settings
-  enableEmpireParallax: boolean;  // Default: true
+  enableEmpireParallax: boolean;      // Default: true - Layer parallax
+  enableMicroDepthParallax: boolean;  // Default: true - Per-object depth
 }
 ```
 
-**Settings Panel Toggle:**
+**Settings Panel Toggles:**
 
 Located in Graphics Settings panel under "Empire" section:
-- Toggle: "Parallax Effects"
-- Description: "Enable depth movement on mouse"
+- Toggle: "Parallax Effects" - Enable layer depth movement on mouse
+- Toggle: "Micro-Depth Parallax" - Enable per-object depth variation
+
+**Important:** When micro-depth is enabled, global layer parallax is automatically disabled to prevent double-transformation.
 
 ---
 
@@ -330,9 +391,12 @@ function BadScene() {
 | File | Purpose |
 |------|---------|
 | `src/hooks/empire/useParallax.ts` | Mouse tracking and smooth animation hook |
+| `src/lib/parallaxDepth.ts` | Micro-depth calculation utilities |
 | `src/components/empire/ParallaxLayer.tsx` | Layer wrapper component + container |
+| `src/components/empire/EmpirePropComponent.tsx` | Props with per-object micro-depth |
+| `src/components/empire/RoamingCat.tsx` | Cats with per-object micro-depth |
 | `src/components/ui/FloatingDecorations.tsx` | Floating emojis with built-in parallax |
-| `src/hooks/useGraphicsSettings.ts` | Settings including `enableEmpireParallax` |
+| `src/hooks/useGraphicsSettings.ts` | Settings including parallax toggles |
 | `src/components/empire/EmpireScene.tsx` | Main usage of parallax system |
 
 ---
@@ -360,3 +424,14 @@ function BadScene() {
 - Reduce number of parallax layers
 - Disable parallax on mobile: `useParallax(!isMobile)`
 - Check for unnecessary re-renders in child components
+
+### Micro-depth not working
+
+- Verify `enableMicroDepthParallax` is true in graphics settings
+- Check that `parallaxOffset` is being passed to components
+- Ensure Y-position values are in 0-100 range
+
+### Double transformation
+
+- If objects move too much, check that layer parallax is disabled when using micro-depth
+- `EmpireScene.tsx` should set layer `enabled={false}` when micro-depth is active
