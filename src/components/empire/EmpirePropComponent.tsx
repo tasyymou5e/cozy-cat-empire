@@ -15,6 +15,7 @@ interface EmpirePropComponentProps {
   parallaxOffset?: { x: number; y: number };
   catsNearby?: number;
   isBeingUsed?: boolean;
+  isSummoning?: boolean;
 }
 
 /**
@@ -54,6 +55,7 @@ export function EmpirePropComponent({
   parallaxOffset = { x: 0, y: 0 },
   catsNearby = 0,
   isBeingUsed = false,
+  isSummoning = false,
 }: EmpirePropComponentProps) {
   // Calculate parallax based on prop's z-index (higher = more movement)
   const parallaxMultiplier = prop.zIndex > 15 ? 0.8 : prop.zIndex > 10 ? 0.5 : 0.2;
@@ -70,6 +72,7 @@ export function EmpirePropComponent({
         prop.interactable && 'cursor-pointer hover:scale-110 active:scale-95',
         isHighlighted && 'animate-pulse',
         isBeingUsed && 'scale-105',
+        isSummoning && 'scale-110 animate-bounce',
         animationClass
       )}
       style={{
@@ -90,15 +93,27 @@ export function EmpirePropComponent({
       tabIndex={prop.interactable ? 0 : undefined}
       aria-label={prop.interactable ? `Interact with ${prop.name}` : prop.name}
     >
-      {/* Glow effect when cats are nearby */}
-      {catsNearby > 0 && prop.attractsCats && (
+      {/* Glow effect when cats are nearby or summoning */}
+      {(catsNearby > 0 || isSummoning) && (prop.attractsCats || isSummoning) && (
         <div 
-          className="absolute inset-0 rounded-full blur-lg -z-10 animate-pulse"
+          className={cn(
+            "absolute inset-0 rounded-full blur-lg -z-10",
+            isSummoning ? "animate-ping" : "animate-pulse"
+          )}
           style={{
-            background: `radial-gradient(circle, hsl(var(--primary) / 0.4) 0%, transparent 70%)`,
+            background: isSummoning 
+              ? `radial-gradient(circle, hsl(var(--primary) / 0.6) 0%, transparent 70%)`
+              : `radial-gradient(circle, hsl(var(--primary) / 0.4) 0%, transparent 70%)`,
             transform: 'scale(2)',
           }}
         />
+      )}
+      
+      {/* Summoning indicator - paw prints */}
+      {isSummoning && (
+        <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-lg animate-bounce">
+          🐾
+        </div>
       )}
       
       {/* Main prop emoji */}
