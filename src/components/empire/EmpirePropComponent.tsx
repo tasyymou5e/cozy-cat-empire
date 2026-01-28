@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
-import { EmpireProp as EmpirePropType, CatPosition } from '@/types/empire';
+import { useMemo, useState } from 'react';
+import { EmpireProp as EmpirePropType } from '@/types/empire';
 import { cn } from '@/lib/utils';
+import { getObjectParallaxTransform, MICRO_DEPTH_CONFIG } from '@/lib/parallaxDepth';
 import {
   Tooltip,
   TooltipContent,
@@ -13,6 +14,7 @@ interface EmpirePropComponentProps {
   onClick?: (propId: string) => void;
   isHighlighted?: boolean;
   parallaxOffset?: { x: number; y: number };
+  enableMicroDepth?: boolean;
   catsNearby?: number;
   isBeingUsed?: boolean;
   isSummoning?: boolean;
@@ -53,14 +55,30 @@ export function EmpirePropComponent({
   onClick, 
   isHighlighted,
   parallaxOffset = { x: 0, y: 0 },
+  enableMicroDepth = false,
   catsNearby = 0,
   isBeingUsed = false,
   isSummoning = false,
 }: EmpirePropComponentProps) {
-  // Calculate parallax based on prop's z-index (higher = more movement)
-  const parallaxMultiplier = prop.zIndex > 15 ? 0.8 : prop.zIndex > 10 ? 0.5 : 0.2;
-  const offsetX = parallaxOffset.x * parallaxMultiplier;
-  const offsetY = parallaxOffset.y * parallaxMultiplier;
+  const [isHovered, setIsHovered] = useState(false);
+  
+  // Calculate micro-depth parallax transform based on Y position
+  const microDepthTransform = useMemo(() => {
+    if (!enableMicroDepth || (parallaxOffset.x === 0 && parallaxOffset.y === 0)) {
+      return '';
+    }
+    
+    // Add hover depth boost for interactive feel
+    const hoverBoost = isHovered && prop.interactable ? 0.08 : 0;
+    const adjustedMicroRange = MICRO_DEPTH_CONFIG.props.microRange + hoverBoost;
+    
+    return getObjectParallaxTransform(
+      parallaxOffset,
+      prop.position.y,
+      MICRO_DEPTH_CONFIG.props.baseDepth,
+      adjustedMicroRange
+    );
+  }, [parallaxOffset, prop.position.y, enableMicroDepth, isHovered, prop.interactable]);
 
   const interactionDesc = useMemo(() => getInteractionDescription(prop.onInteract), [prop.onInteract]);
   const animationClass = useMemo(() => getPropAnimation(prop.id, isBeingUsed), [prop.id, isBeingUsed]);
@@ -68,7 +86,7 @@ export function EmpirePropComponent({
   const propContent = (
     <div
       className={cn(
-        'absolute transition-all duration-300 select-none',
+        'absolute transition-all duration-300 select-none will-change-transform',
         prop.interactable && 'cursor-pointer hover:scale-110 active:scale-95',
         isHighlighted && 'animate-pulse',
         isBeingUsed && 'scale-105',
@@ -76,12 +94,14 @@ export function EmpirePropComponent({
         animationClass
       )}
       style={{
-        left: `calc(${prop.position.x}% + ${offsetX}px)`,
-        top: `calc(${prop.position.y}% + ${offsetY}px)`,
-        transform: `translate(-50%, -50%) scale(${prop.scale})`,
+        left: `${prop.position.x}%`,
+        top: `${prop.position.y}%`,
+        transform: `${microDepthTransform} translate(-50%, -50%) scale(${prop.scale})`,
         zIndex: prop.zIndex,
         fontSize: '2rem',
       }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       onClick={() => prop.interactable && onClick?.(prop.id)}
       onKeyDown={(e) => {
         if (prop.interactable && (e.key === 'Enter' || e.key === ' ')) {

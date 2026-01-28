@@ -65,6 +65,7 @@ export function EmpireScene({
   
   // Enhanced parallax with smoother animation
   const parallaxEnabled = effectiveAnimations && settings.enableEmpireParallax;
+  const microDepthEnabled = parallaxEnabled && settings.enableMicroDepthParallax;
   const parallaxOffset = useParallax(parallaxEnabled, 35, 0.1);
   
   // Roaming cats with prop attraction
@@ -203,11 +204,11 @@ export function EmpireScene({
         ))}
       </ParallaxLayer>
 
-      {/* Layer 2: Mid-ground - Props/furniture with medium parallax */}
+      {/* Layer 2: Mid-ground - Props/furniture with medium parallax + micro-depth */}
       <ParallaxLayer
         depth="midground"
         offset={parallaxOffset}
-        enabled={parallaxEnabled}
+        enabled={parallaxEnabled && !microDepthEnabled} // Disable layer parallax when micro-depth is active
         zIndex={20}
       >
         {zone.props.map(prop => (
@@ -215,7 +216,8 @@ export function EmpireScene({
             key={prop.id} 
             prop={prop} 
             onClick={handlePropClick}
-            parallaxOffset={{ x: 0, y: 0 }} // Props already in parallax layer
+            parallaxOffset={microDepthEnabled ? parallaxOffset : { x: 0, y: 0 }}
+            enableMicroDepth={microDepthEnabled}
             catsNearby={propCatCounts[prop.id] || 0}
             isBeingUsed={propsInUse.has(prop.id)}
             isSummoning={summoningProps.has(prop.id)}
@@ -246,11 +248,11 @@ export function EmpireScene({
         ))}
       </ParallaxLayer>
 
-      {/* Cats layer - strongest parallax (closest to viewer) */}
+      {/* Cats layer - strongest parallax (closest to viewer) + micro-depth */}
       <ParallaxLayer
         depth="foreground"
         offset={parallaxOffset}
-        enabled={parallaxEnabled}
+        enabled={parallaxEnabled && !microDepthEnabled} // Disable layer parallax when micro-depth is active
         zIndex={40}
       >
         {cats.map((cat) => {
@@ -266,6 +268,8 @@ export function EmpireScene({
               onInteract={handleInteraction}
               canFeed={resources.food > 0}
               canPlay={resources.toys > 0}
+              parallaxOffset={microDepthEnabled ? parallaxOffset : { x: 0, y: 0 }}
+              enableMicroDepth={microDepthEnabled}
             />
           );
         })}
