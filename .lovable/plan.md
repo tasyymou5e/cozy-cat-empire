@@ -1,679 +1,376 @@
 
-# Empire Page Complete Graphics Overhaul - Implementation Plan
 
-## Overview
+# AI Cat Portrait System Enhancement Plan
 
-This plan transforms the Empire page from simple CSS gradients into a fully immersive, interactive visual experience with illustrated backgrounds, interactive props, time-of-day lighting, parallax depth, seasonal variations, and enhanced cat behaviors - all while staying within the current React/TypeScript/Tailwind tech stack.
+## Goal
+Create a system where AI-generated cat portraits **exactly match** cat properties (appearance, breed, personality) and render costumes **effectively and cutely** - updating automatically when changes are detected.
 
 ---
 
-## Architecture Summary
+## Architecture Overview
 
 ```text
-┌─────────────────────────────────────────────────────────────────────┐
-│                        EmpireScene.tsx                              │
-├─────────────────────────────────────────────────────────────────────┤
-│ Layer 0: Sky/Background (Fixed)                                     │
-│   └─ EmpireBackground.tsx (house-specific SVG or cached AI image)  │
-├─────────────────────────────────────────────────────────────────────┤
-│ Layer 1: Wall/Distant Elements (Slow parallax)                      │
-│   └─ WindowScene.tsx (city/garden/mountains/fields view)           │
-├─────────────────────────────────────────────────────────────────────┤
-│ Layer 2: Mid-ground Props (Medium parallax)                         │
-│   └─ EmpireProp.tsx[] (furniture, decorations)                     │
-├─────────────────────────────────────────────────────────────────────┤
-│ Layer 3: Floor + Cats (Fast parallax)                               │
-│   └─ RoamingCat.tsx[] (with prop-seeking behavior)                 │
-├─────────────────────────────────────────────────────────────────────┤
-│ Layer 4: Atmospheric Overlays (Fixed)                               │
-│   ├─ TimeOfDayOverlay.tsx (lighting gradients)                     │
-│   ├─ SeasonalDecorations.tsx (leaves, snow, petals)                │
-│   └─ ParticleEffects.tsx (dust motes, fireflies)                   │
-├─────────────────────────────────────────────────────────────────────┤
-│ Layer 5: UI Overlays (Fixed)                                        │
-│   └─ Stats badges, resource indicators                             │
-└─────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    Enhanced Portrait System                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐      │
+│  │ Appearance   │───>│ Hash System  │───>│ Outdated     │      │
+│  │ Changes      │    │ Detection    │    │ Detection    │      │
+│  └──────────────┘    └──────────────┘    └──────────────┘      │
+│                                                 │                │
+│                                                 ▼                │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │              Auto-Regeneration Prompt                     │  │
+│  │  "Your cat's look has changed! Regenerate portrait?"     │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                 │                │
+│                                                 ▼                │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │           Enhanced Prompt Builder                         │  │
+│  │  - Precise appearance descriptors                        │  │
+│  │  - Costume-specific rendering instructions               │  │
+│  │  - Consistent cartoon style definition                   │  │
+│  │  - Breed-specific body language                          │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                 │                │
+│                                                 ▼                │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │           Lovable AI (gemini-2.5-flash-image)            │  │
+│  │           or gemini-3-pro-image-preview for quality      │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Phase 1: Type Definitions & Configuration (Foundation)
+## Phase 1: Enhanced Prompt Engineering
 
-### 1.1 Expand Type Definitions
+### 1.1 Create Comprehensive Prompt Builder
 
-**File:** `src/types/empire.ts`
+**File:** `supabase/functions/generate-cat-portrait/index.ts`
 
-Add new interfaces for the enhanced system:
+Improve the `buildPrompt()` function with:
 
+**Precise Appearance Mapping:**
 ```typescript
-// Interactive prop definition
-export interface EmpireProp {
-  id: string;
-  name: string;
-  emoji: string;
-  position: { x: number; y: number };
-  scale: number;
-  zIndex: number;
-  interactable?: boolean;
-  onInteract?: 'sleep' | 'play' | 'hide' | 'perch';
-  attractsCats?: boolean;
-  attractionRadius?: number;
-}
+// Detailed fur color descriptions
+const FUR_DESCRIPTIONS = {
+  orange: 'warm orange tabby-like fur',
+  black: 'sleek jet-black fur',
+  white: 'pure snowy white fur',
+  gray: 'silvery gray fur',
+  brown: 'rich chocolate brown fur',
+  cream: 'soft creamy beige fur',
+  ginger: 'bright ginger-red fur',
+  calico: 'tri-colored calico patches of orange, black and white'
+};
 
-// Time of day derived from game day
-export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
-
-// Weather effect types
-export type WeatherEffect = 'clear' | 'rain' | 'cloudy' | 'sunny';
-
-// Particle effect types
-export type ParticleType = 'dust-motes' | 'fireflies' | 'sparkles' | 'leaves' | 'snow' | 'petals';
-
-// Enhanced zone theme with all visual layers
-export interface EnhancedZoneTheme {
-  name: string;
-  
-  // Visual gradients
-  skyGradient: string;
-  wallGradient: string;
-  floorGradient: string;
-  floorPattern?: string;
-  
-  // Scene elements
-  windowScene?: 'city' | 'garden' | 'mountains' | 'fields';
-  wallDecorations: Array<{ emoji: string; position: { x: number; y: number } }>;
-  floorDecorations: Array<{ emoji: string; position: { x: number; y: number } }>;
-  
-  // Props for this zone
-  props: EmpireProp[];
-  
-  // Atmospheric effects
-  particles?: ParticleType;
-  lighting: 'warm' | 'cool' | 'neutral' | 'golden';
-  shadowIntensity: number;
-  
-  // Seasonal overrides
-  seasonalDecorations?: Record<RealSeason, Array<{ emoji: string; position: { x: number; y: number } }>>;
-  
-  // Optional AI background key (for cached generated backgrounds)
-  aiBackgroundKey?: string;
-}
-
-// Cat attraction zone for furniture seeking
-export interface AttractionZone {
-  propId: string;
-  center: { x: number; y: number };
-  radius: number;
-  behavior: 'sleep' | 'play' | 'perch' | 'sunbathe';
-}
+// Pattern descriptions
+const PATTERN_DESCRIPTIONS = {
+  solid: 'solid single color',
+  tabby: 'classic tabby stripes on forehead and body',
+  spotted: 'leopard-like spotted pattern',
+  tuxedo: 'formal tuxedo pattern with white chest and black body',
+  bicolor: 'two-tone bi-color pattern',
+  calico: 'random calico patches'
+};
 ```
 
-### 1.2 Create Props Configuration
-
-**File:** `src/config/empireProps.ts` (New)
-
-Define all furniture/props for each house type:
-
+**Consistent Style Definition:**
 ```typescript
-import { EmpireProp } from '@/types/empire';
-
-export const APARTMENT_PROPS: EmpireProp[] = [
-  { id: 'window', name: 'City Window', emoji: '🪟', position: { x: 50, y: 15 }, scale: 2.5, zIndex: 5 },
-  { id: 'cat-tree', name: 'Cat Tree', emoji: '🌲', position: { x: 12, y: 55 }, scale: 1.8, zIndex: 20, interactable: true, onInteract: 'play', attractsCats: true },
-  { id: 'cat-bed', name: 'Cat Bed', emoji: '🛏️', position: { x: 85, y: 70 }, scale: 1.4, zIndex: 25, interactable: true, onInteract: 'sleep', attractsCats: true },
-  { id: 'plant', name: 'Potted Plant', emoji: '🪴', position: { x: 8, y: 35 }, scale: 1.2, zIndex: 15 },
-  { id: 'bookshelf', name: 'Bookshelf', emoji: '📚', position: { x: 92, y: 30 }, scale: 1.5, zIndex: 10 },
-  { id: 'food-bowl', name: 'Food Bowl', emoji: '🥣', position: { x: 75, y: 80 }, scale: 1.0, zIndex: 30, interactable: true, onInteract: 'play' },
-  { id: 'radiator', name: 'Radiator', emoji: '🔥', position: { x: 25, y: 75 }, scale: 1.0, zIndex: 20, attractsCats: true },
-];
-
-export const HOUSE_PROPS: EmpireProp[] = [
-  { id: 'bay-window', name: 'Bay Window', emoji: '🪟', position: { x: 50, y: 12 }, scale: 3.0, zIndex: 5 },
-  { id: 'couch', name: 'Couch', emoji: '🛋️', position: { x: 30, y: 60 }, scale: 2.0, zIndex: 25, interactable: true, onInteract: 'sleep', attractsCats: true },
-  { id: 'fireplace', name: 'Fireplace', emoji: '🧱', position: { x: 80, y: 40 }, scale: 2.2, zIndex: 15, attractsCats: true },
-  { id: 'rug', name: 'Cozy Rug', emoji: '🟫', position: { x: 50, y: 72 }, scale: 2.5, zIndex: 10 },
-  { id: 'photos', name: 'Family Photos', emoji: '🖼️', position: { x: 15, y: 25 }, scale: 1.5, zIndex: 8 },
-  { id: 'garden-door', name: 'Garden Door', emoji: '🚪', position: { x: 90, y: 55 }, scale: 1.8, zIndex: 12, interactable: true, onInteract: 'perch' },
-];
-
-export const MANSION_PROPS: EmpireProp[] = [
-  { id: 'chandelier', name: 'Chandelier', emoji: '✨', position: { x: 50, y: 8 }, scale: 2.5, zIndex: 5 },
-  { id: 'piano', name: 'Grand Piano', emoji: '🎹', position: { x: 20, y: 55 }, scale: 2.0, zIndex: 20, interactable: true, onInteract: 'perch' },
-  { id: 'chaise', name: 'Velvet Chaise', emoji: '🛋️', position: { x: 70, y: 65 }, scale: 2.2, zIndex: 25, interactable: true, onInteract: 'sleep', attractsCats: true },
-  { id: 'columns', name: 'Marble Column', emoji: '🏛️', position: { x: 8, y: 45 }, scale: 2.8, zIndex: 8 },
-  { id: 'columns-2', name: 'Marble Column', emoji: '🏛️', position: { x: 92, y: 45 }, scale: 2.8, zIndex: 8 },
-  { id: 'fountain', name: 'Fountain', emoji: '⛲', position: { x: 50, y: 75 }, scale: 1.8, zIndex: 22, attractsCats: true },
-  { id: 'artwork', name: 'Fine Art', emoji: '🖼️', position: { x: 35, y: 20 }, scale: 1.8, zIndex: 6 },
-];
-
-export const FARM_PROPS: EmpireProp[] = [
-  { id: 'barn', name: 'Red Barn', emoji: '🏠', position: { x: 85, y: 25 }, scale: 3.5, zIndex: 5, interactable: true, onInteract: 'hide' },
-  { id: 'hay-bale-1', name: 'Hay Bale', emoji: '🟨', position: { x: 20, y: 65 }, scale: 1.5, zIndex: 20, interactable: true, onInteract: 'play', attractsCats: true },
-  { id: 'hay-bale-2', name: 'Hay Bale', emoji: '🟨', position: { x: 30, y: 70 }, scale: 1.3, zIndex: 22, attractsCats: true },
-  { id: 'fence', name: 'Wooden Fence', emoji: '🪵', position: { x: 50, y: 50 }, scale: 2.0, zIndex: 10, interactable: true, onInteract: 'perch' },
-  { id: 'water-trough', name: 'Water Trough', emoji: '🪣', position: { x: 70, y: 75 }, scale: 1.4, zIndex: 25 },
-  { id: 'windmill', name: 'Windmill', emoji: '🌀', position: { x: 12, y: 20 }, scale: 2.5, zIndex: 3 },
-  { id: 'tractor', name: 'Tractor', emoji: '🚜', position: { x: 60, y: 40 }, scale: 2.0, zIndex: 15 },
-];
-
-export const PROPS_BY_HOUSE = {
-  apartment: APARTMENT_PROPS,
-  house: HOUSE_PROPS,
-  mansion: MANSION_PROPS,
-  farm: FARM_PROPS,
-} as const;
+const STYLE_PROMPT = `
+Style: Cute kawaii cartoon cat portrait in the style of Studio Ghibli meets 
+modern mobile game art. Soft rounded features, large expressive eyes with 
+sparkle reflections, small pink nose, subtle blush marks on cheeks. 
+Clean cel-shaded look with soft gradients. Warm cozy lighting.
+Background: Simple soft gradient, not distracting.
+Composition: Head and upper body portrait, cat facing slightly toward camera.
+Quality: High detail on fur texture, ultra-cute expression, professional 
+digital art quality.
+`;
 ```
 
-### 1.3 Update Empire Configuration
-
-**File:** `src/config/empire.ts`
-
-Enhance with new visual layer definitions:
-
+**Costume-Specific Rendering:**
 ```typescript
-import { EnhancedZoneTheme } from '@/types/empire';
-import { APARTMENT_PROPS, HOUSE_PROPS, MANSION_PROPS, FARM_PROPS } from './empireProps';
-
-export const ENHANCED_EMPIRE_ZONES: Record<HouseSize, EnhancedZoneTheme> = {
-  apartment: {
-    name: 'Cozy Apartment',
-    skyGradient: 'from-orange-100 via-amber-50 to-amber-100',
-    wallGradient: 'from-amber-100 to-amber-50',
-    floorGradient: 'from-stone-300 to-stone-400',
-    floorPattern: 'repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0,0,0,0.03) 20px, rgba(0,0,0,0.03) 21px)',
-    windowScene: 'city',
-    wallDecorations: [
-      { emoji: '🖼️', position: { x: 20, y: 25 } },
-      { emoji: '🕰️', position: { x: 75, y: 22 } },
-    ],
-    floorDecorations: [],
-    props: APARTMENT_PROPS,
-    particles: 'dust-motes',
-    lighting: 'warm',
-    shadowIntensity: 0.3,
-    seasonalDecorations: {
-      spring: [{ emoji: '🌸', position: { x: 10, y: 30 } }],
-      summer: [{ emoji: '🌻', position: { x: 10, y: 30 } }],
-      autumn: [{ emoji: '🍂', position: { x: 10, y: 30 } }],
-      winter: [{ emoji: '❄️', position: { x: 45, y: 10 } }],
-    },
+const COSTUME_RENDER_INSTRUCTIONS = {
+  crown: {
+    description: 'wearing an ornate golden royal crown with red gems',
+    placement: 'crown sits properly on head between ears',
+    style: 'shiny metallic gold with jewel details'
   },
-  house: { /* similar structure */ },
-  mansion: { /* similar structure */ },
-  farm: { /* similar structure with outdoor elements */ },
+  wizard_hat: {
+    description: 'wearing a tall purple wizard hat decorated with golden stars and moons',
+    placement: 'hat sits at a slight jaunty angle',
+    style: 'deep purple fabric with magical sparkles'
+  },
+  // ... all costumes with specific visual instructions
+};
+```
+
+### 1.2 Add Breed-Specific Body Language
+
+```typescript
+const BREED_CHARACTERISTICS = {
+  persian: {
+    face: 'flat-faced Persian with round head and small ears',
+    expression: 'regal and slightly haughty',
+    fur: 'extremely fluffy long-haired coat'
+  },
+  siamese: {
+    face: 'elegant wedge-shaped face with large pointed ears',
+    expression: 'intelligent and curious',
+    fur: 'sleek short coat with darker points on ears, face, paws'
+  },
+  'maine-coon': {
+    face: 'large square muzzle with tufted ears',
+    expression: 'gentle giant, friendly',
+    fur: 'very fluffy with distinctive mane and bushy tail'
+  },
+  // ... all breeds
 };
 ```
 
 ---
 
-## Phase 2: Visual Layer Components
+## Phase 2: Automatic Outdated Portrait Detection
 
-### 2.1 Time of Day Utility
+### 2.1 Create Portrait Status Hook
 
-**File:** `src/lib/empireTimeOfDay.ts` (New)
-
-```typescript
-import { TimeOfDay } from '@/types/empire';
-
-export function getTimeOfDay(gameDay: number): TimeOfDay {
-  const cycle = gameDay % 4;
-  switch (cycle) {
-    case 0: return 'morning';
-    case 1: return 'afternoon';
-    case 2: return 'evening';
-    default: return 'night';
-  }
-}
-
-export const TIME_OF_DAY_OVERLAYS: Record<TimeOfDay, { gradient: string; opacity: number }> = {
-  morning: { gradient: 'from-yellow-200/20 via-transparent to-transparent', opacity: 0.3 },
-  afternoon: { gradient: 'from-transparent to-transparent', opacity: 0 },
-  evening: { gradient: 'from-orange-300/30 via-pink-200/20 to-purple-200/20', opacity: 0.4 },
-  night: { gradient: 'from-blue-900/50 via-indigo-900/40 to-purple-900/30', opacity: 0.5 },
-};
-```
-
-### 2.2 Time of Day Overlay Component
-
-**File:** `src/components/empire/TimeOfDayOverlay.tsx` (New)
-
-Renders gradient overlay based on game day:
+**File:** `src/hooks/usePortraitStatus.ts` (New)
 
 ```typescript
-interface TimeOfDayOverlayProps {
-  gameDay: number;
-  className?: string;
+interface UsePortraitStatusReturn {
+  outdatedCats: Cat[];
+  checkIfOutdated: (cat: Cat, costumeId?: string) => boolean;
+  markAsUpToDate: (catId: string, hash: string) => void;
 }
 
-export function TimeOfDayOverlay({ gameDay, className }: TimeOfDayOverlayProps) {
-  const timeOfDay = getTimeOfDay(gameDay);
-  const overlay = TIME_OF_DAY_OVERLAYS[timeOfDay];
-  
-  return (
-    <div 
-      className={cn(
-        'absolute inset-0 pointer-events-none transition-all duration-1000',
-        `bg-gradient-to-b ${overlay.gradient}`,
-        className
-      )}
-      style={{ opacity: overlay.opacity }}
-    >
-      {/* Optional sun rays for morning */}
-      {timeOfDay === 'morning' && <SunRays />}
-      {/* Stars for night */}
-      {timeOfDay === 'night' && <Stars />}
-    </div>
-  );
+export function usePortraitStatus(cats: Cat[], catCostumes: Record<string, string>) {
+  // Track which cats have outdated portraits
+  // Return list for batch regeneration UI
 }
 ```
 
-### 2.3 EmpireProp Component
+### 2.2 Add Inline Regeneration Prompt
 
-**File:** `src/components/empire/EmpireProp.tsx` (New)
+**File:** `src/components/game/PortraitOutdatedBadge.tsx` (New)
 
-Renders individual interactive prop:
-
-```typescript
-interface EmpirePropComponentProps {
-  prop: EmpireProp;
-  onClick?: (propId: string) => void;
-  isHighlighted?: boolean;
-}
-
-export function EmpirePropComponent({ prop, onClick, isHighlighted }: EmpirePropComponentProps) {
-  return (
-    <div
-      className={cn(
-        'absolute transition-transform duration-200',
-        prop.interactable && 'cursor-pointer hover:scale-110',
-        isHighlighted && 'animate-pulse'
-      )}
-      style={{
-        left: `${prop.position.x}%`,
-        top: `${prop.position.y}%`,
-        transform: `translate(-50%, -50%) scale(${prop.scale})`,
-        zIndex: prop.zIndex,
-        fontSize: '2rem',
-      }}
-      onClick={() => prop.interactable && onClick?.(prop.id)}
-      role={prop.interactable ? 'button' : undefined}
-      aria-label={prop.name}
-    >
-      <span className="drop-shadow-md">{prop.emoji}</span>
-    </div>
-  );
-}
-```
-
-### 2.4 Window Scene Component
-
-**File:** `src/components/empire/WindowScene.tsx` (New)
-
-Renders the view through windows based on house type:
-
-```typescript
-type WindowSceneType = 'city' | 'garden' | 'mountains' | 'fields';
-
-const WINDOW_SCENES: Record<WindowSceneType, { elements: string[]; gradient: string }> = {
-  city: { 
-    elements: ['🏢', '🏙️', '🌆'], 
-    gradient: 'from-sky-400 to-orange-200' 
-  },
-  garden: { 
-    elements: ['🌳', '🌸', '🦋'], 
-    gradient: 'from-sky-300 to-green-200' 
-  },
-  mountains: { 
-    elements: ['🏔️', '⛰️', '🌲'], 
-    gradient: 'from-sky-400 to-slate-300' 
-  },
-  fields: { 
-    elements: ['🌾', '🌻', '🐄'], 
-    gradient: 'from-sky-300 to-lime-200' 
-  },
-};
-```
-
-### 2.5 Seasonal Decorations Component
-
-**File:** `src/components/empire/SeasonalDecorations.tsx` (New)
-
-Adds seasonal flair based on real-world season:
-
-```typescript
-interface SeasonalDecorationsProps {
-  season: RealSeason;
-  houseSize: HouseSize;
-}
-
-export function SeasonalDecorations({ season, houseSize }: SeasonalDecorationsProps) {
-  const zone = ENHANCED_EMPIRE_ZONES[houseSize];
-  const decorations = zone.seasonalDecorations?.[season] || [];
-  
-  return (
-    <>
-      {decorations.map((deco, i) => (
-        <div
-          key={i}
-          className="absolute animate-float"
-          style={{
-            left: `${deco.position.x}%`,
-            top: `${deco.position.y}%`,
-            fontSize: '1.5rem',
-          }}
-        >
-          {deco.emoji}
-        </div>
-      ))}
-    </>
-  );
-}
-```
-
-### 2.6 Empire Particle Effects
-
-**File:** `src/components/empire/EmpireParticles.tsx` (New)
-
-Lightweight particle system for dust motes, fireflies, etc:
-
-```typescript
-interface EmpireParticlesProps {
-  type: ParticleType;
-  density?: 'light' | 'medium' | 'heavy';
-  enableReducedMotion?: boolean;
-}
-
-export function EmpireParticles({ type, density = 'light', enableReducedMotion }: EmpireParticlesProps) {
-  if (enableReducedMotion) return null;
-  
-  // Reuse patterns from SeasonalParticles.tsx
-  const count = density === 'light' ? 10 : density === 'medium' ? 20 : 35;
-  // ... render particles
-}
-```
-
-### 2.7 Parallax Container Hook
-
-**File:** `src/hooks/empire/useParallax.ts` (New)
-
-Optional parallax effect based on mouse position:
-
-```typescript
-export function useParallax(enabled: boolean = true) {
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  
-  useEffect(() => {
-    if (!enabled) return;
-    
-    const handleMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth - 0.5) * 20;
-      const y = (e.clientY / window.innerHeight - 0.5) * 10;
-      setOffset({ x, y });
-    };
-    
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [enabled]);
-  
-  return offset;
-}
-```
+When a cat's portrait is outdated, show a subtle badge:
+- Small ⚠️ icon on cat cards
+- Tooltip: "Portrait outdated - appearance changed"
+- Click to regenerate (if credits available)
 
 ---
 
-## Phase 3: Cat Behavior Enhancements
+## Phase 3: Quick Regeneration Flow
 
-### 3.1 Furniture Attraction Logic
+### 3.1 Add Regeneration Button to Cat Cards
 
-**File:** `src/hooks/empire/useRoamingCats.ts` (Modify)
+**File:** `src/components/game/UnifiedCatCard.tsx` (Update)
 
-Add attraction zones so cats gravitate toward furniture:
+Add regeneration button when portrait is outdated:
+- Shows only when `isPortraitOutdated(cat, costumeId)` returns true
+- One-click regeneration with credit check
+- Loading state during generation
 
-```typescript
-// New function to calculate weighted position including furniture attraction
-function getWeightedPosition(
-  currentPos: { x: number; y: number },
-  attractionZones: AttractionZone[],
-  catPersonality: CatPersonality
-): { x: number; y: number } {
-  // 30% chance to move toward attractive furniture
-  if (Math.random() < 0.3 && attractionZones.length > 0) {
-    const preferredZones = attractionZones.filter(zone => {
-      // Lazy cats prefer beds, playful cats prefer toys
-      if (catPersonality === 'lazy' && zone.behavior === 'sleep') return true;
-      if (catPersonality === 'playful' && zone.behavior === 'play') return true;
-      return Math.random() < 0.5;
-    });
-    
-    if (preferredZones.length > 0) {
-      const target = preferredZones[Math.floor(Math.random() * preferredZones.length)];
-      return {
-        x: target.center.x + (Math.random() - 0.5) * target.radius,
-        y: target.center.y + (Math.random() - 0.5) * target.radius,
-      };
-    }
-  }
-  
-  // Otherwise random position as before
-  return randomPosition();
-}
-```
+### 3.2 Batch Portrait Regeneration
 
-### 3.2 Cat State Extensions
+**File:** `src/components/game/BatchPortraitGenerator.tsx` (Update existing)
 
-Add new states to `CatState` type:
-
-```typescript
-export type CatState = 
-  | 'idle' 
-  | 'walking' 
-  | 'interacting' 
-  | 'sleeping'     // On furniture
-  | 'playing'      // With toy prop
-  | 'perching'     // On window/fence
-  | 'sunbathing';  // In light beam
-```
-
-Update `RoamingCat.tsx` to render state-specific indicators.
+Enhance to:
+- Show all cats with outdated portraits
+- "Regenerate All" button with credit cost display
+- Progress indicator during batch generation
 
 ---
 
-## Phase 4: Update EmpireScene
+## Phase 4: Enhanced Edge Function
 
-### 4.1 Refactor EmpireScene.tsx
+### 4.1 Update generate-cat-portrait Function
 
-**File:** `src/components/empire/EmpireScene.tsx` (Major Update)
+**File:** `supabase/functions/generate-cat-portrait/index.ts`
 
-```typescript
-export function EmpireScene({ cats, houseSize, catCostumes, resources, gameDay, ...handlers }: EmpireSceneProps) {
-  const { settings } = useGraphicsSettings();
-  const season = getCurrentRealSeason();
-  const zone = ENHANCED_EMPIRE_ZONES[houseSize];
-  const parallaxOffset = useParallax(settings.enableAnimations);
-  const { positions, setInteracting, attractionZones } = useRoamingCats(cats, zone.props);
+Key changes:
 
-  return (
-    <div className="relative w-full h-[500px] sm:h-[600px] overflow-hidden rounded-xl border shadow-lg">
-      {/* Layer 0: Sky/Background */}
-      <div className={cn('absolute inset-0', `bg-gradient-to-b ${zone.skyGradient}`)}>
-        {zone.windowScene && <WindowScene type={zone.windowScene} timeOfDay={getTimeOfDay(gameDay)} />}
-      </div>
-      
-      {/* Layer 1: Wall with decorations */}
-      <div 
-        className={cn('absolute inset-0 bottom-1/2', `bg-gradient-to-b ${zone.wallGradient}`)}
-        style={{ transform: `translate(${parallaxOffset.x * 0.5}px, ${parallaxOffset.y * 0.5}px)` }}
-      >
-        {zone.wallDecorations.map((deco, i) => (
-          <span key={i} style={{ left: `${deco.position.x}%`, top: `${deco.position.y}%` }} className="absolute">
-            {deco.emoji}
-          </span>
-        ))}
-      </div>
-      
-      {/* Layer 2: Props */}
-      {zone.props.map(prop => (
-        <EmpirePropComponent key={prop.id} prop={prop} onClick={handlePropClick} />
-      ))}
-      
-      {/* Layer 3: Floor + Cats */}
-      <div 
-        className={cn('absolute inset-0 top-1/2', `bg-gradient-to-b ${zone.floorGradient}`)}
-        style={{ backgroundImage: zone.floorPattern }}
-      />
-      {cats.map(cat => (
-        <RoamingCat key={cat.id} cat={cat} position={positions.get(cat.id)} {...catProps} />
-      ))}
-      
-      {/* Layer 4: Atmospheric overlays */}
-      <TimeOfDayOverlay gameDay={gameDay} />
-      <SeasonalDecorations season={season} houseSize={houseSize} />
-      {zone.particles && settings.enableParticles && (
-        <EmpireParticles type={zone.particles} enableReducedMotion={settings.enableReducedMotion} />
-      )}
-      
-      {/* Layer 5: UI Overlays */}
-      {/* ... stats badges ... */}
-    </div>
-  );
-}
-```
+1. **Use Better Model for Quality:**
+   ```typescript
+   // For premium quality, use the pro model
+   const MODEL = useHighQuality 
+     ? 'google/gemini-3-pro-image-preview' 
+     : 'google/gemini-2.5-flash-image';
+   ```
 
-### 4.2 Update Empire Page
+2. **Enhanced Prompt Structure:**
+   ```typescript
+   function buildPrompt(cat: CatData): string {
+     const parts = [
+       buildStylePrompt(),           // Consistent cartoon style
+       buildBreedPrompt(cat),        // Breed-specific features
+       buildAppearancePrompt(cat),   // Exact colors/patterns
+       buildExpressionPrompt(cat),   // Personality-based expression
+       buildCostumePrompt(cat),      // Detailed costume rendering
+       buildQualityPrompt()          // Technical quality requirements
+     ];
+     return parts.join(' ');
+   }
+   ```
 
-**File:** `src/pages/Empire.tsx` (Minor Update)
-
-Pass `gameDay` to `EmpireScene`:
-
-```typescript
-<EmpireScene
-  cats={state.cats}
-  houseSize={state.houseSize}
-  catCostumes={state.catCostumes}
-  resources={state.resources}
-  gameDay={state.day}  // NEW
-  onPetCat={handlePetCat}
-  onFeedCat={handleFeedCat}
-  onPlayWithCat={handlePlayWithCat}
-/>
-```
+3. **Costume Rendering Priority:**
+   ```typescript
+   // If costume equipped, make it prominent
+   if (costume) {
+     prompt += `IMPORTANT: The cat is wearing ${costume.name}. 
+       ${COSTUME_RENDER_INSTRUCTIONS[costume.id].description}. 
+       The costume must be clearly visible and ${COSTUME_RENDER_INSTRUCTIONS[costume.id].style}. 
+       ${COSTUME_RENDER_INSTRUCTIONS[costume.id].placement}.`;
+   }
+   ```
 
 ---
 
 ## Phase 5: Graphics Settings Integration
 
-### 5.1 Add Empire-Specific Settings
+### 5.1 Add Portrait Quality Setting
 
 **File:** `src/hooks/useGraphicsSettings.ts` (Update)
 
-Add new settings for Empire visuals:
-
 ```typescript
 export interface GraphicsSettings {
-  // ... existing settings ...
+  // ... existing
   
-  // Empire-specific
-  enableEmpireParallax: boolean;
-  enableEmpireParticles: boolean;
-  enableTimeOfDayEffects: boolean;
-  enableSeasonalDecorations: boolean;
-  empireBackgroundQuality: 'simple' | 'detailed' | 'ai-generated';
+  // Portrait settings
+  portraitQuality: 'standard' | 'premium';  // Uses different AI model
+  autoRegenerateOutdated: boolean;          // Prompt to regenerate on change
+  showOutdatedIndicator: boolean;           // Show badge on outdated portraits
 }
 ```
 
-### 5.2 Add Toggle in Graphics Settings Panel
+### 5.2 Add Settings UI
 
 **File:** `src/components/game/GraphicsSettingsPanel.tsx` (Update)
 
-Add toggles for Empire visual features.
+Add new section:
+- Portrait Quality toggle (Standard/Premium)
+- Auto-regenerate prompt toggle
+- Outdated indicator toggle
 
 ---
 
-## Phase 6: Optional - AI-Generated Backgrounds
+## Phase 6: Costume-Portrait Synchronization
 
-### 6.1 Create Background Generation Edge Function
+### 6.1 Update Hash to Include Costume
 
-**File:** `supabase/functions/generate-empire-background/index.ts` (New)
-
-Similar to `generate-auth-background`, but with house-specific prompts:
+**File:** `src/lib/portraitUtils.ts` (Update)
 
 ```typescript
-const EMPIRE_PROMPTS: Record<HouseSize, Record<RealSeason, string>> = {
-  apartment: {
-    spring: 'Cozy urban apartment interior with city view through window, spring flowers on windowsill, cats lounging, kawaii style...',
-    // ... other seasons
-  },
-  // ... other house types
-};
-```
-
-### 6.2 Hook for Fetching/Caching Backgrounds
-
-**File:** `src/hooks/empire/useEmpireBackground.ts` (New)
-
-```typescript
-export function useEmpireBackground(houseSize: HouseSize, season: RealSeason) {
-  const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Check cache first, then fetch from storage or generate
-  // Similar pattern to useAuthBackground
+export function computeAppearanceHash(cat: Cat, costumeId?: string): string {
+  const data = {
+    breed: cat.breed,
+    appearance: cat.appearance || null,
+    costumeId: costumeId || null,  // Already included
+    personality: cat.personality,   // Add personality for expression
+  };
+  // ... hash generation
 }
 ```
+
+### 6.2 Detect Costume Changes
+
+When costume is equipped/unequipped:
+- Check if portrait includes costume
+- Prompt for regeneration if mismatch
+- Store whether portrait includes costume in metadata
 
 ---
 
 ## File Summary
 
 | File | Action | Description |
-|:-----|:-------|:------------|
-| `src/types/empire.ts` | Update | Add `EmpireProp`, `EnhancedZoneTheme`, `TimeOfDay`, `ParticleType` |
-| `src/config/empireProps.ts` | Create | Props definitions for all 4 house types |
-| `src/config/empire.ts` | Update | Add `ENHANCED_EMPIRE_ZONES` with full theme data |
-| `src/lib/empireTimeOfDay.ts` | Create | Time of day calculation utilities |
-| `src/components/empire/TimeOfDayOverlay.tsx` | Create | Lighting overlay component |
-| `src/components/empire/EmpireProp.tsx` | Create | Interactive prop renderer |
-| `src/components/empire/WindowScene.tsx` | Create | Window view renderer |
-| `src/components/empire/SeasonalDecorations.tsx` | Create | Seasonal decoration renderer |
-| `src/components/empire/EmpireParticles.tsx` | Create | Particle effect system |
-| `src/hooks/empire/useParallax.ts` | Create | Mouse-based parallax hook |
-| `src/hooks/empire/useRoamingCats.ts` | Update | Add attraction zone logic |
-| `src/components/empire/EmpireScene.tsx` | Update | Integrate all visual layers |
-| `src/components/empire/RoamingCat.tsx` | Update | Handle new cat states |
-| `src/pages/Empire.tsx` | Update | Pass `gameDay` prop |
-| `src/hooks/useGraphicsSettings.ts` | Update | Add Empire-specific toggles |
-| `src/components/game/GraphicsSettingsPanel.tsx` | Update | Add Empire toggles |
-| `docs/EMPIRE_GRAPHICS_TODO.md` | Update | Mark completed tasks |
+|------|--------|-------------|
+| `supabase/functions/generate-cat-portrait/index.ts` | Update | Enhanced prompt builder with detailed appearance/costume/style instructions |
+| `src/hooks/usePortraitStatus.ts` | Create | Hook to track outdated portraits across all cats |
+| `src/components/game/PortraitOutdatedBadge.tsx` | Create | Visual indicator for outdated portraits |
+| `src/components/game/UnifiedCatCard.tsx` | Update | Add inline regeneration button |
+| `src/components/game/BatchPortraitGenerator.tsx` | Update | Enhance batch regeneration UI |
+| `src/lib/portraitUtils.ts` | Update | Include personality in hash |
+| `src/hooks/useGraphicsSettings.ts` | Update | Add portrait quality settings |
+| `src/components/game/GraphicsSettingsPanel.tsx` | Update | Add portrait settings UI |
+| `docs/CAT_VISUAL_SYSTEM.md` | Update | Document enhanced portrait system |
 
 ---
 
-## Implementation Order
+## Prompt Engineering Examples
 
-1. **Types & Config** (Phase 1) - Foundation with no UI changes
-2. **Time of Day** (Phase 2.1-2.2) - Quick visual win
-3. **Props System** (Phase 2.3) - Add furniture/decorations
-4. **Seasonal Effects** (Phase 2.5) - Integrate with existing season utils
-5. **Cat Attraction** (Phase 3) - Enhanced behavior
-6. **Parallax** (Phase 2.7) - Optional polish
-7. **Particles** (Phase 2.6) - Atmospheric effects
-8. **AI Backgrounds** (Phase 6) - Optional premium feature
-9. **Settings Integration** (Phase 5) - User controls
+### Example 1: Orange Tabby with Crown
+```text
+Style: Cute kawaii cartoon cat portrait in Studio Ghibli style. 
+Soft rounded features, large expressive eyes with sparkle reflections.
+
+Cat: A domestic tabby cat with warm orange tabby-like fur featuring 
+classic tabby stripes on forehead. Beautiful amber eyes with golden 
+highlights. Short fluffy coat. The cat has a playful, excited expression 
+with wide bright eyes and a slight smile.
+
+Costume: IMPORTANT - The cat is wearing an ornate golden royal crown 
+with red gems. The crown sits properly on the head between the ears. 
+The crown should be shiny metallic gold with visible jewel details.
+
+Quality: High detail fur texture, ultra-cute expression, professional 
+digital art, soft warm studio lighting, simple gradient background.
+```
+
+### Example 2: Black Persian with Wizard Hat
+```text
+Style: Cute kawaii cartoon cat portrait in Studio Ghibli style.
+Soft rounded features, large expressive eyes with sparkle reflections.
+
+Cat: A beautiful Persian cat with sleek jet-black fur and extremely 
+fluffy long-haired coat. Flat-faced with round head and small ears. 
+Stunning heterochromia eyes - one blue, one green. The cat has a 
+regal, slightly haughty expression.
+
+Costume: IMPORTANT - The cat is wearing a tall purple wizard hat 
+decorated with golden stars and moons. The hat sits at a slight 
+jaunty angle between the ears. Deep purple fabric with magical 
+sparkles emanating from it.
+
+Quality: High detail fur texture, ultra-cute expression, professional 
+digital art, soft warm studio lighting, simple gradient background.
+```
 
 ---
 
-## Performance Considerations
+## Technical Considerations
 
-- Use CSS transforms for parallax (GPU-accelerated)
-- Limit particle counts based on device capability
-- Lazy-load AI backgrounds per house type
-- Respect `useGraphicsSettings().effectiveAnimations` for reduced motion
-- Cache prop positions and attraction zones with `useMemo`
+1. **Credit Economy**: Premium quality portraits could cost more credits
+2. **Rate Limiting**: Existing rate limit (10/hour) prevents abuse
+3. **Caching**: Store appearance hash with portrait to detect drift
+4. **Fallback**: If regeneration fails, keep existing portrait
+5. **Model Selection**: Use `gemini-3-pro-image-preview` for best quality
 
 ---
 
-## Accessibility
+## User Experience Flow
 
-- All interactive props have `aria-label` and `role="button"`
-- Respect `prefers-reduced-motion` via `enableReducedMotion` setting
-- Maintain minimum 4.5:1 contrast for UI overlays in all lighting conditions
-- Keyboard navigation for prop interactions
+1. User customizes cat appearance or equips costume
+2. System detects portrait is outdated (hash mismatch)
+3. Small badge appears on cat card: "🔄 Portrait outdated"
+4. User clicks badge → modal appears with:
+   - Current portrait vs. current appearance preview
+   - "Regenerate (1 credit)" button
+   - Credit balance display
+5. New portrait generated and saved
+6. Badge disappears, new portrait displays
+
+---
+
+## Success Metrics
+
+- Portraits accurately reflect cat appearance 95%+ of the time
+- Costumes clearly visible and recognizable in portraits
+- Consistent art style across all generated portraits
+- Users regenerate outdated portraits within 1 session
+- Reduced support requests about portrait mismatches
+
