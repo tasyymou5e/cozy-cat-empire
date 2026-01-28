@@ -1,296 +1,247 @@
 
-# Create JSDoc Knowledge Base
+# Improve AdminModeration Gifts Table
 
-## Overview
+## Problem Statement
 
-This plan creates a comprehensive knowledge file documenting all JSDoc comments across the Cat Farm codebase, organized by category and file location.
+The current gifts table in AdminModeration shows truncated UUIDs for sender/recipient IDs and lacks any cat information:
 
-## Files to Create
+**Current Display:**
+| Status | Sender | Recipient | Message | Date | Actions |
+|--------|--------|-----------|---------|------|---------|
+| Pending | `93dcd753...` | `33a264c2...` | "Here you go!" | Jan 3, 02:57 | Revoke |
 
-### `docs/JSDOC_REFERENCE.md`
-
-A single comprehensive documentation file cataloging all JSDoc-documented modules, interfaces, types, functions, and hooks in the project.
-
----
-
-## Document Structure
-
-### 1. Hooks - Core Game Systems
-| File | Module | Description |
-|------|--------|-------------|
-| `src/hooks/useCatGifts.ts` | `hooks/useCatGifts` | Cat gifting system with real-time notifications |
-| `src/hooks/useRelationships.ts` | `hooks/useRelationships` | Cat relationship management (-100 to +100 scores) |
-| `src/hooks/useFriends.ts` | `hooks/useFriends` | Player friend connections and requests |
-| `src/hooks/useTrading.ts` | `hooks/useTrading` | Player-to-player trading with cats/money/resources |
-| `src/hooks/useCloudSave.ts` | - | Cloud save/load with external update detection |
-| `src/hooks/useAutoSave.ts` | `hooks/useAutoSave` | Automatic periodic cloud saves with change detection |
-| `src/hooks/useErrorLogger.ts` | - | Comprehensive error logging and tracking |
-| `src/hooks/useConfetti.ts` | - | Confetti animations for celebrations |
-| `src/hooks/useHaptics.ts` | - | Mobile haptic feedback patterns |
-| `src/hooks/useDailyLoginRewards.ts` | `hooks/useDailyLoginRewards` | Daily login tracking and VIP tier system |
-| `src/hooks/useWeeklyChallenges.ts` | `hooks/useWeeklyChallenges` | Weekly challenge progress and rewards |
-| `src/hooks/useBroadcastSync.ts` | `hooks/useBroadcastSync` | Cross-tab state synchronization |
-| `src/hooks/useNotifications.ts` | - | Real-time in-app notifications |
-| `src/hooks/usePlayerProfile.ts` | - | Player profile data management |
-| `src/hooks/usePlayerActivityLog.ts` | - | Player activity logging |
-| `src/hooks/useInfiniteScroll.ts` | - | Infinite scroll utility |
-| `src/hooks/usePrefetch.ts` | - | Route prefetching utilities |
-| `src/hooks/usePortraitOutdatedToast.ts` | - | Portrait outdated notifications |
-
-### 2. Libraries and Utilities
-| File | Module | Description |
-|------|--------|-------------|
-| `src/lib/saveMigration.ts` | `lib/saveMigration` | Save data migration between versions |
-| `src/lib/avatarCache.ts` | - | Paper.js avatar caching with LRU eviction |
-
-### 3. Components with JSDoc Props
-| File | Interface | Description |
-|------|-----------|-------------|
-| `src/components/game/MobileNavFAB.tsx` | `MobileNavFABProps` | Mobile floating action button |
-| `src/components/game/AutoSaveIndicator.tsx` | `AutoSaveStatus`, `AutoSaveIndicatorProps` | Cloud save status display |
-| `src/components/game/MarketPanel.tsx` | `MarketPanelProps` | Market listings panel |
-| `src/components/game/BreedingPanel.tsx` | `BreedingPanelProps` | Cat breeding interface |
-| `src/components/game/CatGiftingPanel.tsx` | `CatGiftingPanelProps` | Gift sending panel |
-| `src/components/game/PhotoLightbox.tsx` | `PhotoLightboxProps` | Photo gallery lightbox |
-| `src/components/game/TutorialHotspot.tsx` | `TutorialHotspotProps` | Tutorial highlight wrapper |
-
-### 4. Type Definitions
-| File | Key Types |
-|------|-----------|
-| `src/types/gallery.ts` | `GalleryPhoto`, `CloudGalleryPhoto` |
-| `src/types/collections.ts` | `CollectionCategory`, `CollectionItem`, `CollectionSet` |
-| `src/types/admin.ts` | `AdminUserProfile`, `LinterIssue`, `SecurityScanHistory` |
-
-### 5. Admin Hooks
-| File | Description |
-|------|-------------|
-| `src/hooks/admin/useSyncHealth.ts` | Sync health logs for admin dashboard |
-| `src/hooks/admin/useSecurityHistory.ts` | Security scan history and trend analysis |
+This makes it difficult for admins to understand who is gifting what to whom.
 
 ---
 
-## Content for Each Documented Item
+## Proposed Solution
 
-For each hook/module, the document will include:
-- **File path**
-- **Module declaration** (if present)
-- **Description/purpose**
-- **All documented interfaces with properties**
-- **All documented functions with parameters and return types**
-- **Usage examples** (where provided)
+Enhance the gifts table to display:
+1. **Sender/Recipient display names** (with email fallback)
+2. **Cat details** from the `cat_data` JSON (name, breed, grade)
+3. **Cat avatar** using breed emoji
+
+**Enhanced Display:**
+| Status | Sender | Recipient | Cat | Message | Date | Actions |
+|--------|--------|-----------|-----|---------|------|---------|
+| Pending | 😺 CatLover99 (user@email.com) | 🐱 FarmKing (king@email.com) | 🐱 Oscar (Maine Coon, Grade 15) | "Here you go!" | Jan 3, 02:57 | Revoke |
 
 ---
 
-## Key Documented Interfaces
+## Implementation Approach
 
-### Cat Gifting (`useCatGifts.ts`)
+### Pattern Reference
+Follow the same enrichment pattern used in `ActivityFeed.tsx`:
+1. Fetch gifts data
+2. Extract unique user IDs (sender_id + recipient_id)
+3. Batch fetch profiles for all IDs
+4. Map profiles to gifts in memory
+
+### File Changes
+
+#### `src/pages/admin/AdminModeration.tsx`
+
+**1. Add new interfaces for enriched data:**
 ```typescript
-/** Valid gift status values */
-export type CatGiftStatus = 'pending' | 'accepted' | 'declined' | 'revoked_by_admin';
+interface GiftProfile {
+  display_name: string | null;
+  avatar_emoji: string | null;
+  email: string | null;
+}
 
-interface CatGift {
+interface EnrichedGift {
   id: string;
   sender_id: string;
   recipient_id: string;
-  cat_data: Cat;
+  cat_data: {
+    name?: string;
+    breed?: string;
+    grade?: number;
+    value?: number;
+  };
   message: string | null;
-  status: CatGiftStatus;
+  status: string;
   created_at: string;
-  sender_name?: string;
-  recipient_name?: string;
-}
-
-interface GiftResult {
-  success: boolean;
-  error?: string;
+  sender_profile?: GiftProfile | null;
+  recipient_profile?: GiftProfile | null;
 }
 ```
 
-### Relationships (`useRelationships.ts`)
+**2. Update the gifts query (lines 74-85):**
 ```typescript
-interface RelationshipSaveData {
-  relationships: CatRelationship[];
-  events: RelationshipEvent[];
-  maintenanceStreak?: number;
-  longestMaintenanceStreak?: number;
-  lastMaintenanceDay?: number | null;
-}
+const { data: gifts, isLoading: giftsLoading } = useQuery({
+  queryKey: ['admin-gifts'],
+  queryFn: async () => {
+    // Fetch gifts
+    const { data: giftData, error } = await supabase
+      .from('cat_gifts')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    if (!giftData || giftData.length === 0) return [];
 
-interface BreedingCompatibility {
-  canBreed: boolean;
-  bonus: number;
-  message: string;
-}
+    // Collect unique user IDs (senders + recipients)
+    const userIds = [
+      ...new Set([
+        ...giftData.map(g => g.sender_id),
+        ...giftData.map(g => g.recipient_id),
+      ]),
+    ];
 
-interface SocializeResult {
-  success: boolean;
-  message: string;
-}
+    // Batch fetch profiles
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, display_name, avatar_emoji, email')
+      .in('id', userIds);
+
+    // Create profile lookup map
+    const profileMap = new Map(
+      (profiles || []).map(p => [p.id, {
+        display_name: p.display_name,
+        avatar_emoji: p.avatar_emoji,
+        email: p.email,
+      }])
+    );
+
+    // Enrich gifts with profile data
+    return giftData.map(gift => ({
+      ...gift,
+      sender_profile: profileMap.get(gift.sender_id) || null,
+      recipient_profile: profileMap.get(gift.recipient_id) || null,
+    })) as EnrichedGift[];
+  },
+});
 ```
 
-### Trading (`useTrading.ts`)
+**3. Add helper function for breed emoji:**
 ```typescript
-interface TradeOffer {
-  id: string;
-  sender_id: string;
-  recipient_id: string;
-  offered_cats: Cat[];
-  offered_money: number;
-  offered_resources: Partial<Resources>;
-  requested_cats: Cat[];
-  requested_money: number;
-  requested_resources: Partial<Resources>;
-  message: string | null;
-  status: 'pending' | 'accepted' | 'declined' | 'cancelled';
-  created_at: string;
-  expires_at: string;
-}
-
-interface TradeData {
-  recipientId: string;
-  offeredCats: Cat[];
-  offeredMoney: number;
-  offeredResources: Partial<Resources>;
-  requestedMoney: number;
-  requestedResources: Partial<Resources>;
-  message?: string;
-}
+const getBreedEmoji = (breed?: string): string => {
+  const breedEmojis: Record<string, string> = {
+    'stray': '🐱',
+    'tabby': '🐈',
+    'persian': '😸',
+    'siamese': '😼',
+    'maine-coon': '🦁',
+    'british-shorthair': '🐱',
+    'ragdoll': '😻',
+    'bengal': '🐆',
+  };
+  return breedEmojis[breed || ''] || '🐱';
+};
 ```
 
-### Daily Login Rewards (`useDailyLoginRewards.ts`)
-```typescript
-interface ClaimRewardResult {
-  coins: number;
-  resources: Partial<Resources>;
-  unlockedCostumes?: string[];
-}
-
-interface DailyLoginRewardsReturn {
-  loginData: LoginData | null;
-  todayReward: DailyReward | null;
-  canClaim: boolean;
-  loading: boolean;
-  showModal: boolean;
-  setShowModal: (show: boolean) => void;
-  claimDailyReward: () => Promise<ClaimRewardResult | null>;
-  currentStreak: number;
-  longestStreak: number;
-  totalLogins: number;
-  vipTier: VIPTier | null;
-  isVIP: boolean;
-}
+**4. Update table headers (line 405-412):**
+Add a new "Cat" column between "Recipient" and "Message":
+```tsx
+<TableHead>Status</TableHead>
+<TableHead>Sender</TableHead>
+<TableHead>Recipient</TableHead>
+<TableHead>Cat</TableHead>  {/* NEW */}
+<TableHead>Message</TableHead>
+<TableHead>Date</TableHead>
+<TableHead>Actions</TableHead>
 ```
 
-### Weekly Challenges (`useWeeklyChallenges.ts`)
-```typescript
-interface HapticFunctions {
-  vibrateProgress: () => void;
-  vibrateComplete: () => void;
-  vibrateAchievement: () => void;
-}
+**5. Update table cells (lines 433-462):**
 
-interface ClaimResult {
-  coins: number;
-  badge: string | null;
-}
+Replace truncated IDs with enriched profile display:
 
-interface WeeklyChallengesReturn {
-  challenges: ChallengeWithProgress[];
-  loading: boolean;
-  updateProgress: (type: ChallengeType, increment?: number) => Promise<void>;
-  claimReward: (challengeId: string) => Promise<ClaimResult | false>;
-  getTimeRemaining: () => string | null;
-  refetch: () => Promise<void>;
-  lastProgressUpdate: { type: ChallengeType; value: number } | null;
-  clearProgressUpdate: () => void;
-  totalChallengesCompleted: number;
-  currentStreak: number;
-  longestStreak: number;
-}
+```tsx
+{/* Sender */}
+<TableCell>
+  <div className="flex items-center gap-1.5">
+    <span>{gift.sender_profile?.avatar_emoji || '👤'}</span>
+    <div className="flex flex-col">
+      <span className="text-sm font-medium truncate max-w-[120px]">
+        {gift.sender_profile?.display_name || 'Unknown'}
+      </span>
+      <span className="text-xs text-muted-foreground truncate max-w-[120px]">
+        {gift.sender_profile?.email || gift.sender_id.slice(0, 8) + '...'}
+      </span>
+    </div>
+  </div>
+</TableCell>
+
+{/* Recipient */}
+<TableCell>
+  <div className="flex items-center gap-1.5">
+    <span>{gift.recipient_profile?.avatar_emoji || '👤'}</span>
+    <div className="flex flex-col">
+      <span className="text-sm font-medium truncate max-w-[120px]">
+        {gift.recipient_profile?.display_name || 'Unknown'}
+      </span>
+      <span className="text-xs text-muted-foreground truncate max-w-[120px]">
+        {gift.recipient_profile?.email || gift.recipient_id.slice(0, 8) + '...'}
+      </span>
+    </div>
+  </div>
+</TableCell>
+
+{/* Cat Details - NEW */}
+<TableCell>
+  {(() => {
+    const catData = gift.cat_data as EnrichedGift['cat_data'] | null;
+    if (!catData) return '-';
+    return (
+      <div className="flex items-center gap-1.5">
+        <span>{getBreedEmoji(catData.breed)}</span>
+        <div className="flex flex-col">
+          <span className="text-sm font-medium truncate max-w-[100px]">
+            {catData.name || 'Unknown Cat'}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {catData.breed?.replace('-', ' ') || 'Unknown'} · Grade {catData.grade ?? '?'}
+          </span>
+        </div>
+      </div>
+    );
+  })()}
+</TableCell>
 ```
 
-### Auto Save (`useAutoSave.ts`)
-```typescript
-interface AutoSaveStats {
-  lastSaveTime: string | null;
-  saveCount: number;
-  errorCount: number;
-  lastError: string | null;
-  isRetrying: boolean;
-}
+**6. Update skeleton and empty state column counts:**
+- Line 418: Change `Array.from({ length: 6 })` to `Array.from({ length: 7 })`
+- Line 428: Change `colSpan={6}` to `colSpan={7}`
 
-interface UseAutoSaveOptions {
-  intervalMs?: number;
-  enabled?: boolean;
-  onSaveStart?: () => void;
-  onSaveComplete?: () => void;
-  onSaveError?: (error: Error, retryCount: number) => void;
-}
+---
+
+## Visual Comparison
+
+### Before
+```
+| Pending | 93dcd753... | 33a264c2... | Here you go! | Jan 3 | [Revoke] |
 ```
 
-### Save Migration (`saveMigration.ts`)
-```typescript
-interface RawSaveData {
-  version?: number;
-  state?: unknown;
-  game_state?: unknown;
-  kittensBreed?: number;
-  kittens_bred?: number;
-  relationships?: unknown;
-  savedAt?: string;
-  last_played_at?: string;
-}
-
-interface MigratedSaveData {
-  version: number;
-  state: GameState;
-  kittensBreed: number;
-  relationships: { ... };
-  savedAt: string;
-}
-
-interface MigrationResult {
-  success: true;
-  data: MigratedSaveData;
-  migratedFrom: number;
-  warnings: string[];
-}
-
-interface MigrationError {
-  success: false;
-  error: string;
-  details?: string;
-}
+### After
+```
+| Pending | 😺 CatLover99       | 🐱 FarmKing         | 🐱 Oscar              | Here you go! | Jan 3 | [Revoke] |
+|         | user@email.com     | king@email.com     | Maine Coon · Grade 15 |              |       |          |
 ```
 
 ---
 
-## Document Organization
+## Technical Notes
 
-The knowledge file will be organized into these sections:
-
-1. **Overview** - Purpose and scope of JSDoc documentation
-2. **Hooks Reference** - All documented hooks with full details
-3. **Component Props Reference** - Documented component interfaces
-4. **Type Definitions Reference** - Shared types and interfaces
-5. **Utility Functions Reference** - Library functions with JSDoc
-6. **Admin Hooks Reference** - Admin-specific hooks
-
-Each section will include:
-- File path
-- Module declaration (if `@module` tag present)
-- Description
-- All interfaces with property-level documentation
-- All functions with parameter and return documentation
-- Code examples from `@example` tags
+1. **No Database Changes Required** - Uses existing `profiles` table and `cat_data` JSON field
+2. **Batch Fetching** - Single profile query for all users, not N+1 queries
+3. **Graceful Fallbacks** - Shows truncated ID if profile lookup fails
+4. **Type Safety** - New interfaces ensure proper typing of enriched data
+5. **Consistent Pattern** - Matches the approach used in `ActivityFeed.tsx`
 
 ---
 
-## Estimated Length
+## Files to Modify
 
-The final document will be approximately 1,500-2,000 lines covering:
-- 18+ hooks with full documentation
-- 7+ component prop interfaces
-- 4+ type definition files
-- 2+ utility libraries
-- All associated interfaces, functions, and examples
+| File | Changes |
+|------|---------|
+| `src/pages/admin/AdminModeration.tsx` | Add interfaces, update query, enhance table cells |
+
+---
+
+## Testing Considerations
+
+1. Verify gifts with missing profiles show fallback (truncated ID)
+2. Verify cat_data with missing fields displays gracefully
+3. Check responsive behavior with long display names
+4. Confirm loading skeleton matches new column count
