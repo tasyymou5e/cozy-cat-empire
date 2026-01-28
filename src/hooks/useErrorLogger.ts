@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 /**
  * Error log data structure for database storage
@@ -71,6 +72,7 @@ function isRateLimited(): boolean {
  */
 export function useErrorLogger() {
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const logError = useCallback(
     async (data: ErrorLogData) => {
@@ -234,11 +236,35 @@ export function useErrorLogger() {
     };
   }, [logError]);
 
+  /**
+   * Log a critical error with user notification
+   * Use for errors that significantly impact user experience
+   */
+  const logCriticalError = useCallback(
+    (error: Error, context: string) => {
+      logError({
+        error_type: 'critical_error',
+        error_message: error.message,
+        error_stack: error.stack,
+        metadata: { context },
+      });
+
+      // Show user-friendly toast notification
+      toast({
+        title: 'An error occurred',
+        description: 'Our team has been notified. Please try again.',
+        variant: 'destructive',
+      });
+    },
+    [logError, toast]
+  );
+
   return {
     logError,
     logInteractionError,
     logNetworkError,
     logComponentError,
+    logCriticalError,
   };
 }
 

@@ -14,6 +14,7 @@ interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  retryCount: number;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -23,6 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
       hasError: false,
       error: null,
       errorInfo: null,
+      retryCount: 0,
     };
   }
 
@@ -59,7 +61,17 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   handleRetry = () => {
-    this.setState({ hasError: false, error: null, errorInfo: null });
+    if (this.state.retryCount >= 3) {
+      // After 3 retries, suggest a full page reload
+      window.location.reload();
+      return;
+    }
+    this.setState((prev) => ({
+      hasError: false,
+      error: null,
+      errorInfo: null,
+      retryCount: prev.retryCount + 1,
+    }));
   };
 
   render() {
