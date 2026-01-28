@@ -452,8 +452,25 @@ This creates a cycle:
 
 ---
 
+## 13. AUTH BACKGROUND vs EMPIRE RENDER
+
+| Feature | Auth Background | Empire Render |
+|---------|----------------|---------------|
+| **Purpose** | Login/signup page backdrop | Main game Empire view |
+| **Cats** | ❌ No cats (landscape only) | ✅ All player cats included |
+| **Cost** | Free (cached 7 days) | 20,000 credits |
+| **Interactive Cats** | `AnimatedFarmCats.tsx` overlay | `RoamingCat.tsx` overlay |
+| **Seasonal** | Yes (auto-detects real-world season) | Yes (based on game day) |
+| **Regeneration** | Automatic on season change | Manual by player |
+| **Storage** | `backgrounds` bucket | `empire-renders` bucket |
+
+**Important**: The Auth background intentionally excludes cats from the AI prompt because `AnimatedFarmCats.tsx` renders interactive animated cats as a separate overlay layer. This prevents visual duplication and allows for dynamic cat animations.
+
+---
+
 ## Revision History
 
 | Date | Version | Changes |
 |------|---------|---------|
 | 2026-01-28 | 1.0 | Initial knowledge file created |
+| 2026-01-28 | 1.1 | Added Section 13: Auth Background vs Empire Render distinction |
