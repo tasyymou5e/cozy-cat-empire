@@ -40,6 +40,7 @@
 |---------|-----------|
 | **Core Game** | `CatFarm.tsx`, `useGameState.ts`, `types/game.ts` |
 | **Cat Display** | `CatVisual.tsx`, `CatAvatar.tsx`, `UnifiedCatCard.tsx`, `CatPortrait.tsx` |
+| **AI Portraits** | `generate-cat-portrait/index.ts`, `usePortraitStatus.ts`, `PortraitOutdatedBadge.tsx`, `portraitUtils.ts` |
 | **Relationships** | `useRelationships.ts`, `RelationshipPanel.tsx`, `SocialCalendarPanel.tsx`, `useRelationshipReminders.ts` |
 | **Social** | `useFriends.ts`, `useTrading.ts`, `useCatGifts.ts`, `useNotifications.ts` |
 | **Rewards** | `useDailyLoginRewards.ts`, `useWeeklyChallenges.ts`, `useBattlePass.ts`, `useLuckyWheel.ts` |
@@ -76,7 +77,7 @@
 
 | Function | Purpose |
 |----------|---------|
-| `generate-cat-portrait` | AI portrait generation |
+| `generate-cat-portrait` | AI portrait generation with enhanced prompt engineering (breed, appearance, costume, personality) |
 | `generate-auth-background` | Seasonal AI-generated auth page backgrounds |
 | `generate-weekly-challenges` | Auto-generate weekly challenges |
 | `process-leaderboard-rewards` | Process periodic rewards |

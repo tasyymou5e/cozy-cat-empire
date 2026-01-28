@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Graphics Settings Panel allows players to customize visual effects and performance settings. All settings are persisted to localStorage and respect system accessibility preferences.
+The Graphics Settings Panel allows players to customize visual effects, performance settings, and AI portrait preferences. All settings are persisted to localStorage and respect system accessibility preferences.
 
 **Location:** Settings tab in the main game interface  
 **Component:** `src/components/game/GraphicsSettingsPanel.tsx`  
@@ -13,19 +13,20 @@ The Graphics Settings Panel allows players to customize visual effects and perfo
 
 ## Settings Categories
 
-The 14 configurable options are organized into three categories:
+The 17 configurable options are organized into four categories:
 
 | Category | Count | Settings |
 |----------|-------|----------|
 | **Performance** | 3 | Avatar Quality, Enable Animations, Force Reduced Motion |
 | **Effects** | 5 | Costume Animations, Particle Effects, Tier Glows, Sparkle Effects, Card Flip Animation |
 | **Display** | 6 | Card Border Style, AI Portraits, Costume Badge, Costume Rendering, Vector Engine*, Avatar Breed Features* |
+| **Portraits** | 3 | Portrait Quality, Show Outdated Indicator, Auto-Prompt Outdated |
 
 *Hidden settings (configured in `graphics.ts` only)
 
 ---
 
-## All 14 Settings Explained
+## All 17 Settings Explained
 
 ### Performance Settings
 
@@ -192,14 +193,41 @@ Internal setting for avatar rendering engine:
 
 **Note:** Not exposed in UI, configured in `src/config/graphics.ts`
 
-#### 14. Avatar Breed Features (Hidden)
+---
 
-Enables breed-specific avatar features:
-- **Persian**: Round face, flat nose
-- **Siamese**: Angular face, large ears
-- **Maine Coon**: Fluffy mane, large body
-- **Bengal**: Spotted pattern, athletic build
-- And more...
+### Portrait Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| **Portrait Quality** | Select | `standard` | AI model quality for portrait generation |
+| **Show Outdated Indicator** | Toggle | `true` | Show badge when portrait needs updating |
+| **Auto-Prompt Outdated** | Toggle | `true` | Notify when portrait becomes outdated |
+
+#### 15. Portrait Quality
+
+Controls which AI model is used for portrait generation:
+
+| Level | Model | Quality | Speed | Best For |
+|-------|-------|---------|-------|----------|
+| **Standard** | `gemini-2.5-flash` | Good | Fast | Regular use, quick generation |
+| **Premium** | `gemini-3-pro-image-preview` | Highest | Slower | Special cats, detailed costumes |
+
+**Note:** Premium quality uses the same portrait credits but provides higher detail, especially for costume rendering.
+
+#### 16. Show Outdated Indicator
+
+When enabled, displays a visual badge on cat cards when:
+- Cat has no portrait yet (✨ icon)
+- Cat's portrait is outdated due to appearance/costume changes (⚠️ icon)
+
+Uses `usePortraitStatus` hook to detect outdated portraits via appearance hash comparison.
+
+#### 17. Auto-Prompt Outdated
+
+When enabled, shows a toast notification when:
+- User equips/unequips a costume
+- User changes cat appearance
+- Portrait no longer matches current cat state
 
 **Note:** Not exposed in UI, configured in `src/config/graphics.ts`
 
@@ -309,6 +337,37 @@ const {
 } = useGraphicsSettings();
 ```
 
+### GraphicsSettings Interface
+
+```typescript
+interface GraphicsSettings {
+  // Performance
+  avatarQuality: 'low' | 'medium' | 'high';
+  enableAnimations: boolean;
+  forceReducedMotion: boolean;
+  
+  // Effects
+  enableCostumeAnimations: boolean;
+  enableParticles: boolean;
+  enableTierGlows: boolean;
+  enableSparkles: boolean;
+  enableCardFlip: boolean;
+  
+  // Display
+  cardBorderStyle: 'tier' | 'simple' | 'none';
+  preferPortrait: boolean;
+  showCostumeOnPortrait: boolean;
+  costumeDisplayMode: 'auto' | 'vector' | 'emoji';
+  vectorEngine: 'paperjs' | 'simple';
+  avatarBreedFeatures: boolean;
+  
+  // Portraits (NEW)
+  portraitQuality: 'standard' | 'premium';
+  showOutdatedIndicator: boolean;
+  autoPromptOutdated: boolean;
+}
+```
+
 ### Using Settings in Components
 
 ```typescript
@@ -352,11 +411,17 @@ function CatCard({ cat }) {
 |------|---------|
 | `src/config/graphics.ts` | Default configuration values and tier visuals |
 | `src/hooks/useGraphicsSettings.ts` | State management hook with localStorage persistence |
+| `src/hooks/usePortraitStatus.ts` | Track outdated portraits across all cats |
 | `src/components/game/GraphicsSettingsPanel.tsx` | Settings UI component with all controls |
+| `src/components/game/PortraitOutdatedBadge.tsx` | Visual indicator for outdated/missing portraits |
+| `src/lib/portraitUtils.ts` | Portrait hash computation and outdated detection |
+| `supabase/functions/generate-cat-portrait/index.ts` | AI portrait generation edge function |
 
 ---
 
 ## Related Documentation
 
+- [Cat Visual System](./CAT_VISUAL_SYSTEM.md) - Unified cat visual architecture including AI portraits
 - [Components](./COMPONENTS.md) - Component architecture overview
 - [Tech Stack](./TECH_STACK.md) - Technology overview
+- [AI Portrait Credits](./AI_PORTRAIT_CREDITS.md) - Portrait credit system
