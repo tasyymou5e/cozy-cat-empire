@@ -14,8 +14,9 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-import { ChevronDown, BarChart3, LayoutGrid, Heart, Camera, Image, Globe } from 'lucide-react';
+import { ChevronDown, BarChart3, LayoutGrid, Heart, Camera, Image, Globe, Castle } from 'lucide-react';
 import { CATEGORIES, getCategoryForTab } from './CategoryTabBar';
+import { useHaptics } from '@/hooks/useHaptics';
 
 interface MobileGameDrawerProps {
   open: boolean;
@@ -28,6 +29,7 @@ interface MobileGameDrawerProps {
 }
 
 const EXTERNAL_LINKS = [
+  { href: '/empire', icon: <Castle className="h-5 w-5" />, label: 'My Empire' },
   { href: '/stats', icon: <BarChart3 className="h-5 w-5" />, label: 'My Stats' },
   { href: '/collection', icon: <LayoutGrid className="h-5 w-5" />, label: 'Cat Collection' },
   { href: '/relationships', icon: <Heart className="h-5 w-5" />, label: 'Cat Relationships' },
@@ -46,9 +48,16 @@ export function MobileGameDrawer({
   money,
 }: MobileGameDrawerProps) {
   const activeCategory = getCategoryForTab(activeTab);
+  const { vibrate } = useHaptics();
 
   const handleTabClick = (tabId: string) => {
+    vibrate('light');
     onTabChange(tabId);
+    onOpenChange(false);
+  };
+
+  const handleLinkClick = () => {
+    vibrate('light');
     onOpenChange(false);
   };
 
@@ -69,13 +78,13 @@ export function MobileGameDrawer({
             </span>
             <div className="flex items-center gap-2 text-sm font-normal">
               <span className="px-2 py-0.5 rounded bg-muted">📅 Day {day}</span>
-              <span className="px-2 py-0.5 rounded bg-muted text-gradient-gold font-medium">💰 ${money}</span>
+              <span className="px-2 py-0.5 rounded bg-muted text-gradient-gold font-medium">💰 ${money.toLocaleString()}</span>
             </div>
           </DrawerTitle>
         </DrawerHeader>
 
-        <ScrollArea className="flex-1 px-4 pb-8">
-          <div className="space-y-2">
+        <ScrollArea className="flex-1 px-4 pb-safe">
+          <div className="space-y-2 pb-4">
             {/* Categories with accordion */}
             {CATEGORIES.map((category) => {
               const isActiveCategory = category.id === activeCategory;
@@ -87,7 +96,7 @@ export function MobileGameDrawer({
                   defaultOpen={isActiveCategory}
                   className="border border-border rounded-lg overflow-hidden"
                 >
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-muted/30 hover:bg-muted/50 transition-colors">
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-muted/30 hover:bg-muted/50 transition-colors group">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">
                         {typeof category.icon === 'string' ? category.icon : category.icon}
@@ -105,7 +114,8 @@ export function MobileGameDrawer({
                   </CollapsibleTrigger>
 
                   <CollapsibleContent>
-                    <div className="grid grid-cols-3 gap-2 p-2">
+                    {/* Responsive grid: 2 cols on tiny phones, 3 cols otherwise */}
+                    <div className="grid grid-cols-2 xs:grid-cols-3 gap-2 p-2">
                       {category.tabs.map((tab) => {
                         const isActive = tab.id === activeTab;
                         const tabBadge = badges[tab.id] || 0;
@@ -115,16 +125,17 @@ export function MobileGameDrawer({
                             key={tab.id}
                             onClick={() => handleTabClick(tab.id)}
                             className={cn(
-                              'relative flex flex-col items-center justify-center p-3 rounded-lg border transition-all',
+                              'relative flex flex-col items-center justify-center p-3 rounded-lg border transition-all touch-target',
+                              'min-h-[72px]', // Ensure touch-friendly height
                               isActive
                                 ? 'bg-primary text-primary-foreground border-primary'
-                                : 'bg-background border-border hover:bg-muted'
+                                : 'bg-background border-border hover:bg-muted active:bg-muted/80'
                             )}
                           >
                             <span className="text-lg mb-1">
                               {typeof tab.icon === 'string' ? tab.icon : tab.icon}
                             </span>
-                            <span className="text-[11px] font-medium text-center leading-tight">
+                            <span className="text-[11px] font-medium text-center leading-tight line-clamp-2">
                               {tab.label}
                             </span>
                             {tabBadge > 0 && (
@@ -146,7 +157,7 @@ export function MobileGameDrawer({
 
             <Separator className="my-4" />
 
-            {/* External Pages */}
+            {/* External Pages - Responsive grid */}
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground mb-2 px-1">Pages</h3>
               <div className="grid grid-cols-2 gap-2">
@@ -154,8 +165,13 @@ export function MobileGameDrawer({
                   <Link
                     key={link.href}
                     to={link.href}
-                    onClick={() => onOpenChange(false)}
-                    className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border hover:bg-muted transition-colors"
+                    onClick={handleLinkClick}
+                    className={cn(
+                      'flex items-center gap-2 p-3 rounded-lg',
+                      'bg-muted/50 border border-border',
+                      'hover:bg-muted active:bg-muted/80 transition-colors',
+                      'touch-target min-h-[48px]'
+                    )}
                   >
                     {link.icon}
                     <span className="text-sm font-medium">{link.label}</span>

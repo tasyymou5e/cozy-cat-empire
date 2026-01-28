@@ -1127,3 +1127,48 @@
   ring-offset-width: 2px;
   ring-offset-color: hsl(var(--background));
 }
+
+/* ===== Mobile/Tablet Safe Area Utilities ===== */
+@layer utilities {
+  /* Safe area insets for notched devices (iPhone X+, etc.) */
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .safe-area-inset-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  /* Combined padding with safe area */
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  }
+  
+  .pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+  }
+  
+  .mb-safe {
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .mt-safe {
+    margin-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* ===== Touch-Friendly Sizing for Mobile ===== */
+@media (pointer: coarse) {
+  /* Touch devices need larger tap targets (44px min per Apple/Google HIG) */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Ensure interactive elements are tappable */
+  button:not(.compact-btn),
+  [role="button"]:not(.compact-btn),
+  a:not(.compact-link) {
+    min-height: 44px;
+  }
+}
