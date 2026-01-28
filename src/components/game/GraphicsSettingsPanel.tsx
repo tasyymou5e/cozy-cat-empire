@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Palette, Gauge, Sparkles, Image, RotateCcw, Eye } from 'lucide-react';
+import { Palette, Gauge, Sparkles, RotateCcw, Eye, Castle } from 'lucide-react';
 
 export function GraphicsSettingsPanel() {
   const { settings, updateSetting, resetToDefaults, isReducedMotion, effectiveAnimations } =
@@ -230,11 +230,64 @@ export function GraphicsSettingsPanel() {
                 <SelectItem value="vector">Vector</SelectItem>
                 <SelectItem value="emoji">Emoji</SelectItem>
               </SelectContent>
-            </Select>
+          </Select>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Empire Section */}
+      <div className="space-y-4">
+        <h4 className="font-medium text-sm flex items-center gap-2 text-muted-foreground">
+          <Castle className="h-4 w-4" /> Empire View
+        </h4>
+
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-sm">Time of Day Effects</Label>
+            <p className="text-xs text-muted-foreground">Dynamic lighting based on game day</p>
           </div>
+          <Switch
+            checked={settings.enableTimeOfDayEffects}
+            onCheckedChange={(v) => updateSetting('enableTimeOfDayEffects', v)}
+          />
         </div>
 
-        <Separator />
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-sm">Seasonal Decorations</Label>
+            <p className="text-xs text-muted-foreground">Spring blossoms, autumn leaves, etc.</p>
+          </div>
+          <Switch
+            checked={settings.enableSeasonalDecorations}
+            onCheckedChange={(v) => updateSetting('enableSeasonalDecorations', v)}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-sm">Empire Particles</Label>
+            <p className="text-xs text-muted-foreground">Dust motes, fireflies, sparkles</p>
+          </div>
+          <Switch
+            checked={settings.enableEmpireParticles}
+            onCheckedChange={(v) => updateSetting('enableEmpireParticles', v)}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-sm">Parallax Effect</Label>
+            <p className="text-xs text-muted-foreground">Depth effect on mouse movement</p>
+          </div>
+          <Switch
+            checked={settings.enableEmpireParallax}
+            onCheckedChange={(v) => updateSetting('enableEmpireParallax', v)}
+          />
+        </div>
+      </div>
+
+      <Separator />
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-2">

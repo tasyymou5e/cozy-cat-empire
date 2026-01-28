@@ -3,7 +3,7 @@ import { Cat } from '@/types/game';
 import { CatPosition, EmpireInteraction } from '@/types/empire';
 import { CatVisual } from '@/components/game/CatVisual';
 import { CatCardReaction } from '@/components/game/CatCardReaction';
-import { useCatReactions, CatReaction } from '@/contexts/CatReactionContext';
+import { useCatReactions } from '@/contexts/CatReactionContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { EmpireInteractionMenu } from './EmpireInteractionMenu';
 import { MOVEMENT_TIMING } from '@/config/empire';
@@ -16,6 +16,26 @@ interface RoamingCatProps {
   onInteract: (catId: string, action: EmpireInteraction) => void;
   canFeed: boolean;
   canPlay: boolean;
+}
+
+/**
+ * Get state-specific emoji indicator
+ */
+function getStateIndicator(state: CatPosition['state']): { emoji: string; animation: string } | null {
+  switch (state) {
+    case 'sleeping':
+      return { emoji: '💤', animation: 'animate-pulse' };
+    case 'playing':
+      return { emoji: '🎾', animation: 'animate-bounce' };
+    case 'perching':
+      return { emoji: '👀', animation: '' };
+    case 'sunbathing':
+      return { emoji: '☀️', animation: 'animate-pulse' };
+    case 'interacting':
+      return { emoji: '💕', animation: 'animate-bounce' };
+    default:
+      return null;
+  }
 }
 
 /**
@@ -48,15 +68,18 @@ export function RoamingCat({
     onInteract(cat.id, action);
   };
 
+  const stateIndicator = getStateIndicator(position.state);
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <div
           className={cn(
-            'absolute cursor-pointer',
+            'absolute cursor-pointer group',
             'hover:scale-110 hover:z-50',
             'transition-all ease-in-out',
-            position.state === 'walking' && 'animate-cat-walk'
+            position.state === 'walking' && 'animate-cat-walk',
+            position.state === 'sleeping' && 'opacity-90'
           )}
           style={{
             left: `${position.x}%`,
@@ -79,24 +102,20 @@ export function RoamingCat({
             {/* Reaction overlay */}
             {reaction && <CatCardReaction reaction={reaction} />}
             
-            {/* Interacting indicator */}
-            {position.state === 'interacting' && (
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2 animate-bounce">
-                <span className="text-xl">💕</span>
-              </div>
-            )}
-            
-            {/* Sleeping indicator */}
-            {position.state === 'sleeping' && (
-              <div className="absolute -top-1 right-0">
-                <span className="text-lg animate-pulse">💤</span>
+            {/* State indicator */}
+            {stateIndicator && (
+              <div className={cn(
+                'absolute -top-2 left-1/2 -translate-x-1/2',
+                stateIndicator.animation
+              )}>
+                <span className="text-xl">{stateIndicator.emoji}</span>
               </div>
             )}
           </div>
           
           {/* Name label on hover */}
           <div className="absolute left-1/2 -translate-x-1/2 -bottom-5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <span className="text-xs font-medium bg-background/80 px-1.5 py-0.5 rounded whitespace-nowrap">
+            <span className="text-xs font-medium bg-background/80 px-1.5 py-0.5 rounded whitespace-nowrap shadow-sm">
               {cat.name}
             </span>
           </div>

@@ -26,6 +26,11 @@ export interface GraphicsSettings {
   enableCostumeAnimations: boolean;
   enableParticles: boolean;
   showCostumeOnPortrait: boolean;
+  // Empire-specific settings
+  enableEmpireParallax: boolean;
+  enableEmpireParticles: boolean;
+  enableTimeOfDayEffects: boolean;
+  enableSeasonalDecorations: boolean;
 }
 
 const STORAGE_KEY = 'cat-farm-graphics-settings';
@@ -71,6 +76,11 @@ function getDefaultSettings(): GraphicsSettings {
     enableCostumeAnimations: GRAPHICS_CONFIG.enableCostumeAnimations,
     enableParticles: true,
     showCostumeOnPortrait: GRAPHICS_CONFIG.showCostumeOnPortrait,
+    // Empire defaults
+    enableEmpireParallax: true,
+    enableEmpireParticles: true,
+    enableTimeOfDayEffects: true,
+    enableSeasonalDecorations: true,
   };
 }
 

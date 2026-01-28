@@ -200,6 +200,7 @@ export default function Empire() {
             houseSize={state.houseSize}
             catCostumes={state.catCostumes}
             resources={state.resources}
+            gameDay={state.day}
             onPetCat={handlePetCat}
             onFeedCat={handleFeedCat}
             onPlayWithCat={handlePlayWithCat}
