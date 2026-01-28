@@ -16,6 +16,7 @@ import { EmpireBackground } from './EmpireBackground';
 import { TimeOfDayOverlay } from './TimeOfDayOverlay';
 import { SeasonalDecorations } from './SeasonalDecorations';
 import { EmpireParticles } from './EmpireParticles';
+import { ParallaxLayer, PARALLAX_DEPTHS } from './ParallaxLayer';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -31,8 +32,13 @@ interface EmpireSceneProps {
 }
 
 /**
- * Main Empire scene container
- * Renders the dwelling background with all visual layers and roaming cats
+ * Main Empire scene container with parallax depth system
+ * Renders the dwelling background with 5 visual layers:
+ * - Layer 0: Background (sky/distant elements) - minimal parallax
+ * - Layer 1: Mid-background (wall decorations) - slight parallax  
+ * - Layer 2: Mid-ground (props/furniture) - medium parallax
+ * - Layer 3: Foreground (cats/floor items) - strong parallax
+ * - Layer 4: UI Overlays - fixed (no parallax)
  */
 export function EmpireScene({
   cats,
@@ -57,8 +63,9 @@ export function EmpireScene({
   const timeOfDay = getTimeOfDay(gameDay);
   const timeOverlay = TIME_OF_DAY_OVERLAYS[timeOfDay];
   
-  // Parallax effect (respects animation settings)
-  const parallaxOffset = useParallax(effectiveAnimations && settings.enableEmpireParallax);
+  // Enhanced parallax with smoother animation
+  const parallaxEnabled = effectiveAnimations && settings.enableEmpireParallax;
+  const parallaxOffset = useParallax(parallaxEnabled, 35, 0.1);
   
   // Roaming cats with prop attraction
   const { positions, setInteracting, attractionZones } = useRoamingCats(cats, zone.props);
@@ -132,89 +139,131 @@ export function EmpireScene({
 
   return (
     <div className="relative w-full h-[500px] sm:h-[600px] overflow-hidden rounded-xl border border-border shadow-lg">
-      {/* Layer 0: Illustrated SVG Background with time-of-day filter */}
-      <div 
-        className="absolute inset-0 transition-all duration-1000"
+      {/* Layer 0: Background - Minimal parallax (furthest) */}
+      <ParallaxLayer
+        depth="background"
+        offset={parallaxOffset}
+        enabled={parallaxEnabled}
+        zIndex={0}
         style={{
-          transform: `translate(${parallaxOffset.x * 0.2}px, ${parallaxOffset.y * 0.2}px)`,
           filter: settings.enableTimeOfDayEffects ? timeOverlay.filterStyle : undefined,
         }}
+        className="transition-[filter] duration-1000"
       >
         <EmpireBackground 
           houseSize={houseSize} 
           timeOfDay={timeOfDay} 
         />
-      </div>
+      </ParallaxLayer>
 
-      {/* Layer 2: Props (furniture/decorations) with cat interaction states */}
-      {zone.props.map(prop => (
-        <EmpirePropComponent 
-          key={prop.id} 
-          prop={prop} 
-          onClick={handlePropClick}
-          parallaxOffset={parallaxOffset}
-          catsNearby={propCatCounts[prop.id] || 0}
-          isBeingUsed={propsInUse.has(prop.id)}
-        />
-      ))}
-
-      {/* Layer 3: Floor decorations (overlay on SVG background) */}
-      <div 
-        className="absolute inset-0 top-1/2 pointer-events-none"
-        style={{ 
-          transform: `translate(${parallaxOffset.x * 0.5}px, ${parallaxOffset.y * 0.5}px)`,
-        }}
+      {/* Layer 1: Mid-background - Wall decorations with slight parallax */}
+      <ParallaxLayer
+        depth="midBackground"
+        offset={parallaxOffset}
+        enabled={parallaxEnabled}
+        zIndex={10}
+        className="pointer-events-none"
       >
-        {/* Floor decorations - optional emoji overlays */}
-        {zone.floorDecorations.map((deco, i) => (
+        {zone.wallDecorations.map((deco, i) => (
           <span
-            key={`floor-${i}`}
-            className="absolute text-lg opacity-60"
+            key={`wall-${i}`}
+            className="absolute text-2xl opacity-70 drop-shadow-sm"
             style={{
               left: `${deco.position.x}%`,
-              top: `${(deco.position.y - 50)}%`,
+              top: `${deco.position.y}%`,
               transform: 'translate(-50%, -50%)',
             }}
           >
             {deco.emoji}
           </span>
         ))}
-      </div>
+      </ParallaxLayer>
 
-      {/* Roaming cats */}
-      {cats.map((cat) => {
-        const position = positions.get(cat.id);
-        if (!position) return null;
-
-        return (
-          <RoamingCat
-            key={cat.id}
-            cat={cat}
-            position={position}
-            equippedCostumeId={catCostumes[cat.id]}
-            onInteract={handleInteraction}
-            canFeed={resources.food > 0}
-            canPlay={resources.toys > 0}
+      {/* Layer 2: Mid-ground - Props/furniture with medium parallax */}
+      <ParallaxLayer
+        depth="midground"
+        offset={parallaxOffset}
+        enabled={parallaxEnabled}
+        zIndex={20}
+      >
+        {zone.props.map(prop => (
+          <EmpirePropComponent 
+            key={prop.id} 
+            prop={prop} 
+            onClick={handlePropClick}
+            parallaxOffset={{ x: 0, y: 0 }} // Props already in parallax layer
+            catsNearby={propCatCounts[prop.id] || 0}
+            isBeingUsed={propsInUse.has(prop.id)}
           />
-        );
-      })}
+        ))}
+      </ParallaxLayer>
 
-      {/* Layer 4: Atmospheric overlays */}
-      {settings.enableTimeOfDayEffects && (
-        <TimeOfDayOverlay gameDay={gameDay} />
-      )}
-      
-      {settings.enableSeasonalDecorations && (
-        <SeasonalDecorations season={season} houseSize={houseSize} />
-      )}
-      
-      {zone.particles && settings.enableParticles && settings.enableEmpireParticles && (
-        <EmpireParticles 
-          type={zone.particles} 
-          enableReducedMotion={settings.enableReducedMotion}
-          density="light"
-        />
-      )}
+      {/* Layer 3: Foreground - Floor decorations & cats with strong parallax */}
+      <ParallaxLayer
+        depth="midForeground"
+        offset={parallaxOffset}
+        enabled={parallaxEnabled}
+        zIndex={30}
+        className="pointer-events-none"
+      >
+        {zone.floorDecorations.map((deco, i) => (
+          <span
+            key={`floor-${i}`}
+            className="absolute text-lg opacity-60"
+            style={{
+              left: `${deco.position.x}%`,
+              top: `${deco.position.y}%`,
+              transform: 'translate(-50%, -50%)',
+            }}
+          >
+            {deco.emoji}
+          </span>
+        ))}
+      </ParallaxLayer>
+
+      {/* Cats layer - strongest parallax (closest to viewer) */}
+      <ParallaxLayer
+        depth="foreground"
+        offset={parallaxOffset}
+        enabled={parallaxEnabled}
+        zIndex={40}
+      >
+        {cats.map((cat) => {
+          const position = positions.get(cat.id);
+          if (!position) return null;
+
+          return (
+            <RoamingCat
+              key={cat.id}
+              cat={cat}
+              position={position}
+              equippedCostumeId={catCostumes[cat.id]}
+              onInteract={handleInteraction}
+              canFeed={resources.food > 0}
+              canPlay={resources.toys > 0}
+            />
+          );
+        })}
+      </ParallaxLayer>
+
+      {/* Layer 4: Atmospheric overlays - Fixed (no parallax) */}
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 50 }}>
+        {settings.enableTimeOfDayEffects && (
+          <TimeOfDayOverlay gameDay={gameDay} />
+        )}
+        
+        {settings.enableSeasonalDecorations && (
+          <SeasonalDecorations season={season} houseSize={houseSize} />
+        )}
+        
+        {zone.particles && settings.enableParticles && settings.enableEmpireParticles && (
+          <EmpireParticles 
+            type={zone.particles} 
+            enableReducedMotion={settings.enableReducedMotion}
+            density="light"
+          />
+        )}
+      </div>
 
       {/* Empty state */}
       {cats.length === 0 && (
