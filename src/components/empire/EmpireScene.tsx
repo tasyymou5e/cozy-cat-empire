@@ -12,7 +12,7 @@ import { getCurrentRealSeason } from '@/lib/seasonUtils';
 import { getTimeOfDay } from '@/lib/empireTimeOfDay';
 import { RoamingCat } from './RoamingCat';
 import { EmpirePropComponent } from './EmpirePropComponent';
-import { WindowScene } from './WindowScene';
+import { EmpireBackground } from './EmpireBackground';
 import { TimeOfDayOverlay } from './TimeOfDayOverlay';
 import { SeasonalDecorations } from './SeasonalDecorations';
 import { EmpireParticles } from './EmpireParticles';
@@ -101,56 +101,18 @@ export function EmpireScene({
 
   return (
     <div className="relative w-full h-[500px] sm:h-[600px] overflow-hidden rounded-xl border border-border shadow-lg">
-      {/* Layer 0: Sky/Background */}
+      {/* Layer 0: Illustrated SVG Background */}
       <div 
-        className={cn(
-          'absolute inset-0',
-          `bg-gradient-to-b ${zone.skyGradient}`
-        )}
+        className="absolute inset-0"
         style={{
           transform: `translate(${parallaxOffset.x * 0.2}px, ${parallaxOffset.y * 0.2}px)`,
         }}
       >
-        {/* Window scene for indoor zones */}
-        {zone.windowScene && (
-          <WindowScene 
-            type={zone.windowScene} 
-            timeOfDay={timeOfDay} 
-          />
-        )}
-        
-        {/* Wall decorations */}
-        {zone.wallDecorations.map((deco, i) => (
-          <span
-            key={`wall-${i}`}
-            className="absolute text-xl opacity-70"
-            style={{
-              left: `${deco.position.x}%`,
-              top: `${deco.position.y}%`,
-              transform: 'translate(-50%, -50%)',
-            }}
-          >
-            {deco.emoji}
-          </span>
-        ))}
+        <EmpireBackground 
+          houseSize={houseSize} 
+          timeOfDay={timeOfDay} 
+        />
       </div>
-
-      {/* Layer 1: Wall area (top half) */}
-      <div 
-        className={cn(
-          'absolute inset-0 bottom-1/2',
-          `bg-gradient-to-b ${zone.wallGradient}`
-        )}
-        style={{
-          transform: `translate(${parallaxOffset.x * 0.3}px, ${parallaxOffset.y * 0.3}px)`,
-        }}
-      />
-
-      {/* Gradient transition between wall and floor */}
-      <div 
-        className="absolute left-0 right-0 top-[48%] h-8 bg-gradient-to-b from-transparent via-black/5 to-transparent pointer-events-none"
-        style={{ zIndex: 5 }}
-      />
 
       {/* Layer 2: Props (furniture/decorations) */}
       {zone.props.map(prop => (
@@ -162,25 +124,21 @@ export function EmpireScene({
         />
       ))}
 
-      {/* Layer 3: Floor area (bottom half) + Cats */}
+      {/* Layer 3: Floor decorations (overlay on SVG background) */}
       <div 
-        className={cn(
-          'absolute inset-0 top-1/2',
-          `bg-gradient-to-b ${zone.floorGradient}`
-        )}
+        className="absolute inset-0 top-1/2 pointer-events-none"
         style={{ 
-          backgroundImage: zone.floorPattern,
           transform: `translate(${parallaxOffset.x * 0.5}px, ${parallaxOffset.y * 0.5}px)`,
         }}
       >
-        {/* Floor decorations */}
+        {/* Floor decorations - optional emoji overlays */}
         {zone.floorDecorations.map((deco, i) => (
           <span
             key={`floor-${i}`}
             className="absolute text-lg opacity-60"
             style={{
               left: `${deco.position.x}%`,
-              top: `${deco.position.y - 50}%`, // Adjust for floor positioning
+              top: `${(deco.position.y - 50)}%`,
               transform: 'translate(-50%, -50%)',
             }}
           >
