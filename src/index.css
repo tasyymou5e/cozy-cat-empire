@@ -35,6 +35,21 @@
   to { transform: rotate(360deg); }
 }
 
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.02); }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .animate-float {
   animation: float 4s ease-in-out infinite;
 }
@@ -45,6 +60,18 @@
 
 .animate-sway {
   animation: sway 3s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
 }
 @tailwind components;
 @tailwind utilities;

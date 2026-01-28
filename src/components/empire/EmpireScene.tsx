@@ -61,7 +61,29 @@ export function EmpireScene({
   const parallaxOffset = useParallax(effectiveAnimations && settings.enableEmpireParallax);
   
   // Roaming cats with prop attraction
-  const { positions, setInteracting } = useRoamingCats(cats, zone.props);
+  const { positions, setInteracting, attractionZones } = useRoamingCats(cats, zone.props);
+
+  // Calculate which props have cats nearby
+  const propCatCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    positions.forEach((pos) => {
+      if (pos.nearPropId) {
+        counts[pos.nearPropId] = (counts[pos.nearPropId] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [positions]);
+
+  // Check if a prop is currently being used (cat interacting with it)
+  const propsInUse = useMemo(() => {
+    const inUse = new Set<string>();
+    positions.forEach((pos) => {
+      if (pos.nearPropId && (pos.state === 'sleeping' || pos.state === 'playing' || pos.state === 'perching')) {
+        inUse.add(pos.nearPropId);
+      }
+    });
+    return inUse;
+  }, [positions]);
 
   // Memoize season display name
   const seasonDisplay = useMemo(() => ({
@@ -124,13 +146,15 @@ export function EmpireScene({
         />
       </div>
 
-      {/* Layer 2: Props (furniture/decorations) */}
+      {/* Layer 2: Props (furniture/decorations) with cat interaction states */}
       {zone.props.map(prop => (
         <EmpirePropComponent 
           key={prop.id} 
           prop={prop} 
           onClick={handlePropClick}
           parallaxOffset={parallaxOffset}
+          catsNearby={propCatCounts[prop.id] || 0}
+          isBeingUsed={propsInUse.has(prop.id)}
         />
       ))}
 
