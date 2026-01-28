@@ -207,3 +207,5 @@ Manage Cats → Do Chores → Buy/Sell → Train → Socialize → Shows → Bre
 - ✅ Snapshot insertion error logging for failed cloud saves
 - ✅ `subscribedUserId` guard pattern in real-time subscriptions (useFriends, useCatGifts, useTrading)
 - ✅ Profile-to-player_stats sync on profile updates
+- ✅ Earnings mismatch detection (`money > totalMoneyEarned` flagged and repairable)
+- ✅ Admin ProfileEditor syncs to player_stats for leaderboard consistency

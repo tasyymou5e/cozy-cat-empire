@@ -523,6 +523,29 @@ const corsHeaders = {
 
 ---
 
+## Security Linter Refinements
+
+The security linter functions have been refined to reduce false positives:
+
+### Legitimate Public INSERTs (Excluded from Warnings)
+| Table | Reason |
+|-------|--------|
+| `auth_attempts_log` | Must log failed login attempts from unauthenticated users |
+| `tutorial_analytics` | Must track anonymous users in tutorial |
+| `error_logs` | Must capture errors before authentication |
+
+### Intentionally Public Tables (Excluded from Admin SELECT Warnings)
+| Table | Reason |
+|-------|--------|
+| `game_config` | Configuration readable by all players |
+| `player_stats` | Leaderboard data is public by design |
+| `public_leaderboard` | View specifically designed for public access |
+
+### ALL Policy Recognition
+The linter now recognizes PostgreSQL `ALL` command policies as covering SELECT access, preventing false positives for tables like `admin_notifications` that use `ALL` instead of individual `SELECT` policies.
+
+---
+
 ## Future Security Improvements
 
 ### Recommended Enhancements

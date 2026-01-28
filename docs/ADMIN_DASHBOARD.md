@@ -102,6 +102,8 @@ Reusable component for profile editing:
 - Name suggestions if taken
 - Username field (optional)
 - Reason field (required for audit trail)
+- **Automatic player_stats sync** - Updates are synced to `player_stats` table for leaderboard consistency
+- **Orphaned profile handling** - Creates `player_stats` entry if missing when saving
 
 ### 4. Game Save Repair Tool (`/catking/game-repair`)
 
@@ -125,9 +127,12 @@ Detect and repair corrupted game saves automatically:
 | Negative totalMoneyEarned | `totalMoneyEarned < 0` | High |
 | NaN/Undefined money | `!isFinite(money)` | Critical |
 | Negative money | `money < 0` | High |
+| **Earnings Mismatch** | `money > totalMoneyEarned` | Medium |
 | Invalid cat ages | `age < 0` or `!isFinite(age)` | Medium |
 | Corrupted resources | Negative resource counts | Medium |
 | Invalid house sizes | Not in valid enum | Low |
+
+**Note:** The "Earnings Mismatch" detection catches logical impossibilities where a player has more current funds than they've ever earned total.
 
 ### 4. Statistics (`/catking/stats`)
 
@@ -550,3 +555,12 @@ Or via the Admin Users page after initial admin is set up.
 - Individual and bulk repair functionality
 - `totalMoneyEarned` safeguards in `addReward()` and `cloudSave()`
 - Pre-save validation to auto-correct corruption before persisting
+
+### Phase 7: Data Consistency & Quality
+- **ProfileEditor player_stats sync** - Admin profile edits now sync to leaderboard table
+- **Orphaned profile detection** - Auto-creates player_stats for profiles missing entries
+- **User table "No Stats" indicator** - Shows dash (—) instead of 0 for missing stats
+- **Game Save Repair improvements**:
+  - Refresh button now shows spinner during refetch (uses `isFetching`)
+  - New "Earnings Mismatch" corruption type (`money > totalMoneyEarned`)
+  - Auto-repair sets `totalMoneyEarned = money` when mismatched
