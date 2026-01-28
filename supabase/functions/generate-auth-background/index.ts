@@ -9,50 +9,54 @@ const corsHeaders = {
 type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 
 const SEASONAL_PROMPTS: Record<Season, string> = {
-  spring: `Create a bright, cheerful, kawaii-style cartoon cat farm in SPRING.
+  spring: `Create a bright, cheerful, kawaii-style cartoon cat farm landscape in SPRING.
 Features: cherry blossoms, colorful flowers blooming, soft pink and green colors,
-butterflies, baby chicks, cute cats playing among the flowers.
+butterflies, baby chicks among the flowers.
 Pastel colors, gentle rolling hills, cute red barn, white picket fences.
 Style: clean vector illustration, minimal detail, soft gradients.
 Wide panoramic 16:9 aspect ratio view suitable for a desktop background.
+IMPORTANT: Do NOT include any cats, animals, or characters in this scene. Pure landscape only.
 Ultra high resolution.`,
 
-  summer: `Create a bright, cheerful, kawaii-style cartoon cat farm in SUMMER.
+  summer: `Create a bright, cheerful, kawaii-style cartoon cat farm landscape in SUMMER.
 Features: bright sunny day, sunflowers, blue sky with fluffy clouds,
-cats playing in sprinklers, ice cream stand, colorful bunting.
+ice cream stand, colorful bunting, garden sprinklers watering flowers.
 Warm golden and green colors, vibrant and joyful.
 Style: clean vector illustration, minimal detail, soft gradients.
 Wide panoramic 16:9 aspect ratio view suitable for a desktop background.
+IMPORTANT: Do NOT include any cats, animals, or characters in this scene. Pure landscape only.
 Ultra high resolution.`,
 
-  autumn: `Create a cozy, warm, kawaii-style cartoon cat farm in AUTUMN.
+  autumn: `Create a cozy, warm, kawaii-style cartoon cat farm landscape in AUTUMN.
 Features: orange and golden leaves, pumpkins, harvest decorations,
-cats playing in leaf piles, apple trees, warm sunset colors.
+leaf piles, apple trees, warm sunset colors.
 Cozy barn with haystacks, falling leaves animation feel.
 Style: clean vector illustration, minimal detail, soft gradients.
 Wide panoramic 16:9 aspect ratio view suitable for a desktop background.
+IMPORTANT: Do NOT include any cats, animals, or characters in this scene. Pure landscape only.
 Ultra high resolution.`,
 
-  winter: `Create a magical, cozy, kawaii-style cartoon cat farm in WINTER.
-Features: gentle snow falling, snowcats, warm lights from barn windows,
-cats wearing tiny scarves, snowflakes, pine trees with snow.
+  winter: `Create a magical, cozy, kawaii-style cartoon cat farm landscape in WINTER.
+Features: gentle snow falling, snowman, warm lights from barn windows,
+snowflakes, pine trees with snow, tiny scarves hanging on fence.
 Soft blue and white colors with warm orange glows from windows.
 Style: clean vector illustration, minimal detail, soft gradients.
 Wide panoramic 16:9 aspect ratio view suitable for a desktop background.
+IMPORTANT: Do NOT include any cats, animals, or characters in this scene. Pure landscape only.
 Ultra high resolution.`
 };
 
 const DEFAULT_PROMPT = `Create a bright, cheerful, kawaii-style cartoon illustration of a cozy cat farm landscape. 
 Features: soft pastel colors with lavender and cream sky, gentle rolling green hills, 
-a cute red barn with white trim, white picket fences, colorful flowers scattered around,
-and 5-7 adorable cartoon cats playing and relaxing around the farm. 
+a cute red barn with white trim, white picket fences, colorful flowers scattered around.
 Style: clean vector illustration, minimal detail, soft gradients, 
 warm and inviting atmosphere, suitable as a website background.
 The scene should feel light, airy, fun, and child-friendly. No text.
 Wide panoramic 16:9 aspect ratio view suitable for a desktop background.
+IMPORTANT: Do NOT include any cats, animals, or characters in this scene. Pure landscape only.
 Ultra high resolution.`;
 
-const getBackgroundKey = (season?: Season) => `auth-background-${season || 'default'}-v1.png`;
+const getBackgroundKey = (season?: Season) => `auth-background-${season || 'default'}-v2.png`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {

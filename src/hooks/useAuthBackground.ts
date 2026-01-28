@@ -3,11 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { getCurrentRealSeason, type RealSeason } from '@/lib/seasonUtils';
 
 const CACHE_KEY_PREFIX = 'auth-background-url';
-const CACHE_TIMESTAMP_KEY = 'auth-background-timestamp-v1';
+const CACHE_TIMESTAMP_KEY = 'auth-background-timestamp-v2';
 const CACHE_SEASON_KEY = 'auth-background-season';
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-const getCacheKey = (season: RealSeason) => `${CACHE_KEY_PREFIX}-${season}-v1`;
+const getCacheKey = (season: RealSeason) => `${CACHE_KEY_PREFIX}-${season}-v2`;
 
 interface AuthBackgroundState {
   backgroundUrl: string | null;
