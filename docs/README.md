@@ -23,6 +23,7 @@
 | [ARCHITECTURE_DIAGRAMS.md](ARCHITECTURE_DIAGRAMS.md) | Visual architecture diagrams |
 | [GAMIFICATION_IMPROVEMENTS_PLAN.md](GAMIFICATION_IMPROVEMENTS_PLAN.md) | 8 gamification systems (all implemented) |
 | [NAVIGATION_IMPROVEMENTS.md](NAVIGATION_IMPROVEMENTS.md) | 8-phase UI navigation improvement plan |
+| [MOBILE_TABLET_UI.md](MOBILE_TABLET_UI.md) | Mobile & tablet responsive UI system |
 | [PAGES_AND_COMPONENTS.md](PAGES_AND_COMPONENTS.md) | Page and component reference |
 | [PANEL_DATA_FETCHING.md](PANEL_DATA_FETCHING.md) | Panel data fetching patterns (props vs hooks) |
 | [HOOKS_ARCHITECTURE.md](HOOKS_ARCHITECTURE.md) | Hooks architecture, progress tracking, state management |
