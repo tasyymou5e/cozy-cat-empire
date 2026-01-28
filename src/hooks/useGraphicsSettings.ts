@@ -31,6 +31,10 @@ export interface GraphicsSettings {
   enableEmpireParticles: boolean;
   enableTimeOfDayEffects: boolean;
   enableSeasonalDecorations: boolean;
+  // Portrait settings
+  portraitQuality: 'standard' | 'premium';
+  autoPromptOutdated: boolean;
+  showOutdatedIndicator: boolean;
 }
 
 const STORAGE_KEY = 'cat-farm-graphics-settings';
@@ -81,6 +85,10 @@ function getDefaultSettings(): GraphicsSettings {
     enableEmpireParticles: true,
     enableTimeOfDayEffects: true,
     enableSeasonalDecorations: true,
+    // Portrait defaults
+    portraitQuality: 'standard',
+    autoPromptOutdated: true,
+    showOutdatedIndicator: true,
   };
 }
 

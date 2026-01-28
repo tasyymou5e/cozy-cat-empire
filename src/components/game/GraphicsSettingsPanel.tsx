@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Palette, Gauge, Sparkles, RotateCcw, Eye, Castle } from 'lucide-react';
+import { Palette, Gauge, Sparkles, RotateCcw, Eye, Castle, ImageIcon } from 'lucide-react';
 
 export function GraphicsSettingsPanel() {
   const { settings, updateSetting, resetToDefaults, isReducedMotion, effectiveAnimations } =
@@ -285,9 +285,62 @@ export function GraphicsSettingsPanel() {
             onCheckedChange={(v) => updateSetting('enableEmpireParallax', v)}
           />
         </div>
-      </div>
+        </div>
 
-      <Separator />
+        <Separator />
+
+        {/* AI Portrait Section */}
+        <div className="space-y-4">
+          <h4 className="font-medium text-sm flex items-center gap-2 text-muted-foreground">
+            <ImageIcon className="h-4 w-4" /> AI Portraits
+          </h4>
+
+          {/* Portrait Quality */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-sm">Portrait Quality</Label>
+              <p className="text-xs text-muted-foreground">Premium uses a better AI model</p>
+            </div>
+            <Select
+              value={settings.portraitQuality}
+              onValueChange={(v: 'standard' | 'premium') => updateSetting('portraitQuality', v)}
+            >
+              <SelectTrigger className="w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="standard">Standard</SelectItem>
+                <SelectItem value="premium">Premium</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Show Outdated Indicator */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-sm">Show Outdated Indicator</Label>
+              <p className="text-xs text-muted-foreground">Badge when portrait doesn't match appearance</p>
+            </div>
+            <Switch
+              checked={settings.showOutdatedIndicator}
+              onCheckedChange={(v) => updateSetting('showOutdatedIndicator', v)}
+            />
+          </div>
+
+          {/* Auto Prompt Outdated */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-sm">Prompt on Changes</Label>
+              <p className="text-xs text-muted-foreground">Notify when portrait becomes outdated</p>
+            </div>
+            <Switch
+              checked={settings.autoPromptOutdated}
+              onCheckedChange={(v) => updateSetting('autoPromptOutdated', v)}
+            />
+          </div>
+        </div>
+
+        <Separator />
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-2">

@@ -26,6 +26,80 @@ The Cat Visual System provides a unified, consistent way to display cats through
 
 ---
 
+## AI Portrait System
+
+### Enhanced Prompt Engineering
+
+The AI portrait system uses comprehensive prompt engineering to ensure generated portraits **exactly match** cat properties:
+
+**Edge Function:** `supabase/functions/generate-cat-portrait/index.ts`
+
+#### Style Definition
+All portraits use a consistent **Studio Ghibli meets mobile game** aesthetic:
+- Soft rounded features with large expressive eyes
+- Sparkle reflections in eyes (2-3 white highlights)
+- Small pink nose with subtle shine
+- Subtle pink blush marks on cheeks
+- Clean cel-shaded look with soft gradients
+- Warm cozy lighting from upper left
+
+#### Prompt Components
+1. **STYLE_PROMPT** - Consistent art style foundation
+2. **BREED_CHARACTERISTICS** - Face shape, expression, body type for each breed
+3. **FUR_DESCRIPTIONS** - Detailed fur color descriptions
+4. **PATTERN_DESCRIPTIONS** - Pattern type rendering
+5. **EYE_DESCRIPTIONS** - Eye color with gemstone comparisons
+6. **PERSONALITY_EXPRESSIONS** - Expression based on personality
+7. **COSTUME_RENDER_INSTRUCTIONS** - Detailed costume placement and style
+
+### Appearance Hash System
+
+**File:** `src/lib/portraitUtils.ts`
+
+Portraits are tracked using an appearance hash that includes:
+- Breed (affects face shape)
+- Appearance (fur, pattern, eyes, hair length, facial features)
+- Costume ID (must be visible in portrait)
+- Personality (affects expression)
+
+```typescript
+function computeAppearanceHash(cat: Cat, costumeId?: string): string {
+  const data = {
+    breed: cat.breed,
+    appearance: cat.appearance || null,
+    costumeId: costumeId || null,
+    personality: cat.personality,
+  };
+  // Hash generation...
+}
+```
+
+### Outdated Portrait Detection
+
+**Hook:** `src/hooks/usePortraitStatus.ts`
+
+Automatically detects when a portrait is outdated:
+- Tracks cats without portraits
+- Tracks cats with outdated portraits (hash mismatch)
+- Provides lists for batch regeneration
+
+```typescript
+const { 
+  outdatedCats, 
+  catsNeedingPortrait,
+  checkIfOutdated 
+} = usePortraitStatus(cats, catCostumes);
+```
+
+### Portrait Quality Settings
+
+**Graphics Settings Integration:**
+- `portraitQuality`: 'standard' or 'premium' (uses `gemini-3-pro-image-preview`)
+- `showOutdatedIndicator`: Show badge on outdated portraits
+- `autoPromptOutdated`: Notify when portrait becomes outdated
+
+---
+
 ## Key Components
 
 ### CatVisual (`src/components/game/CatVisual.tsx`)
@@ -40,14 +114,18 @@ The unified visual representation component. Use this for all cat displays.
 - `showGrade?: boolean` - Show grade overlay on portraits
 - `className?: string` - Additional CSS classes
 
-**Usage:**
-```tsx
-<CatVisual 
-  cat={myCat} 
-  size="md" 
-  equippedCostumeId={catCostumes[myCat.id]}
-/>
-```
+### PortraitOutdatedBadge (`src/components/game/PortraitOutdatedBadge.tsx`)
+Visual indicator for outdated or missing portraits.
+
+**Props:**
+- `cat: Cat` - The cat
+- `isOutdated: boolean` - Whether portrait is outdated
+- `hasNoPortrait?: boolean` - Cat has no portrait
+- `creditsAvailable?: number` - Credits for regeneration
+- `onRegenerate?: (catId: string) => void` - Regeneration callback
+
+### BatchPortraitGenerator (`src/components/game/BatchPortraitGenerator.tsx`)
+Generates portraits for multiple cats with progress tracking.
 
 ### CatAvatar (`src/components/game/CatAvatar.tsx`)
 CSS/SVG-based avatar renderer. Used as fallback when portraits unavailable.
@@ -76,6 +154,14 @@ Central configuration for all visual settings:
 | `costumeDisplayMode` | 'vector' \| 'emoji' \| 'auto' | Costume rendering |
 | `enableCostumeAnimations` | boolean | Animated costume effects |
 
+### Portrait Settings
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `portraitQuality` | 'standard' \| 'premium' | AI model quality |
+| `showOutdatedIndicator` | boolean | Show outdated badge |
+| `autoPromptOutdated` | boolean | Notify on changes |
+
 ### Tier Visuals
 
 Each grade tier has specific visual styling:
@@ -90,79 +176,66 @@ Each grade tier has specific visual styling:
 
 ---
 
-## Libraries
+## Costume Rendering
 
-### Breed Shapes (`src/lib/breedShapes.ts`)
-Defines breed-specific visual characteristics:
-- Head shape (roundness, width, chin)
-- Ear shape (height, angle, tufts)
-- Eye shape (round, almond, oval)
-- Nose shape (standard, flat, pointed)
-- Fur length
+### Costume Render Instructions
 
-**Breeds:** Siamese, Persian, Maine Coon, British Shorthair, Ragdoll, Bengal, Tabby, Stray
+Each costume has detailed rendering instructions in the edge function:
 
-### Costume Vectors (`src/lib/costumeVectors.ts`)
-SVG path definitions for costume overlays with animation support:
-
-**Standard Costumes:**
-- Crown, Wizard Hat, Party Hat, Top Hat
-- Bow Tie, Sunglasses, Necklace, Scarf
-- Sweater, Tuxedo
-- Superhero Cape, Pirate Hat
-- Angel Wings, Dragon, Astronaut, Unicorn
-
-**VIP Costumes:**
-- VIP Bronze Collar, VIP Silver Cape, VIP Gold Crown
-
-**Animation Properties:**
 ```typescript
-interface VectorCostume {
-  // ... base properties
-  animation?: {
-    type: 'sparkle' | 'glow' | 'flow' | 'pulse' | 'shimmer' | 'rainbow';
-    className?: string;
-    glowColor?: string;
-  };
-  particles?: {
-    type: 'sparkles' | 'stars' | 'hearts' | 'magic';
-    count: number;
-    color?: string;
-  };
-}
+const COSTUME_RENDER_INSTRUCTIONS = {
+  crown: {
+    description: 'wearing an ornate golden royal crown',
+    placement: 'The crown sits majestically on the head between the ears',
+    style: 'shiny metallic gold with red velvet lining and sparkling gems',
+  },
+  wizard_hat: {
+    description: 'wearing a tall mystical purple wizard hat',
+    placement: 'The wizard hat sits at a slight jaunty angle',
+    style: 'deep purple velvet with golden stars and crescent moons',
+  },
+  // ... all 20 costumes
+};
 ```
 
-### Animated Costume SVG (`src/components/game/AnimatedCostumeSVG.tsx`)
-Renders animated costume overlays with CSS effects:
+### Costume Categories
+- **Hats**: crown, wizard_hat, party_hat, top_hat, pirate
+- **Accessories**: bow_tie, sunglasses, necklace, scarf
+- **Full Outfits**: sweater, tuxedo, dragon, astronaut
+- **Special**: superhero, angel_wings, unicorn
+- **VIP**: vip_bronze_collar, vip_silver_cape, vip_gold_crown
 
-**Animation Types:**
-| Type | CSS Class | Description |
-|------|-----------|-------------|
-| glow-gold | animate-costume-glow-gold | Golden pulsing glow |
-| glow-vip | animate-costume-glow-vip | Rainbow VIP glow |
-| glow-fire | animate-costume-glow-fire | Fiery dragon glow |
-| flow | animate-costume-flow | Flowing cape effect |
-| flutter | animate-costume-flutter | Wing flutter effect |
-| rainbow | animate-costume-rainbow | Rainbow color shift |
-| sparkle | animate-costume-sparkle | Twinkling stars |
-| shimmer-bronze | animate-costume-shimmer-bronze | Bronze shimmer |
-| shimmer-silver | animate-costume-shimmer-silver | Silver shimmer |
+---
 
-**Particle Effects:**
-- sparkles: 4-point star particles
-- stars: 5-point twinkling stars
-- hearts: Pink heart particles
-- magic: Swirling dot particles
+## Breed Characteristics
 
-### Avatar Cache (`src/lib/avatarCache.ts`)
-Caching system for generated avatars:
-- LRU eviction with 100 entry limit
-- Appearance-based hash keys
-- localStorage persistence
+Each breed has unique visual characteristics:
+
+| Breed | Face | Expression | Fur |
+|-------|------|------------|-----|
+| Persian | Flat-faced, round head, tiny ears | Regal, haughty | Extremely fluffy |
+| Siamese | Wedge-shaped, large pointed ears | Intelligent, curious | Sleek with points |
+| Maine Coon | Large square muzzle, tufted ears | Gentle giant | Shaggy with mane |
+| British Shorthair | Round chubby face, chubby cheeks | Calm, dignified | Dense plush |
+| Ragdoll | Sweet face, vivid blue eyes | Docile, loving | Silky semi-long |
+| Bengal | Wild exotic face, strong chin | Athletic, mischievous | Leopard-like spots |
+| Tabby | Classic face with M-marking | Friendly, warm | Striped pattern |
+| Stray | Natural domestic features | Street-smart | Practical coat |
 
 ---
 
 ## Hooks
+
+### usePortraitStatus (`src/hooks/usePortraitStatus.ts`)
+Track portrait status across all cats:
+```tsx
+const { 
+  outdatedCats, 
+  catsNeedingPortrait,
+  checkIfOutdated,
+  outdatedCount 
+} = usePortraitStatus(cats, catCostumes);
+```
 
 ### useGraphicsSettings (`src/hooks/useGraphicsSettings.ts`)
 Runtime graphics settings management:
@@ -177,26 +250,10 @@ const { settings, updateSetting, resetToDefaults, isReducedMotion } = useGraphic
 1. **Cat Creation**: Cat gets default appearance based on breed
 2. **Breeding**: Kittens inherit appearance from parents via `inheritAppearance()` with mutation chance
 3. **Customization**: User can modify appearance via CatCustomization page
-4. **Portrait Generation**: AI generates portrait from appearance data
-5. **Display**: CatVisual checks for portrait, falls back to avatar
-6. **Caching**: Generated avatars cached for performance
-
----
-
-## Appearance Inheritance
-
-When breeding cats, kittens inherit visual traits from their parents:
-
-**File:** `src/lib/appearanceInheritance.ts`
-
-**Inheritance Rules:**
-- Fur color, pattern, eye color: 45% from each parent, 10% mutation
-- Hair length: Dominance-based (fluffy > medium > short)
-- Facial features: 80% normal, 20% inherited/mutated
-
-**Relationship Bonus Effect:**
-- Better relationship = lower mutation chance (stable genetics)
-- Enemies = higher mutation chance (unstable genetics)
+4. **Portrait Generation**: AI generates portrait from appearance data with costume
+5. **Hash Storage**: Appearance hash stored with portrait for drift detection
+6. **Display**: CatVisual checks for portrait, falls back to avatar
+7. **Outdated Detection**: If hash mismatches, portrait is marked outdated
 
 ---
 
@@ -220,16 +277,10 @@ When breeding cats, kittens inherit visual traits from their parents:
 ```
 
 **Panels that receive catCostumes:**
-- BreedingPanel
-- TrainingPanel
-- SocializePanel
-- MatchmakingPanel
-- GroupActivitiesPanel
-- CatGiftingPanel
-- TradingPanel
-- BulkActionsPanel
-- RelationshipPanel
-- LeaderboardPanel
+- BreedingPanel, TrainingPanel, SocializePanel
+- MatchmakingPanel, GroupActivitiesPanel
+- CatGiftingPanel, TradingPanel, BulkActionsPanel
+- RelationshipPanel, LeaderboardPanel
 
 ---
 
@@ -238,11 +289,13 @@ When breeding cats, kittens inherit visual traits from their parents:
 1. Add breed to `src/types/game.ts` BREEDS constant
 2. Add shape definition to `src/lib/breedShapes.ts`
 3. Add default appearance to `src/types/catAppearance.ts`
+4. Add breed characteristics to edge function `BREED_CHARACTERISTICS`
 
 ## Adding New Costumes
 
 1. Add costume to `src/types/costumes.ts` COSTUMES array
-2. (Optional) Add vector definition to `src/lib/costumeVectors.ts`
+2. Add vector definition to `src/lib/costumeVectors.ts`
+3. Add render instructions to edge function `COSTUME_RENDER_INSTRUCTIONS`
 
 ---
 
@@ -252,20 +305,25 @@ When breeding cats, kittens inherit visual traits from their parents:
 2. **Lazy load portraits**: Portraits load on demand
 3. **Reduce animations**: Disable for large grids
 4. **Optimize size**: Use smallest appropriate size
+5. **Batch generation**: Use BatchPortraitGenerator for multiple cats
 
 ---
 
 ## Troubleshooting
 
-### Costumes not showing
-- Verify `catCostumes` prop is passed to panel
-- Check `equippedCostumeId` passed to CatVisual
-- Ensure costume is in `state.ownedCostumes`
+### Costumes not showing in portrait
+- Verify costume is passed to edge function
+- Check `COSTUME_RENDER_INSTRUCTIONS` has entry for costume ID
+- Ensure `showCostumeOnPortrait` is enabled in settings
 
-### Portrait not displaying
-- Check `cat.portraitUrl` exists
-- Verify `preferPortrait` is true (default from config)
-- Check for network errors loading image
+### Portrait not matching appearance
+- Check if portrait hash matches current appearance
+- Use `isPortraitOutdated()` to verify
+- Regenerate portrait with current appearance
+
+### Portrait quality issues
+- Enable `portraitQuality: 'premium'` in graphics settings
+- Premium uses `gemini-3-pro-image-preview` model
 
 ### Animations not working
 - Check `enableAnimations` in graphics config
