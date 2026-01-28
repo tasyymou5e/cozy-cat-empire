@@ -120,6 +120,16 @@ export default function Empire() {
     }
   }, [actions, state.resources.toys, saveGame]);
 
+  const handleDeductMoney = useCallback((amount: number) => {
+    actions.deductMoney(amount, 'Empire AI Render');
+    saveGame();
+  }, [actions, saveGame]);
+
+  const handleEmpireRendered = useCallback((url: string) => {
+    actions.setEmpireRenderUrl(url);
+    saveGame();
+  }, [actions, saveGame]);
+
   if (isLoading) {
     return (
       <GameLayout currentPage="/empire">
@@ -200,10 +210,14 @@ export default function Empire() {
             houseSize={state.houseSize}
             catCostumes={state.catCostumes}
             resources={state.resources}
+            currentMoney={state.money}
+            empireRenderUrl={state.empireRenderUrl}
             gameDay={state.day}
             onPetCat={handlePetCat}
             onFeedCat={handleFeedCat}
             onPlayWithCat={handlePlayWithCat}
+            onDeductMoney={handleDeductMoney}
+            onEmpireRendered={handleEmpireRendered}
           />
 
           {/* Info text */}

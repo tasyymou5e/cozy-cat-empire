@@ -318,7 +318,7 @@ export function useGameState(
       buyCostume: costumeActions.buyCostume,
       equipCostume: costumeActions.equipCostume,
 
-      // Core/Daily (8)
+      // Core/Daily (9)
       doChore: gameCoreActions.doChore,
       upgradeHouse: gameCoreActions.upgradeHouse,
       nextDay: gameCoreActions.nextDay,
@@ -327,6 +327,7 @@ export function useGameState(
       dismissMessage: gameCoreActions.dismissMessage,
       deductMoney: gameCoreActions.deductMoney,
       setMoney: gameCoreActions.setMoney,
+      setEmpireRenderUrl: gameCoreActions.setEmpireRenderUrl,
     }),
     [
       catManagementActions,
