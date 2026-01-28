@@ -1,139 +1,178 @@
 
-# Game Save Repair Tool - Bug Fix Plan
+# Documentation Update Plan
 
-## Issues Identified
+## Current State Analysis
 
-### Issue 1: Refresh Button Does Nothing (Visual Feedback)
+### Auto-Documentation Status
+**Lovable does have a memory feature** - I found one memory entry in the context:
+- `memory/features/game-save-snapshots-recovery` - Exists and documents the save recovery system
 
-**Location:** `src/pages/admin/AdminGameSaveRepair.tsx` (lines 105, 197-200)
+However, there's **no automatic documentation update system** configured. Documentation updates must be done manually when changes are made.
 
-**Root Cause:** The button uses `isLoading` which only indicates the **initial** load state. When you click the refresh button, `refetch()` is called but `isLoading` stays `false` because data is already in cache. React Query uses `isFetching` for ongoing fetches.
+### Recent Changes Requiring Documentation
 
-**Current Code:**
-```typescript
-const { data, isLoading, refetch } = useAdminCorruptedSaves();
-// ...
-<Button onClick={() => refetch()} disabled={isLoading} variant="outline">
-  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-  Refresh
-</Button>
+Based on the conversation history and code changes, the following improvements need to be documented:
+
+| Change | Location | Status |
+|--------|----------|--------|
+| Security linter refinements (false positive reduction) | Database functions | ❌ Not documented |
+| Admin ProfileEditor sync to player_stats | `ProfileEditor.tsx` | ❌ Not documented |
+| "No Stats" indicator in AdminUsers table | `AdminUsers.tsx` | ❌ Not documented |
+| Game Save Repair - Refresh button fix (isFetching) | `AdminGameSaveRepair.tsx` | ❌ Not documented |
+| Game Save Repair - Earnings Mismatch detection | `useAdminCorruptedSaves.ts` | ❌ Not documented |
+
+---
+
+## Files to Update
+
+### 1. `docs/ADMIN_DASHBOARD.md`
+
+**Add to Game Save Repair section (line ~106-131):**
+
+```markdown
+#### Issue Types Detected (Updated)
+| Issue Type | Detection Logic | Severity |
+|------------|-----------------|----------|
+| Negative totalMoneyEarned | `totalMoneyEarned < 0` | High |
+| NaN/Undefined money | `!isFinite(money)` | Critical |
+| Negative money | `money < 0` | High |
+| **Earnings Mismatch** | `money > totalMoneyEarned` | Medium |
+| Invalid cat ages | `age < 0` or `!isFinite(age)` | Medium |
+| Corrupted resources | Negative resource counts | Medium |
+| Invalid house sizes | Not in valid enum | Low |
+
+**Note:** The "Earnings Mismatch" detection catches logical impossibilities where a player has more current funds than they've ever earned total.
 ```
 
-**Fix:** Add `isFetching` to control the spinner and disable state:
-```typescript
-const { data, isLoading, isFetching, refetch } = useAdminCorruptedSaves();
-// ...
-<Button onClick={() => refetch()} disabled={isFetching} variant="outline">
-  <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
-  Refresh
-</Button>
+**Add to ProfileEditor section (line ~97-105):**
+
+```markdown
+#### ProfileEditor Component
+Reusable component for profile editing:
+- Avatar emoji picker (10 options)
+- Display name input with real-time validation (3-30 chars, alphanumeric + `_- `)
+- Case-insensitive availability checking
+- Name suggestions if taken
+- Username field (optional)
+- Reason field (required for audit trail)
+- **Automatic player_stats sync** - Updates are synced to `player_stats` table for leaderboard consistency
+- **Orphaned profile handling** - Creates `player_stats` entry if missing when saving
+```
+
+**Add to Changelog section (line ~547-552):**
+
+```markdown
+### Phase 7: Data Consistency & Quality
+- **ProfileEditor player_stats sync** - Admin profile edits now sync to leaderboard table
+- **Orphaned profile detection** - Auto-creates player_stats for profiles missing entries
+- **User table "No Stats" indicator** - Shows dash (—) instead of 0 for missing stats
+- **Game Save Repair improvements**:
+  - Refresh button now shows spinner during refetch (uses `isFetching`)
+  - New "Earnings Mismatch" corruption type (`money > totalMoneyEarned`)
+  - Auto-repair sets `totalMoneyEarned = money` when mismatched
 ```
 
 ---
 
-### Issue 2: Eric's Account Shows Incorrect Funds
+### 2. `docs/SECURITY.md`
 
-**Database Finding:**
-| Field | Value |
-|-------|-------|
-| email | eric@wccgroup.net |
-| money | $2,488 |
-| totalMoneyEarned | 0 |
+**Add section for security linter refinements:**
 
-**Root Cause:** The `detectCorruption` function only checks if `totalMoneyEarned` is negative or invalid. It does NOT detect the logical impossibility where `money > totalMoneyEarned` (a user cannot have more cash than they've ever earned).
+```markdown
+## Security Linter Refinements
 
-**Location:** `src/hooks/admin/useAdminCorruptedSaves.ts`
+The security linter functions have been refined to reduce false positives:
 
-**Fix:** Add a new corruption check for this data integrity issue:
+### Legitimate Public INSERTs (Excluded from Warnings)
+| Table | Reason |
+|-------|--------|
+| `auth_attempts_log` | Must log failed login attempts from unauthenticated users |
+| `tutorial_analytics` | Must track anonymous users in tutorial |
+| `error_logs` | Must capture errors before authentication |
 
-1. **Add new corruption type**: `earnings_mismatch`
-2. **Detection logic**: If `money > totalMoneyEarned`, flag as issue
-3. **Repair logic**: Set `totalMoneyEarned = Math.max(totalMoneyEarned, money)`
+### Intentionally Public Tables (Excluded from Admin SELECT Warnings)
+| Table | Reason |
+|-------|--------|
+| `game_config` | Configuration readable by all players |
+| `player_stats` | Leaderboard data is public by design |
+| `public_leaderboard` | View specifically designed for public access |
+
+### ALL Policy Recognition
+The linter now recognizes PostgreSQL `ALL` command policies as covering SELECT access, preventing false positives for tables like `admin_notifications` that use `ALL` instead of individual `SELECT` policies.
+```
 
 ---
 
-## Implementation Details
+### 3. `docs/README.md`
 
-### File 1: `src/pages/admin/AdminGameSaveRepair.tsx`
+**Update Data Integrity Safeguards section (line ~198-209):**
 
-**Change:** Line 105 - Add `isFetching` to destructuring
-**Change:** Lines 197-199 - Use `isFetching` for button state
-
-### File 2: `src/hooks/admin/useAdminCorruptedSaves.ts`
-
-**Changes:**
-
-1. **Line 21-28 (CorruptionType):** Add `'earnings_mismatch'` to the union type
-
-2. **Lines 84-91 (ISSUE_TYPE_ICONS):** Add icon for earnings_mismatch
-
-3. **Lines 93-101 (ISSUE_TYPE_LABELS):** Add label for earnings_mismatch
-
-4. **Lines 84-105 (detectCorruption - after totalMoneyEarned check):** Add new check:
-```typescript
-// Check money vs totalMoneyEarned consistency
-const money = gameState.money;
-const totalMoneyEarned = gameState.totalMoneyEarned;
-if (
-  typeof money === 'number' &&
-  typeof totalMoneyEarned === 'number' &&
-  money > totalMoneyEarned
-) {
-  issues.push({
-    type: 'earnings_mismatch',
-    field: 'totalMoneyEarned',
-    currentValue: totalMoneyEarned,
-    suggestedValue: money,
-    severity: 'medium',
-  });
-}
+Add new safeguard:
+```markdown
+- ✅ Earnings mismatch detection (`money > totalMoneyEarned` flagged and repairable)
+- ✅ Admin ProfileEditor syncs to player_stats for leaderboard consistency
 ```
-
-5. **Lines 209-222 (repairGameState):** Add repair for earnings mismatch:
-```typescript
-// Fix totalMoneyEarned vs money consistency
-const money = repairedState.money as number;
-const totalEarned = repairedState.totalMoneyEarned as number;
-if (
-  typeof money === 'number' &&
-  typeof totalEarned === 'number' &&
-  money > totalEarned
-) {
-  changes.push(`totalMoneyEarned: ${totalEarned} → ${money} (adjusted to match current funds)`);
-  repairedState.totalMoneyEarned = money;
-}
-```
-
-6. **Lines 344-354 (CorruptionStats):** Add `earningsMismatch: number` counter
-
-7. **Lines 366-390 (stats counting):** Add case for `earnings_mismatch`
 
 ---
 
-## Files to Modify
+### 4. `GAME_KNOWLEDGE.md`
 
-| File | Changes |
+**Update Admin Dashboard section to reference new features:**
+
+Add mention of:
+- Earnings mismatch detection in Game Save Repair
+- ProfileEditor sync improvements
+
+---
+
+### 5. `.lovable/plan.md`
+
+**Replace current contents with completion summary:**
+
+```markdown
+# Recent Changes Summary
+
+## Completed: 2026-01-28
+
+### Security Linter Refinements
+- Updated `get_permissive_policies()` to exclude legitimate public INSERT tables
+- Updated `get_tables_without_admin_access()` to recognize ALL policies and exclude public tables
+- Result: 0 false positive warnings
+
+### Admin Data Sync Fixes
+- ProfileEditor now syncs display_name/avatar_emoji to player_stats
+- Auto-creates player_stats entry for orphaned profiles
+- AdminUsers table shows "—" for missing stats (vs false "0")
+
+### Game Save Repair Improvements
+- Refresh button uses isFetching for proper loading state
+- New "earnings_mismatch" corruption type detection
+- Auto-repair logic for money > totalMoneyEarned cases
+
+---
+
+All changes fully implemented and tested.
+```
+
+---
+
+## Summary
+
+| File | Updates |
 |------|---------|
-| `src/pages/admin/AdminGameSaveRepair.tsx` | Add `isFetching` for refresh button state |
-| `src/hooks/admin/useAdminCorruptedSaves.ts` | Add `earnings_mismatch` detection and repair |
+| `docs/ADMIN_DASHBOARD.md` | Add earnings_mismatch, ProfileEditor sync, Phase 7 changelog |
+| `docs/SECURITY.md` | Add security linter refinements section |
+| `docs/README.md` | Add 2 new data integrity safeguards |
+| `GAME_KNOWLEDGE.md` | Minor updates referencing new admin features |
+| `.lovable/plan.md` | Replace with completion summary |
 
 ---
 
-## Expected Results After Fix
+## Recommendation: Enable Knowledge Management
 
-| Issue | Before | After |
-|-------|--------|-------|
-| Refresh button | No spinner, appears broken | Spinner shows during refresh |
-| Eric's account | Not flagged, shows $0 total earned | Flagged as "Earnings Mismatch", can be repaired to $2,488 |
+For automatic documentation memory, you can use Lovable's **Knowledge Management** feature:
 
----
+**Desktop:** Plus (+) button → "Knowledge"
+**Mobile:** Tap project name → "Settings" → "Knowledge" tab
 
-## Technical Notes
-
-1. **React Query states:**
-   - `isLoading` = true only on initial load with no cached data
-   - `isFetching` = true whenever a fetch is in progress (including refetch)
-
-2. **Data integrity logic:** If a user has $X in their wallet, they must have earned at least $X total (they can spend money, but can't spend more than they earned)
-
-3. **Repair is non-destructive:** Sets `totalMoneyEarned = money` only when money > totalMoneyEarned, preserving any higher totalMoneyEarned value
+This allows you to add custom knowledge entries that persist across sessions and are automatically included in context for future prompts. You already have `GAME_KNOWLEDGE.md` in the knowledge base which is great - the documentation updates above will keep it comprehensive.
