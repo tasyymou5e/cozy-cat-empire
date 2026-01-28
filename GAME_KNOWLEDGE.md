@@ -300,6 +300,12 @@ See [Cat Visual System Documentation](./docs/CAT_VISUAL_SYSTEM.md) for full deta
 - Particle systems (sparkles, stars, hearts, magic)
 - Respects reduced motion preferences
 
+**Data Integrity Invariants:**
+1. **Ownership Validation**: A costume can only be equipped if it exists in `ownedCostumes`
+2. **Sale Cleanup**: When a cat is sold (single or bulk), its entry is automatically removed from `catCostumes`
+3. **Costume Validation**: `getCostumeById()` validates costume existence before equipping
+4. **Error Feedback**: Invalid operations produce user-visible error messages and error sounds
+
 ### 9. Show Events (`src/types/showEvents.ts`)
 
 **Show Tiers:**
@@ -703,7 +709,7 @@ Click any cat to open interaction menu:
 
 ---
 
-## Edge Functions (11 total)
+## Edge Functions (14 total)
 
 - **process-leaderboard-rewards**: Process periodic leaderboard rewards
 - **generate-weekly-challenges**: Generate new weekly challenges
@@ -719,6 +725,11 @@ Click any cat to open interaction menu:
 - **cleanup-error-logs**: Daily cleanup of error logs older than 30 days
 - **manage-portrait-credits**: Portrait credit management
 - **run-security-linter**: Database security scanning
+- **sync-health-check**: Data integrity validation (runs every 10 minutes via cron)
+  - Validates saves played within last 24 hours
+  - Checks cat count vs space limit, required fields, duplicate IDs, portrait URLs
+  - Logs results to `sync_health_log` table
+- **recover-lost-cats**: Recover lost cats from save snapshots
 - **validate-display-name**: Server-side display name and username validation
   - Validates display name format (3-30 chars, alphanumeric + spaces/underscores/hyphens)
   - Validates username format (3-20 chars, starts with letter, alphanumeric + underscores)
@@ -757,6 +768,8 @@ Click any cat to open interaction menu:
 ### Logging Tables:
 - **error_logs**: Application errors
 - **player_activity_log**: Player activities
+- **sync_health_log**: Data integrity check results (cron job)
+- **save_snapshots**: Point-in-time save snapshots for recovery
 
 ### Admin Tables:
 - **admin_activity_log**: Admin actions
@@ -764,6 +777,7 @@ Click any cat to open interaction menu:
 - **user_roles**: User role assignments
 - **announcements**: System announcements
 - **ai_usage_log**: AI usage tracking
+- **security_scan_history**: Security scan results
 
 ### Notification Tables:
 - **push_subscriptions**: Web push subscriptions

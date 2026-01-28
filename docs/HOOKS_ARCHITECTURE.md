@@ -431,9 +431,17 @@ src/hooks/game/__tests__/
 ├── useBulkActions.test.ts
 ├── useCatManagement.test.ts
 ├── useCatShows.test.ts
+├── useCostumes.test.ts        # Costume purchase/equip validation
 ├── useResources.test.ts
 └── useTraining.test.ts
 ```
+
+**Test Coverage Areas:**
+- Costume buying with money validation
+- Costume equipping with ownership checks
+- Costume cleanup on cat sale (single and bulk)
+- Resource management safeguards
+- Breeding mechanics and compatibility
 
 **Test Setup:**
 - Vitest with jsdom environment
