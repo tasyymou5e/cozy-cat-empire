@@ -25,7 +25,8 @@ export type CorruptionType =
   | 'bad_cat_data'
   | 'bad_resources'
   | 'invalid_house'
-  | 'missing_fields';
+  | 'missing_fields'
+  | 'earnings_mismatch';
 
 /**
  * Single issue detected in a game save
@@ -63,6 +64,7 @@ export interface CorruptionStats {
   badResources: number;
   invalidHouse: number;
   missingFields: number;
+  earningsMismatch: number;
 }
 
 /**
@@ -101,6 +103,24 @@ export function detectCorruption(gameState: Record<string, unknown>): Corruption
       currentValue: totalMoneyEarned,
       suggestedValue: 0,
       severity: 'high',
+    });
+  }
+
+  // Check money vs totalMoneyEarned consistency (money cannot exceed total earned)
+  const moneyValue = gameState.money;
+  if (
+    typeof moneyValue === 'number' &&
+    isFinite(moneyValue) &&
+    typeof totalMoneyEarned === 'number' &&
+    isFinite(totalMoneyEarned) &&
+    moneyValue > totalMoneyEarned
+  ) {
+    issues.push({
+      type: 'earnings_mismatch',
+      field: 'totalMoneyEarned',
+      currentValue: totalMoneyEarned,
+      suggestedValue: moneyValue,
+      severity: 'medium',
     });
   }
 
@@ -229,6 +249,18 @@ export function repairGameState(
     repairedState.money = 0;
   }
 
+  // Fix totalMoneyEarned vs money consistency (money cannot exceed total earned)
+  const currentMoney = repairedState.money as number;
+  const currentTotalEarned = repairedState.totalMoneyEarned as number;
+  if (
+    typeof currentMoney === 'number' &&
+    typeof currentTotalEarned === 'number' &&
+    currentMoney > currentTotalEarned
+  ) {
+    changes.push(`totalMoneyEarned: ${currentTotalEarned} → ${currentMoney} (adjusted to match current funds)`);
+    repairedState.totalMoneyEarned = currentMoney;
+  }
+
   // Fix resources
   const resources = repairedState.resources as Record<string, unknown> | undefined;
   if (resources && typeof resources === 'object') {
@@ -351,6 +383,7 @@ export function useAdminCorruptedSaves() {
         badResources: 0,
         invalidHouse: 0,
         missingFields: 0,
+        earningsMismatch: 0,
       };
 
       const corruptedSaves: CorruptedSave[] = [];
@@ -385,6 +418,9 @@ export function useAdminCorruptedSaves() {
                 break;
               case 'missing_fields':
                 stats.missingFields++;
+                break;
+              case 'earnings_mismatch':
+                stats.earningsMismatch++;
                 break;
             }
           }
