@@ -315,6 +315,33 @@ describe('useBulkActions', () => {
       expect(mockDeps.getState().cats).toHaveLength(1);
       expect(mockDeps.getState().money).toBe(100);
     });
+
+    it('should remove costume associations when cats are sold in bulk', () => {
+      const cats = [
+        createMockCat({ id: 'cat-1', value: 100 }),
+        createMockCat({ id: 'cat-2', value: 100 }),
+        createMockCat({ id: 'cat-3', value: 100 }),
+      ];
+      mockDeps = createMockDependencies({
+        cats,
+        catCostumes: {
+          'cat-1': 'crown',
+          'cat-2': 'party_hat',
+          'cat-3': 'bow_tie',
+        },
+      });
+
+      const { result } = renderHook(() => useBulkActions(mockDeps.deps));
+
+      act(() => {
+        result.current.sellSelectedCats(['cat-1', 'cat-3']);
+      });
+
+      const costumes = mockDeps.getState().catCostumes;
+      expect(costumes['cat-1']).toBeUndefined();
+      expect(costumes['cat-2']).toBe('party_hat'); // Kept
+      expect(costumes['cat-3']).toBeUndefined();
+    });
   });
 
   describe('socializeAllNeglected', () => {

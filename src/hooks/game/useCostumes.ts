@@ -95,7 +95,10 @@ export function useCostumes(deps: GameHookDependencies): CostumeActions {
     (catId: string, costumeId: string | null) => {
       setState((prev) => {
         const cat = prev.cats.find((c) => c.id === catId);
-        if (!cat) return prev;
+        if (!cat) {
+          showMessage('Cat not found!', 'error');
+          return prev;
+        }
 
         const newCatCostumes = { ...prev.catCostumes };
 
@@ -104,12 +107,23 @@ export function useCostumes(deps: GameHookDependencies): CostumeActions {
           delete newCatCostumes[catId];
           showMessage(`Removed ${cat.name}'s costume.`, 'info');
         } else {
-          // Equip costume
+          // Validate costume exists
           const costume = getCostumeById(costumeId);
-          if (costume) {
-            newCatCostumes[catId] = costumeId;
-            showMessage(`${cat.name} is now wearing ${costume.name}! ${costume.emoji}`, 'success');
+          if (!costume) {
+            showMessage('Invalid costume!', 'error');
+            playSound?.('error');
+            return prev;
           }
+
+          // Validate costume is owned
+          if (!prev.ownedCostumes.includes(costumeId)) {
+            showMessage("You don't own this costume!", 'error');
+            playSound?.('error');
+            return prev;
+          }
+
+          newCatCostumes[catId] = costumeId;
+          showMessage(`${cat.name} is now wearing ${costume.name}! ${costume.emoji}`, 'success');
         }
 
         return {
@@ -118,7 +132,7 @@ export function useCostumes(deps: GameHookDependencies): CostumeActions {
         };
       });
     },
-    [setState, showMessage]
+    [setState, showMessage, playSound]
   );
 
   return { buyCostume, equipCostume };

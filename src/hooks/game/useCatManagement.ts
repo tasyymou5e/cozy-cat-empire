@@ -226,10 +226,16 @@ export function useCatManagement(deps: GameHookDependencies): CatManagementActio
         showMessage(`Goodbye ${cat.name}! Sold for $${sellPrice}. 👋`, 'info');
         playSound?.('coin');
         relationshipSystem.removeCatRelationships(catId);
+
+        // Clean up costume association when cat is sold
+        const newCatCostumes = { ...prev.catCostumes };
+        delete newCatCostumes[catId];
+
         return {
           ...prev,
           money: prev.money + sellPrice,
           cats: prev.cats.filter((c) => c.id !== catId),
+          catCostumes: newCatCostumes,
         };
       });
     },
