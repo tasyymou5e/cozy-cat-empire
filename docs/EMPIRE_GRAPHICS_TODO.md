@@ -138,10 +138,53 @@ This document describes the graphics system implemented for the Empire page (`/e
 
 All effects respect user preferences via `useGraphicsSettings`:
 - `enableEmpireParallax` - Toggle parallax depth
+- `enableMicroDepthParallax` - Toggle per-object depth variation
 - `enableTimeOfDayEffects` - Toggle lighting overlays
 - `enableSeasonalDecorations` - Toggle seasonal particles
 - `enableParticles` / `enableEmpireParticles` - Toggle atmospheric particles
 - `enableReducedMotion` - Accessibility support
+
+---
+
+### ✅ Phase 7: Micro-Depth Parallax System
+
+**Files**:
+- `src/lib/parallaxDepth.ts` - Depth calculation utilities
+- `src/components/empire/EmpirePropComponent.tsx` - Per-prop micro-depth
+- `src/components/empire/RoamingCat.tsx` - Per-cat micro-depth
+
+**Micro-Depth Formula**:
+```typescript
+depth = baseDepth + (yNormalized * microRange)
+```
+
+**Object Depth Variation**:
+| Object Type | Base Depth | Micro Range | Effect |
+|:------------|:-----------|:------------|:-------|
+| Props | 0.5 | 0.15 | 15% extra movement at bottom |
+| Cats | 1.0 | 0.18 | 18% extra movement at bottom |
+
+**Features**:
+- Y-position based depth: Objects lower on screen move more
+- Hover "pop" boost: +0.08 depth on hover for tactile feedback
+- Dynamic cat depth: Cats shift naturally as they roam vertically
+- GPU-efficient: Uses existing CSS transforms, no new layers
+
+---
+
+### ✅ Phase 8: Click-to-Summon Feature
+
+**Files**:
+- `src/hooks/empire/useRoamingCats.ts` - Cat summoning logic
+- `src/components/empire/EmpireScene.tsx` - Summoning trigger
+- `src/components/empire/EmpirePropComponent.tsx` - Visual feedback
+
+**Features**:
+- Click interactable furniture to attract 1-3 nearby cats
+- Cats transition: `idle` → `walking` → target state (sleep/play/perch)
+- Visual feedback: Paw print indicator, bounce animation, glow pulse
+- Audio feedback: Meow sound on summon
+- Extended stay duration for summoned cats
 
 ---
 
@@ -166,7 +209,7 @@ src/components/empire/
     └── index.ts
 
 src/hooks/empire/
-├── useRoamingCats.ts         # Cat movement AI with prop attraction
+├── useRoamingCats.ts         # Cat movement AI with prop attraction + summoning
 └── useParallax.ts            # Mouse-responsive parallax system
 
 src/config/
@@ -175,6 +218,7 @@ src/config/
 
 src/lib/
 ├── empireTimeOfDay.ts        # Time calculation and lighting configs
+├── parallaxDepth.ts          # Micro-depth calculation utilities
 └── seasonUtils.ts            # Season detection utilities
 
 src/types/
