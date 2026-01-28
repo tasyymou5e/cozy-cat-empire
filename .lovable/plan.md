@@ -1,133 +1,254 @@
 
-# Admin Credit Adjustment Audit Trail Enhancement
+# Security Audit Fix Plan
 
-## Problem Identified
+## Overview
 
-There are two places where credits can be adjusted:
+The security linter identified 4 categories of issues. This plan addresses each while maintaining the existing tech stack and ensuring edge functions continue to work (they use service role key which bypasses RLS).
 
-1. **PlayerInventoryEditor** (User Detail Modal) - Logs correctly with action type `portrait_credits_modify` and detailed metadata
-2. **AdminAIMetrics Credit Management tab** - Uses action type `credit_adjustment` with incomplete metadata and non-awaited call
+---
 
-The Credit Management tab's logging is inconsistent and less informative than the Player Inventory Editor.
+## Issue Analysis
 
-## Solution
+### Understanding the Context
 
-Enhance the AdminAIMetrics credit adjustment to match the PlayerInventoryEditor's comprehensive logging approach.
+| Table | Current Issue | Root Cause | Safe to Restrict? |
+|-------|---------------|------------|-------------------|
+| `rewards_processing_log` | ALL policy with `USING(true)` | Edge function logging | Yes - service role bypasses RLS |
+| `ai_usage_log` | Public INSERT | Edge function logging | Yes - service role bypasses RLS |
+| `sync_health_log` | Public INSERT | Edge function logging | Yes - service role bypasses RLS |
+| `tutorial_analytics` | Public INSERT | Anonymous user tracking | No - needs public access |
+| `auth_attempts_log` | Public INSERT | Login failure logging | No - needs public access (already excluded) |
 
-## Implementation Details
+---
 
-### File: `src/pages/admin/AdminAIMetrics.tsx`
+## Solution: Database Migration
 
-**Current Implementation (lines 150-158):**
-```typescript
-logActivity({
-  actionType: 'credit_adjustment',
-  actionDescription: `Adjusted credits by ${result.amount} for user. New balance: ${result.newRemaining}`,
-  targetUserId: result.userId,
-  targetTable: 'player_portrait_credits',
-});
-```
+### 1. Fix `rewards_processing_log` (Permissive ALL Policy)
 
-**Enhanced Implementation:**
-```typescript
-await logActivity({
-  actionType: 'portrait_credits_modify',  // Match PlayerInventoryEditor
-  actionDescription: `${result.amount > 0 ? 'Granted' : 'Removed'} ${Math.abs(result.amount)} portrait credits via Credit Management`,
-  targetUserId: result.userId,
-  targetTable: 'player_portrait_credits',
-  metadata: {
-    change: result.amount,
-    previousCredits: result.previousBalance,
-    newCredits: result.newRemaining,
-    adjustmentMethod: 'credit_management_tab',
-    userEmail: selectedUser?.email || 'unknown',
-    userDisplayName: selectedUser?.display_name || 'unknown',
-  },
-});
-```
+**Problem**: `Service role can manage processing log` uses `USING(true)` for ALL operations
 
-### Changes Required
+**Fix**: Replace with specific policies that deny regular users but allow admin viewing
 
-1. **Add `await` to the logActivity call** - Ensures the log is written before showing success toast
-2. **Change action type to `portrait_credits_modify`** - Consistent with PlayerInventoryEditor for unified audit queries
-3. **Add comprehensive metadata:**
-   - `change` - The adjustment amount (positive or negative)
-   - `previousCredits` - Balance before adjustment
-   - `newCredits` - Balance after adjustment
-   - `adjustmentMethod` - Source of the adjustment
-   - `userEmail` - Target user's email for easy identification
-   - `userDisplayName` - Target user's display name
-4. **Update mutation return value** - Include `previousBalance` from the fetched data
-
-### Mutation Update
-
-```typescript
-const adjustCreditsMutation = useMutation({
-  mutationFn: async ({ userId, amount }: { userId: string; amount: number }) => {
-    const { data: current, error: fetchError } = await supabase
-      .from('player_portrait_credits')
-      .select('credits_remaining, total_purchased')
-      .eq('user_id', userId)
-      .single();
-
-    if (fetchError) throw fetchError;
-
-    const previousBalance = current?.credits_remaining || 0;  // Capture before
-    const newRemaining = Math.max(0, previousBalance + amount);
-    // ... rest of update logic ...
-    
-    return { userId, amount, newRemaining, previousBalance };  // Return previousBalance
-  },
-  onSuccess: async (result) => {
-    // ... invalidate queries ...
-    
-    await logActivity({
-      actionType: 'portrait_credits_modify',
-      actionDescription: `${result.amount > 0 ? 'Granted' : 'Removed'} ${Math.abs(result.amount)} portrait credits via Credit Management`,
-      targetUserId: result.userId,
-      targetTable: 'player_portrait_credits',
-      metadata: {
-        change: result.amount,
-        previousCredits: result.previousBalance,
-        newCredits: result.newRemaining,
-        adjustmentMethod: 'credit_management_tab',
-        userEmail: selectedUser?.email || 'unknown',
-        userDisplayName: selectedUser?.display_name || 'unknown',
-      },
-    });
-    
-    // ... toast notification ...
-  },
-});
-```
-
-## Benefits
-
-1. **Unified action type** - All credit adjustments logged as `portrait_credits_modify` for easy querying
-2. **Complete audit trail** - Before/after balances, method of adjustment, user identification
-3. **Reliable logging** - `await` ensures log is written before UI feedback
-4. **Admin accountability** - `admin_user_id` already captured by the hook
-5. **Easy filtering** - Can query by `adjustmentMethod` to distinguish sources
-
-## Verification Query
-
-After implementation, admins can verify with:
 ```sql
-SELECT 
-  created_at,
-  action_description,
-  metadata->>'change' as change,
-  metadata->>'previousCredits' as before,
-  metadata->>'newCredits' as after,
-  metadata->>'adjustmentMethod' as source,
-  metadata->>'userEmail' as user_email
-FROM admin_activity_log 
-WHERE action_type = 'portrait_credits_modify'
-ORDER BY created_at DESC;
+-- Drop overly permissive policy
+DROP POLICY IF EXISTS "Service role can manage processing log" ON rewards_processing_log;
+
+-- Add admin-only policies (service role bypasses RLS anyway)
+CREATE POLICY "Admins can view rewards processing log" 
+  ON rewards_processing_log FOR SELECT 
+  USING (has_role(auth.uid(), 'admin'::app_role));
+
+CREATE POLICY "Admins can delete rewards processing log"
+  ON rewards_processing_log FOR DELETE
+  USING (has_role(auth.uid(), 'admin'::app_role));
+
+-- Deny regular user INSERT (edge function uses service role, bypasses RLS)
+CREATE POLICY "No direct insert to rewards processing log"
+  ON rewards_processing_log FOR INSERT
+  WITH CHECK (false);
 ```
+
+### 2. Fix `ai_usage_log` (Public Write)
+
+**Problem**: `Service role can insert AI logs` allows anyone to insert
+
+**Fix**: Restrict to authenticated users minimum (edge function bypasses RLS)
+
+```sql
+-- Drop permissive policy
+DROP POLICY IF EXISTS "Service role can insert AI logs" ON ai_usage_log;
+
+-- Restrict insert to authenticated users or deny completely
+-- Service role from edge functions still bypasses RLS
+CREATE POLICY "Authenticated users can insert AI logs"
+  ON ai_usage_log FOR INSERT
+  WITH CHECK (auth.role() = 'authenticated');
+```
+
+### 3. Fix `sync_health_log` (Public Write)
+
+**Problem**: `Service can insert sync health` allows anyone to insert
+
+**Fix**: Same approach as ai_usage_log
+
+```sql
+-- Drop permissive policy  
+DROP POLICY IF EXISTS "Service can insert sync health" ON sync_health_log;
+
+-- Restrict to authenticated (service role bypasses anyway)
+CREATE POLICY "Authenticated users can insert sync health"
+  ON sync_health_log FOR INSERT
+  WITH CHECK (auth.role() = 'authenticated');
+```
+
+### 4. Add Missing Admin SELECT Policies
+
+For tables flagged as missing admin SELECT access:
+
+```sql
+-- announcements: Admin needs to see inactive announcements too
+CREATE POLICY "Admins can view all announcements"
+  ON announcements FOR SELECT
+  USING (has_role(auth.uid(), 'admin'::app_role));
+
+-- user_roles: Admin needs to manage all roles
+CREATE POLICY "Admins can view all user roles"
+  ON user_roles FOR SELECT
+  USING (has_role(auth.uid(), 'admin'::app_role));
+
+-- weekly_challenges: Admin needs to see inactive challenges
+CREATE POLICY "Admins can view all challenges"
+  ON weekly_challenges FOR SELECT
+  USING (has_role(auth.uid(), 'admin'::app_role));
+
+-- rewards_processing_log: Already added above
+-- game_config: Already has "Anyone can read" (acceptable)
+-- player_stats: Already has "Authenticated users can view leaderboard" (acceptable)
+-- admin_notifications: Already has "Admins can manage notifications" for ALL
+```
+
+### 5. Update Security Linter Exclusions
+
+**Problem**: `tutorial_analytics` legitimately needs public INSERT for anonymous users
+
+**Fix**: Add to the exclusion list in `get_dangerous_public_policies` function
+
+```sql
+-- Update the function to exclude tutorial_analytics
+CREATE OR REPLACE FUNCTION public.get_dangerous_public_policies()
+RETURNS TABLE(tablename text, policyname text, cmd text)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT 
+    p.tablename::text,
+    p.policyname::text,
+    p.cmd::text
+  FROM pg_policies p
+  WHERE p.schemaname = 'public'
+  AND p.cmd IN ('INSERT', 'UPDATE', 'DELETE')
+  AND (
+    p.qual = 'true' 
+    OR p.with_check = 'true'
+  )
+  -- Exclude expected public insert tables
+  AND p.tablename NOT IN ('error_logs', 'auth_attempts_log', 'tutorial_analytics');
+$$;
+```
+
+---
+
+## Complete Migration SQL
+
+```sql
+-- ============================================================
+-- Security Audit Fixes - RLS Policy Hardening
+-- ============================================================
+
+-- 1. FIX: rewards_processing_log - Remove permissive ALL policy
+DROP POLICY IF EXISTS "Service role can manage processing log" ON rewards_processing_log;
+
+CREATE POLICY "Admins can view rewards processing log" 
+  ON rewards_processing_log FOR SELECT 
+  USING (has_role(auth.uid(), 'admin'::app_role));
+
+CREATE POLICY "Admins can delete rewards processing log"
+  ON rewards_processing_log FOR DELETE
+  USING (has_role(auth.uid(), 'admin'::app_role));
+
+CREATE POLICY "No direct insert to rewards processing log"
+  ON rewards_processing_log FOR INSERT
+  WITH CHECK (false);
+
+-- 2. FIX: ai_usage_log - Restrict public write
+DROP POLICY IF EXISTS "Service role can insert AI logs" ON ai_usage_log;
+
+CREATE POLICY "Authenticated users can insert AI logs"
+  ON ai_usage_log FOR INSERT
+  WITH CHECK (auth.role() = 'authenticated');
+
+-- 3. FIX: sync_health_log - Restrict public write
+DROP POLICY IF EXISTS "Service can insert sync health" ON sync_health_log;
+
+CREATE POLICY "Authenticated users can insert sync health"
+  ON sync_health_log FOR INSERT
+  WITH CHECK (auth.role() = 'authenticated');
+
+-- 4. ADD: Missing admin SELECT policies
+CREATE POLICY "Admins can view all announcements"
+  ON announcements FOR SELECT
+  USING (has_role(auth.uid(), 'admin'::app_role));
+
+CREATE POLICY "Admins can view all user roles"
+  ON user_roles FOR SELECT
+  USING (has_role(auth.uid(), 'admin'::app_role));
+
+CREATE POLICY "Admins can view all challenges"
+  ON weekly_challenges FOR SELECT
+  USING (has_role(auth.uid(), 'admin'::app_role));
+
+-- 5. UPDATE: Linter exclusion for tutorial_analytics
+CREATE OR REPLACE FUNCTION public.get_dangerous_public_policies()
+RETURNS TABLE(tablename text, policyname text, cmd text)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT 
+    p.tablename::text,
+    p.policyname::text,
+    p.cmd::text
+  FROM pg_policies p
+  WHERE p.schemaname = 'public'
+  AND p.cmd IN ('INSERT', 'UPDATE', 'DELETE')
+  AND (
+    p.qual = 'true' 
+    OR p.with_check = 'true'
+  )
+  AND p.tablename NOT IN ('error_logs', 'auth_attempts_log', 'tutorial_analytics');
+$$;
+```
+
+---
+
+## Why This Won't Break the Site
+
+| Component | Reason It Still Works |
+|-----------|----------------------|
+| **Edge Functions** | Use `SUPABASE_SERVICE_ROLE_KEY` which bypasses RLS entirely |
+| **Tutorial Analytics** | Kept as public INSERT, excluded from linter |
+| **Auth Attempts Log** | Already excluded in linter, unchanged |
+| **Admin Dashboard** | New admin SELECT policies enable full visibility |
+| **Regular Users** | No change to user-facing features |
+
+---
+
+## Expected Linter Results After Fix
+
+| Issue | Before | After |
+|-------|--------|-------|
+| Permissive ALL Policies | 1 table | 0 tables |
+| Permissive INSERT Policies | 4 tables | 2 tables (auth_attempts_log, tutorial_analytics - legitimate) |
+| Missing Admin SELECT | 7 tables | 2 tables (game_config, player_stats - intentionally public) |
+| Public Write Policies | 3 tables | 0 tables (tutorial_analytics excluded) |
+
+---
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
-| `src/pages/admin/AdminAIMetrics.tsx` | Update mutation return value, await logActivity, use consistent action type, add comprehensive metadata |
+| File | Action | Description |
+|------|--------|-------------|
+| New Migration | Create | All RLS policy fixes in single migration |
+
+---
+
+## Technical Notes
+
+1. **Service Role Bypass**: Edge functions using `SUPABASE_SERVICE_ROLE_KEY` bypass all RLS policies, so restricting INSERT policies won't affect them
+
+2. **`auth.role() = 'authenticated'`**: This check ensures the request comes from a logged-in user via the anon key, not an anonymous request
+
+3. **`WITH CHECK (false)`**: This completely blocks INSERT for regular users - only service role can insert
+
+4. **Multiple SELECT Policies**: PostgreSQL RLS allows multiple SELECT policies - they're combined with OR, so adding admin SELECT doesn't remove existing user access
