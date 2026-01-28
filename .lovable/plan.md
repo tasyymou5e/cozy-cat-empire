@@ -1,330 +1,513 @@
 
-# Plan: Error Correction, Race Condition Validation, and Live Stats Feed Integration
+# Live Activity Feed Enhancement Plan
 
 ## Executive Summary
 
-After a comprehensive audit of the codebase, I've identified that the existing race condition safeguards are **working correctly** and the sync health monitoring system is **fully operational**. The plan focuses on:
+The current Live Activity feed in the Admin Dashboard (`/catking/dashboard`) shows user IDs truncated (e.g., `c2d884cb...`) instead of full user names and emails. This plan adds:
 
-1. Creating an error-checking test suite (Vitest)
-2. Adding the sync-health-check job to the AdminScheduledJobs UI
-3. Enhancing frontend error handling with better user feedback
-4. Updating all admin portal documentation
+1. **Display user name AND email** instead of truncated user ID
+2. **Clickable entries** that open UserDetailModal popup
+3. **Responsive font/layout** that scales to screen size
+4. **Race condition safeguards** for real-time subscription
+5. **Error handling with user feedback**
+6. **Vitest test suite** for the ActivityFeed component
+7. **Documentation updates** for admin portal
 
 ---
 
-## Current System State
+## Current Issues Identified
 
-### Race Condition Safeguards (Verified Working)
+### Issue 1: Missing User Details
+The query joins with `profiles` but only fetches `display_name` and `avatar_emoji`. The email field exists in profiles but isn't fetched.
 
-| Pattern | Locations | Status |
-|---------|-----------|--------|
-| `isMounted` ref guards | CatCollection, Empire, CatRelationships, CatCustomization | Active |
-| `subscribedUserId` capture | usePlayerProfile, useFriends, useCatGifts, useTrading | Active |
-| `isLoadedRef` cloud save gate | useCloudSave | Active |
-| `updateQueueRef` serialization | useWeeklyChallenges | Active |
+```typescript
+// Current (line 90-93):
+profile:profiles!player_activity_log_user_id_fkey(display_name, avatar_emoji)
+```
 
-### Cron Jobs (All Active)
+**Problem**: No foreign key exists between `player_activity_log` and `profiles`, so the join fails and falls back to no profile data.
 
-| Job Name | Schedule | Last Run | Status |
-|----------|----------|----------|--------|
-| `sync-health-check-10min` | Every 10 min | 2026-01-28 02:50 | 2 saves checked, 0 issues |
-| `generate-weekly-challenges` | Sundays midnight | Active | Working |
-| `process-leaderboard-rewards` | Daily 1 AM | Active | Working |
-| `cleanup-error-logs-daily` | Daily 3 AM | Active | Working |
+### Issue 2: Fallback Shows Truncated ID
+When profile fetch fails, the display shows `activity.user_id.slice(0, 8) + '...'` which is not helpful.
 
-### Errors (Last 24h)
+### Issue 3: No Click Handler
+Activity items are not clickable - users cannot view full profile details.
 
-No errors found in `error_logs` table for the past 24 hours.
+### Issue 4: Fixed Font Sizes
+Font sizes and card heights are fixed, not responsive to screen size.
+
+### Issue 5: Missing Race Condition Guard
+The real-time subscription doesn't capture `subscribedUserId` pattern used elsewhere in the codebase.
+
+### Issue 6: No Tests
+No `ActivityFeed.test.tsx` exists in `src/components/admin/__tests__/`.
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Create Error Checking Test Suite
+### Phase 1: Fix Data Fetching with Profile Lookup
 
-Create comprehensive Vitest tests for error handling validation.
+**File: `src/components/admin/ActivityFeed.tsx`**
 
-**New File: `src/hooks/__tests__/useErrorLogger.test.ts`**
+Update the query to fetch profiles separately since no foreign key exists:
+
+```typescript
+interface ActivityItem {
+  id: string;
+  user_id: string;
+  activity_type: string;
+  activity_description: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  profile?: {
+    display_name: string | null;
+    avatar_emoji: string | null;
+    email: string | null;  // ADD email
+    username: string | null; // ADD username
+  };
+}
+
+const { data, isLoading, error } = useQuery({
+  queryKey: ['admin-activity-feed'],
+  queryFn: async () => {
+    // Fetch activity logs
+    const { data: activities, error: actError } = await supabase
+      .from('player_activity_log')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (actError) throw actError;
+    if (!activities || activities.length === 0) return [];
+
+    // Get unique user IDs
+    const userIds = [...new Set(activities.map(a => a.user_id))];
+
+    // Fetch profiles for all users
+    const { data: profiles, error: profError } = await supabase
+      .from('profiles')
+      .select('id, display_name, avatar_emoji, email, username')
+      .in('id', userIds);
+
+    if (profError) console.error('Profile fetch error:', profError);
+
+    // Map profiles by user_id
+    const profileMap = new Map(
+      (profiles || []).map(p => [p.id, p])
+    );
+
+    // Enrich activities with profile data
+    return activities.map(activity => ({
+      ...activity,
+      profile: profileMap.get(activity.user_id) || null,
+    }));
+  },
+  staleTime: 10000,
+});
+```
+
+### Phase 2: Add Clickable User Entries with Modal
+
+Import and use the existing `UserDetailModal`:
+
+```typescript
+import { useState } from 'react';
+import { UserDetailModal } from './UserDetailModal';
+
+export function ActivityFeed() {
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  
+  // ... existing code ...
+  
+  return (
+    <>
+      <Card>
+        {/* ... existing card content ... */}
+        <ScrollArea className="h-[400px] pr-4">
+          {activities.map((activity) => (
+            <div
+              key={activity.id}
+              onClick={() => setSelectedUserId(activity.user_id)}
+              className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 
+                         cursor-pointer hover:bg-muted/50 transition-colors
+                         animate-in slide-in-from-top-2 duration-300"
+            >
+              {/* Activity content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">
+                    {activity.profile?.avatar_emoji || '👤'}
+                  </span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-medium truncate text-sm sm:text-base">
+                      {activity.profile?.display_name || 'Unknown User'}
+                    </span>
+                    <span className="text-xs text-muted-foreground truncate">
+                      {activity.profile?.email || activity.user_id}
+                    </span>
+                  </div>
+                </div>
+                {/* ... rest of content ... */}
+              </div>
+            </div>
+          ))}
+        </ScrollArea>
+      </Card>
+      
+      {/* User Detail Modal */}
+      <UserDetailModal
+        userId={selectedUserId}
+        onClose={() => setSelectedUserId(null)}
+      />
+    </>
+  );
+}
+```
+
+### Phase 3: Add Responsive Styling
+
+Use Tailwind's responsive classes for dynamic scaling:
+
+```typescript
+// Card header - responsive title
+<CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+
+// Activity item - responsive padding
+<div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg">
+
+// Avatar - responsive size
+<div className={`p-1.5 sm:p-2 rounded-full ${getActivityColor(activity.activity_type)}`}>
+  {getActivityIcon(activity.activity_type)}
+</div>
+
+// User name - responsive font
+<span className="font-medium truncate text-sm sm:text-base">
+
+// Description - responsive text
+<p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
+
+// Timestamp - responsive size
+<p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+
+// ScrollArea - responsive height
+<ScrollArea className="h-[300px] sm:h-[400px] pr-2 sm:pr-4">
+```
+
+### Phase 4: Add Race Condition Safeguards
+
+Apply the `subscribedUserId` pattern from other hooks:
+
+```typescript
+useEffect(() => {
+  let isMounted = true;
+  
+  const channel = supabase
+    .channel('activity-feed')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'player_activity_log',
+      },
+      async (payload) => {
+        if (!isMounted) return; // Guard against unmount
+        
+        const newActivity = payload.new as ActivityItem;
+
+        // Fetch profile info
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('display_name, avatar_emoji, email, username')
+          .eq('id', newActivity.user_id)
+          .maybeSingle();
+
+        if (!isMounted) return; // Guard again after async
+        
+        const activityWithProfile = {
+          ...newActivity,
+          profile: profile || undefined,
+        };
+
+        setActivities((prev) => [activityWithProfile, ...prev.slice(0, 19)]);
+      }
+    )
+    .subscribe();
+
+  return () => {
+    isMounted = false;
+    supabase.removeChannel(channel);
+  };
+}, []);
+```
+
+### Phase 5: Add Error Handling
+
+Add error state display and toast notifications:
+
+```typescript
+import { useToast } from '@/hooks/use-toast';
+import { AlertCircle } from 'lucide-react';
+
+export function ActivityFeed() {
+  const { toast } = useToast();
+  
+  const { data, isLoading, error } = useQuery({
+    // ... query config ...
+    queryFn: async () => {
+      try {
+        // ... fetch logic ...
+      } catch (err) {
+        console.error('[ActivityFeed] Fetch error:', err);
+        toast({
+          title: 'Failed to load activity',
+          description: 'Unable to fetch recent activity. Please refresh.',
+          variant: 'destructive',
+        });
+        throw err;
+      }
+    },
+  });
+  
+  // Error state UI
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            Activity Feed Error
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Unable to load activity feed. 
+            <button 
+              onClick={() => refetch()} 
+              className="ml-2 text-primary underline"
+            >
+              Retry
+            </button>
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+}
+```
+
+### Phase 6: Create Vitest Test Suite
+
+**New File: `src/components/admin/__tests__/ActivityFeed.test.tsx`**
 
 ```typescript
 /**
- * @fileoverview Tests for error logging system
- * 
- * Validates error capture, rate limiting, and database logging.
+ * @fileoverview Tests for ActivityFeed component
+ *
+ * Validates activity display, user profile rendering, click handling,
+ * error states, and real-time updates.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ActivityFeed } from '../ActivityFeed';
 
-describe('useErrorLogger', () => {
-  describe('rate limiting', () => {
-    it('should allow logging up to 10 errors per minute');
-    it('should block logging after rate limit exceeded');
-    it('should reset rate limit after window expires');
+// Mock Supabase
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        order: vi.fn(() => ({
+          limit: vi.fn(() => Promise.resolve({ data: mockActivities, error: null })),
+        })),
+        in: vi.fn(() => Promise.resolve({ data: mockProfiles, error: null })),
+        eq: vi.fn(() => ({
+          maybeSingle: vi.fn(() => Promise.resolve({ data: mockProfiles[0], error: null })),
+        })),
+      })),
+    })),
+    channel: vi.fn(() => ({
+      on: vi.fn(() => ({ subscribe: vi.fn() })),
+    })),
+    removeChannel: vi.fn(),
+  },
+}));
+
+const mockActivities = [
+  {
+    id: 'act-1',
+    user_id: 'user-1',
+    activity_type: 'login',
+    activity_description: 'Logged into Cat Farm',
+    metadata: { method: 'email' },
+    created_at: new Date().toISOString(),
+  },
+];
+
+const mockProfiles = [
+  {
+    id: 'user-1',
+    display_name: 'Test User',
+    avatar_emoji: '😺',
+    email: 'test@example.com',
+    username: 'testuser',
+  },
+];
+
+describe('ActivityFeed', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
   });
 
-  describe('error capture', () => {
-    it('should capture uncaught errors with correct metadata');
-    it('should capture unhandled promise rejections');
-    it('should capture component errors from ErrorBoundary');
-    it('should handle SVGAnimatedString in click targets');
+  afterEach(() => {
+    queryClient.clear();
+    vi.clearAllMocks();
   });
 
-  describe('logErrorToDatabase standalone function', () => {
-    it('should log errors without React hooks context');
-    it('should respect rate limiting');
-    it('should truncate long messages and stacks');
-  });
-});
-```
+  const renderComponent = () =>
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ActivityFeed />
+      </QueryClientProvider>
+    );
 
-**New File: `src/components/__tests__/ErrorBoundary.test.tsx`**
+  describe('rendering', () => {
+    it('should display loading skeleton initially', () => {
+      renderComponent();
+      expect(screen.getByText('Live Activity')).toBeInTheDocument();
+    });
 
-```typescript
-/**
- * @fileoverview Tests for ErrorBoundary component
- */
-
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ErrorBoundary } from '../ErrorBoundary';
-
-describe('ErrorBoundary', () => {
-  it('should render children when no error');
-  it('should render fallback UI when error thrown');
-  it('should log error to database via logErrorToDatabase');
-  it('should allow retry after error');
-  it('should show Go Home button');
-  it('should show error details in development mode');
-});
-```
-
-### Phase 2: Add sync-health-check to AdminScheduledJobs
-
-**Modify: `src/pages/admin/AdminScheduledJobs.tsx`**
-
-Add sync-health-check to the display maps:
-
-```typescript
-// Line 69-73: Update JOB_FUNCTION_MAP
-const JOB_FUNCTION_MAP: Record<string, string> = {
-  'generate-weekly-challenges': 'generate-weekly-challenges',
-  'process-leaderboard-rewards': 'process-leaderboard-rewards',
-  'cleanup-error-logs-daily': 'cleanup-error-logs',
-  'sync-health-check-10min': 'sync-health-check', // NEW
-};
-
-// Line 76-89: Update JOB_INFO
-const JOB_INFO: Record<string, { icon: string; description: string }> = {
-  'generate-weekly-challenges': {
-    icon: '📋',
-    description: 'Generates new weekly challenge quests for all players',
-  },
-  'process-leaderboard-rewards': {
-    icon: '🏆',
-    description: 'Awards daily, weekly, and monthly leaderboard rewards',
-  },
-  'cleanup-error-logs-daily': {
-    icon: '🗑️',
-    description: 'Removes error logs older than 30 days',
-  },
-  'sync-health-check-10min': {  // NEW
-    icon: '🩺',
-    description: 'Validates data integrity across active game saves every 10 minutes',
-  },
-};
-
-// Line 92-96: Update JOB_COLORS
-const JOB_COLORS: Record<string, string> = {
-  'process-leaderboard-rewards': '#3b82f6',
-  'generate-weekly-challenges': '#10b981',
-  'cleanup-error-logs-daily': '#f59e0b',
-  'sync-health-check-10min': '#ec4899', // NEW - pink color
-};
-```
-
-### Phase 3: Enhance Frontend Error User Feedback
-
-**Modify: `src/components/ErrorBoundary.tsx`**
-
-Add better user feedback and refresh tracking:
-
-```typescript
-// Add retry count tracking
-interface State {
-  hasError: boolean;
-  error: Error | null;
-  errorInfo: ErrorInfo | null;
-  retryCount: number;  // NEW
-}
-
-// In constructor:
-this.state = {
-  hasError: false,
-  error: null,
-  errorInfo: null,
-  retryCount: 0,  // NEW
-};
-
-// Enhanced handleRetry:
-handleRetry = () => {
-  if (this.state.retryCount >= 3) {
-    // After 3 retries, suggest a full page reload
-    window.location.reload();
-  }
-  this.setState((prev) => ({
-    hasError: false,
-    error: null,
-    errorInfo: null,
-    retryCount: prev.retryCount + 1,
-  }));
-};
-```
-
-**Modify: `src/hooks/useErrorLogger.ts`**
-
-Add user-friendly toast notifications for critical errors:
-
-```typescript
-// Add optional toast notification for user awareness
-export function useErrorLogger() {
-  // ... existing code ...
-  
-  // Add useToast import and use it for critical errors
-  const logCriticalError = useCallback(
-    (error: Error, context: string) => {
-      logError({
-        error_type: 'critical_error',
-        error_message: error.message,
-        error_stack: error.stack,
-        metadata: { context }
+    it('should display user display_name instead of ID', async () => {
+      renderComponent();
+      await waitFor(() => {
+        expect(screen.getByText('Test User')).toBeInTheDocument();
       });
+    });
+
+    it('should display user email', async () => {
+      renderComponent();
+      await waitFor(() => {
+        expect(screen.getByText('test@example.com')).toBeInTheDocument();
+      });
+    });
+
+    it('should display avatar emoji', async () => {
+      renderComponent();
+      await waitFor(() => {
+        expect(screen.getByText('😺')).toBeInTheDocument();
+      });
+    });
+
+    it('should display activity description', async () => {
+      renderComponent();
+      await waitFor(() => {
+        expect(screen.getByText('Logged into Cat Farm')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('click handling', () => {
+    it('should be clickable and show pointer cursor', async () => {
+      renderComponent();
+      await waitFor(() => {
+        const activityItem = screen.getByText('Test User').closest('div');
+        expect(activityItem).toHaveClass('cursor-pointer');
+      });
+    });
+
+    it('should open user detail modal on click', async () => {
+      renderComponent();
+      await waitFor(() => {
+        const activityItem = screen.getByText('Test User').closest('[role="button"]');
+        if (activityItem) fireEvent.click(activityItem);
+      });
+      // Modal should open (check for modal content)
+    });
+  });
+
+  describe('error handling', () => {
+    it('should display error state when fetch fails', async () => {
+      vi.mocked(supabase.from).mockImplementationOnce(() => ({
+        select: () => ({ order: () => ({ limit: () => Promise.reject(new Error('Fetch failed')) }) }),
+      }));
       
-      // Show user-friendly toast
-      toast({
-        title: 'An error occurred',
-        description: 'Our team has been notified. Please try again.',
-        variant: 'destructive',
+      renderComponent();
+      await waitFor(() => {
+        expect(screen.getByText(/Unable to load/)).toBeInTheDocument();
       });
-    },
-    [logError]
-  );
-  
-  return {
-    logError,
-    logInteractionError,
-    logNetworkError,
-    logComponentError,
-    logCriticalError, // NEW
-  };
-}
-```
+    });
 
-### Phase 4: Create Comprehensive Frontend Error Tests
-
-**New File: `src/test/errorHandling.test.ts`**
-
-Integration tests for the full error handling flow:
-
-```typescript
-/**
- * @fileoverview Integration tests for error handling flow
- */
-
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-describe('Error Handling Integration', () => {
-  describe('Rate limiting', () => {
-    it('should not exceed 10 errors per minute to database');
-    it('should log warning when rate limited');
+    it('should show retry button on error', async () => {
+      // Similar test for retry functionality
+    });
   });
 
-  describe('Error correlation', () => {
-    it('should track last click for error context');
-    it('should include viewport dimensions');
-    it('should include current route');
+  describe('responsive design', () => {
+    it('should have responsive text classes', async () => {
+      renderComponent();
+      await waitFor(() => {
+        const userName = screen.getByText('Test User');
+        expect(userName).toHaveClass('text-sm', 'sm:text-base');
+      });
+    });
   });
 
-  describe('Error types', () => {
-    it('should categorize uncaught_error correctly');
-    it('should categorize unhandled_promise_rejection correctly');
-    it('should categorize react_error_boundary correctly');
-    it('should categorize network_error correctly');
-    it('should categorize interaction_error correctly');
+  describe('real-time updates', () => {
+    it('should subscribe to player_activity_log changes', () => {
+      renderComponent();
+      expect(supabase.channel).toHaveBeenCalledWith('activity-feed');
+    });
+
+    it('should unsubscribe on unmount', () => {
+      const { unmount } = renderComponent();
+      unmount();
+      expect(supabase.removeChannel).toHaveBeenCalled();
+    });
   });
 });
 ```
 
-### Phase 5: Update Admin Portal Documentation
+### Phase 7: Update Documentation
 
 **Update: `docs/ADMIN_DASHBOARD.md`**
 
-Add sections for:
-1. Sync Health monitoring integration with Dashboard
-2. AdminScheduledJobs page updated job list
-3. AdminSaveRecovery page documentation
+Add/update the ActivityFeed section:
 
 ```markdown
-### 17. Scheduled Jobs (`/catking/scheduled-jobs`)
+### Activity Feed Component
 
-Manage and monitor cron jobs:
-- **Active Jobs List**: View all scheduled cron jobs with status
-- **Job Details**: Schedule, description, last run time, success rate
-- **Manual Trigger**: Execute any job on-demand with confirmation
-- **Job Trends Chart**: Visualize job run history over 14 days
-- **Run History Table**: Detailed view of recent job executions
-- **Alert Configuration**: Enable/disable job failure notifications
+The Live Activity Feed displays real-time player activity with enhanced user visibility:
 
-**Available Jobs:**
-| Job | Schedule | Purpose |
-|-----|----------|---------|
-| `sync-health-check-10min` | Every 10 min | Validates game save data integrity |
-| `generate-weekly-challenges` | Sundays midnight | Creates weekly player challenges |
-| `process-leaderboard-rewards` | Daily 1 AM | Awards leaderboard prizes |
-| `cleanup-error-logs-daily` | Daily 3 AM | Prunes old error logs |
+#### Features
+- **User Display**: Shows display name and email (not just ID)
+- **Clickable Entries**: Click any activity to open full UserDetailModal
+- **Responsive Design**: Font and layout scale to screen size
+- **Real-time Updates**: Supabase Realtime subscription for instant updates
+- **Error Handling**: Graceful error states with retry option
 
-### 18. Save Recovery (`/catking/save-recovery`)
+#### Activity Types Displayed
+| Type | Icon | Color |
+|------|------|-------|
+| `login` | LogIn | Green |
+| `logout` | LogIn | Gray |
+| `trade_created/completed` | ArrowLeftRight | Blue |
+| `gift_sent/received` | Gift | Pink |
+| `cat_bred` | Heart | Purple |
+| `show_win` | Trophy | Yellow |
+| `challenge_completed` | Target | Orange |
+| `purchase` | ShoppingCart | Default |
 
-Data integrity monitoring and recovery:
-- **Sync Health Summary**: Overview of recent integrity checks
-- **Issues Table**: List of saves with detected problems
-- **Recovery Actions**: Tools to restore lost data
-- **Snapshot History**: View save history for comparison
-```
-
-**Update: `docs/ERROR_LOGGING.md`**
-
-Add testing and rate limiting documentation:
-
-```markdown
-## Testing
-
-### Unit Tests
-Located in `src/hooks/__tests__/useErrorLogger.test.ts`:
-- Rate limiting validation
-- Error type categorization
-- Metadata capture verification
-
-### Integration Tests
-Located in `src/test/errorHandling.test.ts`:
-- Full error flow validation
-- Database logging verification
-- User notification testing
-
-### Running Tests
-```bash
-npm run test -- useErrorLogger
-npm run test -- errorHandling
-```
-
-## Rate Limiting
-
-To prevent abuse and database flooding:
-- **Window**: 60 seconds (1 minute)
-- **Max Errors**: 10 per window
-- **Behavior**: Errors beyond limit are logged to console but not stored
-- **Warning**: Console warning when rate limit exceeded
-
-This prevents malicious users from overwhelming the error_logs table.
+#### Race Condition Safeguards
+- `isMounted` ref guard prevents state updates after unmount
+- Async profile fetch checks mount status before updating state
+- Channel cleanup on component unmount
 ```
 
 ---
@@ -333,29 +516,55 @@ This prevents malicious users from overwhelming the error_logs table.
 
 | File | Action | Description |
 |------|--------|-------------|
-| `src/hooks/__tests__/useErrorLogger.test.ts` | **Create** | Unit tests for error logger hook |
-| `src/components/__tests__/ErrorBoundary.test.tsx` | **Create** | Component tests for ErrorBoundary |
-| `src/test/errorHandling.test.ts` | **Create** | Integration tests for error flow |
-| `src/pages/admin/AdminScheduledJobs.tsx` | **Modify** | Add sync-health-check to UI |
-| `src/components/ErrorBoundary.tsx` | **Modify** | Add retry count and better UX |
-| `docs/ADMIN_DASHBOARD.md` | **Update** | Add new admin page documentation |
-| `docs/ERROR_LOGGING.md` | **Update** | Add testing section |
-| `docs/CRON_JOBS.md` | **Update** | Already current, verify accuracy |
+| `src/components/admin/ActivityFeed.tsx` | **Modify** | Add user details, click handler, responsive styling, race guards |
+| `src/components/admin/__tests__/ActivityFeed.test.tsx` | **Create** | Comprehensive test suite |
+| `docs/ADMIN_DASHBOARD.md` | **Update** | Document ActivityFeed enhancements |
+
+---
+
+## Database Changes Required
+
+None - all data already exists in `profiles` table with `email` field.
+
+---
+
+## Testing Strategy
+
+1. **Unit Tests**: New `ActivityFeed.test.tsx` covers:
+   - User display name and email rendering
+   - Click handler opening modal
+   - Error state display
+   - Responsive class application
+   - Real-time subscription setup/teardown
+
+2. **Manual Verification**:
+   - Log in to admin dashboard
+   - Verify activity shows "Test User" + "test@example.com" format
+   - Click activity item → verify modal opens
+   - Resize browser → verify layout adapts
+   - Trigger activity (login) → verify real-time update appears
+
+---
+
+## Risk Assessment
+
+| Risk | Mitigation |
+|------|------------|
+| Profile fetch adds latency | Batch fetch all profiles in single query |
+| Modal conflicts with other modals | UserDetailModal already exists and works |
+| Real-time subscription memory leak | isMounted guard + cleanup on unmount |
+| Email exposure in admin UI | Already admin-only, RLS protects |
 
 ---
 
 ## Summary
 
-The system is in **good health**:
-- All 4 cron jobs are running (including sync-health-check every 10 minutes)
-- Race condition guards are properly implemented across all real-time hooks
-- No errors logged in the last 24 hours
-- Data integrity checks show 0 issues
+This plan enhances the Live Activity Feed to show:
+- **Full user names and emails** instead of truncated IDs
+- **Clickable entries** that open the existing UserDetailModal
+- **Responsive layout** that adapts to screen size
+- **Race condition protection** using established patterns
+- **Error handling** with toast notifications and retry
+- **Comprehensive tests** for validation
 
-This plan adds:
-1. **Comprehensive test coverage** for error handling (unit + integration)
-2. **UI visibility** for the sync-health-check job in AdminScheduledJobs
-3. **Enhanced user feedback** for critical errors
-4. **Updated documentation** for admin portal
-
-No breaking changes to existing functionality.
+Total effort: ~150 lines of component changes + ~200 lines of tests.
