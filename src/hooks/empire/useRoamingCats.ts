@@ -263,9 +263,125 @@ export function useRoamingCats(cats: Cat[], props: EmpireProp[] = []) {
     }, 1500);
   }, []);
 
+  // Summon 1-3 cats to a specific prop when clicked
+  const summonCatsToProp = useCallback((propId: string) => {
+    const targetZone = attractionZones.find(z => z.propId === propId);
+    const targetProp = props.find(p => p.id === propId);
+    
+    if (!targetZone && !targetProp) return { summonedCount: 0, catIds: [] };
+
+    // Get position from zone or prop directly
+    const targetPos = targetZone?.center ?? targetProp?.position;
+    if (!targetPos) return { summonedCount: 0, catIds: [] };
+
+    // Find available cats (not already at this prop, not interacting)
+    const availableCatIds = Array.from(positions.entries())
+      .filter(([_, pos]) => 
+        pos.nearPropId !== propId && 
+        pos.state !== 'interacting' &&
+        pos.state !== 'walking'
+      )
+      .map(([id]) => id);
+
+    if (availableCatIds.length === 0) return { summonedCount: 0, catIds: [] };
+
+    // Summon 1-3 cats (random, but at most available cats)
+    const summonCount = Math.min(
+      Math.floor(Math.random() * 3) + 1,
+      availableCatIds.length
+    );
+
+    // Shuffle and pick cats
+    const shuffled = availableCatIds.sort(() => Math.random() - 0.5);
+    const summonedIds = shuffled.slice(0, summonCount);
+
+    // Determine target state based on prop interaction type
+    const targetState: CatState = targetZone 
+      ? (targetZone.behavior === 'sleep' ? 'sleeping' :
+         targetZone.behavior === 'play' ? 'playing' :
+         targetZone.behavior === 'perch' ? 'perching' : 'idle')
+      : 'idle';
+
+    // Move each summoned cat to the prop with slight offset
+    setPositions((prev) => {
+      const next = new Map(prev);
+      
+      summonedIds.forEach((catId, index) => {
+        const current = prev.get(catId);
+        if (!current) return;
+
+        // Spread cats around the prop slightly
+        const angleOffset = (index / summonCount) * Math.PI * 2;
+        const spreadRadius = 5;
+        const offsetX = Math.cos(angleOffset) * spreadRadius;
+        const offsetY = Math.sin(angleOffset) * spreadRadius * 0.5;
+
+        const newX = Math.max(MOVEMENT_BOUNDS.minX, 
+          Math.min(MOVEMENT_BOUNDS.maxX, targetPos.x + offsetX));
+        const newY = Math.max(MOVEMENT_BOUNDS.minY, 
+          Math.min(MOVEMENT_BOUNDS.maxY, targetPos.y + offsetY));
+
+        next.set(catId, {
+          ...current,
+          x: newX,
+          y: newY,
+          facing: calculateFacing(current.x, newX),
+          state: 'walking',
+          targetX: newX,
+          targetY: newY,
+          nearPropId: propId,
+        });
+
+        // Clear and reschedule movement timer for this cat
+        const existingTimer = timersRef.current.get(catId);
+        if (existingTimer) {
+          clearTimeout(existingTimer);
+        }
+      });
+
+      return next;
+    });
+
+    // Transition to final state after walk completes
+    setTimeout(() => {
+      setPositions((prev) => {
+        const next = new Map(prev);
+        
+        summonedIds.forEach((catId) => {
+          const current = prev.get(catId);
+          if (!current || current.state !== 'walking') return;
+
+          next.set(catId, {
+            ...current,
+            state: targetState,
+            targetX: undefined,
+            targetY: undefined,
+          });
+        });
+
+        return next;
+      });
+
+      // Reschedule movement for summoned cats (with longer delay since they're at furniture)
+      summonedIds.forEach((catId) => {
+        const cat = cats.find(c => c.id === catId);
+        if (cat) {
+          const timer = setTimeout(() => {
+            moveCat(catId, cat.personality);
+            scheduleMovement(catId, cat.personality);
+          }, randomInterval() * 2); // Stay longer at summoned furniture
+          timersRef.current.set(catId, timer);
+        }
+      });
+    }, MOVEMENT_TIMING.transitionDuration);
+
+    return { summonedCount: summonedIds.length, catIds: summonedIds };
+  }, [attractionZones, props, positions, cats, moveCat, scheduleMovement]);
+
   return {
     positions,
     setInteracting,
+    summonCatsToProp,
     attractionZones,
   };
 }

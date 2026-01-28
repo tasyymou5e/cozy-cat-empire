@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Cat, HouseSize, GameState } from '@/types/game';
 import { EmpireInteraction } from '@/types/empire';
@@ -68,7 +68,10 @@ export function EmpireScene({
   const parallaxOffset = useParallax(parallaxEnabled, 35, 0.1);
   
   // Roaming cats with prop attraction
-  const { positions, setInteracting, attractionZones } = useRoamingCats(cats, zone.props);
+  const { positions, setInteracting, summonCatsToProp, attractionZones } = useRoamingCats(cats, zone.props);
+  
+  // Track props that are currently summoning cats (for visual feedback)
+  const [summoningProps, setSummoningProps] = useState<Set<string>>(new Set());
 
   // Calculate which props have cats nearby
   const propCatCounts = useMemo(() => {
@@ -133,9 +136,30 @@ export function EmpireScene({
   }, [playSound, addReaction, setInteracting, onPetCat, onFeedCat, onPlayWithCat, resources, navigate]);
 
   const handlePropClick = useCallback((propId: string) => {
-    // Optional: Handle prop clicks (e.g., highlight, info popup)
-    console.log('Prop clicked:', propId);
-  }, []);
+    // Don't summon if already summoning or no cats available
+    if (summoningProps.has(propId) || cats.length === 0) return;
+    
+    // Add visual feedback
+    setSummoningProps(prev => new Set(prev).add(propId));
+    playSound('meow');
+    
+    // Summon cats to the prop
+    const result = summonCatsToProp(propId);
+    
+    // Show reaction for summoned cats
+    result.catIds.forEach(catId => {
+      addReaction(catId, 'positive');
+    });
+    
+    // Remove summoning state after animation
+    setTimeout(() => {
+      setSummoningProps(prev => {
+        const next = new Set(prev);
+        next.delete(propId);
+        return next;
+      });
+    }, 1500);
+  }, [summoningProps, cats.length, playSound, summonCatsToProp, addReaction]);
 
   return (
     <div className="relative w-full h-[500px] sm:h-[600px] overflow-hidden rounded-xl border border-border shadow-lg">
@@ -194,6 +218,7 @@ export function EmpireScene({
             parallaxOffset={{ x: 0, y: 0 }} // Props already in parallax layer
             catsNearby={propCatCounts[prop.id] || 0}
             isBeingUsed={propsInUse.has(prop.id)}
+            isSummoning={summoningProps.has(prop.id)}
           />
         ))}
       </ParallaxLayer>
