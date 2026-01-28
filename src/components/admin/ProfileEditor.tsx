@@ -322,6 +322,36 @@ export function ProfileEditor({
 
       if (updateError) throw updateError;
 
+      // Sync to player_stats for leaderboard consistency
+      // Check if player_stats exists, create if not (upsert pattern)
+      const { data: existingStats } = await supabase
+        .from('player_stats')
+        .select('user_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (!existingStats) {
+        const { error: insertError } = await supabase.from('player_stats').insert({
+          user_id: userId,
+          display_name: trimmedName,
+          avatar_emoji: avatarEmoji,
+        });
+        if (insertError) {
+          console.warn('[ProfileEditor] Failed to create player_stats:', insertError.message);
+        }
+      } else {
+        const { error: statsError } = await supabase
+          .from('player_stats')
+          .update({
+            display_name: trimmedName,
+            avatar_emoji: avatarEmoji,
+          })
+          .eq('user_id', userId);
+        if (statsError) {
+          console.warn('[ProfileEditor] Failed to sync to player_stats:', statsError.message);
+        }
+      }
+
       await logActivity({
         actionType: 'profile_repair',
         actionDescription: `Updated profile for user`,

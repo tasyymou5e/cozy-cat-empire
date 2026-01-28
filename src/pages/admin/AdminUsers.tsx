@@ -582,8 +582,20 @@ export default function AdminUsers() {
                         <TableCell className="text-muted-foreground">
                           {user.created_at ? format(new Date(user.created_at), 'MMM d, yyyy') : '-'}
                         </TableCell>
-                        <TableCell>{user.stats?.total_cats_owned ?? 0}</TableCell>
-                        <TableCell>{user.stats?.total_show_wins ?? 0}</TableCell>
+                        <TableCell>
+                          {user.stats ? (
+                            user.stats.total_cats_owned
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {user.stats ? (
+                            user.stats.total_show_wins
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           <Badge variant={getRoleBadgeVariant(user.role)}>
                             {user.role === 'admin' && <Shield className="h-3 w-3 mr-1" />}
