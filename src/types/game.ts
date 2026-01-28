@@ -233,6 +233,8 @@ export interface GameState {
   ownedCostumes: string[];
   /** Cat ID to costume ID mapping */
   catCostumes: Record<string, string>;
+  /** AI-rendered empire scene URL */
+  empireRenderUrl?: string;
 }
 
 // Re-export from canonical source for backward compatibility
