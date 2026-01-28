@@ -17,6 +17,7 @@ interface CatData {
   appearance?: {
     furColor?: string;
     pattern?: string;
+    patternColor?: string;
     eyeColor?: string;
     hairLength?: string;
     facialFeature?: string;
@@ -29,83 +30,351 @@ interface CatData {
   };
 }
 
+// ============================================================================
+// STYLE PROMPTS - Consistent cartoon art style
+// ============================================================================
+
+const STYLE_PROMPT = `
+Style: Cute kawaii cartoon cat portrait in the style of Studio Ghibli meets modern mobile game art.
+- Soft rounded features with large expressive eyes
+- Sparkle reflections in the eyes (2-3 small white highlights)
+- Small pink nose with subtle shine
+- Subtle pink blush marks on cheeks
+- Clean cel-shaded look with soft gradients
+- Warm cozy lighting from upper left
+- Simple soft gradient background (warm cream/pink tones), not distracting
+- Head and upper body portrait composition
+- Cat facing slightly toward camera (3/4 view)
+- Professional digital art quality, ultra-cute expression
+- High detail on fur texture with visible individual strands
+- 4K resolution, masterpiece quality
+`;
+
+// ============================================================================
+// FUR COLOR DESCRIPTIONS
+// ============================================================================
+
+const FUR_DESCRIPTIONS: Record<string, string> = {
+  orange: 'warm orange marmalade-colored fur with golden undertones',
+  black: 'sleek jet-black fur with a subtle blue sheen in the light',
+  white: 'pure snowy white fur with a slight cream tint',
+  gray: 'beautiful silvery gray fur with blue undertones',
+  brown: 'rich chocolate brown fur with warm chestnut highlights',
+  cream: 'soft creamy beige fur like vanilla ice cream',
+  ginger: 'bright ginger-red fur with warm copper highlights',
+  calico: 'tri-colored calico fur with patches of orange, black, and white',
+};
+
+// ============================================================================
+// PATTERN DESCRIPTIONS
+// ============================================================================
+
+const PATTERN_DESCRIPTIONS: Record<string, string> = {
+  solid: 'solid single-color coat without markings',
+  tabby: 'classic tabby pattern with distinctive M-shape on forehead and tiger stripes on body',
+  spotted: 'beautiful spotted pattern like a mini leopard with distinct dark spots',
+  tuxedo: 'elegant tuxedo pattern with white chest, chin, and paws on dark body',
+  bicolor: 'charming two-tone bi-color pattern with clean color separation',
+  calico: 'random calico patches of orange, black, and white in artistic arrangement',
+};
+
+// ============================================================================
+// EYE COLOR DESCRIPTIONS
+// ============================================================================
+
+const EYE_DESCRIPTIONS: Record<string, string> = {
+  green: 'stunning emerald green eyes that sparkle like jewels',
+  blue: 'beautiful sapphire blue eyes as deep as the ocean',
+  amber: 'warm amber eyes like golden honey in sunlight',
+  gold: 'brilliant golden eyes that gleam like treasure',
+  heterochromia: 'mesmerizing heterochromia with one blue eye and one green eye',
+  copper: 'rich copper-colored eyes with warm bronze tones',
+};
+
+// ============================================================================
+// BREED CHARACTERISTICS
+// ============================================================================
+
+const BREED_CHARACTERISTICS: Record<string, { face: string; expression: string; fur: string; body: string }> = {
+  stray: {
+    face: 'natural domestic cat face with alert, street-smart features',
+    expression: 'confident and resourceful expression with bright curious eyes',
+    fur: 'practical medium-length coat, slightly rugged',
+    body: 'lean athletic build of a survivor',
+  },
+  tabby: {
+    face: 'classic tabby face with distinctive M-marking on forehead',
+    expression: 'friendly and approachable with warm knowing eyes',
+    fur: 'beautiful striped coat with rich pattern detail',
+    body: 'well-proportioned medium build',
+  },
+  persian: {
+    face: 'adorable flat-faced Persian with round head, tiny ears, and smushed nose',
+    expression: 'regal and slightly haughty expression befitting royalty',
+    fur: 'extremely luxurious long-haired coat, incredibly fluffy and soft',
+    body: 'stocky cobby body with short legs',
+  },
+  siamese: {
+    face: 'elegant wedge-shaped face with large pointed ears and striking blue eyes',
+    expression: 'intelligent and curious expression, almost mysterious',
+    fur: 'sleek short coat with distinctive darker points on ears, face, paws, and tail',
+    body: 'slender elegant body with long graceful limbs',
+  },
+  'maine-coon': {
+    face: 'majestic large square muzzle with magnificent tufted ears (lynx tips)',
+    expression: 'gentle giant expression - friendly, wise, and kind',
+    fur: 'spectacular shaggy long fur with distinctive mane around neck like a lion',
+    body: 'very large muscular body, the gentle giant of cats',
+  },
+  'british-shorthair': {
+    face: 'round chubby face with adorable chubby cheeks and round copper eyes',
+    expression: 'calm, dignified, and slightly reserved British expression',
+    fur: 'dense plush short coat that looks incredibly soft and huggable',
+    body: 'stocky compact build with chunky paws',
+  },
+  ragdoll: {
+    face: 'sweet face with vivid blue eyes and gentle expression',
+    expression: 'docile, relaxed, and absolutely loving expression',
+    fur: 'silky semi-long coat with color-point pattern',
+    body: 'large floppy body that goes limp when held',
+  },
+  bengal: {
+    face: 'wild exotic face with strong chin and intense eyes',
+    expression: 'athletic and mischievous expression, ready for adventure',
+    fur: 'stunning leopard-like spotted or marbled coat with glitter effect',
+    body: 'muscular athletic build like a mini wild cat',
+  },
+};
+
+// ============================================================================
+// PERSONALITY TO EXPRESSION
+// ============================================================================
+
+const PERSONALITY_EXPRESSIONS: Record<string, string> = {
+  lazy: 'blissfully sleepy and content expression with half-closed dreamy eyes and peaceful smile',
+  playful: 'excited mischievous expression with wide bright sparkling eyes and eager smile',
+  affectionate: 'warm loving expression with soft gentle eyes full of adoration',
+  independent: 'proud confident expression with dignified slightly aloof gaze',
+  curious: 'alert inquisitive expression with wide attentive eyes and perked ears',
+  shy: 'sweet timid expression with gentle downcast eyes and subtle blush',
+};
+
+// ============================================================================
+// FACIAL FEATURE DESCRIPTIONS
+// ============================================================================
+
+const FACIAL_FEATURE_DESCRIPTIONS: Record<string, string> = {
+  normal: '',
+  scar: 'A distinguished small scar on the cheek adds character - battle-worn but still adorable.',
+  eyepatch: 'A charming dark patch naturally covers one eye, giving a pirate-like roguish charm.',
+  whiskers_long: 'Extra long magnificent whiskers that curve dramatically.',
+  grumpy: 'Adorably grumpy expression with furrowed brow - the famous "grumpy cat" look but cute.',
+  cute_blush: 'Extra rosy pink blush marks on both cheeks for maximum kawaii cuteness.',
+};
+
+// ============================================================================
+// COSTUME RENDER INSTRUCTIONS - Detailed placement and style
+// ============================================================================
+
+const COSTUME_RENDER_INSTRUCTIONS: Record<string, { description: string; placement: string; style: string }> = {
+  party_hat: {
+    description: 'wearing a colorful striped party cone hat',
+    placement: 'The hat sits at a jaunty angle on top of the head between the ears',
+    style: 'bright rainbow stripes with a fluffy pom-pom on top and elastic chin strap',
+  },
+  top_hat: {
+    description: 'wearing an elegant black top hat',
+    placement: 'The top hat sits perfectly balanced on the head',
+    style: 'glossy black silk with a sophisticated ribbon band',
+  },
+  crown: {
+    description: 'wearing an ornate golden royal crown',
+    placement: 'The crown sits majestically on the head between the ears',
+    style: 'shiny metallic gold with red velvet lining and sparkling ruby and sapphire gems',
+  },
+  wizard_hat: {
+    description: 'wearing a tall mystical purple wizard hat',
+    placement: 'The wizard hat sits at a slight jaunty angle',
+    style: 'deep purple velvet fabric decorated with golden stars and crescent moons, magical sparkles emanating',
+  },
+  sweater: {
+    description: 'wearing a cozy knitted sweater',
+    placement: 'The sweater fits snugly around the body and neck',
+    style: 'soft cable-knit pattern in warm autumn colors with a cute pattern',
+  },
+  tuxedo: {
+    description: 'wearing an elegant black tuxedo with bow tie',
+    placement: 'The tuxedo jacket is properly fitted with lapels visible',
+    style: 'classic black and white formal wear with a satin bow tie',
+  },
+  superhero: {
+    description: 'wearing a flowing superhero cape',
+    placement: 'The cape fastens at the neck and flows behind dramatically',
+    style: 'vibrant red satin cape with a golden emblem clasp',
+  },
+  pirate: {
+    description: 'dressed as a pirate captain',
+    placement: 'Wearing a tricorn pirate hat',
+    style: 'black tricorn hat with skull and crossbones, rugged pirate aesthetic',
+  },
+  bow_tie: {
+    description: 'wearing an adorable bow tie',
+    placement: 'The bow tie sits neatly at the collar area',
+    style: 'cute polka-dot or striped pattern in bright cheerful colors',
+  },
+  sunglasses: {
+    description: 'wearing cool stylish sunglasses',
+    placement: 'The sunglasses rest perfectly on the nose bridge',
+    style: 'trendy aviator or cat-eye style with reflective lenses',
+  },
+  necklace: {
+    description: 'wearing an elegant pearl necklace',
+    placement: 'The necklace drapes gracefully around the neck',
+    style: 'classic white pearls with a subtle sheen',
+  },
+  scarf: {
+    description: 'wearing a flowing silk scarf',
+    placement: 'The scarf is wrapped elegantly around the neck',
+    style: 'luxurious silk with artistic pattern, ends flowing gracefully',
+  },
+  angel_wings: {
+    description: 'with beautiful white angel wings',
+    placement: 'The wings extend from behind the shoulders',
+    style: 'soft fluffy white feathered wings with a golden glow, ethereal and heavenly',
+  },
+  dragon: {
+    description: 'in an adorable dragon costume',
+    placement: 'Full body dragon onesie with hood',
+    style: 'cute green dragon with small wings, horns on hood, and a tail',
+  },
+  astronaut: {
+    description: 'in a space astronaut suit',
+    placement: 'Wearing a round astronaut helmet',
+    style: 'white space suit with NASA-style patches, reflective helmet visor',
+  },
+  unicorn: {
+    description: 'with a magical unicorn horn',
+    placement: 'A spiraling horn on the forehead between the ears',
+    style: 'iridescent pastel rainbow colored spiral horn with magical sparkles',
+  },
+  vip_bronze_collar: {
+    description: 'wearing a distinguished bronze VIP collar',
+    placement: 'An ornate collar around the neck',
+    style: 'polished bronze metal collar with VIP medallion and subtle shimmer',
+  },
+  vip_silver_cape: {
+    description: 'wearing an elegant silver VIP cape',
+    placement: 'A flowing cape fastened at the shoulders',
+    style: 'shimmering silver fabric with starlight sparkles and VIP embroidery',
+  },
+  vip_gold_crown: {
+    description: 'wearing a magnificent golden VIP crown',
+    placement: 'A grand crown sitting regally on the head',
+    style: 'pure gold crown with diamonds and rubies, radiating golden light, ultimate royalty',
+  },
+};
+
+// ============================================================================
+// HAIR LENGTH DESCRIPTIONS
+// ============================================================================
+
+const HAIR_LENGTH_DESCRIPTIONS: Record<string, string> = {
+  short: 'sleek short-haired coat that lies flat and smooth',
+  medium: 'fluffy medium-length coat with soft volume',
+  fluffy: 'magnificently fluffy long-haired coat that looks incredibly soft and huggable',
+};
+
+// ============================================================================
+// PROMPT BUILDER
+// ============================================================================
+
 function buildPrompt(cat: CatData): string {
   const { breed, personality, appearance, costume } = cat;
   
+  // Get appearance details with fallbacks
   const furColor = appearance?.furColor || 'orange';
   const pattern = appearance?.pattern || 'solid';
   const eyeColor = appearance?.eyeColor || 'green';
-  const hairLength = appearance?.hairLength || 'short';
-  const facialFeature = appearance?.facialFeature;
+  const hairLength = appearance?.hairLength || 'medium';
+  const facialFeature = appearance?.facialFeature || 'normal';
   
-  // Map personality to expression
-  const expressionMap: Record<string, string> = {
-    lazy: 'sleepy and content with half-closed eyes',
-    playful: 'excited and mischievous with wide bright eyes',
-    affectionate: 'warm and loving with soft gentle eyes',
-    independent: 'proud and confident with a dignified expression',
-    curious: 'alert and inquisitive with wide attentive eyes',
-    shy: 'sweet and timid with gentle downcast eyes',
-  };
+  // Build breed-specific prompt
+  const breedInfo = BREED_CHARACTERISTICS[breed] || BREED_CHARACTERISTICS.tabby;
   
-  const expression = expressionMap[personality] || 'cute and friendly';
+  // Build the prompt parts
+  const parts: string[] = [];
   
-  // Build breed name
-  const breedNames: Record<string, string> = {
-    'stray': 'domestic shorthair',
-    'tabby': 'tabby',
-    'persian': 'Persian',
-    'siamese': 'Siamese',
-    'maine-coon': 'Maine Coon',
-    'british-shorthair': 'British Shorthair',
-    'ragdoll': 'Ragdoll',
-    'bengal': 'Bengal',
-  };
+  // 1. Style foundation
+  parts.push(STYLE_PROMPT);
   
-  const breedName = breedNames[breed] || breed;
+  // 2. Breed description
+  parts.push(`
+BREED: A beautiful ${breed.replace('-', ' ')} cat.
+- Face: ${breedInfo.face}
+- Body: ${breedInfo.body}
+`);
   
-  let prompt = `A cute, adorable portrait of a ${breedName} cat with ${furColor} ${pattern} fur, beautiful ${eyeColor} eyes, and a ${hairLength} coat. The cat has a ${expression}. `;
+  // 3. Appearance details
+  const furDesc = FUR_DESCRIPTIONS[furColor] || `${furColor} fur`;
+  const patternDesc = PATTERN_DESCRIPTIONS[pattern] || pattern;
+  const eyeDesc = EYE_DESCRIPTIONS[eyeColor] || `${eyeColor} eyes`;
+  const hairDesc = HAIR_LENGTH_DESCRIPTIONS[hairLength] || 'medium-length coat';
   
-  if (facialFeature) {
-    const featureDescriptions: Record<string, string> = {
-      scar: 'The cat has a small distinguished scar on its face.',
-      eyepatch: 'The cat has a charming dark patch over one eye.',
-      grumpy: 'The cat has adorably grumpy facial features.',
-      cute_blush: 'The cat has rosy pink cheeks giving it an extra cute appearance.',
-    };
-    prompt += featureDescriptions[facialFeature] || '';
+  parts.push(`
+APPEARANCE:
+- Fur: ${furDesc} with ${patternDesc}
+- Coat: ${hairDesc}
+- Eyes: ${eyeDesc}
+`);
+  
+  // 4. Personality expression
+  const expression = PERSONALITY_EXPRESSIONS[personality] || 'friendly and cute expression';
+  parts.push(`
+EXPRESSION: The cat has a ${expression}.
+`);
+  
+  // 5. Facial feature if special
+  if (facialFeature && facialFeature !== 'normal') {
+    const featureDesc = FACIAL_FEATURE_DESCRIPTIONS[facialFeature];
+    if (featureDesc) {
+      parts.push(`SPECIAL FEATURE: ${featureDesc}`);
+    }
   }
   
-  // Add costume description if equipped
+  // 6. Costume (IMPORTANT - most prominent)
   if (costume) {
-    const costumeDescriptions: Record<string, string> = {
-      'party_hat': 'wearing a colorful party hat',
-      'top_hat': 'wearing an elegant black top hat',
-      'crown': 'wearing a golden royal crown',
-      'wizard_hat': 'wearing a mystical purple wizard hat with stars',
-      'sweater': 'wearing a cozy knitted sweater',
-      'tuxedo': 'wearing an elegant black tuxedo',
-      'superhero': 'wearing a flowing superhero cape',
-      'pirate': 'dressed as a pirate with an eyepatch',
-      'bow_tie': 'wearing a cute bow tie',
-      'sunglasses': 'wearing cool sunglasses',
-      'necklace': 'wearing a pearl necklace',
-      'scarf': 'wearing a silk scarf',
-      'angel_wings': 'with beautiful white angel wings',
-      'dragon': 'in a fierce dragon costume',
-      'astronaut': 'in a space suit helmet',
-      'unicorn': 'with a magical unicorn horn',
-      'vip_bronze_collar': 'wearing a distinguished bronze VIP collar',
-      'vip_silver_cape': 'wearing an elegant silver VIP cape',
-      'vip_gold_crown': 'wearing a magnificent golden VIP crown',
+    const costumeInfo = COSTUME_RENDER_INSTRUCTIONS[costume.id] || {
+      description: `wearing ${costume.name}`,
+      placement: 'worn appropriately',
+      style: 'cute and charming',
     };
-    prompt += (costumeDescriptions[costume.id] || `wearing ${costume.name}`) + '. ';
+    
+    parts.push(`
+COSTUME (VERY IMPORTANT - MUST BE CLEARLY VISIBLE):
+The cat is ${costumeInfo.description}.
+Placement: ${costumeInfo.placement}.
+Style: ${costumeInfo.style}.
+The costume must be the focal point after the cat's face, rendered in full detail.
+`);
   }
   
-  prompt += 'Digital illustration style, soft warm studio lighting, detailed fluffy fur texture, cozy warm-toned background, cat facing the camera, ultra cute and expressive, professional pet portrait, high quality, 4K detail.';
+  // 7. Quality requirements
+  parts.push(`
+QUALITY REQUIREMENTS:
+- Ultra high resolution 4K detail
+- Professional digital art quality
+- Soft warm studio lighting
+- Every fur strand visible
+- Eyes with multiple sparkle reflections
+- Absolutely adorable and charming
+`);
   
-  return prompt;
+  return parts.join('\n');
 }
+
+// ============================================================================
+// AI USAGE LOGGING
+// ============================================================================
 
 async function logAIUsage(
   supabase: any,
@@ -132,6 +401,10 @@ async function logAIUsage(
   }
 }
 
+// ============================================================================
+// RATE LIMITING
+// ============================================================================
+
 async function checkRateLimit(
   supabase: any,
   userId: string,
@@ -151,7 +424,6 @@ async function checkRateLimit(
 
   if (error) {
     console.error('Rate limit check error:', error);
-    // Allow request on error to avoid blocking users
     return { allowed: true, remaining: maxRequests, resetAt: new Date(Date.now() + windowMs) };
   }
 
@@ -165,6 +437,10 @@ async function checkRateLimit(
   return { allowed, remaining, resetAt };
 }
 
+// ============================================================================
+// MAIN HANDLER
+// ============================================================================
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -172,7 +448,6 @@ Deno.serve(async (req) => {
   }
 
   const startTime = Date.now();
-  const MODEL = 'google/gemini-2.5-flash-image-preview';
   const FUNCTION_NAME = 'generate-cat-portrait';
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -187,6 +462,15 @@ Deno.serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
+
+    // Parse request body first to get quality preference
+    const requestBody = await req.json() as { cat: CatData; highQuality?: boolean };
+    const { cat, highQuality = false } = requestBody;
+    
+    // Select model based on quality preference
+    const MODEL = highQuality 
+      ? 'google/gemini-3-pro-image-preview' 
+      : 'google/gemini-2.5-flash-image';
 
     // Try to get user ID from auth header
     const authHeader = req.headers.get('Authorization');
@@ -236,7 +520,6 @@ Deno.serve(async (req) => {
         .eq('user_id', userId)
         .single();
 
-      // Check for insufficient credits
       if (creditsError && creditsError.code !== 'PGRST116') {
         console.error('Error checking credits:', creditsError);
       }
@@ -258,18 +541,24 @@ Deno.serve(async (req) => {
 
       console.log(`User ${userId} has ${creditsRemaining} portrait credits remaining`);
     }
-
-    const { cat } = await req.json() as { cat: CatData };
     
     if (!cat || !cat.id) {
       throw new Error('Cat data is required');
     }
 
-    catMetadata = { cat_id: cat.id, cat_name: cat.name, breed: cat.breed };
-    console.log(`Generating portrait for cat: ${cat.name} (${cat.id})`);
+    catMetadata = { 
+      cat_id: cat.id, 
+      cat_name: cat.name, 
+      breed: cat.breed,
+      personality: cat.personality,
+      has_costume: !!cat.costume,
+      costume_id: cat.costume?.id,
+      high_quality: highQuality,
+    };
+    console.log(`Generating ${highQuality ? 'HIGH QUALITY' : 'standard'} portrait for cat: ${cat.name} (${cat.id})`);
     
     const prompt = buildPrompt(cat);
-    console.log('Generated prompt:', prompt);
+    console.log('Generated prompt:', prompt.substring(0, 500) + '...');
 
     // Call Lovable AI to generate image
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -403,6 +692,7 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error generating cat portrait:', error);
+    const MODEL = 'google/gemini-2.5-flash-image';
     await logAIUsage(supabase, userId, FUNCTION_NAME, MODEL, 'error', Date.now() - startTime, catMetadata, error instanceof Error ? error.message : 'Unknown error');
     return new Response(JSON.stringify({ 
       error: error instanceof Error ? error.message : 'Unknown error occurred' 
