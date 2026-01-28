@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.sync-health-check]
 verify_jwt = false
+
+[functions.generate-empire-scene]
+verify_jwt = false

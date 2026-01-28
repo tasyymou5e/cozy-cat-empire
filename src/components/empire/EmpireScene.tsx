@@ -10,6 +10,7 @@ import { useCatReactions } from '@/contexts/CatReactionContext';
 import { useSound } from '@/contexts/SoundContext';
 import { getCurrentRealSeason } from '@/lib/seasonUtils';
 import { getTimeOfDay, TIME_OF_DAY_OVERLAYS } from '@/lib/empireTimeOfDay';
+import { useEmpireRender } from '@/hooks/useEmpireRender';
 import { RoamingCat } from './RoamingCat';
 import { EmpirePropComponent } from './EmpirePropComponent';
 import { EmpireBackground } from './EmpireBackground';
@@ -17,6 +18,8 @@ import { TimeOfDayOverlay } from './TimeOfDayOverlay';
 import { SeasonalDecorations } from './SeasonalDecorations';
 import { EmpireParticles } from './EmpireParticles';
 import { ParallaxLayer, PARALLAX_DEPTHS } from './ParallaxLayer';
+import { EmpireRenderButton } from './EmpireRenderButton';
+import { EmpireRenderDialog } from './EmpireRenderDialog';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
