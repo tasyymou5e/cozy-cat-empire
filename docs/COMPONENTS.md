@@ -1,7 +1,7 @@
 # Cat Farm - Component Architecture
 
 ## Overview
-Cat Farm uses a modular component architecture with 82+ game components, 44 custom hooks, 45+ UI components (40+ shadcn/ui primitives + custom components), and supporting components for error handling and navigation.
+Cat Farm uses a modular component architecture with 85+ game components, 45 custom hooks, 45+ UI components (40+ shadcn/ui primitives + custom components), 7 domain hook test suites, and supporting components for error handling and navigation.
 
 ---
 

@@ -6,7 +6,7 @@
 
 | File | Description |
 |------|-------------|
-| [COMPONENTS.md](COMPONENTS.md) | Component architecture (82+ game components, 44 hooks) |
+| [COMPONENTS.md](COMPONENTS.md) | Component architecture (85+ game components, 45 hooks, 7 test suites) |
 | [GAME_LOGIC.md](GAME_LOGIC.md) | Core game mechanics, breeding, training, relationships |
 | [DATABASE_DESIGN.md](DATABASE_DESIGN.md) | Database schema (30+ tables), JSONB structures |
 | [GRAPHICS_SETTINGS.md](GRAPHICS_SETTINGS.md) | Graphics settings panel (14 configurable options) |
@@ -41,12 +41,13 @@
 | **Core Game** | `CatFarm.tsx`, `useGameState.ts`, `types/game.ts` |
 | **Cat Display** | `CatVisual.tsx`, `CatAvatar.tsx`, `UnifiedCatCard.tsx`, `CatPortrait.tsx` |
 | **AI Portraits** | `generate-cat-portrait/index.ts`, `usePortraitStatus.ts`, `PortraitOutdatedBadge.tsx`, `portraitUtils.ts` |
+| **Costumes** | `useCostumes.ts`, `useCatManagement.ts` (sale cleanup), `useBulkActions.ts` (bulk sale cleanup) |
 | **Relationships** | `useRelationships.ts`, `RelationshipPanel.tsx`, `SocialCalendarPanel.tsx`, `useRelationshipReminders.ts` |
 | **Social** | `useFriends.ts`, `useTrading.ts`, `useCatGifts.ts`, `useNotifications.ts` |
 | **Rewards** | `useDailyLoginRewards.ts`, `useWeeklyChallenges.ts`, `useBattlePass.ts`, `useLuckyWheel.ts` |
 | **Photo Booth** | `PhotoBooth.tsx`, `usePhotoGallery.ts`, `useCloudGallery.ts` |
 | **Admin** | `AdminLayout.tsx`, `useAdminAuth.ts`, `useAdminData.ts`, `useAdminCorruptedSaves.ts` |
-| **Data Integrity** | `saveMigration.ts`, `useCloudSave.ts` (pre-save validation), `useResources.ts` (addReward safeguards) |
+| **Data Integrity** | `saveMigration.ts`, `useCloudSave.ts` (pre-save validation), `useResources.ts` (addReward safeguards), `useCostumes.ts` (ownership validation) |
 
 ### Database Tables (30+)
 
@@ -73,7 +74,7 @@
 | `photo-gallery` | Photo booth images |
 | `cat-portraits` | AI-generated cat portraits |
 
-### Edge Functions (11)
+### Edge Functions (14)
 
 | Function | Purpose |
 |----------|---------|
@@ -89,6 +90,17 @@
 | `validate-display-name` | Display name validation with profanity filter |
 | `run-security-linter` | Database security scanning |
 | `send-admin-alert` | Admin alert notifications |
+| `sync-health-check` | Data integrity validation (runs every 10 minutes via cron) |
+| `recover-lost-cats` | Recover lost cats from save snapshots |
+
+### Scheduled Cron Jobs (4)
+
+| Job | Schedule | Purpose |
+|-----|----------|---------|
+| `sync-health-check-10min` | Every 10 min | Data integrity validation |
+| `generate-weekly-challenges` | Sundays 00:00 | Auto-generate weekly challenges |
+| `process-leaderboard-rewards` | Daily 01:00 | Process leaderboard rewards |
+| `cleanup-error-logs-daily` | Daily 03:00 | Clean up old error logs |
 
 ---
 
@@ -98,8 +110,8 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                     Frontend (React)                         │
 ├─────────────────────────────────────────────────────────────┤
-│  Pages (12+8 admin) → Components (82+) → Hooks (42)         │
-│  Contexts (3) → Types (15+) → Utils                          │
+│  Pages (12+8 admin) → Components (85+) → Hooks (45)         │
+│  Contexts (3) → Types (15+) → Utils + Tests (7 test suites)  │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -178,6 +190,8 @@ Manage Cats → Do Chores → Buy/Sell → Train → Socialize → Shows → Bre
 - ✅ Audit logging (admin actions, auth attempts, player activity, AI usage)
 - ✅ Rate limiting for admin actions
 - ✅ Security scanning with historical tracking
+- ✅ Costume ownership validation before equipping
+- ✅ Real-time subscription user guards to prevent stale updates
 
 ---
 
@@ -188,3 +202,8 @@ Manage Cats → Do Chores → Buy/Sell → Train → Socialize → Shows → Bre
 - ✅ Admin Game Save Repair tool detects and fixes corrupted saves
 - ✅ Cloud load migration repairs invalid data on load
 - ✅ Type guards validate game state structure
+- ✅ Costume ownership validation before equipping
+- ✅ Automatic costume cleanup when cats are sold (single or bulk)
+- ✅ Snapshot insertion error logging for failed cloud saves
+- ✅ `subscribedUserId` guard pattern in real-time subscriptions (useFriends, useCatGifts, useTrading)
+- ✅ Profile-to-player_stats sync on profile updates

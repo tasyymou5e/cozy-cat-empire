@@ -1213,6 +1213,42 @@ Real-time events trigger toast notifications:
 - 🎁 "New Cat Gift!" - Someone sent you a cat
 - 📦 "New Trade Offer!" - Someone wants to trade with you
 
+### Race Condition Guards
+
+Real-time subscription handlers implement the `subscribedUserId` pattern to prevent stale updates during rapid session changes:
+
+```typescript
+// useFriends.ts, useCatGifts.ts, useTrading.ts
+useEffect(() => {
+  if (!userId) return;
+  
+  // Capture userId at subscription time
+  const subscribedUserId = userId;
+  
+  const channel = supabase
+    .channel(`feature-${userId}`)
+    .on('postgres_changes', {...}, () => {
+      // Guard: validate user context before processing
+      if (subscribedUserId !== userId) {
+        console.log('[Sync] Ignoring stale update for different user');
+        return;
+      }
+      // Safe to process update
+      refetch();
+    })
+    .subscribe();
+    
+  return () => { channel.unsubscribe(); };
+}, [userId]);
+```
+
+**Protected Hooks:**
+| Hook | Pattern Status |
+|------|----------------|
+| `useFriends` | ✅ `subscribedUserId` guard |
+| `useCatGifts` | ✅ `subscribedUserId` guard |
+| `useTrading` | ✅ `subscribedUserId` guard |
+
 ---
 
 ## Activity Logging

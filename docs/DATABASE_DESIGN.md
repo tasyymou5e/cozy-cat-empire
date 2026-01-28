@@ -613,6 +613,47 @@ CREATE TABLE public.ai_usage_log (
 
 ---
 
+### sync_health_log
+Data integrity check results (populated by sync-health-check cron job).
+
+```sql
+CREATE TABLE public.sync_health_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  run_at TIMESTAMPTZ DEFAULT now(),
+  saves_checked INTEGER DEFAULT 0,
+  saves_with_issues INTEGER DEFAULT 0,
+  total_issues INTEGER DEFAULT 0,
+  issue_summary JSONB DEFAULT '{}',
+  execution_time_ms INTEGER,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**Purpose:** Tracks automated data integrity checks run every 10 minutes.
+
+---
+
+### save_snapshots
+Point-in-time save snapshots for recovery.
+
+```sql
+CREATE TABLE public.save_snapshots (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  snapshot_type TEXT NOT NULL,
+  day INTEGER NOT NULL,
+  money INTEGER NOT NULL,
+  cat_count INTEGER NOT NULL,
+  cat_names TEXT[] NOT NULL,
+  game_state_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**Purpose:** Captures save snapshots for recovery in case of data loss.
+
+---
+
 ## Views
 
 ### public_profiles
@@ -814,20 +855,25 @@ CREATE EXTENSION IF NOT EXISTS pg_net;
 
 | Job Name | Schedule | Function | Purpose |
 |----------|----------|----------|---------|
-| `cleanup-error-logs-daily` | `0 3 * * *` (3 AM UTC daily) | cleanup-error-logs | Delete error logs older than 30 days |
+| `sync-health-check-10min` | `*/10 * * * *` | sync-health-check | Data integrity validation |
+| `generate-weekly-challenges` | `0 0 * * 0` | generate-weekly-challenges | Auto-generate weekly challenges |
+| `process-leaderboard-rewards` | `0 1 * * *` | process-leaderboard-rewards | Process periodic rewards |
+| `cleanup-error-logs-daily` | `0 3 * * *` | cleanup-error-logs | Delete error logs older than 30 days |
 
-### Job Configuration
+### Example Job Configuration
 ```sql
 SELECT cron.schedule(
-  'cleanup-error-logs-daily',
-  '0 3 * * *',
+  'sync-health-check-10min',
+  '*/10 * * * *',
   $$ SELECT net.http_post(
-    url := 'https://<project>.supabase.co/functions/v1/cleanup-error-logs',
+    url := 'https://<project>.supabase.co/functions/v1/sync-health-check',
     headers := '{"Content-Type": "application/json", "Authorization": "Bearer <anon_key>"}'::jsonb,
     body := '{}'::jsonb
   ) AS request_id; $$
 );
 ```
+
+See [CRON_JOBS.md](./CRON_JOBS.md) for full documentation.
 
 ---
 
@@ -847,4 +893,6 @@ All tables have RLS enabled. See [SECURITY.md](./SECURITY.md) for detailed polic
 | gallery_photos | ❌ | ✅ | Owner access only |
 | error_logs | ❌ | ✅ | Owner access only, auto-cleanup after 30 days |
 | player_activity_log | ❌ | ✅ | Owner access only |
+| sync_health_log | ❌ | System only | Cron job access only |
+| save_snapshots | ❌ | ✅ | Owner access only |
 | admin_* tables | ❌ | Admin only | Admin access only |
