@@ -129,7 +129,8 @@ export default function AdminAIMetrics() {
 
       if (fetchError) throw fetchError;
 
-      const newRemaining = Math.max(0, (current?.credits_remaining || 0) + amount);
+      const previousBalance = current?.credits_remaining || 0;
+      const newRemaining = Math.max(0, previousBalance + amount);
       const newPurchased =
         amount > 0
           ? (current?.total_purchased || 0) + amount
@@ -145,17 +146,28 @@ export default function AdminAIMetrics() {
         .eq('user_id', userId);
 
       if (error) throw error;
-      return { userId, amount, newRemaining };
+      return { userId, amount, newRemaining, previousBalance };
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-credits'] });
       queryClient.invalidateQueries({ queryKey: ['admin-credit-summary'] });
-      logActivity({
-        actionType: 'credit_adjustment',
-        actionDescription: `Adjusted credits by ${result.amount} for user. New balance: ${result.newRemaining}`,
+      
+      // Comprehensive audit logging with full metadata
+      await logActivity({
+        actionType: 'portrait_credits_modify',
+        actionDescription: `${result.amount > 0 ? 'Granted' : 'Removed'} ${Math.abs(result.amount)} portrait credits via Credit Management`,
         targetUserId: result.userId,
         targetTable: 'player_portrait_credits',
+        metadata: {
+          change: result.amount,
+          previousCredits: result.previousBalance,
+          newCredits: result.newRemaining,
+          adjustmentMethod: 'credit_management_tab',
+          userEmail: selectedUser?.email || 'unknown',
+          userDisplayName: selectedUser?.display_name || 'unknown',
+        },
       });
+      
       toast({
         title: 'Credits Adjusted',
         description: `${result.amount > 0 ? 'Added' : 'Removed'} ${Math.abs(result.amount)} credits.`,
