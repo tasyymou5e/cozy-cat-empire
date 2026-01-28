@@ -179,13 +179,14 @@ When breeding cats, kittens inherit visual traits from their parents:
 - `src/hooks/useGraphicsSettings.ts` - Runtime settings hook with localStorage persistence
 - `src/components/game/GraphicsSettingsPanel.tsx` - Settings UI component
 
-**14 Configurable Options:**
+**17 Configurable Options:**
 
 | Category | Settings |
 |----------|----------|
 | Performance | Avatar Quality (low/medium/high), Enable Animations, Force Reduced Motion |
 | Effects | Costume Animations, Particle Effects, Tier Glows, Sparkle Effects, Card Flip Animation |
 | Display | Card Border Style (tier/simple/none), Prefer AI Portraits, Show Costume on Portrait, Costume Rendering (auto/vector/emoji) |
+| Portraits | Portrait Quality (standard/premium), Show Outdated Indicator, Auto-Prompt Outdated |
 | Hidden | Vector Engine (paperjs/simple), Avatar Breed Features |
 
 **Key Features:**
@@ -194,6 +195,7 @@ When breeding cats, kittens inherit visual traits from their parents:
 - `effectiveAnimations` computed value for easy consumption in components
 - Reset to defaults button
 - Performance presets: Maximum Quality, Balanced, Performance Mode
+- **Portrait Quality**: Premium uses `gemini-3-pro-image-preview` for higher quality AI portraits
 
 **Hook API:**
 ```typescript
@@ -206,7 +208,37 @@ const { settings, updateSetting, resetToDefaults, isReducedMotion, effectiveAnim
 - Disabling particles: ~8% GPU savings
 - Disabling tier glows: ~5% GPU savings
 
-See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full details on all 14 settings.
+See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full details on all settings.
+
+### 8.1. AI Portrait System
+
+**Enhanced Portrait Generation:**
+The AI portrait system uses comprehensive prompt engineering to ensure portraits **exactly match** cat properties:
+
+**Edge Function:** `supabase/functions/generate-cat-portrait/index.ts`
+
+**Prompt Components:**
+1. **STYLE_PROMPT** - Consistent "Studio Ghibli meets mobile game" aesthetic
+2. **BREED_CHARACTERISTICS** - Face shape, expression, body type for each of 8 breeds
+3. **FUR_DESCRIPTIONS** - Detailed fur color descriptions (orange, black, white, gray, brown, cream, ginger, calico)
+4. **PATTERN_DESCRIPTIONS** - Pattern rendering (solid, tabby, spotted, tuxedo, bicolor, calico)
+5. **EYE_DESCRIPTIONS** - Eye color with gemstone comparisons (green, blue, amber, gold, heterochromia, copper)
+6. **PERSONALITY_EXPRESSIONS** - Expression based on 6 personalities
+7. **COSTUME_RENDER_INSTRUCTIONS** - Detailed placement and style for all 20 costumes
+
+**Outdated Portrait Detection:**
+- `usePortraitStatus.ts` hook tracks cats with outdated portraits
+- `computeAppearanceHash()` includes breed, appearance, costume, and personality
+- `PortraitOutdatedBadge.tsx` shows ⚠️ icon when portrait needs updating
+- Batch regeneration available via `BatchPortraitGenerator.tsx`
+
+**Portrait Quality Modes:**
+| Mode | Model | Best For |
+|------|-------|----------|
+| Standard | `gemini-2.5-flash` | Fast generation, good quality |
+| Premium | `gemini-3-pro-image-preview` | Highest quality, detailed costumes |
+
+See [Cat Visual System Documentation](./docs/CAT_VISUAL_SYSTEM.md) for full details.
 
 ### 9. Performance Systems
 
@@ -488,7 +520,8 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 - **GalleryPhotoCard.tsx**: Photo display card with actions
 - **PhotoLightbox.tsx**: Full-screen photo viewer
 - **DraggableSticker.tsx**: Draggable stickers for photos
-- **BatchPortraitGenerator.tsx**: Batch generate portraits for multiple cats
+- **BatchPortraitGenerator.tsx**: Batch generate portraits for multiple cats with outdated detection
+- **PortraitOutdatedBadge.tsx**: Visual indicator for outdated/missing portraits
 
 ### Utility Components:
 - **StatusBar.tsx**: Money, day, house, cat show
@@ -529,7 +562,7 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 
 ---
 
-## Custom Hooks (44 total)
+## Custom Hooks (45 total)
 
 ### Core Game Hooks:
 - **useGameState.ts**: Core game logic + bulk actions
@@ -538,7 +571,7 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 - **useConfetti.ts**: Celebration effects
 - **useHaptics.ts**: Mobile haptic feedback
 - **useKeyboardShortcuts.ts**: Keyboard navigation
-- **useGraphicsSettings.ts**: Runtime graphics customization
+- **useGraphicsSettings.ts**: Runtime graphics customization (17 settings including portrait quality)
 
 ### Empire Hooks:
 - **useRoamingCats.ts**: AI movement for Empire scene
@@ -547,6 +580,11 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 - **useCloudSave.ts**: Cloud persistence
 - **usePhotoGallery.ts**: Local + cloud photo gallery
 - **useCloudGallery.ts**: Cloud gallery operations
+
+### Portrait System Hooks:
+- **usePortraitStatus.ts**: Track outdated portraits across all cats
+- **usePortraitCredits.ts**: Portrait credit management
+- **usePortraitOutdatedToast.tsx**: Portrait update notifications
 
 ### Social Features:
 - **useFriends.ts**: Friends system
@@ -587,7 +625,6 @@ See [Graphics Settings Documentation](./docs/GRAPHICS_SETTINGS.md) for full deta
 
 ### Utility Hooks:
 - **useErrorLogger.ts**: Error logging system with rate limiting
-- **usePortraitOutdatedToast.tsx**: Portrait update notifications
 - **useInfiniteScroll.ts**: Infinite scroll utility
 - **use-mobile.tsx**: Mobile detection
 - **use-toast.ts**: Toast notifications
@@ -666,16 +703,22 @@ Click any cat to open interaction menu:
 
 ---
 
-## Edge Functions (9 total)
+## Edge Functions (11 total)
 
 - **process-leaderboard-rewards**: Process periodic leaderboard rewards
 - **generate-weekly-challenges**: Generate new weekly challenges
-- **generate-cat-portrait**: AI-powered cat portrait generation
+- **generate-cat-portrait**: AI-powered cat portrait generation with enhanced prompt engineering
+  - Modular prompt builder with breed, appearance, costume, personality components
+  - Supports Standard (`gemini-2.5-flash`) and Premium (`gemini-3-pro-image-preview`) quality modes
+  - Costume-specific rendering instructions for all 20 costumes
+  - Consistent "Studio Ghibli meets mobile game" art style
 - **send-push-notification**: Send web push notifications
 - **send-password-reset**: Password reset email
+- **send-admin-alert**: Admin alert notifications
 - **admin-delete-user**: Admin user deletion
 - **cleanup-error-logs**: Daily cleanup of error logs older than 30 days
 - **manage-portrait-credits**: Portrait credit management
+- **run-security-linter**: Database security scanning
 - **validate-display-name**: Server-side display name and username validation
   - Validates display name format (3-30 chars, alphanumeric + spaces/underscores/hyphens)
   - Validates username format (3-20 chars, starts with letter, alphanumeric + underscores)
