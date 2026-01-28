@@ -31,6 +31,7 @@ export interface GraphicsSettings {
   enableEmpireParticles: boolean;
   enableTimeOfDayEffects: boolean;
   enableSeasonalDecorations: boolean;
+  enableMicroDepthParallax: boolean; // Per-object depth variation
   // Portrait settings
   portraitQuality: 'standard' | 'premium';
   autoPromptOutdated: boolean;
@@ -85,6 +86,7 @@ function getDefaultSettings(): GraphicsSettings {
     enableEmpireParticles: true,
     enableTimeOfDayEffects: true,
     enableSeasonalDecorations: true,
+    enableMicroDepthParallax: true, // Per-object depth variation enabled by default
     // Portrait defaults
     portraitQuality: 'standard',
     autoPromptOutdated: true,

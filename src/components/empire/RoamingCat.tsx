@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Cat } from '@/types/game';
 import { CatPosition, EmpireInteraction } from '@/types/empire';
 import { CatVisual } from '@/components/game/CatVisual';
@@ -7,6 +7,7 @@ import { useCatReactions } from '@/contexts/CatReactionContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { EmpireInteractionMenu } from './EmpireInteractionMenu';
 import { MOVEMENT_TIMING } from '@/config/empire';
+import { getObjectParallaxTransform, MICRO_DEPTH_CONFIG } from '@/lib/parallaxDepth';
 import { cn } from '@/lib/utils';
 
 interface RoamingCatProps {
@@ -16,6 +17,8 @@ interface RoamingCatProps {
   onInteract: (catId: string, action: EmpireInteraction) => void;
   canFeed: boolean;
   canPlay: boolean;
+  parallaxOffset?: { x: number; y: number };
+  enableMicroDepth?: boolean;
 }
 
 /**
@@ -49,9 +52,12 @@ export function RoamingCat({
   onInteract,
   canFeed,
   canPlay,
+  parallaxOffset = { x: 0, y: 0 },
+  enableMicroDepth = false,
 }: RoamingCatProps) {
   const { getCatReaction } = useCatReactions();
   const reaction = getCatReaction(cat.id);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Z-index based on Y position (lower = further back, higher = closer to viewer)
   const zIndex = useMemo(() => Math.floor(position.y), [position.y]);
@@ -63,6 +69,24 @@ export function RoamingCat({
     const normalizedY = (position.y - 35) / 50; // 35-85 range
     return minScale + normalizedY * (maxScale - minScale);
   }, [position.y]);
+  
+  // Calculate micro-depth parallax transform based on current Y position
+  const microDepthTransform = useMemo(() => {
+    if (!enableMicroDepth || (parallaxOffset.x === 0 && parallaxOffset.y === 0)) {
+      return '';
+    }
+    
+    // Add hover depth boost for interactive pop effect
+    const hoverBoost = isHovered ? 0.1 : 0;
+    const adjustedMicroRange = MICRO_DEPTH_CONFIG.cats.microRange + hoverBoost;
+    
+    return getObjectParallaxTransform(
+      parallaxOffset,
+      position.y,
+      MICRO_DEPTH_CONFIG.cats.baseDepth,
+      adjustedMicroRange
+    );
+  }, [parallaxOffset, position.y, enableMicroDepth, isHovered]);
 
   const handleAction = (action: EmpireInteraction) => {
     onInteract(cat.id, action);
@@ -75,7 +99,7 @@ export function RoamingCat({
       <PopoverTrigger asChild>
         <div
           className={cn(
-            'absolute cursor-pointer group',
+            'absolute cursor-pointer group will-change-transform',
             'hover:scale-110 hover:z-50',
             'transition-all ease-in-out',
             position.state === 'walking' && 'animate-cat-walk',
@@ -84,11 +108,13 @@ export function RoamingCat({
           style={{
             left: `${position.x}%`,
             top: `${position.y}%`,
-            transform: `translate(-50%, -50%) scaleX(${position.facing === 'left' ? -1 : 1}) scale(${scale})`,
-            zIndex,
+            transform: `${microDepthTransform} translate(-50%, -50%) scaleX(${position.facing === 'left' ? -1 : 1}) scale(${scale})`,
+            zIndex: isHovered ? 100 : zIndex,
             transitionDuration: `${MOVEMENT_TIMING.transitionDuration}ms`,
-            transitionProperty: 'left, top',
+            transitionProperty: 'left, top, transform',
           }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
           {/* Cat Visual */}
           <div className="relative">
