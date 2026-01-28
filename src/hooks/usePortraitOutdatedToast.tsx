@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { Cat } from '@/types/game';
 
@@ -10,17 +10,22 @@ import { Cat } from '@/types/game';
  */
 export function usePortraitOutdatedToast() {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const showOutdatedToast = (cat: Cat) => {
-    toast({
-      title: 'Portrait Outdated',
-      description: `${cat.name}'s appearance has changed. The AI portrait no longer matches.`,
-      action: (
-        <ToastAction altText="Update Portrait" onClick={() => navigate(`/photobooth/${cat.id}`)}>
-          Update Portrait
-        </ToastAction>
-      ),
-    });
+    try {
+      toast({
+        title: 'Portrait Outdated',
+        description: `${cat.name}'s appearance has changed. The AI portrait no longer matches.`,
+        action: (
+          <ToastAction altText="Update Portrait" onClick={() => navigate(`/photobooth/${cat.id}`)}>
+            Update Portrait
+          </ToastAction>
+        ),
+      });
+    } catch (error) {
+      console.warn('Toast notification failed:', error);
+    }
   };
 
   return { showOutdatedToast };
