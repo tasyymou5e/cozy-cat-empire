@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ActivityFeed } from '@/components/admin/ActivityFeed';
-import { useAdminStats, useAdminLiveActivity } from '@/hooks/admin';
+import { useAdminStats, useAdminLiveActivity, useSyncHealthLogs } from '@/hooks/admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,6 +27,7 @@ import {
   ArrowLeftRight,
   Gift,
   RefreshCw,
+  HeartPulse,
 } from 'lucide-react';
 
 const StatCard = ({
@@ -72,6 +73,7 @@ export default function AdminDashboard() {
 
   const { data: stats, isLoading, dataUpdatedAt: statsUpdatedAt } = useAdminStats(currentInterval);
   const { data: liveActivity, isLoading: liveLoading, dataUpdatedAt } = useAdminLiveActivity();
+  const { data: syncHealth, isLoading: syncLoading } = useSyncHealthLogs(1);
 
   const lastUpdated = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : '--';
   const statsLastUpdated = statsUpdatedAt ? new Date(statsUpdatedAt).toLocaleTimeString() : '--';
@@ -182,6 +184,54 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Sync Health Status Card - Phase 6 */}
+        <Card className="border-green-500/20 bg-green-500/5">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <HeartPulse className="h-5 w-5 text-green-500" />
+                <CardTitle className="text-lg">Sync Health</CardTitle>
+              </div>
+              <a
+                href="/catking/save-recovery"
+                className="text-xs text-muted-foreground hover:text-primary underline"
+              >
+                View Details
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {syncLoading ? (
+              <div className="flex gap-4">
+                <Skeleton className="h-8 w-24" />
+                <Skeleton className="h-8 w-24" />
+              </div>
+            ) : syncHealth && syncHealth.length > 0 ? (
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-2xl font-bold text-green-600">{syncHealth[0].saves_checked}</p>
+                  <p className="text-xs text-muted-foreground">Saves Checked</p>
+                </div>
+                <div>
+                  <p className={`text-2xl font-bold ${syncHealth[0].saves_with_issues > 0 ? 'text-red-500' : 'text-green-600'}`}>
+                    {syncHealth[0].saves_with_issues}
+                  </p>
+                  <p className="text-xs text-muted-foreground">With Issues</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Last check: {new Date(syncHealth[0].run_at).toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No sync health checks yet. Cron job may need scheduling.
+              </p>
+            )}
           </CardContent>
         </Card>
 
