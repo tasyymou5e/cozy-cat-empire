@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Cat, HouseSize, GameState } from '@/types/game';
 import { EmpireInteraction } from '@/types/empire';
@@ -9,7 +9,7 @@ import { useGraphicsSettings } from '@/hooks/useGraphicsSettings';
 import { useCatReactions } from '@/contexts/CatReactionContext';
 import { useSound } from '@/contexts/SoundContext';
 import { getCurrentRealSeason } from '@/lib/seasonUtils';
-import { getTimeOfDay } from '@/lib/empireTimeOfDay';
+import { getTimeOfDay, TIME_OF_DAY_OVERLAYS } from '@/lib/empireTimeOfDay';
 import { RoamingCat } from './RoamingCat';
 import { EmpirePropComponent } from './EmpirePropComponent';
 import { EmpireBackground } from './EmpireBackground';
@@ -55,12 +55,21 @@ export function EmpireScene({
   // Season and time of day
   const season = getCurrentRealSeason();
   const timeOfDay = getTimeOfDay(gameDay);
+  const timeOverlay = TIME_OF_DAY_OVERLAYS[timeOfDay];
   
   // Parallax effect (respects animation settings)
   const parallaxOffset = useParallax(effectiveAnimations && settings.enableEmpireParallax);
   
   // Roaming cats with prop attraction
   const { positions, setInteracting } = useRoamingCats(cats, zone.props);
+
+  // Memoize season display name
+  const seasonDisplay = useMemo(() => ({
+    spring: '🌸 Spring',
+    summer: '☀️ Summer',
+    autumn: '🍂 Autumn',
+    winter: '❄️ Winter',
+  }[season]), [season]);
 
   const handleInteraction = useCallback((catId: string, action: EmpireInteraction) => {
     setInteracting(catId);
@@ -101,11 +110,12 @@ export function EmpireScene({
 
   return (
     <div className="relative w-full h-[500px] sm:h-[600px] overflow-hidden rounded-xl border border-border shadow-lg">
-      {/* Layer 0: Illustrated SVG Background */}
+      {/* Layer 0: Illustrated SVG Background with time-of-day filter */}
       <div 
-        className="absolute inset-0"
+        className="absolute inset-0 transition-all duration-1000"
         style={{
           transform: `translate(${parallaxOffset.x * 0.2}px, ${parallaxOffset.y * 0.2}px)`,
+          filter: settings.enableTimeOfDayEffects ? timeOverlay.filterStyle : undefined,
         }}
       >
         <EmpireBackground 
@@ -206,6 +216,9 @@ export function EmpireScene({
            timeOfDay === 'afternoon' ? '☀️' : 
            timeOfDay === 'evening' ? '🌆' : '🌙'} 
           {' '}{timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1)}
+        </Badge>
+        <Badge variant="outline" className="bg-background/80 backdrop-blur shadow-sm text-xs">
+          {seasonDisplay}
         </Badge>
       </div>
 

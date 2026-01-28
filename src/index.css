@@ -24,12 +24,27 @@
   75% { transform: translateY(-2px); }
 }
 
+@keyframes sway {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .animate-float {
   animation: float 4s ease-in-out infinite;
 }
 
 .animate-cat-walk {
   animation: cat-walk 0.4s ease-in-out infinite;
+}
+
+.animate-sway {
+  animation: sway 3s ease-in-out infinite;
 }
 @tailwind components;
 @tailwind utilities;
