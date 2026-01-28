@@ -1,46 +1,28 @@
-# Empire Page Graphics Improvement Plan
+# Empire Page Graphics Implementation
 
-> **Status**: Planning Phase  
+> **Status**: ✅ Complete  
 > **Priority**: High  
 > **Last Updated**: 2026-01-28
 
 ## Overview
 
-This document outlines the planned graphics improvements for the Empire page (`/empire`), transforming it from simple CSS gradients to a rich, interactive visual experience.
+This document describes the graphics system implemented for the Empire page (`/empire`), which features rich, interactive visual environments with parallax depth, dynamic lighting, seasonal effects, and interactive props.
 
 ---
 
-## Current Implementation
+## Implementation Summary
 
-**Location**: `src/pages/Empire.tsx`, `src/components/empire/EmpireScene.tsx`, `src/config/empire.ts`
+### ✅ Phase 1: Illustrated SVG Backgrounds
 
-### Current State
-- Simple gradient backgrounds via Tailwind classes (`bg-gradient-to-b from-amber-100...`)
-- CSS patterns for floor textures (repeating linear gradients)
-- Emoji decorations for walls (`✨` for mansion, `🌾` for farm)
-- No illustrated scene elements (furniture, decorations, outdoor features)
-- Basic roaming cat system with `useRoamingCats` hook
+**Files Created**:
+- `src/components/empire/backgrounds/ApartmentBackground.tsx`
+- `src/components/empire/backgrounds/HouseBackground.tsx`
+- `src/components/empire/backgrounds/MansionBackground.tsx`
+- `src/components/empire/backgrounds/FarmBackground.tsx`
+- `src/components/empire/backgrounds/index.ts`
+- `src/components/empire/EmpireBackground.tsx`
 
-### Current Zone Themes (`src/config/empire.ts`)
-```typescript
-const EMPIRE_ZONES: EmpireZones = {
-  apartment: { backgroundClass, floorClass, floorPattern, ambiance: 'cozy' },
-  house: { backgroundClass, floorClass, floorPattern, ambiance: 'spacious' },
-  mansion: { backgroundClass, floorClass, wallDecoration: '✨', ambiance: 'luxurious' },
-  farm: { backgroundClass, floorClass, wallDecoration: '🌾', ambiance: 'pastoral' },
-};
-```
-
----
-
-## Planned Improvements
-
-### 1. Illustrated Scene Backgrounds (SVG or AI-Generated)
-
-**Priority**: 🔴 High | **Effort**: Medium | **Impact**: High
-
-Replace gradient backgrounds with rich, illustrated scenes for each house type:
-
+**Features**:
 | House Type | Scene Description | Key Elements |
 |:-----------|:------------------|:-------------|
 | Apartment | Cozy urban studio with window view | Window with city skyline, cat tree, radiator, potted plant, bookshelf |
@@ -48,257 +30,171 @@ Replace gradient backgrounds with rich, illustrated scenes for each house type:
 | Mansion | Luxury parlor with ornate details | Chandelier, marble floors, columns, artwork, velvet furniture |
 | Farm | Outdoor pastoral scene | Rolling hills, barn in distance, fence, hay bales, blue sky with clouds |
 
-**Implementation Options**:
-1. **CSS/SVG layers**: Multiple positioned SVG elements for flexibility
-2. **AI-generated backgrounds**: Use the existing `generate-auth-background` edge function pattern
-3. **Static illustration assets**: Commission or source cozy cat-themed illustrations
+---
 
-**Files to Create/Modify**:
-- `src/components/empire/backgrounds/ApartmentBackground.tsx`
-- `src/components/empire/backgrounds/HouseBackground.tsx`
-- `src/components/empire/backgrounds/MansionBackground.tsx`
-- `src/components/empire/backgrounds/FarmBackground.tsx`
-- `src/config/empire.ts` (enhanced theme config)
+### ✅ Phase 2: Time-of-Day & Seasonal Effects
+
+**Files**:
+- `src/lib/empireTimeOfDay.ts` - Time calculation and overlay configs
+- `src/components/empire/TimeOfDayOverlay.tsx` - Light beams, sun rays, stars
+- `src/components/empire/SeasonalDecorations.tsx` - Seasonal particle engine
+
+**Time-of-Day System**:
+| Condition | Visual Effect |
+|:----------|:--------------|
+| Morning (days 1-3 mod 10) | Warm golden light, animated sun rays |
+| Afternoon (days 4-6 mod 10) | Bright daylight, high contrast |
+| Evening (days 7-8 mod 10) | Orange/pink sunset tones, sepia filter |
+| Night (days 9-0 mod 10) | Dark blue overlay, animated stars |
+
+**Seasonal Particles** (via `SEASON_PARTICLE_CONFIG`):
+| Season | Effect |
+|:-------|:-------|
+| Spring | Falling cherry blossom petals 🌸 |
+| Summer | Floating butterflies 🦋 |
+| Autumn | Drifting leaves 🍂 |
+| Winter | Gentle snowfall ❄️ |
 
 ---
 
-### 2. Interactive Scene Furniture/Props
+### ✅ Phase 3: Interactive Props System
 
-**Priority**: 🔴 High | **Effort**: Medium | **Impact**: High
+**Files**:
+- `src/config/empireProps.ts` - Prop definitions per house type
+- `src/components/empire/EmpirePropComponent.tsx` - Prop renderer with interactions
+- `src/types/empire.ts` - `EmpireProp` type definitions
 
-Add clickable furniture and objects that cats can interact with:
-
-```typescript
-// New type definition for src/types/empire.ts
-interface EmpireProp {
-  id: string;
-  name: string;
-  emoji: string;
-  position: { x: number; y: number }; // Percentage
-  scale: number;
-  zIndex: number;
-  interactable?: boolean;
-  onInteract?: 'sleep' | 'play' | 'hide';
-}
-```
-
-**Props by House Type**:
-
+**Prop Types by House**:
 | House Type | Props |
 |:-----------|:------|
-| Apartment | Cat tree, cat bed, window, potted plant, bookshelf, food bowl |
+| Apartment | Cat tree, cat bed, window perch, potted plant, food bowl, scratching post |
 | House | Couch, fireplace, bay window, garden door, rug, side table |
 | Mansion | Chandelier, grand piano, velvet chaise, fountain, columns, artwork |
 | Farm | Barn door, hay bales, fence, water trough, tractor, windmill |
 
-**Example Configuration**:
-```typescript
-const APARTMENT_PROPS: EmpireProp[] = [
-  { id: 'cat-tree', name: 'Cat Tree', emoji: '🌲', position: { x: 15, y: 60 }, scale: 1.5, interactable: true, onInteract: 'play' },
-  { id: 'bed', name: 'Cat Bed', emoji: '🛏️', position: { x: 80, y: 75 }, scale: 1.2, interactable: true, onInteract: 'sleep' },
-  { id: 'window', name: 'Window', emoji: '🪟', position: { x: 50, y: 20 }, scale: 2, interactable: false },
-];
-```
-
-**Files to Create**:
-- `src/config/empireProps.ts` (prop definitions per house type)
-- `src/components/empire/EmpireProp.tsx` (prop renderer component)
-- `src/hooks/empire/useCatPropInteraction.ts` (cat-prop interaction logic)
+**Prop Features**:
+- Tooltips with interaction descriptions
+- Cat count badges when occupied
+- Glow effects when cats are nearby
+- Prop-specific animations (sway, pulse, bounce)
+- Attraction zones for cat AI behavior
 
 ---
 
-### 3. Time-of-Day and Weather Effects
+### ✅ Phase 4: Parallax Depth System
 
-**Priority**: 🟡 Medium | **Effort**: Low | **Impact**: Medium
+**Files**:
+- `src/hooks/empire/useParallax.ts` - Mouse-responsive parallax hook
+- `src/components/empire/ParallaxLayer.tsx` - Depth layer component
 
-Make the Empire scene react to the in-game day:
-
-| Condition | Visual Effect |
-|:----------|:--------------|
-| Morning (days ending in 1-3) | Warm golden light, sun rays through window |
-| Afternoon (days ending in 4-6) | Bright daylight, high contrast |
-| Evening (days ending in 7-8) | Orange/pink sunset tones, long shadows |
-| Night (days ending in 9-0) | Dark blue overlay, moonlight, stars visible through windows |
-
-**Optional Weather Effects**:
-- Rainy day: Rain on windows (indoor scenes), puddles (farm)
-- Sunny: Light beams, dust motes
-- Cloudy: Muted colors, soft lighting
-
-**Implementation**:
-```typescript
-// src/lib/empireTimeOfDay.ts
-export function getTimeOfDay(gameDay: number): 'morning' | 'afternoon' | 'evening' | 'night' {
-  const dayMod = gameDay % 10;
-  if (dayMod <= 3) return 'morning';
-  if (dayMod <= 6) return 'afternoon';
-  if (dayMod <= 8) return 'evening';
-  return 'night';
-}
-```
-
-**Files to Create**:
-- `src/lib/empireTimeOfDay.ts`
-- `src/components/empire/TimeOfDayOverlay.tsx`
-- `src/components/empire/WeatherEffects.tsx`
-
----
-
-### 4. Parallax Depth Layers
-
-**Priority**: 🟢 Low | **Effort**: Medium | **Impact**: Low
-
-Create depth with multiple scrolling/moving layers:
-
+**Layer Architecture**:
 ```
 ┌────────────────────────────────────────────┐
-│ Layer 0 (Sky/Background)     - Fixed      │
-│ Layer 1 (Distant elements)   - Slow move  │
-│ Layer 2 (Mid-ground props)   - Med move   │
-│ Layer 3 (Foreground/Cats)    - Fast move  │
-│ Layer 4 (UI Overlays)        - Fixed      │
+│ Layer 0 (Background)     - 10% movement    │
+│ Layer 1 (Mid-background) - 25% movement    │
+│ Layer 2 (Mid-ground)     - 50% movement    │
+│ Layer 3 (Mid-foreground) - 75% movement    │
+│ Layer 4 (Foreground)     - 100% movement   │
+│ Layer 5 (UI Overlays)    - Fixed           │
 └────────────────────────────────────────────┘
 ```
 
-**Implementation**: React to mouse movement or subtle auto-animation.
+**Depth Constants** (`PARALLAX_DEPTHS`):
+```typescript
+{
+  background: 0.1,      // Furthest - minimal movement
+  midBackground: 0.25,
+  midground: 0.5,       // Medium movement
+  midForeground: 0.75,
+  foreground: 1.0,      // Closest - maximum movement
+}
+```
 
-**Files to Create**:
-- `src/components/empire/ParallaxLayer.tsx`
-- `src/hooks/empire/useParallax.ts`
+**Hook Features**:
+- `requestAnimationFrame` for smooth 60fps animation
+- Configurable intensity and smoothing
+- Automatic reset on mouse leave
+- Respects `enableEmpireParallax` graphics setting
 
 ---
 
-### 5. Enhanced Zone Themes
+### ✅ Phase 5: Cat Behavior Enhancements
 
-**Priority**: 🔴 High | **Effort**: Medium | **Impact**: High
+**Files Modified**:
+- `src/hooks/empire/useRoamingCats.ts` - Furniture attraction logic
+- `src/config/empire.ts` - Attraction zones per house type
 
-Expanded configuration for each house type:
+**Behaviors**:
+| Behavior | Description |
+|:---------|:------------|
+| Sleep on furniture | Lazy cats gravitate to beds/cushions |
+| Look out windows | Curious cats perch near windows |
+| Play with toys | Playful cats interact with toy props |
+| Sunbeam seeking | Cats find warm spots based on time-of-day |
 
-```typescript
-// Enhanced type for src/types/empire.ts
-interface EnhancedZoneTheme {
-  name: string;
-  
-  // Visual layers
-  skyGradient: string;
-  wallGradient: string;
-  floorGradient: string;
-  floorPattern?: string;
-  
-  // Decorative elements
-  wallDecorations: string[]; // Emojis positioned randomly
-  floorDecorations: string[];
-  windowScene?: 'city' | 'garden' | 'mountains' | 'fields';
-  
-  // Atmospheric effects
-  particles?: 'dust-motes' | 'fireflies' | 'sparkles' | 'leaves';
-  lighting: 'warm' | 'cool' | 'neutral' | 'golden';
-  shadowIntensity: number; // 0-1
-  
-  // Audio ambiance (optional)
-  ambianceSound?: 'city-traffic' | 'birds' | 'crackling-fire' | 'nature';
-  
-  // Props specific to this zone
-  props: EmpireProp[];
-}
+---
+
+### ✅ Phase 6: Graphics Settings Integration
+
+All effects respect user preferences via `useGraphicsSettings`:
+- `enableEmpireParallax` - Toggle parallax depth
+- `enableTimeOfDayEffects` - Toggle lighting overlays
+- `enableSeasonalDecorations` - Toggle seasonal particles
+- `enableParticles` / `enableEmpireParticles` - Toggle atmospheric particles
+- `enableReducedMotion` - Accessibility support
+
+---
+
+## File Structure
+
+```
+src/components/empire/
+├── EmpireScene.tsx           # Main scene orchestrator (5-layer parallax)
+├── EmpireBackground.tsx      # Background controller
+├── ParallaxLayer.tsx         # Reusable parallax layer component
+├── RoamingCat.tsx            # Individual cat renderer
+├── EmpirePropComponent.tsx   # Interactive prop renderer
+├── TimeOfDayOverlay.tsx      # Lighting effects (sun rays, stars)
+├── SeasonalDecorations.tsx   # Seasonal particle engine
+├── EmpireParticles.tsx       # Atmospheric particles
+├── WindowScene.tsx           # Window view scenes (deprecated - integrated into SVG)
+└── backgrounds/
+    ├── ApartmentBackground.tsx
+    ├── HouseBackground.tsx
+    ├── MansionBackground.tsx
+    ├── FarmBackground.tsx
+    └── index.ts
+
+src/hooks/empire/
+├── useRoamingCats.ts         # Cat movement AI with prop attraction
+└── useParallax.ts            # Mouse-responsive parallax system
+
+src/config/
+├── empire.ts                 # Zone themes and configurations
+└── empireProps.ts            # Prop definitions per house type
+
+src/lib/
+├── empireTimeOfDay.ts        # Time calculation and lighting configs
+└── seasonUtils.ts            # Season detection utilities
+
+src/types/
+└── empire.ts                 # Type definitions (EmpireProp, TimeOfDay, etc.)
 ```
 
 ---
 
-### 6. Seasonal Variations
+## Performance Considerations
 
-**Priority**: 🟡 Medium | **Effort**: Medium | **Impact**: Medium
-
-Adapt backgrounds based on real-world season (using `src/lib/seasonUtils.ts`):
-
-| Season | Apartment | House | Mansion | Farm |
-|:-------|:----------|:------|:--------|:-----|
-| Spring | Flowers on windowsill | Blooming garden view | Fresh flowers in vases | Cherry blossoms, green fields |
-| Summer | Open window, fan | Sunny backyard, BBQ | Pool visible | Golden wheat, bright sun |
-| Autumn | Cozy blankets, warm colors | Fall leaves in yard | Fireplace lit | Harvest scene, orange trees |
-| Winter | Frost on windows, heater | Snow in yard, lights | Grand fireplace, decorations | Snow-covered barn, frozen pond |
-
-**Integration Point**: Already have `getCurrentRealSeason()` in `src/lib/seasonUtils.ts`.
+- **GPU Acceleration**: Uses CSS `transform: translate3d()` and `will-change: transform`
+- **Lazy Rendering**: Props and decorations memoized with `useMemo`
+- **Reduced Motion**: All animations respect user accessibility preferences
+- **Mobile Optimization**: Parallax can be disabled via graphics settings
+- **Frame Budget**: `requestAnimationFrame` with easing for smooth 60fps
 
 ---
 
-### 7. Cat Behavior Enhancements
+## Related Documentation
 
-**Priority**: 🟡 Medium | **Effort**: Medium | **Impact**: High
-
-Make cats interact more realistically with the environment:
-
-| Behavior | Description | Implementation |
-|:---------|:------------|:---------------|
-| Sleep on furniture | Cats gravitate to beds/cushions | Modify `useRoamingCats` to include furniture waypoints |
-| Look out windows | Cats perch near windows | Add window positions as attraction points |
-| Play with toys | Cats bat at dangling toys | Animate toy props when cat is nearby |
-| Sunbeam seeking | Cats find and nap in sunbeam patches | Time-of-day dependent attraction zones |
-
-**Files to Modify**:
-- `src/hooks/empire/useRoamingCats.ts` (add furniture attraction logic)
-- `src/config/empire.ts` (add attraction zones per house type)
-
----
-
-## Implementation Roadmap
-
-### Phase 1: Foundation (Week 1-2)
-- [ ] Expand `EnhancedZoneTheme` type in `src/types/empire.ts`
-- [ ] Create prop system types and configuration
-- [ ] Implement basic SVG background layers for each house type
-- [ ] Add props rendering to `EmpireScene.tsx`
-
-### Phase 2: Interactivity (Week 3-4)
-- [ ] Implement cat-prop interactions
-- [ ] Add time-of-day lighting overlay
-- [ ] Integrate seasonal variations
-- [ ] Update roaming behavior to use furniture waypoints
-
-### Phase 3: Polish (Week 5-6)
-- [ ] Add particle effects (dust motes, sparkles, leaves)
-- [ ] Implement parallax depth (optional)
-- [ ] Add weather effects (optional)
-- [ ] Performance optimization and testing
-
----
-
-## Technical Considerations
-
-### Performance
-- Use CSS transforms for parallax (GPU accelerated)
-- Lazy-load background assets per house type
-- Limit particle count on mobile devices
-- Consider `useGraphicsSettings` hook for quality presets
-
-### Accessibility
-- Ensure cat interactions remain keyboard accessible
-- Provide reduced motion options for animations
-- Maintain color contrast in all lighting conditions
-
-### Mobile
-- Simplify parallax on touch devices
-- Scale prop sizes for smaller screens
-- Consider disabling weather effects on low-end devices
-
----
-
-## Related Files
-
-| File | Purpose |
-|:-----|:--------|
-| `src/pages/Empire.tsx` | Main Empire page |
-| `src/components/empire/EmpireScene.tsx` | Scene container |
-| `src/components/empire/RoamingCat.tsx` | Individual cat renderer |
-| `src/hooks/empire/useRoamingCats.ts` | Cat movement logic |
-| `src/config/empire.ts` | Zone theme configuration |
-| `src/types/empire.ts` | Empire type definitions |
-| `src/lib/seasonUtils.ts` | Season detection utilities |
-
----
-
-## References
-
-- [Session Replay Analysis](#) - Initial improvement suggestions
 - [Cat Visual System](./CAT_VISUAL_SYSTEM.md) - Cat rendering documentation
 - [Graphics Settings](./GRAPHICS_SETTINGS.md) - Performance tier system
+- [Components](./COMPONENTS.md) - Full component reference
