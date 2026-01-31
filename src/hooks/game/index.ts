@@ -81,7 +81,7 @@ export { createInitialState };
  * @example
  * ```typescript
  * function CatFarm() {
- *   const { playSound } = useSoundEffects();
+ *   const { playSound } = useSound(); // from SoundContext
  *   const { onChallengeProgress } = useWeeklyChallenges();
  *
  *   const {

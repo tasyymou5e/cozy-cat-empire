@@ -303,7 +303,7 @@ UI state management:
 │   - Achievement unlock (checkAchievements)                      │
 │   - Milestone popup (useMilestones)                             │
 │   - Confetti burst (useConfetti)                                │
-│   - Sound effect (useSoundEffects)                              │
+│   - Sound effect (useSound from SoundContext)                   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
