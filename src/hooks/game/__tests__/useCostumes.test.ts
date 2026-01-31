@@ -206,4 +206,79 @@ describe('useCostumes', () => {
       expect(mockDeps.getState().catCostumes['cat-2']).toBe('crown');
     });
   });
+
+  describe('seasonal costumes', () => {
+    it('should allow purchasing seasonal costumes when in season', () => {
+      // The Winter Wonderland season includes snowflake_collar
+      mockDeps = createMockDependencies({ money: 500 });
+      const { result } = renderHook(() => useCostumes(mockDeps.deps));
+
+      act(() => {
+        result.current.buyCostume('snowflake_collar'); // Winter seasonal, costs $150
+      });
+
+      const state = mockDeps.getState();
+      expect(state.ownedCostumes).toContain('snowflake_collar');
+      expect(state.money).toBe(350); // 500 - 150
+    });
+
+    it('should allow equipping purchased seasonal costumes', () => {
+      const cat = createMockCat({ id: 'cat-1' });
+      mockDeps = createMockDependencies({
+        cats: [cat],
+        ownedCostumes: ['snowflake_collar'],
+      });
+      const { result } = renderHook(() => useCostumes(mockDeps.deps));
+
+      act(() => {
+        result.current.equipCostume('cat-1', 'snowflake_collar');
+      });
+
+      expect(mockDeps.getState().catCostumes['cat-1']).toBe('snowflake_collar');
+      expect(mockDeps.getMessages()).toContainEqual(expect.objectContaining({ type: 'success' }));
+    });
+
+    it('should find all seasonal costumes via getCostumeById', () => {
+      // Test that the lookup function finds costumes from all seasons
+      const { getCostumeById } = require('@/types/costumes');
+
+      // Winter costumes
+      expect(getCostumeById('snowflake_collar')).toBeDefined();
+      expect(getCostumeById('ice_queen_crown')).toBeDefined();
+      expect(getCostumeById('aurora_wings')).toBeDefined();
+
+      // Spring costumes
+      expect(getCostumeById('cherry_blossom_bow')).toBeDefined();
+      expect(getCostumeById('butterfly_wings')).toBeDefined();
+      expect(getCostumeById('flower_crown')).toBeDefined();
+
+      // Summer costumes
+      expect(getCostumeById('beach_hat')).toBeDefined();
+      expect(getCostumeById('surfboard')).toBeDefined();
+      expect(getCostumeById('tropical_outfit')).toBeDefined();
+
+      // Autumn costumes
+      expect(getCostumeById('leaf_scarf')).toBeDefined();
+      expect(getCostumeById('pumpkin_hat')).toBeDefined();
+      expect(getCostumeById('harvest_outfit')).toBeDefined();
+    });
+
+    it('should reject purchasing unowned seasonal costume equip', () => {
+      const cat = createMockCat({ id: 'cat-1' });
+      mockDeps = createMockDependencies({
+        cats: [cat],
+        ownedCostumes: [], // No costumes owned
+      });
+      const { result } = renderHook(() => useCostumes(mockDeps.deps));
+
+      act(() => {
+        result.current.equipCostume('cat-1', 'ice_queen_crown');
+      });
+
+      expect(mockDeps.getState().catCostumes['cat-1']).toBeUndefined();
+      expect(mockDeps.getMessages()).toContainEqual(
+        expect.objectContaining({ msg: "You don't own this costume!", type: 'error' })
+      );
+    });
+  });
 });
