@@ -1,395 +1,218 @@
 
-# Data Protection & Recovery Enhancement Plan
+# Data Protection & Recovery Enhancement - Review & Documentation Update
 
-## Overview
+## Review Summary
 
-This plan implements three protection measures to prevent cat data loss:
-
-1. **Save Snapshots on Significant Events** - Capture snapshots when portraits are generated or purchases are made
-2. **Cat Orphan Detection** - Check for gallery photos referencing missing cats on game load
-3. **Portrait URL Persistence Check** - Verify portrait URLs on Empire page load and offer auto-repair
+I've analyzed the implemented features against the original plan. Here are my findings:
 
 ---
 
-## Feature 1: Enhanced Save Snapshots
+## Implementation Status
 
-### Current State
-The `useCloudSave.ts` hook already creates auto snapshots on every save. We need to add **event-triggered snapshots** with a specific type label for significant events.
+### Feature 1: Enhanced Save Snapshots
 
-### 1.1 - Update Edge Function: generate-cat-portrait
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `useEventSnapshots.ts` | ✅ Complete | Hook created with debouncing, pruning, and typed event types |
+| Edge function snapshot | ✅ Complete | `generate-cat-portrait/index.ts` inserts `portrait_generated` snapshot (lines 683-698) |
+| Integration into `useCatManagement.ts` | ❌ Not Done | `sellCat`/`addCat` don't call `createEventSnapshot` |
+| Integration into `useBreeding.ts` | ❌ Not Done | `breedCats` doesn't call `createEventSnapshot` |
+| Integration into `useCostumes.ts` | ❌ Not Done | `buyCostume` doesn't call `createEventSnapshot` |
 
-After successful portrait generation, trigger a snapshot with type `portrait_generated`.
+**Gap**: `createEventSnapshot` is exported from `useCloudHandlers` but never passed to or called from domain hooks.
 
-**File:** `supabase/functions/generate-cat-portrait/index.ts`
+### Feature 2: Cat Orphan Detection
 
-**Changes:**
-- After successful portrait upload (around line 684), insert a snapshot into `save_snapshots` table
-- Use the Supabase client to create a tagged snapshot with `snapshot_type: 'portrait_generated'`
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `useOrphanDetection.ts` | ✅ Complete | Hook with `checkForOrphans`, `dismissOrphans`, `createRecoveryCat` |
+| `OrphanRecoveryDialog.tsx` | ✅ Complete | Full dialog with selection, preview, recover functionality |
+| Integration into `useCloudHandlers.ts` | ✅ Complete | Calls `checkForOrphans` after cloud load, exports dialog state |
+| **Rendering in CatFarm.tsx** | ❌ Not Done | Dialog props exported but NOT rendered in any component |
 
-```typescript
-// After portrait is generated, create a recovery snapshot
-await supabase.from('save_snapshots').insert({
-  user_id: userId,
-  snapshot_type: 'portrait_generated',
-  cat_count: -1, // Will be updated by game on next save
-  cat_names: [cat.name],
-  day: -1,
-  money: -1,
-  game_state_hash: `portrait_${cat.id}_${Date.now()}`,
-});
-```
+**Gap**: `showOrphanDialog`, `orphanedCats`, `handleRecoverOrphans`, and `handleDismissOrphans` are returned from handlers but OrphanRecoveryDialog is never rendered in `CatFarmDialogs.tsx` or `CatFarm.tsx`.
 
-### 1.2 - New Hook: useEventSnapshots
+### Feature 3: Portrait URL Persistence Check
 
-**File:** `src/hooks/useEventSnapshots.ts`
-
-Create a hook to trigger snapshots on significant in-game events:
-
-```typescript
-export function useEventSnapshots(userId: string | undefined, state: GameState) {
-  const createEventSnapshot = useCallback(async (eventType: string, metadata?: Record<string, any>) => {
-    if (!userId) return;
-    
-    await supabase.from('save_snapshots').insert({
-      user_id: userId,
-      snapshot_type: eventType, // 'purchase', 'cat_sale', 'breeding_success', etc.
-      cat_count: state.cats.length,
-      cat_names: state.cats.map(c => c.name),
-      day: state.day,
-      money: state.money,
-      game_state_hash: generateHash(state, metadata),
-    });
-  }, [userId, state]);
-
-  return { createEventSnapshot };
-}
-```
-
-### 1.3 - Integrate Snapshots into Game Actions
-
-**File:** `src/hooks/game/useCatManagement.ts`
-
-Add snapshot triggers to significant actions:
-- `sellCat` → snapshot before sale
-- `adoptCat` / `addCat` → snapshot after adoption
-
-**File:** `src/hooks/game/useBreeding.ts`
-
-- `breedCats` success → snapshot after kitten is born
-
-**File:** `src/hooks/game/useCostumes.ts`
-
-- Costume purchase → snapshot before purchase
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `usePortraitReconciliation.ts` | ✅ Complete | Hook with `reconcilePortraits`, `autoRepairPortraits`, `repairedCount` |
+| Integration into `Empire.tsx` | ✅ Complete | Runs on load, auto-repairs, shows toast, triggers save |
 
 ---
 
-## Feature 2: Cat Orphan Detection
+## Issues to Fix
 
-### 2.1 - New Hook: useOrphanDetection
+### Issue 1: OrphanRecoveryDialog Not Rendered
 
-**File:** `src/hooks/useOrphanDetection.ts`
+The dialog component exists and all handlers are wired in `useCloudHandlers`, but it's never actually rendered.
 
-Checks for gallery photos that reference cat IDs not in the current save:
+**Fix**: Add to `CatFarmDialogs.tsx`:
+```tsx
+import { OrphanRecoveryDialog } from './OrphanRecoveryDialog';
 
-```typescript
-export interface OrphanedCat {
-  catId: string;
-  catName: string;
-  portraitUrl?: string;
-  galleryPhotoCount: number;
-  lastSeen: string;
-}
+// Add props:
+orphanedCats: OrphanedCat[];
+showOrphanDialog: boolean;
+onRecoverOrphans: (cats: OrphanedCat[]) => Promise<void>;
+onDismissOrphans: () => void;
 
-export function useOrphanDetection(userId: string | undefined, currentCatIds: string[]) {
-  const [orphanedCats, setOrphanedCats] = useState<OrphanedCat[]>([]);
-  const [isChecking, setIsChecking] = useState(false);
-
-  const checkForOrphans = useCallback(async () => {
-    if (!userId) return;
-    setIsChecking(true);
-
-    // 1. Get all gallery photos for this user
-    const { data: galleryPhotos } = await supabase
-      .from('gallery_photos')
-      .select('cat_id, cat_name')
-      .eq('user_id', userId);
-
-    // 2. Get AI portraits from ai_usage_log
-    const { data: aiLogs } = await supabase
-      .from('ai_usage_log')
-      .select('metadata')
-      .eq('user_id', userId)
-      .eq('function_name', 'generate-cat-portrait')
-      .eq('status', 'success');
-
-    // 3. Find cat IDs referenced in gallery but not in current save
-    const galleryCatIds = new Set(galleryPhotos?.map(p => p.cat_id) || []);
-    const currentCatIdSet = new Set(currentCatIds);
-    
-    const orphans: OrphanedCat[] = [];
-    galleryCatIds.forEach(catId => {
-      if (!currentCatIdSet.has(catId)) {
-        // Find portrait URL from AI logs
-        const logEntry = aiLogs?.find(l => l.metadata?.cat_id === catId);
-        const photo = galleryPhotos?.find(p => p.cat_id === catId);
-        
-        orphans.push({
-          catId,
-          catName: photo?.cat_name || 'Unknown',
-          portraitUrl: logEntry?.metadata?.portrait_url,
-          galleryPhotoCount: galleryPhotos?.filter(p => p.cat_id === catId).length || 0,
-          lastSeen: logEntry?.metadata?.created_at || 'Unknown',
-        });
-      }
-    });
-
-    setOrphanedCats(orphans);
-    setIsChecking(false);
-  }, [userId, currentCatIds]);
-
-  return { orphanedCats, isChecking, checkForOrphans };
-}
+// Render:
+<OrphanRecoveryDialog
+  orphanedCats={orphanedCats}
+  open={showOrphanDialog}
+  onClose={onDismissOrphans}
+  onRecover={onRecoverOrphans}
+/>
 ```
 
-### 2.2 - Recovery Dialog Component
+Then pass from `CatFarm.tsx` via handlers.
 
-**File:** `src/components/game/OrphanRecoveryDialog.tsx`
+### Issue 2: Event Snapshots Not Wired to Game Actions
 
-A dialog that appears when orphaned cats are detected:
+The original plan called for snapshots on sell/adopt/breed/purchase but the domain hooks don't have access to `createEventSnapshot`.
+
+**Architecture Challenge**: Domain hooks (`useCatManagement`, `useBreeding`, `useCostumes`) operate at a lower level and don't have access to `useCloudHandlers` which provides `createEventSnapshot`.
+
+**Solution Options**:
+
+A. **Pass snapshot function via dependencies** - Add `createEventSnapshot` to `GameHookDependencies` interface and thread it through.
+
+B. **Call from handler layer** - Wrap game actions at the handler level to create snapshots. Less invasive but requires wrapping every action.
+
+C. **Event-based approach** - Emit events from domain hooks that handlers listen for. More complex.
+
+**Recommended: Option A** - Cleanest integration with existing architecture.
+
+---
+
+## Documentation Updates Required
+
+### 1. Update `docs/CAT_DATA_SYNC.md`
+
+Add new sections:
+- Event-triggered snapshots
+- Orphan detection system  
+- Portrait reconciliation
+
+### 2. Update `docs/README.md`
+
+Add to Key Files by Feature table:
+- `useEventSnapshots.ts`
+- `useOrphanDetection.ts`
+- `usePortraitReconciliation.ts`
+- `OrphanRecoveryDialog.tsx`
+
+Add to Data Integrity Safeguards:
+- Event snapshots on portrait/sale/breed
+- Orphan detection after cloud load
+- Portrait URL auto-repair on Empire load
+
+### 3. Update `docs/HOOKS_ARCHITECTURE.md`
+
+Add new hooks to directory structure and describe integration pattern.
+
+### 4. Update `GAME_KNOWLEDGE.md`
+
+Add Data Protection section covering all three features.
+
+---
+
+## Files to Modify
+
+### Bug Fixes (4 files)
+
+| File | Change |
+|------|--------|
+| `src/components/game/CatFarmDialogs.tsx` | Add OrphanRecoveryDialog rendering |
+| `src/components/game/CatFarm.tsx` | Pass orphan dialog props to CatFarmDialogs |
+| `src/hooks/game/types.ts` | Add `createEventSnapshot` to GameHookDependencies |
+| `src/hooks/useGameState.ts` | Wire createEventSnapshot through to domain hooks |
+
+### Snapshot Integration (3 files)
+
+| File | Change |
+|------|--------|
+| `src/hooks/game/useCatManagement.ts` | Call `createEventSnapshot('cat_sold')` before sale, `createEventSnapshot('cat_adopted')` after adoption |
+| `src/hooks/game/useBreeding.ts` | Call `createEventSnapshot('breeding_success')` after successful breed |
+| `src/hooks/game/useCostumes.ts` | Call `createEventSnapshot('purchase')` after costume purchase |
+
+### Documentation (4 files)
+
+| File | Change |
+|------|--------|
+| `docs/CAT_DATA_SYNC.md` | Add sections for all 3 features with flow diagrams |
+| `docs/README.md` | Add hooks to Key Files, add to Data Integrity Safeguards |
+| `docs/HOOKS_ARCHITECTURE.md` | Document new hooks and integration pattern |
+| `GAME_KNOWLEDGE.md` | Add Data Protection & Recovery section |
+
+---
+
+## Implementation Order
+
+1. **Fix OrphanRecoveryDialog rendering** (critical - feature is broken)
+2. **Wire createEventSnapshot to domain hooks** (medium priority)
+3. **Update documentation** (low priority but important)
+
+---
+
+## Technical Details
+
+### OrphanRecoveryDialog Props Interface
 
 ```typescript
-interface OrphanRecoveryDialogProps {
-  orphanedCats: OrphanedCat[];
-  open: boolean;
-  onClose: () => void;
-  onRecover: (catIds: string[]) => Promise<void>;
-}
-
-export function OrphanRecoveryDialog({ orphanedCats, open, onClose, onRecover }: OrphanRecoveryDialogProps) {
-  // Shows list of orphaned cats with their portraits
-  // "Recover Selected" button to add them back to the game
-  // "Dismiss" to ignore
-}
-```
-
-### 2.3 - Integration into Cloud Load Flow
-
-**File:** `src/hooks/handlers/useCloudHandlers.ts`
-
-After successful cloud load, trigger orphan detection:
-
-```typescript
-// After loading cloud save successfully
-if (data) {
-  actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
+interface CatFarmDialogsProps {
+  // ... existing props ...
   
-  // Check for orphaned cats
-  const catIds = data.game_state.cats.map(c => c.id);
-  checkForOrphans(catIds);
+  // Orphan Recovery (NEW)
+  orphanedCats: OrphanedCat[];
+  showOrphanDialog: boolean;
+  onRecoverOrphans: (cats: OrphanedCat[]) => Promise<void>;
+  onDismissOrphans: () => void;
 }
 ```
 
----
-
-## Feature 3: Portrait URL Persistence Check
-
-### 3.1 - New Hook: usePortraitReconciliation
-
-**File:** `src/hooks/usePortraitReconciliation.ts`
-
-Verifies that cats with gallery photos have their `portraitUrl` populated:
+### GameHookDependencies Update
 
 ```typescript
-export interface MissingPortraitCat {
-  catId: string;
-  catName: string;
-  expectedPortraitUrl: string;
-}
-
-export function usePortraitReconciliation(
-  userId: string | undefined,
-  cats: Cat[],
-  updateCat: (catId: string, updates: Partial<Cat>) => void
-) {
-  const [missingPortraits, setMissingPortraits] = useState<MissingPortraitCat[]>([]);
-
-  const reconcilePortraits = useCallback(async () => {
-    if (!userId || cats.length === 0) return;
-
-    // 1. Get all successful AI portrait logs for this user
-    const { data: aiLogs } = await supabase
-      .from('ai_usage_log')
-      .select('metadata')
-      .eq('user_id', userId)
-      .eq('function_name', 'generate-cat-portrait')
-      .eq('status', 'success')
-      .order('created_at', { ascending: false });
-
-    if (!aiLogs) return;
-
-    // 2. Build a map of cat_id -> latest portrait_url
-    const portraitMap = new Map<string, string>();
-    aiLogs.forEach(log => {
-      const catId = log.metadata?.cat_id;
-      const url = log.metadata?.portrait_url;
-      if (catId && url && !portraitMap.has(catId)) {
-        portraitMap.set(catId, url);
-      }
-    });
-
-    // 3. Find cats that should have portraits but don't
-    const missing: MissingPortraitCat[] = [];
-    cats.forEach(cat => {
-      const expectedUrl = portraitMap.get(cat.id);
-      if (expectedUrl && !cat.portraitUrl) {
-        missing.push({
-          catId: cat.id,
-          catName: cat.name,
-          expectedPortraitUrl: expectedUrl,
-        });
-      }
-    });
-
-    setMissingPortraits(missing);
-  }, [userId, cats]);
-
-  const autoRepairPortraits = useCallback(async () => {
-    for (const missing of missingPortraits) {
-      updateCat(missing.catId, { portraitUrl: missing.expectedPortraitUrl });
-    }
-    setMissingPortraits([]);
-  }, [missingPortraits, updateCat]);
-
-  return { missingPortraits, reconcilePortraits, autoRepairPortraits };
+interface GameHookDependencies {
+  // ... existing fields ...
+  
+  /** Create a tagged snapshot for data recovery */
+  createEventSnapshot?: (
+    eventType: SnapshotEventType, 
+    catNames?: string[]
+  ) => Promise<void>;
 }
 ```
 
-### 3.2 - Empire Page Integration
-
-**File:** `src/pages/Empire.tsx`
-
-Add portrait reconciliation on page load:
+### Example Snapshot Call in useCatManagement
 
 ```typescript
-// After loading game state
-const { missingPortraits, reconcilePortraits, autoRepairPortraits } = usePortraitReconciliation(
-  user?.id,
-  state.cats,
-  actions.updateCat
-);
-
-// Run reconciliation after load
-useEffect(() => {
-  if (hasLoadedCloud && state.cats.length > 0) {
-    reconcilePortraits();
-  }
-}, [hasLoadedCloud, state.cats.length, reconcilePortraits]);
-
-// Auto-repair missing portraits
-useEffect(() => {
-  if (missingPortraits.length > 0) {
-    console.log(`[Empire] Auto-repairing ${missingPortraits.length} missing portrait URLs`);
-    autoRepairPortraits();
-    saveGame(); // Persist the repair
-  }
-}, [missingPortraits, autoRepairPortraits, saveGame]);
+const sellCat = useCallback((catId: string) => {
+  setState((prev) => {
+    const cat = prev.cats.find((c) => c.id === catId);
+    if (!cat) return prev;
+    
+    // Create snapshot BEFORE selling (for recovery)
+    deps.createEventSnapshot?.('cat_sold', [cat.name]);
+    
+    // ... rest of sell logic ...
+  });
+}, [deps]);
 ```
 
 ---
 
-## Files Summary
+## Summary
 
-### New Files (4 files)
+| Category | Status |
+|----------|--------|
+| Core hooks created | ✅ 3/3 complete |
+| Edge function updated | ✅ Complete |
+| UI dialog created | ✅ Complete |
+| UI dialog rendered | ❌ Missing |
+| Snapshot integration | ❌ Not wired to game actions |
+| Documentation | ❌ Not updated |
 
-| File | Purpose |
-|------|---------|
-| `src/hooks/useEventSnapshots.ts` | Trigger snapshots on significant game events |
-| `src/hooks/useOrphanDetection.ts` | Detect gallery photos referencing missing cats |
-| `src/hooks/usePortraitReconciliation.ts` | Verify and repair missing portrait URLs |
-| `src/components/game/OrphanRecoveryDialog.tsx` | UI for recovering lost cats |
-
-### Modified Files (6 files)
-
-| File | Changes |
-|------|---------|
-| `supabase/functions/generate-cat-portrait/index.ts` | Add snapshot after portrait generation |
-| `src/hooks/handlers/useCloudHandlers.ts` | Integrate orphan detection after cloud load |
-| `src/hooks/game/useCatManagement.ts` | Add snapshot triggers for sell/adopt |
-| `src/hooks/game/useBreeding.ts` | Add snapshot on breeding success |
-| `src/pages/Empire.tsx` | Add portrait reconciliation on page load |
-| `src/hooks/useCatFarmState.ts` | Add orphan detection to state |
-
----
-
-## Technical Flow Diagrams
-
-### Snapshot Flow
-```text
-User Action (portrait/purchase/breed)
-    ↓
-useEventSnapshots.createEventSnapshot()
-    ↓
-INSERT into save_snapshots table
-    ↓
-Background: Prune old snapshots (keep 10)
-```
-
-### Orphan Detection Flow
-```text
-Cloud Load Complete
-    ↓
-useOrphanDetection.checkForOrphans()
-    ↓
-Query gallery_photos + ai_usage_log
-    ↓
-Compare cat IDs with current save
-    ↓
-If orphans found → Show OrphanRecoveryDialog
-    ↓
-User selects cats → Inject into game_state
-    ↓
-Trigger cloud save
-```
-
-### Portrait Reconciliation Flow
-```text
-Empire Page Load
-    ↓
-usePortraitReconciliation.reconcilePortraits()
-    ↓
-Query ai_usage_log for portrait URLs
-    ↓
-Compare with cat.portraitUrl
-    ↓
-If missing → autoRepairPortraits()
-    ↓
-Update cats in state
-    ↓
-Save to cloud
-```
-
----
-
-## Implementation Priority
-
-1. **Portrait Reconciliation** (simplest, immediate value for Empire page)
-2. **Orphan Detection** (catches data loss after the fact)
-3. **Event Snapshots** (prevents future data loss)
-
----
-
-## Database Requirements
-
-No new tables needed - uses existing:
-- `save_snapshots` (with new `snapshot_type` values: `portrait_generated`, `purchase`, `cat_sold`, `breeding_success`)
-- `gallery_photos` (read-only)
-- `ai_usage_log` (read-only)
-
----
-
-## Testing Considerations
-
-- Test orphan detection with a user who has gallery photos but missing cats
-- Test portrait reconciliation by manually clearing `portraitUrl` from a cat
-- Verify snapshots are created on portrait generation, purchases, and breeding
-- Ensure auto-repair doesn't trigger infinite save loops
+The implementation is approximately **60% complete**. The hooks and components exist but integration and documentation are missing.
