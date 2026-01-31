@@ -501,13 +501,15 @@ export function useRepairGameSave() {
       }
 
       // Apply repair to database
-      const { error: updateError } = await supabase
+      const { data: updatedData, error: updateError } = await supabase
         .from('game_saves')
         .update({
           game_state: repairedState as unknown as Json,
           last_played_at: new Date().toISOString(),
         })
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .select()
+        .single();
 
       if (updateError) {
         return {
@@ -516,6 +518,16 @@ export function useRepairGameSave() {
           changesApplied: [],
           success: false,
           error: 'Failed to update save',
+        };
+      }
+
+      if (!updatedData) {
+        return {
+          userId,
+          issuesFound,
+          changesApplied: [],
+          success: false,
+          error: 'Update blocked - insufficient admin permissions',
         };
       }
 
@@ -587,15 +599,17 @@ export function useBulkRepairGameSaves() {
 
         const { repairedState, changes } = repairGameState(gameState);
 
-        const { error: updateError } = await supabase
+        const { data: updatedData, error: updateError } = await supabase
           .from('game_saves')
           .update({
             game_state: repairedState as unknown as Json,
             last_played_at: new Date().toISOString(),
           })
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .select()
+          .single();
 
-        if (updateError) {
+        if (updateError || !updatedData) {
           results.push({
             userId,
             issuesFound: issues.map((i) => `${i.field}: ${i.currentValue}`),
