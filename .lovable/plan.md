@@ -1,180 +1,254 @@
 
-# Admin Portal User Management - Issue Analysis & Fix Plan
 
-## Executive Summary
+# Dynamic Import Failure Fix Plan
 
-**Problem**: When an admin modifies a user's money/inventory through the Admin Portal's User Management feature, the operation appears successful (shows toast "Inventory Updated" and logs to `admin_activity_log`) but the **actual database changes are silently rejected due to missing RLS policies**.
+## Problem Analysis
 
-**Affected User**: Rebecca Roos (rebeccaroos@live.com)
-- User ID: `7ddf185d-137a-436a-8a55-0c1e5e5d74f1`
-- Current Money: $150 (unchanged despite multiple admin modification attempts)
-- Admin Activity Log shows 12+ modification attempts from $150 → $20,000/$50,000/$60,000/$80,000
-
----
-
-## Root Cause Analysis
-
-### The Bug
-
-The `game_saves` table has an **RLS policy gap**:
-
-| Policy | Command | Expression |
-|--------|---------|------------|
-| "Admins can view all game saves" | SELECT | `has_role(auth.uid(), 'admin'::app_role)` |
-| "Users can insert their own saves" | INSERT | `auth.uid() = user_id` |
-| "Users can update their own saves" | UPDATE | `auth.uid() = user_id` |
-| "Users can view their own saves" | SELECT | `auth.uid() = user_id` |
-
-**Missing**: There is no `UPDATE` policy for admins on `game_saves`.
-
-### Why It Appears Successful
-
-In `PlayerInventoryEditor.tsx` (lines 148-167):
-
-```typescript
-const { error } = await supabase
-  .from('game_saves')
-  .update({ game_state: updatedGameState as Json })
-  .eq('user_id', userId);
-
-if (error) throw error;  // ← Only checks for explicit errors
-
-// Activity is logged AFTER the update (which silently failed)
-await logActivity({...});
-
-toast({
-  title: 'Inventory Updated',  // ← Shows success even though 0 rows updated
-  description: 'Player inventory has been modified successfully.',
-});
+### The Error
+```
+Failed to fetch dynamically imported module: 
+https://id-preview-d01b9c7d--e8e83e8c-0c77-43d8-8d1e-9f913ade2ac9.lovable.app/assets/Index-CRUofOJP.js
 ```
 
-**Supabase behavior**: When RLS blocks an UPDATE, it returns `{ error: null, data: null, count: 0 }` - no error is thrown, but zero rows are affected.
+### Root Cause
+This error occurs when React's `lazy()` tries to load a code-split chunk that no longer exists or can't be fetched. Common causes:
 
----
+1. **Build Hash Mismatch**: After a new deployment, old chunk hashes (like `Index-CRUofOJP.js`) become invalid while the browser still has the old HTML/JS cached
+2. **Service Worker Caching**: The SW uses cache-first for `.js` files, potentially serving stale references
+3. **No Retry Mechanism**: Current lazy imports have no retry logic - they fail immediately
+4. **No Recovery Path**: ErrorBoundary catches the error but "Try Again" just retries the same failed import
 
-## Complete Admin User Management Documentation
-
-### Architecture Overview
+### Current Architecture Gap
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    ADMIN USER MANAGEMENT                         │
+│                   CURRENT FLOW (PROBLEMATIC)                    │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│  AdminUsers.tsx                                                  │
-│  └── User list with search, pagination, bulk actions             │
-│      └── UserDetailModal.tsx                                     │
-│          ├── Overview Tab (read-only stats)                      │
-│          ├── Inventory Tab                                       │
-│          │   └── PlayerInventoryEditor.tsx ⚠️ BROKEN             │
-│          │       ├── Money editing          ❌ RLS blocks UPDATE │
-│          │       ├── Resources editing      ❌ RLS blocks UPDATE │
-│          │       ├── Portrait Credits       ✅ Works (has policy)│
-│          │       └── Game Reset             ❌ RLS blocks UPDATE │
-│          ├── Profile Tab                                         │
-│          │   └── ProfileEditor.tsx          ✅ Works (has policy)│
-│          ├── Cats Tab (read-only)                                │
-│          ├── Trades Tab (read-only)                              │
-│          ├── Gifts Tab (read-only)                               │
-│          │   └── AdminGiftCatDialog.tsx     ✅ Works (has policy)│
-│          └── Errors Tab (read-only)                              │
+│  User clicks link to "/"                                         │
+│         ↓                                                        │
+│  lazy(() => import('./pages/Index'))                             │
+│         ↓                                                        │
+│  Browser requests /assets/Index-CRUofOJP.js                      │
+│         ↓                                                        │
+│  Service Worker (cache-first) → Cache MISS or STALE              │
+│         ↓                                                        │
+│  Network request → 404 (chunk deleted after redeploy)            │
+│         ↓                                                        │
+│  TypeError: Failed to fetch dynamically imported module          │
+│         ↓                                                        │
+│  ErrorBoundary shows error page                                  │
+│         ↓                                                        │
+│  User clicks "Try Again" → SAME ERROR (cache not cleared)        │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Working Features
-
-| Feature | Table | Why It Works |
-|---------|-------|--------------|
-| Profile editing | `profiles` | Has admin UPDATE policy |
-| Cat gifting | `cat_gifts` | Has admin INSERT/UPDATE policies |
-| Portrait credits | `player_portrait_credits` | Has admin ALL policy |
-| Role changes | `user_roles` | Has admin INSERT/DELETE policies |
-| Suspension | `profiles` | Has admin UPDATE policy |
-| User deletion | `profiles` (edge function) | Uses service role |
-
-### Broken Features
-
-| Feature | Table | Why It Fails |
-|---------|-------|--------------|
-| Money modification | `game_saves` | NO admin UPDATE policy |
-| Resources modification | `game_saves` | NO admin UPDATE policy |
-| Game reset | `game_saves` | NO admin UPDATE policy |
-| Corrupted save repair | `game_saves` | NO admin UPDATE policy |
-
 ---
 
-## Fix Plan
+## Solution
 
-### Phase 1: Add Missing RLS Policy (Database)
+### 1. Add Lazy Import Retry Wrapper
 
-Add an UPDATE policy for admins on the `game_saves` table:
+Create a utility that wraps `lazy()` with automatic retry logic and cache-busting:
 
-```sql
-CREATE POLICY "Admins can update game saves"
-  ON public.game_saves
-  FOR UPDATE
-  USING (has_role(auth.uid(), 'admin'::app_role));
-```
-
-### Phase 2: Improve Error Detection (Code)
-
-Update `PlayerInventoryEditor.tsx` to verify the update actually succeeded:
-
-**Current code (broken)**:
 ```typescript
-const { error } = await supabase
-  .from('game_saves')
-  .update({ game_state: updatedGameState as Json })
-  .eq('user_id', userId);
+// src/lib/lazyWithRetry.ts
 
-if (error) throw error;
-```
+/**
+ * Wraps React.lazy() with retry logic and cache-busting for dynamic imports
+ * Handles "Failed to fetch dynamically imported module" errors
+ */
+export function lazyWithRetry<T extends React.ComponentType<unknown>>(
+  importFn: () => Promise<{ default: T }>,
+  retries = 3,
+  retryDelay = 1000
+): React.LazyExoticComponent<T> {
+  return lazy(async () => {
+    let lastError: Error | undefined;
+    
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        return await importFn();
+      } catch (error) {
+        lastError = error as Error;
+        
+        // Check if this is a chunk loading error
+        if (isChunkLoadError(error)) {
+          console.warn(`[lazyWithRetry] Chunk load failed, attempt ${attempt + 1}/${retries}`);
+          
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, retryDelay * (attempt + 1)));
+          
+          // On final retry, try clearing service worker cache
+          if (attempt === retries - 2) {
+            await clearServiceWorkerCache();
+          }
+          
+          // Force page reload on last attempt (gets fresh chunk manifest)
+          if (attempt === retries - 1) {
+            console.warn('[lazyWithRetry] Final attempt failed, triggering reload');
+            window.location.reload();
+            // Return a never-resolving promise to prevent further execution
+            return new Promise(() => {});
+          }
+        } else {
+          // Non-chunk error, don't retry
+          throw error;
+        }
+      }
+    }
+    
+    throw lastError;
+  });
+}
 
-**Fixed code**:
-```typescript
-const { error, count } = await supabase
-  .from('game_saves')
-  .update({ game_state: updatedGameState as Json })
-  .eq('user_id', userId)
-  .select();  // Returns the updated row(s)
+function isChunkLoadError(error: unknown): boolean {
+  const message = (error as Error)?.message || '';
+  return (
+    message.includes('Failed to fetch dynamically imported module') ||
+    message.includes('Loading chunk') ||
+    message.includes('ChunkLoadError')
+  );
+}
 
-if (error) throw error;
-if (!count || count === 0) {
-  throw new Error('Update failed - no rows were affected. Check admin permissions.');
+async function clearServiceWorkerCache(): Promise<void> {
+  if ('caches' in window) {
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(key => caches.delete(key)));
+      console.log('[lazyWithRetry] Service worker caches cleared');
+    } catch (e) {
+      console.warn('[lazyWithRetry] Failed to clear caches:', e);
+    }
+  }
 }
 ```
 
-Alternatively, use `.select()` and check if data is returned:
-```typescript
-const { data, error } = await supabase
-  .from('game_saves')
-  .update({ game_state: updatedGameState as Json })
-  .eq('user_id', userId)
-  .select()
-  .single();
+### 2. Update App.tsx to Use Retry Wrapper
 
-if (error) throw error;
-if (!data) {
-  throw new Error('Update blocked - insufficient permissions');
+Replace all `lazy()` calls with `lazyWithRetry()`:
+
+```typescript
+// Before
+const Index = lazy(() => import('./pages/Index'));
+
+// After
+const Index = lazyWithRetry(() => import('./pages/Index'));
+```
+
+### 3. Improve Service Worker Caching Strategy
+
+Update `public/sw.js` to use a smarter caching strategy for JS chunks:
+
+```javascript
+// For JS assets, use network-first with cache fallback
+// This ensures fresh chunks are always fetched after deployments
+async function cacheFirst(request) {
+  const url = new URL(request.url);
+  
+  // For hashed JS chunks (e.g., Index-CRUofOJP.js), use network-first
+  // They change on every deploy, so cache-first causes stale chunk issues
+  if (url.pathname.match(/assets\/.*-[a-zA-Z0-9]{8}\.js$/)) {
+    return networkFirstForChunks(request);
+  }
+  
+  // Original cache-first for truly static assets (images, fonts, CSS)
+  const cached = await caches.match(request);
+  if (cached) return cached;
+  
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(RUNTIME_CACHE);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    console.error('Fetch failed:', error);
+    throw error;
+  }
+}
+
+async function networkFirstForChunks(request) {
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(RUNTIME_CACHE);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    // Fall back to cache only if network fails
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    throw error;
+  }
 }
 ```
 
-### Phase 3: Fix Game Reset Function
+### 4. Add Version Check for Stale Clients
 
-Apply the same pattern to `handleResetGame` function (lines 274-347).
+Add a mechanism to detect when the app has been updated:
 
-### Phase 4: Fix Corrupted Saves Repair
+```typescript
+// src/hooks/useVersionCheck.ts
+import { useEffect } from 'react';
 
-Apply the same pattern to `useAdminCorruptedSaves.ts` repair functions.
+const BUILD_VERSION = import.meta.env.VITE_BUILD_VERSION || Date.now().toString();
 
-### Phase 5: Review Other Admin Tables
+export function useVersionCheck() {
+  useEffect(() => {
+    // Check version on visibility change (tab comes back into focus)
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        try {
+          const response = await fetch('/version.json', { cache: 'no-store' });
+          if (response.ok) {
+            const { version } = await response.json();
+            if (version && version !== BUILD_VERSION) {
+              console.log('[VersionCheck] New version detected, reloading...');
+              window.location.reload();
+            }
+          }
+        } catch {
+          // Silently fail - version check is optional
+        }
+      }
+    };
 
-Consider adding admin UPDATE policies to:
-- `daily_objectives_progress` - if admins need to reset objectives
-- `player_friends` - if admins need to manage friendships  
-- `coop_challenge_invites` - if admins need to manage invites
-- `user_roles` - already has INSERT/DELETE, may need UPDATE
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+}
+```
+
+### 5. Enhance ErrorBoundary for Chunk Errors
+
+Update ErrorBoundary to specifically handle chunk loading errors:
+
+```typescript
+// Add to ErrorBoundary.tsx
+
+handleRetry = () => {
+  const error = this.state.error;
+  
+  // If this is a chunk load error, clear caches and reload
+  if (error?.message?.includes('Failed to fetch dynamically imported module')) {
+    // Clear all caches
+    if ('caches' in window) {
+      caches.keys().then(keys => 
+        Promise.all(keys.map(key => caches.delete(key)))
+      );
+    }
+    // Force full reload to get fresh manifest
+    window.location.reload();
+    return;
+  }
+  
+  // Existing retry logic...
+};
+```
 
 ---
 
@@ -182,63 +256,53 @@ Consider adding admin UPDATE policies to:
 
 | File | Change |
 |------|--------|
-| **Database Migration** | Add admin UPDATE policy on `game_saves` |
-| `src/components/admin/PlayerInventoryEditor.tsx` | Add row count verification |
-| `src/hooks/admin/useAdminCorruptedSaves.ts` | Add row count verification |
+| `src/lib/lazyWithRetry.ts` | **NEW** - Create retry wrapper utility |
+| `src/App.tsx` | Replace `lazy()` with `lazyWithRetry()` |
+| `public/sw.js` | Update to network-first for hashed JS chunks |
+| `src/components/ErrorBoundary.tsx` | Add chunk error detection and cache-clearing |
+| `vite.config.ts` | Add build version to environment |
 
 ---
 
-## Verification Steps
+## Expected Outcome
 
-After fix is applied:
+After implementation:
 
-1. Open Admin Portal → User Management
-2. Search for "Rebecca Roos"
-3. Click View (eye icon) to open UserDetailModal
-4. Go to "Inventory" tab
-5. Change money from 150 to 80000
-6. Enter reason and click "Save Changes"
-7. Verify toast shows success
-8. Close and reopen modal - money should show 80000
-9. Check database: `SELECT game_state->>'money' FROM game_saves WHERE user_id = '7ddf185d-137a-436a-8a55-0c1e5e5d74f1'`
-
----
-
-## Related Tables Needing Admin UPDATE Policies
-
-Based on the RLS analysis, these tables have admin SELECT but no admin UPDATE:
-
-| Table | Needs Policy? | Reason |
-|-------|---------------|--------|
-| `game_saves` | **YES** | Critical for inventory editing |
-| `admin_activity_log` | No | Intentional (audit immutable) |
-| `ai_usage_log` | No | Intentional (log immutable) |
-| `auth_attempts_log` | No | Intentional (log immutable) |
-| `daily_objectives_progress` | Maybe | For objective resets |
-| `gallery_photos` | No | Low admin need |
-| `leaderboard_snapshots` | No | Historical data |
-| `player_activity_log` | No | Intentional (log immutable) |
-| `player_friends` | Maybe | For friendship management |
-| `coop_challenge_invites` | Maybe | For invite management |
-| `push_subscriptions` | No | Low admin need |
-| `rank_history` | No | Historical data |
-| `retired_cats` | No | Low admin need |
-| `rewards_processing_log` | No | Intentional (log immutable) |
-| `save_snapshots` | No | Backup data |
-| `security_scan_history` | No | Intentional (log immutable) |
-| `sync_health_log` | No | Intentional (log immutable) |
-| `tutorial_analytics` | No | Intentional (log immutable) |
-| `user_roles` | Maybe | For role updates (currently delete+insert) |
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      FIXED FLOW                                  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  User clicks link to "/"                                         │
+│         ↓                                                        │
+│  lazyWithRetry(() => import('./pages/Index'))                    │
+│         ↓                                                        │
+│  Attempt 1: Network request → 404 (stale chunk)                  │
+│         ↓                                                        │
+│  Retry with exponential backoff (1s, 2s, 3s)                     │
+│         ↓                                                        │
+│  Attempt 2: Still fails                                          │
+│         ↓                                                        │
+│  Clear service worker cache                                      │
+│         ↓                                                        │
+│  Attempt 3: Still fails                                          │
+│         ↓                                                        │
+│  Automatic page reload (gets fresh HTML with new chunk hashes)   │
+│         ↓                                                        │
+│  SUCCESS - App loads with correct chunks                         │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Summary
+## Technical Notes
 
-**Root Cause**: Missing RLS UPDATE policy for admins on `game_saves` table.
+1. **Why network-first for hashed chunks?**: Vite generates content-hashed filenames (e.g., `Index-CRUofOJP.js`). After a new deploy, these hashes change but the browser may have cached references to old hashes. Network-first ensures the browser always checks for the latest version.
 
-**Impact**: All money/resource/game reset modifications from admin portal silently fail.
+2. **Why exponential backoff?**: Network issues may be transient. Waiting longer between retries gives temporary issues time to resolve.
 
-**Fix**: 
-1. Add RLS policy: `"Admins can update game saves"` with `has_role(auth.uid(), 'admin'::app_role)`
-2. Update code to verify row count after updates
-3. Update documentation
+3. **Why clear SW cache before final retry?**: The service worker might be serving stale responses from its cache. Clearing it forces a fresh network fetch.
+
+4. **Why auto-reload as last resort?**: If all retries fail, the HTML itself is likely stale (pointing to old chunk hashes). A full reload gets fresh HTML with the correct chunk manifest.
+
