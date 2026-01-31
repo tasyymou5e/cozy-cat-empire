@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react';
+import { Suspense } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -11,6 +11,7 @@ import { CatReactionProvider } from './contexts/CatReactionContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ErrorLoggerProvider } from './components/ErrorLoggerProvider';
 import { AdminRoute } from './components/admin/AdminRoute';
+import { lazyWithRetry } from './lib/lazyWithRetry';
 
 // Page loading fallback component
 const PageLoader = () => (
@@ -22,38 +23,38 @@ const PageLoader = () => (
   </div>
 );
 
-// Lazy load all page components for route-level code splitting
-const Index = lazy(() => import('./pages/Index'));
-const CatCollection = lazy(() => import('./pages/CatCollection'));
-const CatCustomization = lazy(() => import('./pages/CatCustomization'));
-const CatPhotoBooth = lazy(() => import('./pages/CatPhotoBooth'));
-const CatGallery = lazy(() => import('./pages/CatGallery'));
-const CatRelationships = lazy(() => import('./pages/CatRelationships'));
-const Leaderboard = lazy(() => import('./pages/Leaderboard'));
-const Stats = lazy(() => import('./pages/Stats'));
-const Empire = lazy(() => import('./pages/Empire'));
-const Auth = lazy(() => import('./pages/Auth'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+// Lazy load all page components with retry logic for chunk load resilience
+const Index = lazyWithRetry(() => import('./pages/Index'));
+const CatCollection = lazyWithRetry(() => import('./pages/CatCollection'));
+const CatCustomization = lazyWithRetry(() => import('./pages/CatCustomization'));
+const CatPhotoBooth = lazyWithRetry(() => import('./pages/CatPhotoBooth'));
+const CatGallery = lazyWithRetry(() => import('./pages/CatGallery'));
+const CatRelationships = lazyWithRetry(() => import('./pages/CatRelationships'));
+const Leaderboard = lazyWithRetry(() => import('./pages/Leaderboard'));
+const Stats = lazyWithRetry(() => import('./pages/Stats'));
+const Empire = lazyWithRetry(() => import('./pages/Empire'));
+const Auth = lazyWithRetry(() => import('./pages/Auth'));
+const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
 
-// Admin pages - lazy loaded separately
-const AdminAuth = lazy(() => import('./pages/AdminAuth'));
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
-const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'));
-const AdminStatistics = lazy(() => import('./pages/admin/AdminStatistics'));
-const AdminTutorialAnalytics = lazy(() => import('./pages/admin/AdminTutorialAnalytics'));
-const AdminErrorLogs = lazy(() => import('./pages/admin/AdminErrorLogs'));
-const AdminModeration = lazy(() => import('./pages/admin/AdminModeration'));
-const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
-const AdminAnnouncements = lazy(() => import('./pages/admin/AdminAnnouncements'));
-const AdminAIMetrics = lazy(() => import('./pages/admin/AdminAIMetrics'));
-const AdminGameConfig = lazy(() => import('./pages/admin/AdminGameConfig'));
-const AdminBattlePass = lazy(() => import('./pages/admin/AdminBattlePass'));
-const AdminNotifications = lazy(() => import('./pages/admin/AdminNotifications'));
-const AdminProfileRepair = lazy(() => import('./pages/admin/AdminProfileRepair'));
-const AdminScheduledJobs = lazy(() => import('./pages/admin/AdminScheduledJobs'));
-const AdminSecurity = lazy(() => import('./pages/admin/AdminSecurity'));
-const AdminGameSaveRepair = lazy(() => import('./pages/admin/AdminGameSaveRepair'));
-const AdminSaveRecovery = lazy(() => import('./pages/admin/AdminSaveRecovery'));
+// Admin pages - lazy loaded with retry
+const AdminAuth = lazyWithRetry(() => import('./pages/AdminAuth'));
+const AdminDashboard = lazyWithRetry(() => import('./pages/admin/AdminDashboard'));
+const AdminUsers = lazyWithRetry(() => import('./pages/admin/AdminUsers'));
+const AdminStatistics = lazyWithRetry(() => import('./pages/admin/AdminStatistics'));
+const AdminTutorialAnalytics = lazyWithRetry(() => import('./pages/admin/AdminTutorialAnalytics'));
+const AdminErrorLogs = lazyWithRetry(() => import('./pages/admin/AdminErrorLogs'));
+const AdminModeration = lazyWithRetry(() => import('./pages/admin/AdminModeration'));
+const AdminSettings = lazyWithRetry(() => import('./pages/admin/AdminSettings'));
+const AdminAnnouncements = lazyWithRetry(() => import('./pages/admin/AdminAnnouncements'));
+const AdminAIMetrics = lazyWithRetry(() => import('./pages/admin/AdminAIMetrics'));
+const AdminGameConfig = lazyWithRetry(() => import('./pages/admin/AdminGameConfig'));
+const AdminBattlePass = lazyWithRetry(() => import('./pages/admin/AdminBattlePass'));
+const AdminNotifications = lazyWithRetry(() => import('./pages/admin/AdminNotifications'));
+const AdminProfileRepair = lazyWithRetry(() => import('./pages/admin/AdminProfileRepair'));
+const AdminScheduledJobs = lazyWithRetry(() => import('./pages/admin/AdminScheduledJobs'));
+const AdminSecurity = lazyWithRetry(() => import('./pages/admin/AdminSecurity'));
+const AdminGameSaveRepair = lazyWithRetry(() => import('./pages/admin/AdminGameSaveRepair'));
+const AdminSaveRecovery = lazyWithRetry(() => import('./pages/admin/AdminSaveRecovery'));
 
 const queryClient = new QueryClient();
 
