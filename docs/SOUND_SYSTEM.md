@@ -350,3 +350,10 @@ setMusicVolume(0.15);  // 0-0.3 range
 | Rivalry event | Angry meow plays |
 | Achievement unlocked | Purr+meow plays |
 | Legendary event | Lion roar plays |
+
+---
+
+## Related Documentation
+
+- [GAME_EVENT_SOUNDS.md](./GAME_EVENT_SOUNDS.md) - Game event to SoundType mapping
+- [SOUND_LIBRARY.md](./SOUND_LIBRARY.md) - Available audio files catalog
