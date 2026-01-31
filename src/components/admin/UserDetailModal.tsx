@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -6,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import {
   Cat,
@@ -19,6 +21,7 @@ import {
 } from 'lucide-react';
 import { PlayerInventoryEditor } from './PlayerInventoryEditor';
 import { ProfileEditor } from './ProfileEditor';
+import { AdminGiftCatDialog } from './AdminGiftCatDialog';
 
 interface UserDetailModalProps {
   userId: string | null;
@@ -27,6 +30,8 @@ interface UserDetailModalProps {
 
 export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
   const queryClient = useQueryClient();
+  const [giftDialogOpen, setGiftDialogOpen] = useState(false);
+
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['admin-user-detail', userId],
     queryFn: async () => {
@@ -125,14 +130,26 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
   const resources = (gameStateData?.resources as Record<string, unknown>) || {};
 
   return (
-    <Dialog open={!!userId} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-3xl max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {user?.avatar_emoji || '😺'} {user?.display_name || user?.email || 'User Details'}
-            {user?.suspended_at && <Badge variant="destructive">Suspended</Badge>}
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={!!userId} onOpenChange={() => onClose()}>
+        <DialogContent className="max-w-3xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {user?.avatar_emoji || '😺'} {user?.display_name || user?.email || 'User Details'}
+              {user?.suspended_at && <Badge variant="destructive">Suspended</Badge>}
+              {userId && !user?.suspended_at && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto"
+                  onClick={() => setGiftDialogOpen(true)}
+                >
+                  <Gift className="h-4 w-4 mr-1" />
+                  Gift Cat
+                </Button>
+              )}
+            </DialogTitle>
+          </DialogHeader>
 
         {isLoading ? (
           <div className="space-y-4">
@@ -402,10 +419,24 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
                   ))
                 )}
               </TabsContent>
-            </ScrollArea>
-          </Tabs>
-        )}
-      </DialogContent>
-    </Dialog>
+              </ScrollArea>
+            </Tabs>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Gift Cat Dialog */}
+      {userId && (
+        <AdminGiftCatDialog
+          open={giftDialogOpen}
+          onOpenChange={setGiftDialogOpen}
+          recipientId={userId}
+          recipientName={user?.display_name || user?.email || 'User'}
+          onGiftSent={() => {
+            queryClient.invalidateQueries({ queryKey: ['admin-user-gifts', userId] });
+          }}
+        />
+      )}
+    </>
   );
 }
