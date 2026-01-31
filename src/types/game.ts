@@ -124,6 +124,10 @@ export interface Cat {
   appearanceHash?: string;
   /** Specialization data if cat is specialized */
   specialization?: CatSpecializationData;
+  /** Prestige level (0-3 stars) for permanent bonuses */
+  prestigeLevel?: number;
+  /** Total times this cat has prestiged */
+  totalPrestiges?: number;
 }
 
 // ============================================================================

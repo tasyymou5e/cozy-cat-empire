@@ -383,6 +383,231 @@ export type Database = {
         }
         Relationships: []
       }
+      club_challenges: {
+        Row: {
+          challenge_type: string
+          club_id: string
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          current_progress: number | null
+          description: string | null
+          emoji: string | null
+          ends_at: string
+          id: string
+          name: string
+          reward_badge: string | null
+          reward_coins: number
+          starts_at: string
+          target_value: number
+        }
+        Insert: {
+          challenge_type: string
+          club_id: string
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_progress?: number | null
+          description?: string | null
+          emoji?: string | null
+          ends_at: string
+          id?: string
+          name: string
+          reward_badge?: string | null
+          reward_coins: number
+          starts_at: string
+          target_value: number
+        }
+        Update: {
+          challenge_type?: string
+          club_id?: string
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_progress?: number | null
+          description?: string | null
+          emoji?: string | null
+          ends_at?: string
+          id?: string
+          name?: string
+          reward_badge?: string | null
+          reward_coins?: number
+          starts_at?: string
+          target_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_challenges_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_invites: {
+        Row: {
+          club_id: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          invitee_id: string
+          inviter_id: string
+          status: string | null
+        }
+        Insert: {
+          club_id: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          invitee_id: string
+          inviter_id: string
+          status?: string | null
+        }
+        Update: {
+          club_id?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          invitee_id?: string
+          inviter_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_invites_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_invites_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_invites_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_invites_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_invites_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_members: {
+        Row: {
+          club_id: string
+          id: string
+          joined_at: string | null
+          role: string | null
+          user_id: string
+          weekly_contribution: number | null
+        }
+        Insert: {
+          club_id: string
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id: string
+          weekly_contribution?: number | null
+        }
+        Update: {
+          club_id?: string
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id?: string
+          weekly_contribution?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_members_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clubs: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          emoji: string | null
+          id: string
+          name: string
+          owner_id: string
+          total_xp: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          emoji?: string | null
+          id?: string
+          name: string
+          owner_id: string
+          total_xp?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          emoji?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
+          total_xp?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clubs_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clubs_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coop_challenge_invites: {
         Row: {
           challenge_data: Json
@@ -827,6 +1052,48 @@ export type Database = {
         }
         Relationships: []
       }
+      player_badges: {
+        Row: {
+          badge_id: string
+          created_at: string | null
+          id: string
+          is_displayed: boolean | null
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          created_at?: string | null
+          id?: string
+          is_displayed?: boolean | null
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          created_at?: string | null
+          id?: string
+          is_displayed?: boolean | null
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_challenge_progress: {
         Row: {
           challenge_id: string | null
@@ -1120,9 +1387,11 @@ export type Database = {
         Row: {
           avatar_emoji: string | null
           created_at: string | null
+          display_badges: string[] | null
           display_name: string | null
           email: string | null
           id: string
+          profile_frame: string | null
           suspended_at: string | null
           suspension_reason: string | null
           updated_at: string | null
@@ -1131,9 +1400,11 @@ export type Database = {
         Insert: {
           avatar_emoji?: string | null
           created_at?: string | null
+          display_badges?: string[] | null
           display_name?: string | null
           email?: string | null
           id: string
+          profile_frame?: string | null
           suspended_at?: string | null
           suspension_reason?: string | null
           updated_at?: string | null
@@ -1142,9 +1413,11 @@ export type Database = {
         Update: {
           avatar_emoji?: string | null
           created_at?: string | null
+          display_badges?: string[] | null
           display_name?: string | null
           email?: string | null
           id?: string
+          profile_frame?: string | null
           suspended_at?: string | null
           suspension_reason?: string | null
           updated_at?: string | null

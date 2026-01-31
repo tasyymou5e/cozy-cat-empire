@@ -27,7 +27,9 @@ export const TAB_LABELS: Record<string, { label: string; icon: string }> = {
   collection: { label: 'Collection', icon: '📚' },
   legacy: { label: 'Hall of Fame', icon: '👑' },
   specializations: { label: 'Specializations', icon: '✨' },
+  prestige: { label: 'Prestige', icon: '⭐' },
   battlepass: { label: 'Season Pass', icon: '📜' },
   coop: { label: 'Co-op', icon: '🤝' },
+  clubs: { label: 'Club', icon: '🏰' },
   more: { label: 'Settings', icon: '⚙️' },
 };
