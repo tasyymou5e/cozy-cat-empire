@@ -17,6 +17,7 @@ import {
   ProgressPanels,
   SocialFeaturesPanels,
   UtilityPanels,
+  PrestigePanels,
 } from './panels';
 
 // Panel and UI components
@@ -346,6 +347,12 @@ export function CatFarm() {
                 onDeclineCoopInvite={coopChallenges.declineInvite}
                 onCancelCoopInvite={coopChallenges.cancelInvite}
                 onClaimCoopReward={handleClaimCoopReward}
+              />
+              <PrestigePanels
+                cats={state.cats}
+                catCostumes={state.catCostumes}
+                onPrestigeCat={(catId, updates) => actions.updateCat?.(catId, updates)}
+                onUnlockCostume={actions.buyCostume}
               />
               <UtilityPanels
                 cats={state.cats}
@@ -683,6 +690,12 @@ export function CatFarm() {
                     onDeclineCoopInvite={coopChallenges.declineInvite}
                     onCancelCoopInvite={coopChallenges.cancelInvite}
                     onClaimCoopReward={handleClaimCoopReward}
+                  />
+                  <PrestigePanels
+                    cats={state.cats}
+                    catCostumes={state.catCostumes}
+                    onPrestigeCat={(catId, updates) => actions.updateCat?.(catId, updates)}
+                    onUnlockCostume={actions.buyCostume}
                   />
                   <UtilityPanels
                     cats={state.cats}

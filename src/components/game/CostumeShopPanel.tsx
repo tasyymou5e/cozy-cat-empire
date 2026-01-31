@@ -12,9 +12,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ShoppingBag, Shirt, Sparkles } from 'lucide-react';
+import { ShoppingBag, Shirt, Sparkles, Clock, Timer } from 'lucide-react';
 import { computeAppearanceHash } from '@/lib/portraitUtils';
 import { CatVisual } from './CatVisual';
+import { useSeasonalContent } from '@/hooks/useSeasonalContent';
+import { SeasonalCostume } from '@/types/seasonalContent';
 
 interface CostumeShopPanelProps {
   cats: Cat[];
@@ -48,9 +50,52 @@ export function CostumeShopPanel({
 }: CostumeShopPanelProps) {
   const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
   const [equipDialogOpen, setEquipDialogOpen] = useState(false);
+  
+  // Get seasonal content
+  const { currentSeason, availableCostumes, daysRemaining, isSeasonActive } = useSeasonalContent();
 
-  const categories = ['hat', 'outfit', 'accessory', 'special'] as const;
-  const categoryEmojis = { hat: '🎩', outfit: '👔', accessory: '💍', special: '✨' };
+  const categories = ['hat', 'outfit', 'accessory', 'special', 'seasonal'] as const;
+  const categoryEmojis = { hat: '🎩', outfit: '👔', accessory: '💍', special: '✨', seasonal: '🌟' };
+  
+  // Seasonal costume card
+  const SeasonalCostumeCard = ({ costume, owned }: { costume: SeasonalCostume; owned: boolean }) => (
+    <div
+      className={`p-3 rounded-lg border relative overflow-hidden ${
+        owned
+          ? 'border-green-400 bg-green-50/50 dark:bg-green-900/20'
+          : 'border-amber-400 bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-900/20 dark:to-orange-900/20'
+      }`}
+    >
+      {/* Limited time badge */}
+      <div className="absolute top-0 right-0 bg-destructive text-destructive-foreground text-[9px] px-1.5 py-0.5 rounded-bl-md font-bold">
+        ⏰ LIMITED
+      </div>
+      <div className="flex items-center justify-between mb-2 mt-2">
+        <span className="text-2xl">{costume.emoji}</span>
+        <Badge className={COSTUME_RARITY_COLORS[costume.rarity]}>{costume.rarity}</Badge>
+      </div>
+      <h4 className="font-semibold text-sm">{costume.name}</h4>
+      <p className="text-xs text-muted-foreground mb-2">{costume.description}</p>
+      <div className="flex gap-2 text-xs mb-2">
+        <span className="text-yellow-600">🏆 +{costume.showBonus}%</span>
+        <span className="text-pink-600">😊 +{costume.happinessBonus}</span>
+      </div>
+      {owned ? (
+        <Badge variant="outline" className="w-full justify-center text-green-600">
+          ✓ Owned
+        </Badge>
+      ) : (
+        <Button
+          size="sm"
+          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+          disabled={money < costume.price}
+          onClick={() => onBuyCostume(costume.id)}
+        >
+          Buy ${costume.price}
+        </Button>
+      )}
+    </div>
+  );
 
   const CostumeCard = ({ costume, owned }: { costume: Costume; owned: boolean }) => (
     <div
@@ -116,6 +161,25 @@ export function CostumeShopPanel({
         </Badge>
       </div>
 
+      {/* Seasonal Banner */}
+      {isSeasonActive && currentSeason && (
+        <div className="p-3 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/30 mb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{currentSeason.emoji}</span>
+              <div>
+                <p className="font-semibold text-sm">{currentSeason.name}</p>
+                <p className="text-xs text-muted-foreground">{availableCostumes.length} exclusive items!</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs bg-destructive/10 text-destructive px-2 py-1 rounded-full">
+              <Timer className="h-3 w-3" />
+              <span className="font-medium">{daysRemaining}d left</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Tabs defaultValue="shop" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="shop" className="text-xs">
@@ -127,16 +191,52 @@ export function CostumeShopPanel({
         </TabsList>
 
         <TabsContent value="shop" className="mt-3">
-          <Tabs defaultValue="hat">
-            <TabsList className="grid w-full grid-cols-4 h-8">
+          <Tabs defaultValue={isSeasonActive ? 'seasonal' : 'hat'}>
+            <TabsList className="grid w-full grid-cols-5 h-8">
               {categories.map((cat) => (
-                <TabsTrigger key={cat} value={cat} className="text-xs px-1">
+                <TabsTrigger key={cat} value={cat} className={`text-xs px-1 ${cat === 'seasonal' && isSeasonActive ? 'animate-pulse' : ''}`}>
                   {categoryEmojis[cat]}
+                  {cat === 'seasonal' && availableCostumes.length > 0 && (
+                    <span className="ml-0.5 text-[9px] text-destructive font-bold">!</span>
+                  )}
                 </TabsTrigger>
               ))}
             </TabsList>
 
-            {categories.map((category) => (
+            {/* Seasonal Tab */}
+            <TabsContent value="seasonal" className="mt-2">
+              <ScrollArea className="h-[280px]">
+                {isSeasonActive && availableCostumes.length > 0 ? (
+                  <>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-lg">{currentSeason?.emoji}</span>
+                      <div>
+                        <p className="font-semibold text-sm">{currentSeason?.name} Collection</p>
+                        <p className="text-xs text-muted-foreground">Limited time only!</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 pr-2">
+                      {availableCostumes.map((costume) => (
+                        <SeasonalCostumeCard
+                          key={costume.id}
+                          costume={costume}
+                          owned={ownedCostumes.includes(costume.id)}
+                        />
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No seasonal items available</p>
+                    <p className="text-xs">Check back during special events!</p>
+                  </div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+
+            {/* Regular category tabs */}
+            {(['hat', 'outfit', 'accessory', 'special'] as const).map((category) => (
               <TabsContent key={category} value={category} className="mt-2">
                 <ScrollArea className="h-[280px]">
                   <div className="grid grid-cols-2 gap-2 pr-2">

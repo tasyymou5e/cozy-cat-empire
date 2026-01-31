@@ -203,6 +203,13 @@ export interface GameActions {
    */
   addSpecializationXP: (catId: string, amount: number) => void;
 
+  /**
+   * Update a cat with partial data (generic update for prestige, etc.)
+   * @param catId - ID of the cat to update
+   * @param updates - Partial cat data to merge
+   */
+  updateCat: (catId: string, updates: Partial<Cat>) => void;
+
   // ============ Resources (6 actions) ============
   /**
    * Purchase resources from the shop

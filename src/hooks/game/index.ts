@@ -277,6 +277,7 @@ export function useGameState(
       updateCatPortrait: catManagementActions.updateCatPortrait,
       setSpecialization: catManagementActions.setSpecialization,
       addSpecializationXP: catManagementActions.addSpecializationXP,
+      updateCat: catManagementActions.updateCat,
 
       // Resources (6)
       buyResource: resourceActions.buyResource,

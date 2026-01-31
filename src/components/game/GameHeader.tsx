@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Slider } from '@/components/ui/slider';
 import { NotificationCenter } from './NotificationCenter';
 import { AutoSaveIndicator, AutoSaveStatus } from './AutoSaveIndicator';
+import { WeeklyEventBanner } from './WeeklyEventBanner';
 import {
   Volume2,
   VolumeX,
@@ -96,7 +97,7 @@ export function GameHeader({
 }: GameHeaderProps) {
   return (
     <header className="h-14 border-b border-border bg-background/95 backdrop-blur-sm flex items-center justify-between px-4 shrink-0">
-      {/* Left: Quick Stats (visible on desktop, hidden on mobile since sidebar shows them) */}
+      {/* Left: Quick Stats + Weekly Event */}
       <div className="flex items-center gap-4">
         {!isMobile && (
           <div className="flex items-center gap-3 text-sm">
@@ -108,14 +109,19 @@ export function GameHeader({
               <span>💰</span>
               <span className="font-bold text-gradient-gold">${money.toLocaleString()}</span>
             </div>
+            {/* Weekly Event Banner */}
+            <WeeklyEventBanner compact />
           </div>
         )}
 
-        {/* Mobile: Show title */}
+        {/* Mobile: Show title and compact event */}
         {isMobile && (
-          <h1 className="text-lg font-bold text-gradient-primary flex items-center gap-2">
-            🐱 Cat Farm
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-bold text-gradient-primary flex items-center gap-2">
+              🐱 Cat Farm
+            </h1>
+            <WeeklyEventBanner compact />
+          </div>
         )}
       </div>
 
