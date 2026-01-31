@@ -212,10 +212,30 @@ CREATE POLICY "Users can send gifts"
 ON public.cat_gifts FOR INSERT
 WITH CHECK (auth.uid() = sender_id);
 
+-- Admins can send gifts (for admin gifting feature)
+CREATE POLICY "Admins can send gifts"
+ON public.cat_gifts FOR INSERT
+WITH CHECK (has_role(auth.uid(), 'admin'::app_role));
+
 -- Recipients can update gift status
 CREATE POLICY "Recipients can update gift status"
 ON public.cat_gifts FOR UPDATE
 USING (auth.uid() = recipient_id);
+
+-- Admins can view all gifts (for moderation)
+CREATE POLICY "Admins can view all gifts"
+ON public.cat_gifts FOR SELECT
+USING (has_role(auth.uid(), 'admin'::app_role));
+
+-- Admins can update any gift (for moderation/revocation)
+CREATE POLICY "Admins can update gifts"
+ON public.cat_gifts FOR UPDATE
+USING (has_role(auth.uid(), 'admin'::app_role));
+
+-- Admins can delete gifts
+CREATE POLICY "Admins can delete gifts"
+ON public.cat_gifts FOR DELETE
+USING (has_role(auth.uid(), 'admin'::app_role));
 ```
 
 ### trade_offers

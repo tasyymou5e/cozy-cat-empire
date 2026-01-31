@@ -70,12 +70,51 @@ The Live Activity Feed displays real-time player activity with enhanced user vis
   - Trades: Recent trade history
   - Gifts: Recent gift history
   - Errors: Error logs for that user
+  - **Gift Cat Button**: Send system-generated cats to users (see Admin Gifting below)
 - Role management: assign admin, moderator, or user roles
 - **User Suspension**: Suspend/unsuspend users with reason tracking
 - **User Deletion**: Permanently delete users via edge function
 - **CSV Export**: Export user list to CSV
 - Pagination support
 - All role changes logged to `admin_activity_log`
+
+#### Admin Gifting System
+
+Admins can gift cats to users directly from the UserDetailModal:
+
+**AdminGiftCatDialog Component:**
+- Select breed from dropdown (8 breeds available)
+- Set cat grade (1-20 slider)
+- Enter custom cat name
+- Optional gift message
+- Preview calculated cat value before sending
+
+**Gift Generation (`src/lib/adminGiftUtils.ts`):**
+```typescript
+// generateAdminGiftCat creates a complete Cat object with:
+- Unique UUID
+- Breed-specific value calculation
+- Random personality (Lazy, Playful, Affectionate, Independent, Curious, Shy)
+- Full stats: health=100, happiness=100, hunger=100, restLevel=100
+- Empty trick progress initialized for all tricks
+- Age set to 1 (young cat)
+```
+
+**Database Flow:**
+1. Admin clicks "Gift Cat" in UserDetailModal
+2. AdminGiftCatDialog opens with breed/grade/name form
+3. On submit, cat object generated via `generateAdminGiftCat()`
+4. INSERT into `cat_gifts` with admin's user_id as sender_id
+5. Action logged to `admin_activity_log` with metadata
+6. User receives gift in CatGiftingPanel or GiftReceivedDialog
+7. User accepts → cat added to their game state
+
+**RLS Policy (cat_gifts):**
+```sql
+CREATE POLICY "Admins can send gifts"
+ON public.cat_gifts FOR INSERT
+WITH CHECK (has_role(auth.uid(), 'admin'::app_role));
+```
 
 #### Bulk Actions
 - Select multiple users via checkboxes
@@ -442,6 +481,7 @@ src/
 ├── components/admin/
 │   ├── AdminLayout.tsx           # Navigation wrapper
 │   ├── AdminRoute.tsx            # Route protection
+│   ├── AdminGiftCatDialog.tsx    # Cat gifting dialog for admins
 │   ├── PlayerInventoryEditor.tsx # Inventory modification
 │   ├── ProfileEditor.tsx         # Profile editing component
 │   ├── ActivityFeed.tsx          # Activity feed display
@@ -449,8 +489,10 @@ src/
 │   ├── ChallengeForm.tsx         # Challenge creation form
 │   ├── SecurityScoreCard.tsx     # Security score display
 │   ├── SecurityTrendChart.tsx    # Security trend visualization
-│   ├── UserDetailModal.tsx       # User detail modal
+│   ├── UserDetailModal.tsx       # User detail modal (includes Gift Cat button)
 │   └── ExportButton.tsx          # CSV export utility
+├── lib/
+│   └── adminGiftUtils.ts         # Admin gift cat generation utilities
 ├── components/game/
 │   └── AnnouncementBanner.tsx    # Player-facing announcement display
 ├── hooks/admin/
