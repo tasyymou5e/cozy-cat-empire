@@ -60,7 +60,65 @@ export class ErrorBoundary extends Component<Props, State> {
     window.location.href = '/';
   };
 
+  /**
+   * Checks if the error is a chunk/module loading error
+   */
+  isChunkLoadError = (error: Error | null): boolean => {
+    if (!error) return false;
+    const message = error.message || '';
+    const name = error.name || '';
+    return (
+      message.includes('Failed to fetch dynamically imported module') ||
+      message.includes('Loading chunk') ||
+      message.includes('ChunkLoadError') ||
+      message.includes('Loading CSS chunk') ||
+      name === 'ChunkLoadError' ||
+      message.includes('Unable to preload CSS') ||
+      message.includes('error loading dynamically imported module')
+    );
+  };
+
+  /**
+   * Clears all caches and reloads the page
+   */
+  clearCachesAndReload = async () => {
+    // Clear service worker caches
+    if ('caches' in window) {
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((key) => caches.delete(key)));
+        console.log('[ErrorBoundary] Caches cleared');
+      } catch (e) {
+        console.warn('[ErrorBoundary] Failed to clear caches:', e);
+      }
+    }
+
+    // Try to update service worker
+    if ('serviceWorker' in navigator) {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.update();
+        }
+      } catch (e) {
+        console.warn('[ErrorBoundary] Failed to update service worker:', e);
+      }
+    }
+
+    // Force reload
+    window.location.reload();
+  };
+
   handleRetry = () => {
+    const error = this.state.error;
+
+    // If this is a chunk load error, clear caches and reload
+    if (this.isChunkLoadError(error)) {
+      console.log('[ErrorBoundary] Chunk load error detected, clearing caches and reloading');
+      this.clearCachesAndReload();
+      return;
+    }
+
     if (this.state.retryCount >= 3) {
       // After 3 retries, suggest a full page reload
       window.location.reload();
