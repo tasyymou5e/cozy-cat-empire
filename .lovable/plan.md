@@ -1,61 +1,73 @@
 
 
-# Create Executive Summary Cat Sounds Documentation
+# Sound System Cleanup - Remove Legacy Code
 
 ## Overview
 
-Create a new documentation file `docs/executivesummarycatsounds.md` containing the complete Sound System Integration Plan that was previously implemented.
+The sound system integration is **already complete**. The `SoundContext.tsx` properly routes sounds through `SOUND_SOURCES` from `src/config/sounds.ts`. However, there's leftover legacy code that should be removed for cleanliness.
 
 ---
 
-## File to Create
+## Current State (Already Working)
 
-| File | Description |
-|------|-------------|
-| `docs/executivesummarycatsounds.md` | Executive summary of the cat sounds integration plan |
-
----
-
-## Document Structure
-
-The documentation will include:
-
-### 1. Executive Summary
-- Overview of replacing procedural audio with real cat sounds
-- Goals: sound mapping configuration + complete documentation
-
-### 2. Current State Analysis
-- Existing Web Audio API oscillator approach
-- Available 15 audio files in `public/sounds/`
-- 56 SoundType values used in the system
-
-### 3. Implementation Plan
-- **Phase 1**: Create `src/config/sounds.ts` configuration file
-- **Phase 2**: Update `SoundContext.tsx` with audio file playback
-- **Phase 3**: Complete sound mapping configuration table
-- **Phase 4**: Update `useAuthSounds.ts` for auth page sounds
-
-### 4. Sound Mapping Table
-Complete mapping of all 35 sound types with:
-- Source type (file vs synth)
-- File path or frequency config
-- Use case description
-
-### 5. Technical Considerations
-- Preloading strategy for critical sounds
-- Volume normalization per file
-- Fallback behavior for failed loads
-
-### 6. Testing Checklist
-- 10 test scenarios with expected results
+The integration is functional:
+- Real cat sounds play for vocalizations, activities, relationships
+- Synthesized sounds play for UI feedback (clicks, coins)
+- Preloading works on first user interaction
+- Volume controls apply correctly
 
 ---
 
-## Implementation
+## Cleanup Task
 
-Single file creation with the complete content provided by the user, formatted as proper markdown with:
-- Proper heading hierarchy
-- Code blocks with syntax highlighting
-- Tables for mappings and file lists
-- Organized sections matching the original structure
+### Remove Unused Legacy Code
+
+**File: `src/contexts/SoundContext.tsx`**
+
+Remove the unused `SOUND_CONFIGS` object (lines 181-336) since:
+- `playSound()` now uses `SOUND_SOURCES` from config file
+- All sound type definitions are in `src/config/sounds.ts`
+- This legacy object is ~150 lines of dead code
+
+### Before (current)
+```typescript
+// Lines 181-336 - UNUSED legacy synthesized configs
+const SOUND_CONFIGS: Record<SoundType, SoundConfig | SoundConfig[]> = {
+  click: { frequency: 800, type: 'sine', ... },
+  meow: [ { frequency: 600, ... }, { frequency: 450, ... } ],
+  // ... 30+ more unused definitions
+};
+```
+
+### After (clean)
+```typescript
+// Removed - all sound routing now uses SOUND_SOURCES from config/sounds.ts
+```
+
+---
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/contexts/SoundContext.tsx` | Remove unused `SOUND_CONFIGS` object (~150 lines) |
+
+---
+
+## Benefits
+
+- **Cleaner code**: Remove 150+ lines of dead code
+- **Single source of truth**: All sound mappings in `src/config/sounds.ts`
+- **No behavior change**: System already uses `SOUND_SOURCES`
+- **Easier maintenance**: One place to modify sound mappings
+
+---
+
+## Technical Notes
+
+The `SoundConfig` interface (lines 74-81) should be kept as it's used by:
+- `playTone()` function for synthesized sounds
+- The `SynthSoundConfig` type in config file
+
+The system already works correctly - this is purely a cleanup task.
 
