@@ -10,6 +10,7 @@
 > - [docs/SOCIAL_FEATURES.md](docs/SOCIAL_FEATURES.md) - Social & multiplayer features
 > - [docs/MOBILE_TABLET_UI.md](docs/MOBILE_TABLET_UI.md) - Mobile & tablet responsive UI
 > - [docs/GAMIFICATION_IMPROVEMENTS_PLAN.md](docs/GAMIFICATION_IMPROVEMENTS_PLAN.md) - Gamification systems plan
+> - [docs/CAT_DATA_SYNC.md](docs/CAT_DATA_SYNC.md) - Data protection & recovery
 
 ## Overview
 Cat Farm is a browser-based idle/management game where players build a cat empire. Start with a small apartment and grow to own a 100-acre farm with dozens of cats. Features cloud saves, global leaderboards, social features, cat gifting, player trading, VIP rewards, weekly challenges, photo booth, and cat customization.
@@ -808,6 +809,52 @@ Click any cat to open interaction menu:
 | **Specialization Paths** | Show Star, Social Butterfly, or Dynasty Builder paths | `src/types/specializations.ts`, `src/hooks/useSpecializations.ts`, `src/components/game/SpecializationPanel.tsx` |
 | **Seasonal Battle Pass** | Free and premium reward tracks with XP progression | `src/types/battlePass.ts`, `src/hooks/useBattlePass.ts`, `src/components/game/BattlePassPanel.tsx` |
 | **Cooperative Challenges** | Work with friends toward shared goals | `src/types/coopChallenges.ts`, `src/hooks/useCoopChallenges.ts`, `src/components/game/CoopChallengesPanel.tsx` |
+
+---
+
+## Data Protection & Recovery
+
+### Event-Triggered Snapshots
+
+The system creates tagged save snapshots on significant events to enable data recovery:
+
+| Event | Trigger | Hook |
+|-------|---------|------|
+| `portrait_generated` | AI portrait created | `generate-cat-portrait` edge function |
+| `cat_sold` | Cat sold | `useCatManagement.sellCat()` |
+| `cat_adopted` | Cat added | `useCatManagement.addCat()` |
+| `breeding_success` | Kitten born | `useBreeding.breedCats()` |
+| `purchase` | Costume bought | `useCostumes.buyCostume()` |
+
+**Files:**
+- `src/hooks/useEventSnapshots.ts` - Creates tagged snapshots
+- `src/hooks/game/types.ts` - `SnapshotEventType` definition
+
+### Orphan Detection
+
+Detects cats with gallery photos or portraits but missing from the current save:
+
+**Flow:**
+1. After cloud load, `checkForOrphans()` is called
+2. Cross-references `gallery_photos` and `ai_usage_log` with current cats
+3. Shows `OrphanRecoveryDialog` if orphans found
+4. User can select cats to recover and inject back into save
+
+**Files:**
+- `src/hooks/useOrphanDetection.ts` - Detection logic
+- `src/components/game/OrphanRecoveryDialog.tsx` - Recovery UI
+
+### Portrait URL Auto-Repair
+
+Verifies and repairs missing `portraitUrl` fields on Empire page load:
+
+**Flow:**
+1. On Empire page mount, `reconcilePortraits()` runs
+2. Queries `ai_usage_log` for successful portrait generations
+3. Compares with current cat `portraitUrl` fields
+4. Auto-repairs missing URLs and triggers save
+
+**File:** `src/hooks/usePortraitReconciliation.ts`
 
 ---
 

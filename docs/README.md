@@ -54,6 +54,7 @@
 | **Photo Booth** | `PhotoBooth.tsx`, `usePhotoGallery.ts`, `useCloudGallery.ts` |
 | **Admin** | `AdminLayout.tsx`, `useAdminAuth.ts`, `useAdminData.ts`, `useAdminCorruptedSaves.ts` |
 | **Data Integrity** | `saveMigration.ts`, `useCloudSave.ts` (pre-save validation), `useResources.ts` (addReward safeguards), `useCostumes.ts` (ownership validation) |
+| **Data Protection** | `useEventSnapshots.ts`, `useOrphanDetection.ts`, `usePortraitReconciliation.ts`, `OrphanRecoveryDialog.tsx` |
 
 ### Database Tables (30+)
 
@@ -215,3 +216,6 @@ Manage Cats → Do Chores → Buy/Sell → Train → Socialize → Shows → Bre
 - ✅ Profile-to-player_stats sync on profile updates
 - ✅ Earnings mismatch detection (`money > totalMoneyEarned` flagged and repairable)
 - ✅ Admin ProfileEditor syncs to player_stats for leaderboard consistency
+- ✅ Event-triggered snapshots on sell/adopt/breed/purchase for data recovery
+- ✅ Orphan detection finds gallery cats missing from save
+- ✅ Portrait URL auto-repair on Empire page load

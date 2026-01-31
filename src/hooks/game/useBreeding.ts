@@ -64,6 +64,7 @@ export function useBreeding(deps: GameHookDependencies): BreedingActions {
     checkAchievements,
     onChallengeProgress,
     logActivity,
+    createEventSnapshot,
   } = deps;
 
   const breedCats = useCallback(
@@ -197,6 +198,9 @@ export function useBreeding(deps: GameHookDependencies): BreedingActions {
         playSound?.('success');
         onChallengeProgress?.('breed_kittens', 1);
 
+        // Create snapshot after breeding success
+        createEventSnapshot?.('breeding_success', [name, parent1.name, parent2.name]);
+
         // Log breeding activity
         logActivity?.({
           activityType: 'cat_bred',
@@ -223,6 +227,7 @@ export function useBreeding(deps: GameHookDependencies): BreedingActions {
       checkAchievements,
       onChallengeProgress,
       logActivity,
+      createEventSnapshot,
     ]
   );
 
