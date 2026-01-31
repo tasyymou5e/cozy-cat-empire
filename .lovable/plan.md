@@ -1,272 +1,460 @@
 
 
-# Cat Farm - Gamification & Monetization Enhancement Plan
+# Gamification Features Implementation Plan
 
-## Current State Analysis
+## Overview
 
-### Existing Gamification Features (Already Implemented)
-
-| Feature | Status | Description |
-|---------|--------|-------------|
-| Daily Login Rewards | ✅ Complete | 7-day reward cycle with VIP tiers (Bronze/Silver/Gold at 30/60/90 day streaks) |
-| Weekly Challenges | ✅ Complete | Rotating challenges with difficulty tiers and coin rewards |
-| Battle Pass | ✅ Complete | 30-tier seasonal system with free/premium tracks |
-| Lucky Wheel | ✅ Complete | Daily spin with rarity-based prizes |
-| Achievements | ✅ Complete | 25+ achievements across multiple categories |
-| Milestones | ✅ Complete | Celebration popups with coin/title rewards |
-| Collection Progress | ✅ Complete | Track breeds, personalities, costumes, tricks collected |
-| Cat Specializations | ✅ Complete | Show Star, Social Butterfly, Dynasty Builder paths |
-| Hall of Fame | ✅ Complete | Cat retirement system with legacy bonuses |
-| Daily Objectives | ✅ Complete | 3 rotating daily tasks with bonus completion reward |
-| Co-op Challenges | ✅ Complete | Friend-based cooperative challenges |
-| Leaderboard Rewards | ✅ Complete | Daily/weekly/monthly rank-based coin payouts |
-
-### Current In-Game Economy
-
-| Currency/Resource | Earn Methods | Spend Methods |
-|-------------------|--------------|---------------|
-| Coins | Chores, shows, challenges, rewards, selling cats | Resources, costumes, upgrades, market cats |
-| Portrait Credits | Purchase with 5,000 coins | AI portrait generation (3 per package) |
-| Resources (food, medicine, toys, treats) | Coins, rewards, wheel | Cat care, training |
-
-### Monetization Gap
-
-**Current State**: The game uses entirely in-game currency. There is **no real-money payment integration** (Stripe/payments not implemented). The Battle Pass "premium" track is currently VIP-only (login streak gated), not purchasable.
+This plan adds five new gamification features to Cat Farm:
+1. **Weekly Event Calendar** - Rotating daily bonuses
+2. **Cat Prestige System** - Reset max-grade cats for permanent bonuses
+3. **Seasonal Themes with Limited Items** - Time-limited exclusive content
+4. **Guild/Club System** - Social clubs with shared goals
+5. **Achievement Badges & Profile Showcase** - Display earned badges on profile
 
 ---
 
-## Enhancement Recommendations
+## Phase 1: Weekly Event Calendar
 
-### Category A: Additional Gamification Features
+### A1.1 - New Types (src/types/weeklyEvents.ts)
 
-#### A1. Social Calendar / Event System
-Create recurring special events that drive engagement:
+Create type definitions for the weekly bonus system:
 
-```
-Weekly Rhythm:
-- Monday: "Manic Monday" - 2x show prizes
-- Wednesday: "Wild Wednesday" - Lucky Wheel double drop rates
-- Friday: "Friendship Friday" - 2x relationship gains
-- Weekend: "Weekend Warrior" - Bonus challenge XP
+```typescript
+export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+export interface WeeklyEvent {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+  dayOfWeek: DayOfWeek;
+  bonusType: 'show_prize' | 'wheel_rate' | 'relationship' | 'challenge_xp' | 'breeding';
+  multiplier: number;
+}
+
+export const WEEKLY_EVENTS: WeeklyEvent[] = [
+  { id: 'manic_monday', name: 'Manic Monday', emoji: '🏆', description: '2x show prizes!', dayOfWeek: 1, bonusType: 'show_prize', multiplier: 2.0 },
+  { id: 'training_tuesday', name: 'Training Tuesday', emoji: '💪', description: '50% more training progress', dayOfWeek: 2, bonusType: 'challenge_xp', multiplier: 1.5 },
+  { id: 'wild_wednesday', name: 'Wild Wednesday', emoji: '🎰', description: 'Better wheel prizes', dayOfWeek: 3, bonusType: 'wheel_rate', multiplier: 2.0 },
+  { id: 'breeding_thursday', name: 'Breeding Thursday', emoji: '💕', description: '+25% breeding success', dayOfWeek: 4, bonusType: 'breeding', multiplier: 1.25 },
+  { id: 'friendship_friday', name: 'Friendship Friday', emoji: '❤️', description: '2x relationship gains', dayOfWeek: 5, bonusType: 'relationship', multiplier: 2.0 },
+  { id: 'weekend_warrior', name: 'Weekend Warrior', emoji: '⚡', description: '+50% challenge XP', dayOfWeek: 6, bonusType: 'challenge_xp', multiplier: 1.5 },
+];
 ```
 
-**Implementation**: Add `src/types/events.ts` and `src/hooks/useGameEvents.ts` to track active bonuses.
+### A1.2 - Hook (src/hooks/useWeeklyEvents.ts)
 
-#### A2. Cat Prestige System
-Allow max-level cats (Grade 20) to "prestige" for permanent bonuses:
+```typescript
+export function useWeeklyEvents() {
+  const getTodayEvent = useCallback(() => {
+    const dayOfWeek = new Date().getDay() as DayOfWeek;
+    return WEEKLY_EVENTS.find(e => e.dayOfWeek === dayOfWeek) || WEEKLY_EVENTS[6]; // Sunday uses Weekend Warrior
+  }, []);
 
-| Prestige Level | Cost | Bonus |
-|----------------|------|-------|
-| Star 1 | Reset to Grade 10 | +5% show earnings permanently |
-| Star 2 | Reset to Grade 10 | +10% total, +2% breeding success |
-| Star 3 | Reset to Grade 10 | +15% total, unique prestige costume |
+  const getEventMultiplier = useCallback((bonusType: WeeklyEvent['bonusType']) => {
+    const todayEvent = getTodayEvent();
+    return todayEvent?.bonusType === bonusType ? todayEvent.multiplier : 1.0;
+  }, [getTodayEvent]);
 
-#### A3. Seasonal Themes with Limited Items
-Each 30-day season introduces:
-- 3 season-exclusive costumes (can't be bought after season ends)
-- 1 legendary seasonal badge
-- Seasonal leaderboard with unique rewards
+  return { getTodayEvent, getEventMultiplier, allEvents: WEEKLY_EVENTS };
+}
+```
 
-Current season: "Winter Wonderland" already defined - expand with spring/summer/fall.
+### A1.3 - UI Component (src/components/game/WeeklyEventBanner.tsx)
 
-#### A4. Guild/Club System
-Players form clubs (5-20 members) for:
-- Club leaderboards
-- Shared club challenges
-- Club chat
-- Club treasury and upgrades
-
-#### A5. Achievement Badges & Profile Showcase
-Allow players to display earned badges on their profile. Add:
-- Badge rarity tiers (Common → Legendary)
-- Badge sets with completion bonuses
-- Profile customization with badge frames
+A banner component showing today's active event, displayed in CatFarm header.
 
 ---
 
-### Category B: Monetization Options
+## Phase 2: Cat Prestige System
 
-#### B1. Premium Battle Pass (Real Money)
+### A2.1 - Types (src/types/prestige.ts)
 
-Convert the existing Battle Pass premium track to a purchasable option:
+```typescript
+export interface PrestigeLevel {
+  stars: number;
+  name: string;
+  showEarningsBonus: number;
+  breedingSuccessBonus: number;
+  costumeReward?: string;
+  requiredGrade: 20;
+}
 
-| Package | Price | Contents |
-|---------|-------|----------|
-| Season Pass | $4.99 | Unlock all 30 premium rewards for current season |
-| Season Pass + | $9.99 | Season Pass + 10 bonus tiers + exclusive cosmetic |
+export const PRESTIGE_LEVELS: PrestigeLevel[] = [
+  { stars: 1, name: 'Star 1', showEarningsBonus: 0.05, breedingSuccessBonus: 0 },
+  { stars: 2, name: 'Star 2', showEarningsBonus: 0.10, breedingSuccessBonus: 0.02 },
+  { stars: 3, name: 'Star 3', showEarningsBonus: 0.15, breedingSuccessBonus: 0.05, costumeReward: 'prestige_crown' },
+];
 
-**Technical**: Integrate Stripe via the built-in Lovable Stripe connector. Create `premium_purchases` table and webhook handler.
+export interface CatPrestigeData {
+  catId: string;
+  prestigeLevel: number; // 0-3
+  totalPrestiges: number;
+}
+```
 
-#### B2. Coin Packs (Real Money)
+### A2.2 - Cat Interface Extension
 
-Direct coin purchases for players who want to progress faster:
+Add to `Cat` interface in `src/types/game.ts`:
+```typescript
+prestigeLevel?: number; // 0-3 stars
+totalPrestiges?: number;
+```
 
-| Pack | Price | Coins | Bonus |
-|------|-------|-------|-------|
-| Starter | $0.99 | 1,000 | - |
-| Popular | $4.99 | 6,000 | +20% |
-| Best Value | $9.99 | 15,000 | +50% |
-| Tycoon | $19.99 | 35,000 | +75% |
+### A2.3 - Prestige Hook (src/hooks/usePrestige.ts)
 
-#### B3. Premium Costumes (Real Money)
+```typescript
+export function usePrestige(cats: Cat[], updateCat: (id: string, updates: Partial<Cat>) => void) {
+  const canPrestige = useCallback((cat: Cat) => {
+    return cat.grade >= 20 && (cat.prestigeLevel || 0) < 3;
+  }, []);
 
-Exclusive legendary costumes not available with coins:
+  const prestigeCat = useCallback((catId: string) => {
+    const cat = cats.find(c => c.id === catId);
+    if (!cat || !canPrestige(cat)) return false;
 
-| Costume | Price | Show Bonus |
-|---------|-------|------------|
-| Celestial Wings | $2.99 | +30% |
-| Royal Regalia Set | $4.99 | +40% |
-| Mythical Dragon Armor | $6.99 | +50% |
+    const newPrestigeLevel = (cat.prestigeLevel || 0) + 1;
+    updateCat(catId, {
+      grade: 10, // Reset to grade 10
+      prestigeLevel: newPrestigeLevel,
+      totalPrestiges: (cat.totalPrestiges || 0) + 1,
+    });
+    return true;
+  }, [cats, canPrestige, updateCat]);
 
-#### B4. Portrait Credit Bundles (Real Money)
+  const getPrestigeBonuses = useCallback((cat: Cat) => {
+    const level = cat.prestigeLevel || 0;
+    return PRESTIGE_LEVELS.slice(0, level).reduce(
+      (acc, l) => ({
+        showEarningsBonus: acc.showEarningsBonus + l.showEarningsBonus,
+        breedingSuccessBonus: acc.breedingSuccessBonus + l.breedingSuccessBonus,
+      }),
+      { showEarningsBonus: 0, breedingSuccessBonus: 0 }
+    );
+  }, []);
 
-Premium portrait packages (in addition to coin-purchasable ones):
+  return { canPrestige, prestigeCat, getPrestigeBonuses };
+}
+```
 
-| Bundle | Price | Credits | Bonus |
-|--------|-------|---------|-------|
-| Artist Pack | $1.99 | 5 portraits | - |
-| Studio Pack | $4.99 | 15 portraits | +50% |
-| Gallery Pack | $9.99 | 40 portraits | +100% |
+### A2.4 - UI Component (src/components/game/PrestigePanel.tsx)
 
-#### B5. VIP Subscription
-
-Monthly subscription for dedicated players:
-
-| Tier | Price/Month | Benefits |
-|------|-------------|----------|
-| VIP | $2.99 | 2x daily login rewards, 2 free wheel spins, +10% all earnings |
-| VIP+ | $5.99 | All VIP + Premium Battle Pass included, exclusive monthly costume |
-
----
-
-### Category C: Engagement Boosters
-
-#### C1. Referral System
-Players invite friends for mutual rewards:
-- Referrer: 500 coins per friend who reaches Day 7
-- Referee: 200 bonus coins on signup + 100 on Day 7
-
-#### C2. Comeback Rewards
-Players who haven't played in 7+ days get:
-- "Welcome Back" bonus chest
-- Catch-up XP boost (2x for 24 hours)
-- One-time discount on coin pack
-
-#### C3. Ad-Supported Rewards (Optional)
-Optional rewarded video ads for:
-- +1 extra Lucky Wheel spin
-- Double challenge reward (one-time)
-- Skip breeding cooldown
-
----
-
-## Implementation Priority Matrix
-
-| Priority | Feature | Effort | Revenue Impact | Engagement Impact |
-|----------|---------|--------|----------------|-------------------|
-| 1 | Premium Battle Pass (Stripe) | High | High | Medium |
-| 2 | Coin Packs | Medium | High | Low |
-| 3 | VIP Subscription | High | Very High | High |
-| 4 | Social Calendar/Events | Medium | Low | Very High |
-| 5 | Premium Costumes | Low | Medium | Low |
-| 6 | Portrait Credit Bundles | Low | Medium | Low |
-| 7 | Referral System | Medium | Medium | High |
-| 8 | Guild/Club System | Very High | Low | Very High |
-| 9 | Cat Prestige System | Medium | Low | High |
-| 10 | Comeback Rewards | Low | Low | Medium |
+Panel showing prestige-eligible cats with confirmation dialog.
 
 ---
 
-## Technical Implementation for Stripe Monetization
+## Phase 3: Seasonal Limited Items
 
-### Database Schema
+### A3.1 - Types (src/types/seasonalContent.ts)
+
+```typescript
+export interface SeasonalItem extends Costume {
+  seasonId: string;
+  availableUntil: string; // ISO date
+  isLimited: true;
+}
+
+export interface Season {
+  id: string;
+  name: string;
+  emoji: string;
+  theme: RealSeason;
+  startsAt: string;
+  endsAt: string;
+  costumes: SeasonalItem[];
+  badge: { id: string; name: string; emoji: string };
+}
+
+export const SEASONS: Season[] = [
+  {
+    id: 'winter_2026',
+    name: 'Winter Wonderland',
+    emoji: '❄️',
+    theme: 'winter',
+    startsAt: '2026-01-01',
+    endsAt: '2026-02-28',
+    costumes: [
+      { id: 'snowflake_collar', name: 'Snowflake Collar', ... },
+      { id: 'ice_queen_crown', name: 'Ice Queen Crown', ... },
+      { id: 'aurora_wings', name: 'Aurora Wings', ... },
+    ],
+    badge: { id: 'winter_2026_badge', name: 'Winter Champion', emoji: '❄️' },
+  },
+  // Spring, Summer, Autumn seasons...
+];
+```
+
+### A3.2 - Hook (src/hooks/useSeasonalContent.ts)
+
+Manages current season detection, limited item availability, and seasonal leaderboard.
+
+### A3.3 - UI Updates
+
+- Add "Limited" badge to CostumeShopPanel for seasonal items
+- Add countdown timer for season end
+- Show "Season Ending" warnings
+
+---
+
+## Phase 4: Guild/Club System
+
+### A4.1 - Database Tables
 
 ```sql
--- Premium purchases tracking
-CREATE TABLE premium_purchases (
+-- Clubs table
+CREATE TABLE clubs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id),
-  product_id TEXT NOT NULL,  -- 'battle_pass_s1', 'coin_pack_5k', etc.
-  stripe_payment_id TEXT NOT NULL,
-  amount_cents INTEGER NOT NULL,
-  currency TEXT DEFAULT 'usd',
-  status TEXT DEFAULT 'completed',
-  metadata JSONB DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- VIP subscriptions
-CREATE TABLE vip_subscriptions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL UNIQUE REFERENCES profiles(id),
-  tier TEXT NOT NULL,  -- 'vip', 'vip_plus'
-  stripe_subscription_id TEXT NOT NULL,
-  status TEXT DEFAULT 'active',
-  current_period_start TIMESTAMPTZ NOT NULL,
-  current_period_end TIMESTAMPTZ NOT NULL,
+  name TEXT NOT NULL UNIQUE,
+  emoji TEXT DEFAULT '🐱',
+  description TEXT,
+  owner_id UUID NOT NULL REFERENCES profiles(id),
+  max_members INTEGER DEFAULT 20,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Club members
+CREATE TABLE club_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  club_id UUID NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES profiles(id),
+  role TEXT DEFAULT 'member', -- owner, officer, member
+  joined_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(club_id, user_id)
+);
+
+-- Club challenges
+CREATE TABLE club_challenges (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  club_id UUID NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+  challenge_type TEXT NOT NULL,
+  target_value INTEGER NOT NULL,
+  current_progress INTEGER DEFAULT 0,
+  reward_coins INTEGER NOT NULL,
+  starts_at TIMESTAMPTZ NOT NULL,
+  ends_at TIMESTAMPTZ NOT NULL,
+  completed BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 ```
 
-### Edge Functions Needed
+### A4.2 - Types (src/types/clubs.ts)
 
-| Function | Purpose |
-|----------|---------|
-| `create-checkout-session` | Initiate Stripe checkout for one-time purchases |
-| `create-subscription` | Create VIP subscription |
-| `stripe-webhook` | Handle payment confirmations, subscription updates |
-| `grant-purchase-rewards` | Deliver coins/items after successful payment |
+```typescript
+export interface Club {
+  id: string;
+  name: string;
+  emoji: string;
+  description?: string;
+  ownerId: string;
+  maxMembers: number;
+  memberCount?: number;
+}
 
-### Frontend Components
+export interface ClubMember {
+  id: string;
+  clubId: string;
+  userId: string;
+  role: 'owner' | 'officer' | 'member';
+  displayName?: string;
+  avatarEmoji?: string;
+}
 
-| Component | Purpose |
-|-----------|---------|
-| `PremiumShopPanel.tsx` | Browse and purchase premium items |
-| `VIPSubscriptionDialog.tsx` | VIP tier comparison and signup |
-| `CoinPacksDialog.tsx` | Coin pack purchase flow |
-| `PurchaseSuccessAnimation.tsx` | Celebration after purchase |
+export interface ClubChallenge {
+  id: string;
+  clubId: string;
+  challengeType: string;
+  targetValue: number;
+  currentProgress: number;
+  rewardCoins: number;
+  startsAt: string;
+  endsAt: string;
+  completed: boolean;
+}
+```
+
+### A4.3 - Hook (src/hooks/useClub.ts)
+
+```typescript
+export function useClub(userId?: string) {
+  const [myClub, setMyClub] = useState<Club | null>(null);
+  const [members, setMembers] = useState<ClubMember[]>([]);
+  const [challenges, setChallenges] = useState<ClubChallenge[]>([]);
+
+  // Club management functions
+  const createClub = async (name: string, emoji: string, description?: string) => {...};
+  const joinClub = async (clubId: string) => {...};
+  const leaveClub = async () => {...};
+  const inviteMember = async (userId: string) => {...};
+  const contributeToChallenge = async (challengeId: string, amount: number) => {...};
+
+  return { myClub, members, challenges, createClub, joinClub, leaveClub, ... };
+}
+```
+
+### A4.4 - UI Components
+
+- `src/components/game/ClubPanel.tsx` - Main club interface
+- `src/components/game/ClubSearchDialog.tsx` - Find and join clubs
+- `src/components/game/ClubChallengesCard.tsx` - Active club challenges
+- `src/components/game/ClubLeaderboardCard.tsx` - Club rankings
+
+### A4.5 - Add Tab
+
+Update `src/constants/tabs.ts`:
+```typescript
+clubs: { label: 'Club', icon: '🏰' },
+```
 
 ---
 
-## Files to Create/Modify
+## Phase 5: Achievement Badges & Profile Showcase
 
-### New Files
+### A5.1 - Types (src/types/badges.ts)
+
+```typescript
+export type BadgeRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+
+export interface Badge {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+  rarity: BadgeRarity;
+  category: 'achievement' | 'challenge' | 'seasonal' | 'social' | 'premium';
+  unlockedAt?: string;
+}
+
+export interface ProfileFrame {
+  id: string;
+  name: string;
+  cssClass: string;
+  requiredBadgeCount: number;
+}
+
+export const BADGE_RARITY_COLORS: Record<BadgeRarity, string> = {
+  common: 'border-gray-400 bg-gray-100',
+  uncommon: 'border-green-500 bg-green-100',
+  rare: 'border-blue-500 bg-blue-100',
+  epic: 'border-purple-500 bg-purple-100',
+  legendary: 'border-yellow-500 bg-gradient-to-r from-yellow-100 to-orange-100',
+};
+```
+
+### A5.2 - Database Table
+
+```sql
+CREATE TABLE player_badges (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES profiles(id),
+  badge_id TEXT NOT NULL,
+  unlocked_at TIMESTAMPTZ DEFAULT now(),
+  is_displayed BOOLEAN DEFAULT false, -- Featured on profile
+  UNIQUE(user_id, badge_id)
+);
+
+-- Add to profiles
+ALTER TABLE profiles ADD COLUMN display_badges TEXT[] DEFAULT '{}';
+ALTER TABLE profiles ADD COLUMN profile_frame TEXT;
+```
+
+### A5.3 - Hook (src/hooks/useBadges.ts)
+
+```typescript
+export function useBadges(userId?: string) {
+  const [badges, setBadges] = useState<Badge[]>([]);
+  const [displayedBadges, setDisplayedBadges] = useState<string[]>([]);
+
+  const unlockBadge = async (badgeId: string) => {...};
+  const setDisplayBadges = async (badgeIds: string[]) => {...}; // Max 3 displayed
+
+  return { badges, displayedBadges, unlockBadge, setDisplayBadges };
+}
+```
+
+### A5.4 - UI Components
+
+- `src/components/game/BadgeShowcase.tsx` - Grid of all badges with unlock status
+- `src/components/game/ProfileBadgeEditor.tsx` - Select which 3 badges to display
+- `src/components/game/BadgeDisplay.tsx` - Show badges on profile/leaderboard
+
+### A5.5 - Profile Panel Update
+
+Update `PlayerProfilePanel.tsx` to include:
+- Badge showcase section
+- "Featured Badges" selector (pick 3 to display)
+- Profile frame selector (unlocked by badge count)
+
+---
+
+## Files Summary
+
+### New Files (17 files)
+
 | File | Purpose |
 |------|---------|
-| `src/types/premium.ts` | Premium products, subscriptions, purchases |
-| `src/hooks/usePremiumPurchases.ts` | Purchase history and status |
-| `src/hooks/useVIPStatus.ts` | VIP subscription status and perks |
-| `src/components/game/PremiumShopPanel.tsx` | In-game store UI |
-| `src/components/game/VIPBadge.tsx` | VIP status indicator |
-| `supabase/functions/create-checkout-session/index.ts` | Stripe checkout |
-| `supabase/functions/stripe-webhook/index.ts` | Payment webhooks |
+| `src/types/weeklyEvents.ts` | Weekly event type definitions |
+| `src/types/prestige.ts` | Cat prestige system types |
+| `src/types/seasonalContent.ts` | Seasonal limited items types |
+| `src/types/clubs.ts` | Guild/club system types |
+| `src/types/badges.ts` | Badge and profile showcase types |
+| `src/hooks/useWeeklyEvents.ts` | Weekly event multipliers |
+| `src/hooks/usePrestige.ts` | Cat prestige management |
+| `src/hooks/useSeasonalContent.ts` | Seasonal content tracking |
+| `src/hooks/useClub.ts` | Club membership and challenges |
+| `src/hooks/useBadges.ts` | Badge unlocking and display |
+| `src/components/game/WeeklyEventBanner.tsx` | Today's event display |
+| `src/components/game/PrestigePanel.tsx` | Cat prestige interface |
+| `src/components/game/ClubPanel.tsx` | Main club interface |
+| `src/components/game/ClubSearchDialog.tsx` | Join clubs |
+| `src/components/game/BadgeShowcase.tsx` | Badge collection view |
+| `src/components/game/ProfileBadgeEditor.tsx` | Featured badge selector |
+| `src/components/game/BadgeDisplay.tsx` | Badge rendering component |
 
-### Modified Files
+### Modified Files (8 files)
+
 | File | Changes |
 |------|---------|
-| `src/components/game/BattlePassPanel.tsx` | Add "Upgrade to Premium" button |
-| `src/components/game/GameSidebar.tsx` | Add Shop tab |
-| `src/components/game/StatusBar.tsx` | Show VIP badge |
-| `src/hooks/useBattlePass.ts` | Check real premium status |
-| `src/hooks/useDailyLoginRewards.ts` | Apply VIP multipliers |
+| `src/types/game.ts` | Add `prestigeLevel` and `totalPrestiges` to Cat |
+| `src/types/costumes.ts` | Add seasonal costume support |
+| `src/constants/tabs.ts` | Add `clubs` and `badges` tabs |
+| `src/components/game/PlayerProfilePanel.tsx` | Add badge showcase section |
+| `src/components/game/CatFarm.tsx` | Integrate weekly event banner |
+| `src/components/game/CostumeShopPanel.tsx` | Show seasonal limited items |
+| `src/components/game/GlobalLeaderboardPanel.tsx` | Show player badges |
+| `src/hooks/game/useCatShows.ts` | Apply prestige and event multipliers |
+
+### Database Changes
+
+3 new tables:
+- `clubs`
+- `club_members`
+- `club_challenges`
+
+1 new table for badges:
+- `player_badges`
+
+Profile table additions:
+- `display_badges TEXT[]`
+- `profile_frame TEXT`
 
 ---
 
-## Summary
+## Implementation Order
 
-### Quick Wins (Low Effort, High Value)
-1. **Social Calendar/Events** - Rotate bonuses to create urgency
-2. **Premium Costumes** - Simple items with direct purchase
-3. **Portrait Credit Bundles** - Extension of existing system
+1. **Phase 1**: Weekly Events (simplest, no database changes)
+2. **Phase 2**: Cat Prestige (modifies existing Cat type)
+3. **Phase 5**: Badge System (extends profile functionality)
+4. **Phase 3**: Seasonal Content (extends costume system)
+5. **Phase 4**: Club System (most complex, requires full database setup)
 
-### Medium-Term (Moderate Effort, High Value)
-1. **Stripe Integration** - Enable all real-money features
-2. **Premium Battle Pass** - Convert existing system to purchasable
-3. **Coin Packs** - Standard F2P monetization
+---
 
-### Long-Term (High Effort, Strategic Value)
-1. **VIP Subscription** - Recurring revenue stream
-2. **Guild/Club System** - Social lock-in and retention
-3. **Referral System** - Organic growth driver
+## Technical Notes
+
+- All new hooks follow the existing pattern of local state + Supabase sync
+- Badge unlocks are triggered automatically when achievements unlock (integration with existing achievement system)
+- Club challenges contribute to individual challenge progress (double-counting benefit)
+- Weekly events are client-side only (no database) - just apply multipliers based on day of week
+- Prestige data is stored in the Cat object within `game_saves.game_state` JSONB
 
