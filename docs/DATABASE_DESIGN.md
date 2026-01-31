@@ -182,7 +182,7 @@ CREATE TABLE public.player_friends (
 ---
 
 ### cat_gifts
-Cat gifting between players.
+Cat gifting between players and from admins.
 
 ```sql
 CREATE TABLE public.cat_gifts (
@@ -191,12 +191,21 @@ CREATE TABLE public.cat_gifts (
   recipient_id UUID NOT NULL REFERENCES profiles(id),
   cat_data JSONB NOT NULL,
   message TEXT,
-  status TEXT DEFAULT 'pending', -- pending, accepted, declined
+  status TEXT DEFAULT 'pending', -- pending, accepted, declined, revoked_by_admin
   created_at TIMESTAMPTZ DEFAULT now()
 );
 ```
 
-**Purpose:** Enable cat gifting between friends.
+**Purpose:** Enable cat gifting between friends and admin-to-user gifting.
+
+**Status Values:**
+- `pending`: Gift sent, awaiting recipient action
+- `accepted`: Recipient accepted the gift
+- `declined`: Recipient declined the gift
+- `revoked_by_admin`: Admin revoked the gift
+
+**Admin Gifting:**
+Admins can send gifts to any user via the UserDetailModal. The admin's user_id is used as sender_id. Admin gifts are generated using `generateAdminGiftCat()` from `src/lib/adminGiftUtils.ts`.
 
 **JSONB Structure - cat_data:**
 ```typescript
@@ -214,9 +223,13 @@ CREATE TABLE public.cat_gifts (
   showWins: number,
   grade: number,
   tricksLearned: string[],
+  trickProgress: Record<TrickId, number>,
+  restLevel: number,
+  feedingScore: number,
+  lastTrainingDay: number,
+  isForSale: boolean,
   appearance?: CatAppearance,
   portraitUrl?: string,
-  // ... full Cat interface
 }
 ```
 
