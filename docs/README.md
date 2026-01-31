@@ -30,6 +30,11 @@
 | [ARCHITECTURE_AUDIT.md](ARCHITECTURE_AUDIT.md) | Architecture audit findings and resolutions |
 | [PERFORMANCE_OPTIMIZATIONS.md](PERFORMANCE_OPTIMIZATIONS.md) | Performance optimizations and caching |
 | [AI_PORTRAIT_CREDITS.md](AI_PORTRAIT_CREDITS.md) | AI portrait credit system documentation |
+| [GAME_EVENT_SOUNDS.md](GAME_EVENT_SOUNDS.md) | Game event to sound mapping configuration |
+| [PARALLAX_SYSTEM.md](PARALLAX_SYSTEM.md) | Empire parallax depth system |
+| [CRON_JOBS.md](CRON_JOBS.md) | Scheduled cron job documentation |
+| [CAT_DATA_SYNC.md](CAT_DATA_SYNC.md) | Cat data synchronization patterns |
+| [EMPIRE_AI_RENDERING.md](EMPIRE_AI_RENDERING.md) | Empire AI rendering system |
 
 ---
 
