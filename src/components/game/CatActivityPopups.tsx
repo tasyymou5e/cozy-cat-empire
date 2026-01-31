@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Cat } from '@/types/game';
-import { useSound, SoundType } from '@/contexts/SoundContext';
+import { useSound } from '@/contexts/SoundContext';
+import { ACTIVITY_SOUNDS } from '@/config/gameEventSounds';
 
 interface ActivityPopup {
   id: string;
@@ -101,21 +102,7 @@ const POSITIONS = [
   { top: '60%', left: '75%' },
 ];
 
-const ACTIVITY_SOUNDS: Record<string, SoundType> = {
-  eating: 'catEating',
-  playing: 'catPlaying',
-  sleeping: 'catSleeping',
-  grooming: 'catGrooming',
-  exploring: 'catExploring',
-  hunting: 'catHunting',
-  stretching: 'catStretching',
-  cuddling: 'catCuddling',
-  training: 'catTraining',
-  mischief: 'catMischief',
-  zoomies: 'catZoomies',
-  sunbathing: 'catSunbathing',
-  birdwatching: 'catBirdwatching',
-};
+// ACTIVITY_SOUNDS is now imported from @/config/gameEventSounds
 
 export function CatActivityPopups({
   cats,

@@ -4,6 +4,8 @@ import { ObjectiveType } from '@/types/dailyObjectives';
 import { XPSource } from '@/types/battlePass';
 import { CoopChallengeType } from '@/types/coopChallenges';
 import { Resources } from '@/types/game';
+import { getSoundForAction } from '@/config/gameEventSounds';
+import type { SoundType } from '@/contexts/SoundContext';
 
 /**
  * Configuration for the game events hook
@@ -28,6 +30,8 @@ interface UseGameEventsConfig {
   trackObjective: (type: ObjectiveType, amount?: number) => void;
   addBattlePassXP: (source: XPSource) => void;
   updateCoopProgress: (type: CoopChallengeType, amount: number) => void;
+  /** Optional sound player for automatic sound triggering */
+  playSound?: (sound: SoundType) => void;
 }
 
 /**
@@ -45,7 +49,7 @@ interface UseGameEventsConfig {
  * ```
  */
 export function useGameEvents(config: UseGameEventsConfig) {
-  const { actions, trackObjective, addBattlePassXP, updateCoopProgress } = config;
+  const { actions, trackObjective, addBattlePassXP, updateCoopProgress, playSound } = config;
 
   /**
    * Execute a game action and automatically apply all side effects
@@ -136,8 +140,16 @@ export function useGameEvents(config: UseGameEventsConfig) {
       if (effects.coop) {
         updateCoopProgress(effects.coop.type, effects.coop.amount);
       }
+
+      // 3. Play action sound if configured
+      if (playSound) {
+        const sound = getSoundForAction(action);
+        if (sound) {
+          playSound(sound);
+        }
+      }
     },
-    [actions, trackObjective, addBattlePassXP, updateCoopProgress]
+    [actions, trackObjective, addBattlePassXP, updateCoopProgress, playSound]
   );
 
   return { dispatchAction };
