@@ -3,10 +3,12 @@ import { TradeReceivedDialog } from './TradeReceivedDialog';
 import { MilestonePopup } from './MilestonePopup';
 import { DailyRewardsPanel } from './DailyRewardsPanel';
 import { WhatsNewPopup } from './WhatsNewPopup';
+import { OrphanRecoveryDialog } from './OrphanRecoveryDialog';
 import { Milestone } from '@/types/milestones';
 import { VIPTier } from '@/types/dailyRewards';
 import { Cat, Resources } from '@/types/game';
 import { CatGiftStatus } from '@/hooks/useCatGifts';
+import { OrphanedCat } from '@/hooks/useOrphanDetection';
 
 interface CatGift {
   id: string;
@@ -68,6 +70,12 @@ interface CatFarmDialogsProps {
   // What's New
   showWhatsNew: boolean;
   onCloseWhatsNew: () => void;
+
+  // Orphan Recovery
+  orphanedCats: OrphanedCat[];
+  showOrphanDialog: boolean;
+  onRecoverOrphans: (cats: OrphanedCat[]) => Promise<void>;
+  onDismissOrphans: () => void;
 }
 
 export function CatFarmDialogs({
@@ -93,6 +101,10 @@ export function CatFarmDialogs({
   isVIP,
   showWhatsNew,
   onCloseWhatsNew,
+  orphanedCats,
+  showOrphanDialog,
+  onRecoverOrphans,
+  onDismissOrphans,
 }: CatFarmDialogsProps) {
   return (
     <>
@@ -134,6 +146,14 @@ export function CatFarmDialogs({
 
       {/* What's New Popup */}
       <WhatsNewPopup open={showWhatsNew} onClose={onCloseWhatsNew} />
+
+      {/* Orphan Recovery Dialog */}
+      <OrphanRecoveryDialog
+        orphanedCats={orphanedCats}
+        open={showOrphanDialog}
+        onClose={onDismissOrphans}
+        onRecover={onRecoverOrphans}
+      />
     </>
   );
 }

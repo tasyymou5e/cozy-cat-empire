@@ -99,6 +99,11 @@ export function CatFarm() {
     toggleMusic,
     handleSfxVolumeChange,
     handleMusicVolumeChange,
+    // Orphan recovery handlers
+    orphanedCats,
+    showOrphanDialog,
+    handleRecoverOrphans,
+    handleDismissOrphans,
   } = handlers;
 
   if (auth.loading || (auth.user && !ui.hasLoadedCloud)) {
@@ -152,6 +157,10 @@ export function CatFarm() {
           isVIP={dailyRewards.isVIP}
           showWhatsNew={ui.showWhatsNew}
           onCloseWhatsNew={() => ui.setShowWhatsNew(false)}
+          orphanedCats={orphanedCats}
+          showOrphanDialog={showOrphanDialog}
+          onRecoverOrphans={handleRecoverOrphans}
+          onDismissOrphans={handleDismissOrphans}
         />
 
         <GameHeader
@@ -481,6 +490,10 @@ export function CatFarm() {
               isVIP={dailyRewards.isVIP}
               showWhatsNew={ui.showWhatsNew}
               onCloseWhatsNew={() => ui.setShowWhatsNew(false)}
+              orphanedCats={orphanedCats}
+              showOrphanDialog={showOrphanDialog}
+              onRecoverOrphans={handleRecoverOrphans}
+              onDismissOrphans={handleDismissOrphans}
             />
 
             <GameHeader

@@ -130,7 +130,7 @@ export interface CatManagementActions {
  * ```
  */
 export function useCatManagement(deps: GameHookDependencies): CatManagementActions {
-  const { setState, showMessage, playSound, relationshipSystem, onChallengeProgress } = deps;
+  const { setState, showMessage, playSound, relationshipSystem, onChallengeProgress, createEventSnapshot } = deps;
 
   const addCat = useCallback(
     (type: Cat['type']) => {
@@ -178,6 +178,10 @@ export function useCatManagement(deps: GameHookDependencies): CatManagementActio
         showMessage(`Welcome ${name} the ${BREEDS[breed].name}! 🎉`, 'success');
         playSound?.('meow');
         onChallengeProgress?.('collect_cats', 1);
+
+        // Create snapshot after adoption
+        createEventSnapshot?.('cat_adopted', [name]);
+
         return {
           ...prev,
           money: prev.money - cost,
@@ -186,7 +190,7 @@ export function useCatManagement(deps: GameHookDependencies): CatManagementActio
         };
       });
     },
-    [setState, showMessage, playSound, onChallengeProgress]
+    [setState, showMessage, playSound, onChallengeProgress, createEventSnapshot]
   );
 
   const buyFromMarket = useCallback(
@@ -229,6 +233,10 @@ export function useCatManagement(deps: GameHookDependencies): CatManagementActio
       setState((prev) => {
         const cat = prev.cats.find((c) => c.id === catId);
         if (!cat) return prev;
+
+        // Create snapshot BEFORE selling for recovery
+        createEventSnapshot?.('cat_sold', [cat.name]);
+
         const sellPrice = Math.floor(cat.value * (1 + cat.showWins * 0.1));
         showMessage(`Goodbye ${cat.name}! Sold for $${sellPrice}. 👋`, 'info');
         playSound?.('coin');
@@ -246,7 +254,7 @@ export function useCatManagement(deps: GameHookDependencies): CatManagementActio
         };
       });
     },
-    [setState, showMessage, playSound, relationshipSystem]
+    [setState, showMessage, playSound, relationshipSystem, createEventSnapshot]
   );
 
   const renameCat = useCallback(

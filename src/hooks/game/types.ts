@@ -87,6 +87,15 @@ export type RelationshipSystem = ReturnType<typeof useRelationships>;
  * }
  * ```
  */
+/** Available snapshot event types */
+export type SnapshotEventType =
+  | 'portrait_generated'
+  | 'cat_sold'
+  | 'cat_adopted'
+  | 'breeding_success'
+  | 'purchase'
+  | 'manual_save';
+
 export interface GameHookDependencies {
   /** Current game state (read-only snapshot) */
   state: GameState;
@@ -112,6 +121,8 @@ export interface GameHookDependencies {
     extraKittens?: number,
     wasBestFriendBreed?: boolean
   ) => GameState;
+  /** Create a tagged snapshot for data recovery (optional) */
+  createEventSnapshot?: (eventType: SnapshotEventType, catNames?: string[]) => Promise<void>;
 }
 
 /**

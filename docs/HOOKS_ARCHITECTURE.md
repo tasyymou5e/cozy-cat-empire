@@ -41,6 +41,9 @@ src/hooks/
 ├── useCatFarmState.ts         # Master aggregator for CatFarm
 ├── useCatFarmSystems.ts       # Core systems (auth, sound, haptics)
 ├── useCatFarmUIState.ts       # UI state (tabs, modals, dialogs)
+├── useEventSnapshots.ts       # Event-triggered save snapshots
+├── useOrphanDetection.ts      # Detect missing cats from gallery
+├── usePortraitReconciliation.ts # Auto-repair missing portrait URLs
 └── [feature hooks]            # Individual feature hooks
 ```
 
@@ -64,6 +67,7 @@ interface GameHookDependencies {
   kittensBreed: number;                               // Breeding counter
   setKittensBreed: React.Dispatch<React.SetStateAction<number>>;
   checkAchievements: (newState: GameState, extraKittens?: number) => GameState;
+  createEventSnapshot?: (eventType: SnapshotEventType, catNames?: string[]) => Promise<void>; // Data recovery snapshots
 }
 ```
 
@@ -476,8 +480,57 @@ src/hooks/game/__tests__/
 
 ---
 
+## Data Protection Hooks
+
+### useEventSnapshots
+
+Creates tagged save snapshots on significant game events (sell, adopt, breed, purchase).
+
+```typescript
+const { createEventSnapshot } = useEventSnapshots(userId, state);
+
+// Before selling a cat
+await createEventSnapshot('cat_sold', [cat.name]);
+```
+
+### useOrphanDetection
+
+Detects cats that exist in gallery photos but are missing from the current save.
+
+```typescript
+const { orphanedCats, checkForOrphans, hasOrphans } = useOrphanDetection(userId, catIds);
+
+// After cloud load
+checkForOrphans();
+
+// If orphans found, show recovery dialog
+if (hasOrphans) {
+  // Show OrphanRecoveryDialog
+}
+```
+
+### usePortraitReconciliation
+
+Verifies and auto-repairs missing portrait URLs on Empire page load.
+
+```typescript
+const { missingPortraits, reconcilePortraits, autoRepairPortraits } = 
+  usePortraitReconciliation(userId, cats, updateCat);
+
+// On page load
+reconcilePortraits();
+
+// Auto-repair
+if (missingPortraits.length > 0) {
+  autoRepairPortraits();
+}
+```
+
+---
+
 ## Related Documentation
 
+- [CAT_DATA_SYNC.md](./CAT_DATA_SYNC.md) - Data sync and recovery details
 - [PANEL_DATA_FETCHING.md](./PANEL_DATA_FETCHING.md) - Component data patterns
 - [COMPONENTS.md](./COMPONENTS.md) - Component architecture
 - [GAME_LOGIC.md](./GAME_LOGIC.md) - Game mechanics

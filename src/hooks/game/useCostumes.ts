@@ -55,7 +55,7 @@ export interface CostumeActions {
  * ```
  */
 export function useCostumes(deps: GameHookDependencies): CostumeActions {
-  const { setState, showMessage, playSound } = deps;
+  const { setState, showMessage, playSound, createEventSnapshot } = deps;
 
   const buyCostume = useCallback(
     (costumeId: string) => {
@@ -81,6 +81,10 @@ export function useCostumes(deps: GameHookDependencies): CostumeActions {
 
         showMessage(`Bought ${costume.name}! ${costume.emoji}`, 'success');
         playSound?.('coin');
+
+        // Create snapshot after purchase
+        createEventSnapshot?.('purchase', [costume.name]);
+
         return {
           ...prev,
           money: prev.money - costume.price,
@@ -88,7 +92,7 @@ export function useCostumes(deps: GameHookDependencies): CostumeActions {
         };
       });
     },
-    [setState, showMessage, playSound]
+    [setState, showMessage, playSound, createEventSnapshot]
   );
 
   const equipCostume = useCallback(
