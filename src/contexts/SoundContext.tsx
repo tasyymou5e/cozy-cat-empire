@@ -1,11 +1,13 @@
 /**
  * @fileoverview Unified Sound System Provider
  *
- * Provides procedural audio for game sounds and ambient music using Web Audio API.
- * This is the single source of truth for all audio in the game.
+ * Provides audio for game sounds and ambient music using both real audio files
+ * and Web Audio API synthesized sounds.
  *
  * Features:
  * - Sound effects for UI, game events, and cat activities
+ * - Real cat audio files for authentic cat sounds
+ * - Synthesized sounds for instant UI feedback
  * - Mood-based ambient music that changes with game progression
  * - Volume controls for SFX and music independently
  * - Celebration and tense mood triggers
@@ -14,6 +16,12 @@
  */
 
 import React, { createContext, useContext, ReactNode, useCallback, useRef, useEffect } from 'react';
+import {
+  SOUND_SOURCES,
+  PRELOAD_SOUNDS,
+  isAudioFileSound,
+  type SynthSoundConfig,
+} from '@/config/sounds';
 
 /**
  * Available sound effect types
@@ -61,7 +69,7 @@ export type SoundType =
 export type MusicMood = 'morning' | 'afternoon' | 'evening' | 'night' | 'celebration' | 'tense';
 
 /**
- * Configuration for a single oscillator tone
+ * Configuration for a single oscillator tone (internal use)
  */
 interface SoundConfig {
   frequency: number;
@@ -367,6 +375,7 @@ const SoundContext = createContext<SoundContextType | null>(null);
  */
 export function SoundProvider({ children }: { children: ReactNode }) {
   const audioContextRef = useRef<AudioContext | null>(null);
+  const audioCacheRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const enabledRef = useRef(true);
   const volumeRef = useRef(0.5);
   const musicVolumeRef = useRef(0.12);
@@ -380,12 +389,55 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   } | null>(null);
   const musicPlayingRef = useRef(false);
   const chordIntervalRef = useRef<number | null>(null);
+  const hasPreloadedRef = useRef(false);
 
   const initAudio = useCallback(() => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
     return audioContextRef.current;
+  }, []);
+
+  // Preload critical audio files on first user interaction
+  useEffect(() => {
+    const preloadAudio = () => {
+      if (hasPreloadedRef.current) return;
+      hasPreloadedRef.current = true;
+
+      PRELOAD_SOUNDS.forEach((path) => {
+        const audio = new Audio(path);
+        audio.preload = 'auto';
+        audioCacheRef.current.set(path, audio);
+      });
+    };
+
+    document.addEventListener('click', preloadAudio, { once: true });
+    document.addEventListener('keydown', preloadAudio, { once: true });
+
+    return () => {
+      document.removeEventListener('click', preloadAudio);
+      document.removeEventListener('keydown', preloadAudio);
+    };
+  }, []);
+
+  /**
+   * Play an audio file with volume control
+   */
+  const playAudioFile = useCallback((path: string, sourceVolume: number) => {
+    if (!enabledRef.current) return;
+
+    try {
+      // Clone cached audio or create new
+      const cached = audioCacheRef.current.get(path);
+      const audio = cached ? (cached.cloneNode() as HTMLAudioElement) : new Audio(path);
+
+      audio.volume = sourceVolume * volumeRef.current;
+      audio.play().catch(() => {
+        // Silently fail if audio cannot play (e.g., autoplay policy)
+      });
+    } catch {
+      // Silently fail if audio is not available
+    }
   }, []);
 
   const playTone = useCallback(
@@ -442,21 +494,36 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     [initAudio]
   );
 
+  /**
+   * Play a sound effect by type
+   *
+   * Routes to either audio file playback or synthesized sound
+   * based on the SOUND_SOURCES configuration.
+   */
   const playSound = useCallback(
     (type: SoundType) => {
-      const config = SOUND_CONFIGS[type];
+      if (!enabledRef.current) return;
 
-      if (Array.isArray(config)) {
-        let delay = 0;
-        config.forEach((c) => {
-          playTone(c, delay);
-          delay += c.duration * 0.8;
-        });
+      const source = SOUND_SOURCES[type];
+
+      if (isAudioFileSound(source)) {
+        // Play real audio file
+        playAudioFile(source.path, source.volume ?? 0.5);
       } else {
-        playTone(config);
+        // Play synthesized sound
+        const config = source.config;
+        if (Array.isArray(config)) {
+          let delay = 0;
+          config.forEach((c) => {
+            playTone(c as SoundConfig, delay);
+            delay += c.duration * 0.8;
+          });
+        } else {
+          playTone(config as SoundConfig);
+        }
       }
     },
-    [playTone]
+    [playTone, playAudioFile]
   );
 
   const transitionToChord = useCallback((frequencies: number[], brightness: number) => {

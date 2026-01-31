@@ -1,135 +1,100 @@
+/**
+ * @fileoverview Authentication Page Cat Sounds
+ *
+ * Provides real cat audio playback for interactive cat elements
+ * on the authentication page. Uses actual audio files instead of
+ * synthesized sounds for a more authentic experience.
+ *
+ * @module hooks/useAuthSounds
+ */
+
 import { useCallback, useRef } from 'react';
 
+/**
+ * Cat types available on the auth page
+ */
 type CatSoundType = 'tabby' | 'gray' | 'white' | 'calico';
 
+/**
+ * Mapping of cat types to their audio files
+ */
+const AUTH_SOUNDS: Record<CatSoundType, string> = {
+  tabby: '/sounds/cat-meow.mp3',
+  gray: '/sounds/cat-purr.wav',
+  white: '/sounds/cute-cat-meow.mp3',
+  calico: '/sounds/cat-sweet-meow.wav',
+};
+
+/**
+ * Volume for auth page sounds (0-1)
+ */
+const AUTH_SOUND_VOLUME = 0.4;
+
+/**
+ * Cooldown between sounds to prevent spam (ms)
+ */
+const COOLDOWN_MS = 500;
+
+/**
+ * Hook for playing cat sounds on the authentication page
+ *
+ * Uses real audio files for authentic cat sounds with cooldown
+ * to prevent sound spam.
+ *
+ * @returns Object containing playCatSound function
+ *
+ * @example
+ * ```tsx
+ * function AuthCat({ type }: { type: CatSoundType }) {
+ *   const { playCatSound } = useAuthSounds();
+ *
+ *   return (
+ *     <div onClick={() => playCatSound(type)}>
+ *       <CatAvatar />
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export function useAuthSounds() {
-  const audioContextRef = useRef<AudioContext | null>(null);
   const lastPlayedRef = useRef<number>(0);
-  const cooldownMs = 500; // Prevent sound spam
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const getAudioContext = useCallback(() => {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-    }
-    return audioContextRef.current;
-  }, []);
-
-  const playMeow = useCallback((pitch: number = 1) => {
-    const now = Date.now();
-    if (now - lastPlayedRef.current < cooldownMs) return;
-    lastPlayedRef.current = now;
-
-    try {
-      const ctx = getAudioContext();
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      // Meow sound: frequency sweep from high to low
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(600 * pitch, ctx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(400 * pitch, ctx.currentTime + 0.15);
-      oscillator.frequency.exponentialRampToValueAtTime(350 * pitch, ctx.currentTime + 0.25);
-
-      // Volume envelope
-      gainNode.gain.setValueAtTime(0, ctx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.02);
-      gainNode.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.15);
-      gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
-
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.3);
-    } catch (e) {
-      // Silently fail if audio context not available
-    }
-  }, [getAudioContext]);
-
-  const playPurr = useCallback(() => {
-    const now = Date.now();
-    if (now - lastPlayedRef.current < cooldownMs) return;
-    lastPlayedRef.current = now;
-
-    try {
-      const ctx = getAudioContext();
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      const lfo = ctx.createOscillator();
-      const lfoGain = ctx.createGain();
-
-      // LFO for rumble effect
-      lfo.frequency.setValueAtTime(25, ctx.currentTime);
-      lfoGain.gain.setValueAtTime(10, ctx.currentTime);
-      lfo.connect(lfoGain);
-      lfoGain.connect(oscillator.frequency);
-
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(80, ctx.currentTime);
-
-      // Gentle purr envelope
-      gainNode.gain.setValueAtTime(0, ctx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.1);
-      gainNode.gain.setValueAtTime(0.08, ctx.currentTime + 0.3);
-      gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
-
-      lfo.start(ctx.currentTime);
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.5);
-      lfo.stop(ctx.currentTime + 0.5);
-    } catch (e) {
-      // Silently fail if audio context not available
-    }
-  }, [getAudioContext]);
-
-  const playSleepyMurmur = useCallback(() => {
-    const now = Date.now();
-    if (now - lastPlayedRef.current < cooldownMs) return;
-    lastPlayedRef.current = now;
-
-    try {
-      const ctx = getAudioContext();
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(200, ctx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.3);
-
-      gainNode.gain.setValueAtTime(0, ctx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.05);
-      gainNode.gain.linearRampToValueAtTime(0.03, ctx.currentTime + 0.2);
-      gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.4);
-    } catch (e) {
-      // Silently fail if audio context not available
-    }
-  }, [getAudioContext]);
-
+  /**
+   * Play a cat sound by type
+   *
+   * @param type - The cat type (tabby, gray, white, calico)
+   */
   const playCatSound = useCallback((type: CatSoundType) => {
-    switch (type) {
-      case 'tabby':
-        playMeow(1);
-        break;
-      case 'gray':
-        playPurr();
-        break;
-      case 'white':
-        playMeow(1.3); // Higher pitch "nya"
-        break;
-      case 'calico':
-        playSleepyMurmur();
-        break;
+    const now = Date.now();
+
+    // Enforce cooldown
+    if (now - lastPlayedRef.current < COOLDOWN_MS) {
+      return;
     }
-  }, [playMeow, playPurr, playSleepyMurmur]);
+    lastPlayedRef.current = now;
+
+    try {
+      // Stop previous sound if still playing
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+
+      // Create and play new audio
+      const soundPath = AUTH_SOUNDS[type];
+      const audio = new Audio(soundPath);
+      audio.volume = AUTH_SOUND_VOLUME;
+
+      audioRef.current = audio;
+
+      audio.play().catch(() => {
+        // Silently fail if audio cannot play (e.g., autoplay policy)
+      });
+    } catch {
+      // Silently fail if audio is not available
+    }
+  }, []);
 
   return { playCatSound };
 }
