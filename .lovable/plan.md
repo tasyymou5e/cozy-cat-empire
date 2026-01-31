@@ -1,308 +1,272 @@
 
 
-# Dynamic Import Failure Fix Plan
+# Cat Farm - Gamification & Monetization Enhancement Plan
 
-## Problem Analysis
+## Current State Analysis
 
-### The Error
-```
-Failed to fetch dynamically imported module: 
-https://id-preview-d01b9c7d--e8e83e8c-0c77-43d8-8d1e-9f913ade2ac9.lovable.app/assets/Index-CRUofOJP.js
-```
+### Existing Gamification Features (Already Implemented)
 
-### Root Cause
-This error occurs when React's `lazy()` tries to load a code-split chunk that no longer exists or can't be fetched. Common causes:
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Daily Login Rewards | ✅ Complete | 7-day reward cycle with VIP tiers (Bronze/Silver/Gold at 30/60/90 day streaks) |
+| Weekly Challenges | ✅ Complete | Rotating challenges with difficulty tiers and coin rewards |
+| Battle Pass | ✅ Complete | 30-tier seasonal system with free/premium tracks |
+| Lucky Wheel | ✅ Complete | Daily spin with rarity-based prizes |
+| Achievements | ✅ Complete | 25+ achievements across multiple categories |
+| Milestones | ✅ Complete | Celebration popups with coin/title rewards |
+| Collection Progress | ✅ Complete | Track breeds, personalities, costumes, tricks collected |
+| Cat Specializations | ✅ Complete | Show Star, Social Butterfly, Dynasty Builder paths |
+| Hall of Fame | ✅ Complete | Cat retirement system with legacy bonuses |
+| Daily Objectives | ✅ Complete | 3 rotating daily tasks with bonus completion reward |
+| Co-op Challenges | ✅ Complete | Friend-based cooperative challenges |
+| Leaderboard Rewards | ✅ Complete | Daily/weekly/monthly rank-based coin payouts |
 
-1. **Build Hash Mismatch**: After a new deployment, old chunk hashes (like `Index-CRUofOJP.js`) become invalid while the browser still has the old HTML/JS cached
-2. **Service Worker Caching**: The SW uses cache-first for `.js` files, potentially serving stale references
-3. **No Retry Mechanism**: Current lazy imports have no retry logic - they fail immediately
-4. **No Recovery Path**: ErrorBoundary catches the error but "Try Again" just retries the same failed import
+### Current In-Game Economy
 
-### Current Architecture Gap
+| Currency/Resource | Earn Methods | Spend Methods |
+|-------------------|--------------|---------------|
+| Coins | Chores, shows, challenges, rewards, selling cats | Resources, costumes, upgrades, market cats |
+| Portrait Credits | Purchase with 5,000 coins | AI portrait generation (3 per package) |
+| Resources (food, medicine, toys, treats) | Coins, rewards, wheel | Cat care, training |
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                   CURRENT FLOW (PROBLEMATIC)                    │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  User clicks link to "/"                                         │
-│         ↓                                                        │
-│  lazy(() => import('./pages/Index'))                             │
-│         ↓                                                        │
-│  Browser requests /assets/Index-CRUofOJP.js                      │
-│         ↓                                                        │
-│  Service Worker (cache-first) → Cache MISS or STALE              │
-│         ↓                                                        │
-│  Network request → 404 (chunk deleted after redeploy)            │
-│         ↓                                                        │
-│  TypeError: Failed to fetch dynamically imported module          │
-│         ↓                                                        │
-│  ErrorBoundary shows error page                                  │
-│         ↓                                                        │
-│  User clicks "Try Again" → SAME ERROR (cache not cleared)        │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+### Monetization Gap
+
+**Current State**: The game uses entirely in-game currency. There is **no real-money payment integration** (Stripe/payments not implemented). The Battle Pass "premium" track is currently VIP-only (login streak gated), not purchasable.
 
 ---
 
-## Solution
+## Enhancement Recommendations
 
-### 1. Add Lazy Import Retry Wrapper
+### Category A: Additional Gamification Features
 
-Create a utility that wraps `lazy()` with automatic retry logic and cache-busting:
+#### A1. Social Calendar / Event System
+Create recurring special events that drive engagement:
 
-```typescript
-// src/lib/lazyWithRetry.ts
-
-/**
- * Wraps React.lazy() with retry logic and cache-busting for dynamic imports
- * Handles "Failed to fetch dynamically imported module" errors
- */
-export function lazyWithRetry<T extends React.ComponentType<unknown>>(
-  importFn: () => Promise<{ default: T }>,
-  retries = 3,
-  retryDelay = 1000
-): React.LazyExoticComponent<T> {
-  return lazy(async () => {
-    let lastError: Error | undefined;
-    
-    for (let attempt = 0; attempt < retries; attempt++) {
-      try {
-        return await importFn();
-      } catch (error) {
-        lastError = error as Error;
-        
-        // Check if this is a chunk loading error
-        if (isChunkLoadError(error)) {
-          console.warn(`[lazyWithRetry] Chunk load failed, attempt ${attempt + 1}/${retries}`);
-          
-          // Wait before retrying (exponential backoff)
-          await new Promise(resolve => setTimeout(resolve, retryDelay * (attempt + 1)));
-          
-          // On final retry, try clearing service worker cache
-          if (attempt === retries - 2) {
-            await clearServiceWorkerCache();
-          }
-          
-          // Force page reload on last attempt (gets fresh chunk manifest)
-          if (attempt === retries - 1) {
-            console.warn('[lazyWithRetry] Final attempt failed, triggering reload');
-            window.location.reload();
-            // Return a never-resolving promise to prevent further execution
-            return new Promise(() => {});
-          }
-        } else {
-          // Non-chunk error, don't retry
-          throw error;
-        }
-      }
-    }
-    
-    throw lastError;
-  });
-}
-
-function isChunkLoadError(error: unknown): boolean {
-  const message = (error as Error)?.message || '';
-  return (
-    message.includes('Failed to fetch dynamically imported module') ||
-    message.includes('Loading chunk') ||
-    message.includes('ChunkLoadError')
-  );
-}
-
-async function clearServiceWorkerCache(): Promise<void> {
-  if ('caches' in window) {
-    try {
-      const keys = await caches.keys();
-      await Promise.all(keys.map(key => caches.delete(key)));
-      console.log('[lazyWithRetry] Service worker caches cleared');
-    } catch (e) {
-      console.warn('[lazyWithRetry] Failed to clear caches:', e);
-    }
-  }
-}
+```
+Weekly Rhythm:
+- Monday: "Manic Monday" - 2x show prizes
+- Wednesday: "Wild Wednesday" - Lucky Wheel double drop rates
+- Friday: "Friendship Friday" - 2x relationship gains
+- Weekend: "Weekend Warrior" - Bonus challenge XP
 ```
 
-### 2. Update App.tsx to Use Retry Wrapper
+**Implementation**: Add `src/types/events.ts` and `src/hooks/useGameEvents.ts` to track active bonuses.
 
-Replace all `lazy()` calls with `lazyWithRetry()`:
+#### A2. Cat Prestige System
+Allow max-level cats (Grade 20) to "prestige" for permanent bonuses:
 
-```typescript
-// Before
-const Index = lazy(() => import('./pages/Index'));
+| Prestige Level | Cost | Bonus |
+|----------------|------|-------|
+| Star 1 | Reset to Grade 10 | +5% show earnings permanently |
+| Star 2 | Reset to Grade 10 | +10% total, +2% breeding success |
+| Star 3 | Reset to Grade 10 | +15% total, unique prestige costume |
 
-// After
-const Index = lazyWithRetry(() => import('./pages/Index'));
-```
+#### A3. Seasonal Themes with Limited Items
+Each 30-day season introduces:
+- 3 season-exclusive costumes (can't be bought after season ends)
+- 1 legendary seasonal badge
+- Seasonal leaderboard with unique rewards
 
-### 3. Improve Service Worker Caching Strategy
+Current season: "Winter Wonderland" already defined - expand with spring/summer/fall.
 
-Update `public/sw.js` to use a smarter caching strategy for JS chunks:
+#### A4. Guild/Club System
+Players form clubs (5-20 members) for:
+- Club leaderboards
+- Shared club challenges
+- Club chat
+- Club treasury and upgrades
 
-```javascript
-// For JS assets, use network-first with cache fallback
-// This ensures fresh chunks are always fetched after deployments
-async function cacheFirst(request) {
-  const url = new URL(request.url);
-  
-  // For hashed JS chunks (e.g., Index-CRUofOJP.js), use network-first
-  // They change on every deploy, so cache-first causes stale chunk issues
-  if (url.pathname.match(/assets\/.*-[a-zA-Z0-9]{8}\.js$/)) {
-    return networkFirstForChunks(request);
-  }
-  
-  // Original cache-first for truly static assets (images, fonts, CSS)
-  const cached = await caches.match(request);
-  if (cached) return cached;
-  
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(RUNTIME_CACHE);
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch (error) {
-    console.error('Fetch failed:', error);
-    throw error;
-  }
-}
-
-async function networkFirstForChunks(request) {
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(RUNTIME_CACHE);
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch (error) {
-    // Fall back to cache only if network fails
-    const cached = await caches.match(request);
-    if (cached) return cached;
-    throw error;
-  }
-}
-```
-
-### 4. Add Version Check for Stale Clients
-
-Add a mechanism to detect when the app has been updated:
-
-```typescript
-// src/hooks/useVersionCheck.ts
-import { useEffect } from 'react';
-
-const BUILD_VERSION = import.meta.env.VITE_BUILD_VERSION || Date.now().toString();
-
-export function useVersionCheck() {
-  useEffect(() => {
-    // Check version on visibility change (tab comes back into focus)
-    const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'visible') {
-        try {
-          const response = await fetch('/version.json', { cache: 'no-store' });
-          if (response.ok) {
-            const { version } = await response.json();
-            if (version && version !== BUILD_VERSION) {
-              console.log('[VersionCheck] New version detected, reloading...');
-              window.location.reload();
-            }
-          }
-        } catch {
-          // Silently fail - version check is optional
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
-}
-```
-
-### 5. Enhance ErrorBoundary for Chunk Errors
-
-Update ErrorBoundary to specifically handle chunk loading errors:
-
-```typescript
-// Add to ErrorBoundary.tsx
-
-handleRetry = () => {
-  const error = this.state.error;
-  
-  // If this is a chunk load error, clear caches and reload
-  if (error?.message?.includes('Failed to fetch dynamically imported module')) {
-    // Clear all caches
-    if ('caches' in window) {
-      caches.keys().then(keys => 
-        Promise.all(keys.map(key => caches.delete(key)))
-      );
-    }
-    // Force full reload to get fresh manifest
-    window.location.reload();
-    return;
-  }
-  
-  // Existing retry logic...
-};
-```
+#### A5. Achievement Badges & Profile Showcase
+Allow players to display earned badges on their profile. Add:
+- Badge rarity tiers (Common → Legendary)
+- Badge sets with completion bonuses
+- Profile customization with badge frames
 
 ---
 
-## Files to Modify
+### Category B: Monetization Options
 
-| File | Change |
-|------|--------|
-| `src/lib/lazyWithRetry.ts` | **NEW** - Create retry wrapper utility |
-| `src/App.tsx` | Replace `lazy()` with `lazyWithRetry()` |
-| `public/sw.js` | Update to network-first for hashed JS chunks |
-| `src/components/ErrorBoundary.tsx` | Add chunk error detection and cache-clearing |
-| `vite.config.ts` | Add build version to environment |
+#### B1. Premium Battle Pass (Real Money)
+
+Convert the existing Battle Pass premium track to a purchasable option:
+
+| Package | Price | Contents |
+|---------|-------|----------|
+| Season Pass | $4.99 | Unlock all 30 premium rewards for current season |
+| Season Pass + | $9.99 | Season Pass + 10 bonus tiers + exclusive cosmetic |
+
+**Technical**: Integrate Stripe via the built-in Lovable Stripe connector. Create `premium_purchases` table and webhook handler.
+
+#### B2. Coin Packs (Real Money)
+
+Direct coin purchases for players who want to progress faster:
+
+| Pack | Price | Coins | Bonus |
+|------|-------|-------|-------|
+| Starter | $0.99 | 1,000 | - |
+| Popular | $4.99 | 6,000 | +20% |
+| Best Value | $9.99 | 15,000 | +50% |
+| Tycoon | $19.99 | 35,000 | +75% |
+
+#### B3. Premium Costumes (Real Money)
+
+Exclusive legendary costumes not available with coins:
+
+| Costume | Price | Show Bonus |
+|---------|-------|------------|
+| Celestial Wings | $2.99 | +30% |
+| Royal Regalia Set | $4.99 | +40% |
+| Mythical Dragon Armor | $6.99 | +50% |
+
+#### B4. Portrait Credit Bundles (Real Money)
+
+Premium portrait packages (in addition to coin-purchasable ones):
+
+| Bundle | Price | Credits | Bonus |
+|--------|-------|---------|-------|
+| Artist Pack | $1.99 | 5 portraits | - |
+| Studio Pack | $4.99 | 15 portraits | +50% |
+| Gallery Pack | $9.99 | 40 portraits | +100% |
+
+#### B5. VIP Subscription
+
+Monthly subscription for dedicated players:
+
+| Tier | Price/Month | Benefits |
+|------|-------------|----------|
+| VIP | $2.99 | 2x daily login rewards, 2 free wheel spins, +10% all earnings |
+| VIP+ | $5.99 | All VIP + Premium Battle Pass included, exclusive monthly costume |
 
 ---
 
-## Expected Outcome
+### Category C: Engagement Boosters
 
-After implementation:
+#### C1. Referral System
+Players invite friends for mutual rewards:
+- Referrer: 500 coins per friend who reaches Day 7
+- Referee: 200 bonus coins on signup + 100 on Day 7
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      FIXED FLOW                                  │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  User clicks link to "/"                                         │
-│         ↓                                                        │
-│  lazyWithRetry(() => import('./pages/Index'))                    │
-│         ↓                                                        │
-│  Attempt 1: Network request → 404 (stale chunk)                  │
-│         ↓                                                        │
-│  Retry with exponential backoff (1s, 2s, 3s)                     │
-│         ↓                                                        │
-│  Attempt 2: Still fails                                          │
-│         ↓                                                        │
-│  Clear service worker cache                                      │
-│         ↓                                                        │
-│  Attempt 3: Still fails                                          │
-│         ↓                                                        │
-│  Automatic page reload (gets fresh HTML with new chunk hashes)   │
-│         ↓                                                        │
-│  SUCCESS - App loads with correct chunks                         │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+#### C2. Comeback Rewards
+Players who haven't played in 7+ days get:
+- "Welcome Back" bonus chest
+- Catch-up XP boost (2x for 24 hours)
+- One-time discount on coin pack
+
+#### C3. Ad-Supported Rewards (Optional)
+Optional rewarded video ads for:
+- +1 extra Lucky Wheel spin
+- Double challenge reward (one-time)
+- Skip breeding cooldown
 
 ---
 
-## Technical Notes
+## Implementation Priority Matrix
 
-1. **Why network-first for hashed chunks?**: Vite generates content-hashed filenames (e.g., `Index-CRUofOJP.js`). After a new deploy, these hashes change but the browser may have cached references to old hashes. Network-first ensures the browser always checks for the latest version.
+| Priority | Feature | Effort | Revenue Impact | Engagement Impact |
+|----------|---------|--------|----------------|-------------------|
+| 1 | Premium Battle Pass (Stripe) | High | High | Medium |
+| 2 | Coin Packs | Medium | High | Low |
+| 3 | VIP Subscription | High | Very High | High |
+| 4 | Social Calendar/Events | Medium | Low | Very High |
+| 5 | Premium Costumes | Low | Medium | Low |
+| 6 | Portrait Credit Bundles | Low | Medium | Low |
+| 7 | Referral System | Medium | Medium | High |
+| 8 | Guild/Club System | Very High | Low | Very High |
+| 9 | Cat Prestige System | Medium | Low | High |
+| 10 | Comeback Rewards | Low | Low | Medium |
 
-2. **Why exponential backoff?**: Network issues may be transient. Waiting longer between retries gives temporary issues time to resolve.
+---
 
-3. **Why clear SW cache before final retry?**: The service worker might be serving stale responses from its cache. Clearing it forces a fresh network fetch.
+## Technical Implementation for Stripe Monetization
 
-4. **Why auto-reload as last resort?**: If all retries fail, the HTML itself is likely stale (pointing to old chunk hashes). A full reload gets fresh HTML with the correct chunk manifest.
+### Database Schema
+
+```sql
+-- Premium purchases tracking
+CREATE TABLE premium_purchases (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES profiles(id),
+  product_id TEXT NOT NULL,  -- 'battle_pass_s1', 'coin_pack_5k', etc.
+  stripe_payment_id TEXT NOT NULL,
+  amount_cents INTEGER NOT NULL,
+  currency TEXT DEFAULT 'usd',
+  status TEXT DEFAULT 'completed',
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- VIP subscriptions
+CREATE TABLE vip_subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE REFERENCES profiles(id),
+  tier TEXT NOT NULL,  -- 'vip', 'vip_plus'
+  stripe_subscription_id TEXT NOT NULL,
+  status TEXT DEFAULT 'active',
+  current_period_start TIMESTAMPTZ NOT NULL,
+  current_period_end TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### Edge Functions Needed
+
+| Function | Purpose |
+|----------|---------|
+| `create-checkout-session` | Initiate Stripe checkout for one-time purchases |
+| `create-subscription` | Create VIP subscription |
+| `stripe-webhook` | Handle payment confirmations, subscription updates |
+| `grant-purchase-rewards` | Deliver coins/items after successful payment |
+
+### Frontend Components
+
+| Component | Purpose |
+|-----------|---------|
+| `PremiumShopPanel.tsx` | Browse and purchase premium items |
+| `VIPSubscriptionDialog.tsx` | VIP tier comparison and signup |
+| `CoinPacksDialog.tsx` | Coin pack purchase flow |
+| `PurchaseSuccessAnimation.tsx` | Celebration after purchase |
+
+---
+
+## Files to Create/Modify
+
+### New Files
+| File | Purpose |
+|------|---------|
+| `src/types/premium.ts` | Premium products, subscriptions, purchases |
+| `src/hooks/usePremiumPurchases.ts` | Purchase history and status |
+| `src/hooks/useVIPStatus.ts` | VIP subscription status and perks |
+| `src/components/game/PremiumShopPanel.tsx` | In-game store UI |
+| `src/components/game/VIPBadge.tsx` | VIP status indicator |
+| `supabase/functions/create-checkout-session/index.ts` | Stripe checkout |
+| `supabase/functions/stripe-webhook/index.ts` | Payment webhooks |
+
+### Modified Files
+| File | Changes |
+|------|---------|
+| `src/components/game/BattlePassPanel.tsx` | Add "Upgrade to Premium" button |
+| `src/components/game/GameSidebar.tsx` | Add Shop tab |
+| `src/components/game/StatusBar.tsx` | Show VIP badge |
+| `src/hooks/useBattlePass.ts` | Check real premium status |
+| `src/hooks/useDailyLoginRewards.ts` | Apply VIP multipliers |
+
+---
+
+## Summary
+
+### Quick Wins (Low Effort, High Value)
+1. **Social Calendar/Events** - Rotate bonuses to create urgency
+2. **Premium Costumes** - Simple items with direct purchase
+3. **Portrait Credit Bundles** - Extension of existing system
+
+### Medium-Term (Moderate Effort, High Value)
+1. **Stripe Integration** - Enable all real-money features
+2. **Premium Battle Pass** - Convert existing system to purchasable
+3. **Coin Packs** - Standard F2P monetization
+
+### Long-Term (High Effort, Strategic Value)
+1. **VIP Subscription** - Recurring revenue stream
+2. **Guild/Club System** - Social lock-in and retention
+3. **Referral System** - Organic growth driver
 
