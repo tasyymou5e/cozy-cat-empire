@@ -98,6 +98,13 @@ export interface CatManagementActions {
    * @param amount - XP to add
    */
   addSpecializationXP: (catId: string, amount: number) => void;
+
+  /**
+   * Update a cat with partial data (generic update)
+   * @param catId - ID of the cat to update
+   * @param updates - Partial cat data to merge
+   */
+  updateCat: (catId: string, updates: Partial<Cat>) => void;
 }
 
 /**
@@ -404,6 +411,21 @@ export function useCatManagement(deps: GameHookDependencies): CatManagementActio
     [setState]
   );
 
+  /**
+   * Generic update for a cat's properties (used for prestige, etc.)
+   */
+  const updateCat = useCallback(
+    (catId: string, updates: Partial<Cat>) => {
+      setState((prev) => ({
+        ...prev,
+        cats: prev.cats.map((cat) =>
+          cat.id === catId ? { ...cat, ...updates } : cat
+        ),
+      }));
+    },
+    [setState]
+  );
+
   return {
     addCat,
     buyFromMarket,
@@ -415,5 +437,6 @@ export function useCatManagement(deps: GameHookDependencies): CatManagementActio
     updateCatPortrait,
     setSpecialization,
     addSpecializationXP,
+    updateCat,
   };
 }

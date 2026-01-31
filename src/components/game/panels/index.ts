@@ -12,3 +12,4 @@ export { SocialPanels } from './SocialPanels';
 export { ProgressPanels } from './ProgressPanels';
 export { SocialFeaturesPanels } from './SocialFeaturesPanels';
 export { UtilityPanels } from './UtilityPanels';
+export { PrestigePanels } from './PrestigePanels';
