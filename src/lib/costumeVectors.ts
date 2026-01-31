@@ -423,10 +423,266 @@ const vipGoldCrownVector: VectorCostume = {
   particles: { type: 'sparkles', count: 5, color: '#FFD700' },
 };
 
+// ============================================================================
+// Seasonal Costumes - Winter Wonderland 2026
+// ============================================================================
+
+/**
+ * Snowflake Collar - delicate icy collar
+ */
+const snowflakeCollarVector: VectorCostume = {
+  id: 'snowflake_collar',
+  path: 'M-22,8 Q-25,15 -22,22 Q0,28 22,22 Q25,15 22,8 Q0,5 -22,8 Z',
+  fill: '#E0F7FA',
+  stroke: '#87CEEB',
+  strokeWidth: 1.5,
+  decorations: [
+    { path: 'M0,12 L2,10 L4,12 L2,14 Z', fill: '#B3E5FC' }, // Center snowflake
+    { path: 'M0,8 L0,16 M-3,12 L3,12', fill: 'none', stroke: '#81D4FA' }, // Cross
+    { path: 'M-12,14 L-10,12 L-8,14 L-10,16 Z', fill: '#B3E5FC' }, // Left flake
+    { path: 'M12,14 L10,12 L8,14 L10,16 Z', fill: '#B3E5FC' }, // Right flake
+  ],
+  anchor: { x: 0, y: 18 },
+  scales: { xs: 0.3, sm: 0.4, md: 0.55, lg: 0.7, xl: 0.85 },
+  animation: { type: 'shimmer', className: 'shimmer-ice' },
+};
+
+/**
+ * Ice Queen Crown - majestic frozen crown
+ */
+const iceQueenCrownVector: VectorCostume = {
+  id: 'ice_queen_crown',
+  path: 'M-22,-8 L-18,-28 L-10,-15 L0,-35 L10,-15 L18,-28 L22,-8 L20,5 L-20,5 Z',
+  fill: '#B0E0E6',
+  stroke: '#4682B4',
+  strokeWidth: 1.5,
+  decorations: [
+    { path: 'M0,-28 L3,-24 L0,-20 L-3,-24 Z', fill: '#E0FFFF', stroke: '#87CEEB' }, // Center crystal
+    { path: 'M-12,-18 L-10,-15 L-12,-12 L-14,-15 Z', fill: '#E0FFFF' }, // Left crystal
+    { path: 'M12,-18 L10,-15 L12,-12 L14,-15 Z', fill: '#E0FFFF' }, // Right crystal
+    { path: 'M0,-5 L2,-3 L0,-1 L-2,-3 Z', fill: '#00BFFF' }, // Bottom sparkle
+    { path: 'M-8,-10 A1,1 0 1,1 -8,-9.9 Z', fill: '#FFFFFF' }, // Frost dot
+    { path: 'M8,-10 A1,1 0 1,1 8,-9.9 Z', fill: '#FFFFFF' }, // Frost dot
+  ],
+  anchor: { x: 0, y: -35 },
+  scales: { xs: 0.4, sm: 0.5, md: 0.65, lg: 0.8, xl: 1.0 },
+  animation: { type: 'glow', glowColor: '#00BFFF' },
+  particles: { type: 'sparkles', count: 4, color: '#E0FFFF' },
+};
+
+/**
+ * Aurora Wings - shimmering northern lights wings
+ */
+const auroraWingsVector: VectorCostume = {
+  id: 'aurora_wings',
+  path: 'M-10,0 Q-38,-15 -45,-5 Q-48,10 -35,22 Q-22,32 -10,25 Z M10,0 Q38,-15 45,-5 Q48,10 35,22 Q22,32 10,25 Z',
+  fill: '#9370DB',
+  stroke: '#7B68EE',
+  strokeWidth: 1,
+  decorations: [
+    { path: 'M-18,5 Q-32,0 -38,8', fill: 'none', stroke: '#00CED1' }, // Aurora line L1
+    { path: 'M-15,12 Q-28,10 -35,15', fill: 'none', stroke: '#32CD32' }, // Aurora line L2
+    { path: 'M-12,18 Q-22,18 -28,22', fill: 'none', stroke: '#FF69B4' }, // Aurora line L3
+    { path: 'M18,5 Q32,0 38,8', fill: 'none', stroke: '#00CED1' }, // Aurora line R1
+    { path: 'M15,12 Q28,10 35,15', fill: 'none', stroke: '#32CD32' }, // Aurora line R2
+    { path: 'M12,18 Q22,18 28,22', fill: 'none', stroke: '#FF69B4' }, // Aurora line R3
+  ],
+  anchor: { x: 0, y: 5 },
+  scales: { xs: 0.3, sm: 0.4, md: 0.55, lg: 0.7, xl: 0.85 },
+  animation: { type: 'rainbow', className: 'aurora-shimmer' },
+  particles: { type: 'sparkles', count: 6, color: '#E0FFFF' },
+};
+
+// ============================================================================
+// Seasonal Costumes - Spring Bloom 2026
+// ============================================================================
+
+/**
+ * Cherry Blossom Bow - spring flowers bow
+ */
+const cherryBlossomBowVector: VectorCostume = {
+  id: 'cherry_blossom_bow',
+  path: 'M-15,0 Q-10,-8 0,0 Q10,-8 15,0 Q10,8 0,0 Q-10,8 -15,0 Z',
+  fill: '#FFB7C5',
+  stroke: '#FF69B4',
+  strokeWidth: 1,
+  decorations: [
+    { path: 'M-2,-2 L2,-2 L2,2 L-2,2 Z', fill: '#FF69B4' }, // Center knot
+    { path: 'M-10,-3 A2,2 0 1,1 -10,-2.9 Z', fill: '#FFFFFF' }, // Blossom L
+    { path: 'M10,-3 A2,2 0 1,1 10,-2.9 Z', fill: '#FFFFFF' }, // Blossom R
+    { path: 'M-8,4 A1.5,1.5 0 1,1 -8,4.1 Z', fill: '#FFE4E1' }, // Petal L
+    { path: 'M8,4 A1.5,1.5 0 1,1 8,4.1 Z', fill: '#FFE4E1' }, // Petal R
+  ],
+  anchor: { x: 0, y: 25 },
+  scales: { xs: 0.3, sm: 0.4, md: 0.55, lg: 0.7, xl: 0.85 },
+  particles: { type: 'hearts', count: 3, color: '#FFB7C5' },
+};
+
+/**
+ * Butterfly Wings - delicate spring wings
+ */
+const butterflyWingsVector: VectorCostume = {
+  id: 'butterfly_wings',
+  path: 'M-8,0 Q-35,-20 -40,-5 Q-42,15 -25,25 Q-12,30 -8,15 Z M8,0 Q35,-20 40,-5 Q42,15 25,25 Q12,30 8,15 Z',
+  fill: '#87CEEB',
+  stroke: '#4682B4',
+  strokeWidth: 1,
+  decorations: [
+    { path: 'M-25,0 A5,5 0 1,1 -25,0.1 Z', fill: '#FF69B4' }, // Wing spot L
+    { path: 'M25,0 A5,5 0 1,1 25,0.1 Z', fill: '#FF69B4' }, // Wing spot R
+    { path: 'M-20,12 A3,3 0 1,1 -20,12.1 Z', fill: '#FFD700' }, // Small spot L
+    { path: 'M20,12 A3,3 0 1,1 20,12.1 Z', fill: '#FFD700' }, // Small spot R
+  ],
+  anchor: { x: 0, y: 5 },
+  scales: { xs: 0.3, sm: 0.4, md: 0.55, lg: 0.7, xl: 0.85 },
+  animation: { type: 'flow', className: 'flutter' },
+};
+
+/**
+ * Flower Crown - fresh spring flowers
+ */
+const flowerCrownVector: VectorCostume = {
+  id: 'flower_crown',
+  path: 'M-20,-5 Q-25,-10 -20,-15 Q0,-20 20,-15 Q25,-10 20,-5 Q0,0 -20,-5 Z',
+  fill: '#90EE90',
+  stroke: '#228B22',
+  strokeWidth: 1,
+  decorations: [
+    { path: 'M-15,-10 A4,4 0 1,1 -15,-9.9 Z', fill: '#FF69B4' }, // Pink flower
+    { path: 'M0,-12 A4,4 0 1,1 0,-11.9 Z', fill: '#FFD700' }, // Yellow flower
+    { path: 'M15,-10 A4,4 0 1,1 15,-9.9 Z', fill: '#FF6347' }, // Red flower
+    { path: 'M-8,-8 A2,2 0 1,1 -8,-7.9 Z', fill: '#DDA0DD' }, // Small flower
+    { path: 'M8,-8 A2,2 0 1,1 8,-7.9 Z', fill: '#87CEEB' }, // Small flower
+  ],
+  anchor: { x: 0, y: -30 },
+  scales: { xs: 0.4, sm: 0.5, md: 0.65, lg: 0.8, xl: 1.0 },
+};
+
+// ============================================================================
+// Seasonal Costumes - Summer Splash 2026
+// ============================================================================
+
+/**
+ * Beach Sun Hat - summer beach hat
+ */
+const beachHatVector: VectorCostume = {
+  id: 'beach_hat',
+  path: 'M-30,-5 Q-35,5 -30,10 L30,10 Q35,5 30,-5 Q20,-15 0,-18 Q-20,-15 -30,-5 Z',
+  fill: '#F5DEB3',
+  stroke: '#D2B48C',
+  strokeWidth: 1,
+  decorations: [
+    { path: 'M-20,0 L20,0 L20,5 L-20,5 Z', fill: '#FF6347' }, // Red band
+    { path: 'M15,2 L18,0 L21,2 L18,4 Z', fill: '#FFD700' }, // Bow
+  ],
+  anchor: { x: 0, y: -28 },
+  scales: { xs: 0.35, sm: 0.45, md: 0.6, lg: 0.75, xl: 0.9 },
+};
+
+/**
+ * Surfboard - tiny surfboard accessory
+ */
+const surfboardVector: VectorCostume = {
+  id: 'surfboard',
+  path: 'M-5,-25 Q-8,-15 -8,10 Q-5,25 0,28 Q5,25 8,10 Q8,-15 5,-25 Q0,-28 -5,-25 Z',
+  fill: '#00CED1',
+  stroke: '#008B8B',
+  strokeWidth: 1,
+  decorations: [
+    { path: 'M-4,-10 Q0,-5 4,-10 Q0,-15 -4,-10 Z', fill: '#FFD700' }, // Wave pattern
+    { path: 'M-3,5 Q0,10 3,5', fill: 'none', stroke: '#FFFFFF' }, // Stripe
+  ],
+  anchor: { x: 25, y: 0 },
+  scales: { xs: 0.25, sm: 0.35, md: 0.5, lg: 0.65, xl: 0.8 },
+};
+
+/**
+ * Tropical Outfit - Hawaiian style
+ */
+const tropicalOutfitVector: VectorCostume = {
+  id: 'tropical_outfit',
+  path: 'M-20,5 L-25,35 L25,35 L20,5 Q10,0 0,5 Q-10,0 -20,5 Z',
+  fill: '#FF6347',
+  stroke: '#FF4500',
+  strokeWidth: 1,
+  decorations: [
+    { path: 'M-10,15 A3,3 0 1,1 -10,15.1 Z', fill: '#FFFFFF' }, // Flower 1
+    { path: 'M5,12 A3,3 0 1,1 5,12.1 Z', fill: '#FFD700' }, // Flower 2
+    { path: 'M-5,25 A3,3 0 1,1 -5,25.1 Z', fill: '#FF69B4' }, // Flower 3
+    { path: 'M10,22 A3,3 0 1,1 10,22.1 Z', fill: '#00CED1' }, // Flower 4
+  ],
+  anchor: { x: 0, y: 20 },
+  scales: { xs: 0.3, sm: 0.4, md: 0.55, lg: 0.7, xl: 0.85 },
+};
+
+// ============================================================================
+// Seasonal Costumes - Autumn Harvest 2026
+// ============================================================================
+
+/**
+ * Autumn Leaf Scarf - colorful fall scarf
+ */
+const leafScarfVector: VectorCostume = {
+  id: 'leaf_scarf',
+  path: 'M-25,8 Q-20,5 0,8 Q20,5 25,8 L28,15 Q20,12 0,15 Q-20,12 -28,15 Z',
+  fill: '#D2691E',
+  stroke: '#8B4513',
+  strokeWidth: 1,
+  decorations: [
+    { path: 'M-12,10 L-10,8 L-8,10 L-10,14 Z', fill: '#FF4500' }, // Leaf 1
+    { path: 'M0,11 L2,9 L4,11 L2,15 Z', fill: '#FFD700' }, // Leaf 2
+    { path: 'M12,10 L14,8 L16,10 L14,14 Z', fill: '#8B0000' }, // Leaf 3
+    { path: 'M20,15 Q25,25 22,40 L28,42 Q32,28 28,15 Z', fill: '#D2691E', stroke: '#8B4513' }, // Hanging end
+  ],
+  anchor: { x: 0, y: 15 },
+  scales: { xs: 0.3, sm: 0.4, md: 0.55, lg: 0.7, xl: 0.85 },
+};
+
+/**
+ * Pumpkin Hat - festive pumpkin themed
+ */
+const pumpkinHatVector: VectorCostume = {
+  id: 'pumpkin_hat',
+  path: 'M-20,-10 Q-25,5 -18,15 Q0,20 18,15 Q25,5 20,-10 Q10,-18 0,-18 Q-10,-18 -20,-10 Z',
+  fill: '#FF7518',
+  stroke: '#CC5500',
+  strokeWidth: 1.5,
+  decorations: [
+    { path: 'M0,-18 L0,-25 L3,-22 L0,-18', fill: '#228B22' }, // Stem
+    { path: 'M-10,-5 Q-5,0 0,-5 Q5,0 10,-5', fill: 'none', stroke: '#CC5500' }, // Pumpkin line
+    { path: 'M-8,5 L-5,8 L-8,11 Z', fill: '#000000' }, // Eye L
+    { path: 'M8,5 L5,8 L8,11 Z', fill: '#000000' }, // Eye R
+    { path: 'M-4,12 L0,15 L4,12', fill: 'none', stroke: '#000000' }, // Mouth
+  ],
+  anchor: { x: 0, y: -28 },
+  scales: { xs: 0.4, sm: 0.5, md: 0.65, lg: 0.8, xl: 1.0 },
+  animation: { type: 'glow', glowColor: '#FF7518' },
+};
+
+/**
+ * Harvest Festival Outfit - traditional attire
+ */
+const harvestOutfitVector: VectorCostume = {
+  id: 'harvest_outfit',
+  path: 'M-20,5 L-25,35 L25,35 L20,5 Q10,0 0,5 Q-10,0 -20,5 Z',
+  fill: '#8B4513',
+  stroke: '#654321',
+  strokeWidth: 1,
+  decorations: [
+    { path: 'M-15,15 L15,15 L15,18 L-15,18 Z', fill: '#FFD700' }, // Gold band
+    { path: 'M-8,22 A3,3 0 1,1 -8,22.1 Z', fill: '#FF7518' }, // Pumpkin
+    { path: 'M8,22 A3,3 0 1,1 8,22.1 Z', fill: '#FFD700' }, // Corn
+    { path: 'M0,28 L2,25 L4,28 L2,31 Z', fill: '#8B0000' }, // Leaf
+  ],
+  anchor: { x: 0, y: 20 },
+  scales: { xs: 0.3, sm: 0.4, md: 0.55, lg: 0.7, xl: 0.85 },
+};
+
 /**
  * Map of costume IDs to vector definitions
  */
 export const COSTUME_VECTORS: Record<string, VectorCostume> = {
+  // Standard costumes
   crown: crownVector,
   wizard_hat: wizardHatVector,
   party_hat: partyHatVector,
@@ -446,6 +702,26 @@ export const COSTUME_VECTORS: Record<string, VectorCostume> = {
   vip_bronze_collar: vipBronzeCollarVector,
   vip_silver_cape: vipSilverCapeVector,
   vip_gold_crown: vipGoldCrownVector,
+
+  // Winter Wonderland 2026
+  snowflake_collar: snowflakeCollarVector,
+  ice_queen_crown: iceQueenCrownVector,
+  aurora_wings: auroraWingsVector,
+
+  // Spring Bloom 2026
+  cherry_blossom_bow: cherryBlossomBowVector,
+  butterfly_wings: butterflyWingsVector,
+  flower_crown: flowerCrownVector,
+
+  // Summer Splash 2026
+  beach_hat: beachHatVector,
+  surfboard: surfboardVector,
+  tropical_outfit: tropicalOutfitVector,
+
+  // Autumn Harvest 2026
+  leaf_scarf: leafScarfVector,
+  pumpkin_hat: pumpkinHatVector,
+  harvest_outfit: harvestOutfitVector,
 };
 
 /**

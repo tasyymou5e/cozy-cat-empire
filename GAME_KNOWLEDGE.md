@@ -274,14 +274,38 @@ See [Cat Visual System Documentation](./docs/CAT_VISUAL_SYSTEM.md) for full deta
 - Used in CatCollection, AdminUsers, RelationshipDirectory
 - Prevents expensive filtering on every keystroke
 
-### 10. Costume System (`src/types/costumes.ts`, `src/lib/costumeVectors.ts`)
+### 10. Costume System (`src/types/costumes.ts`, `src/types/seasonalContent.ts`, `src/lib/costumeVectors.ts`)
 
-**Categories:**
-- Hats (8 costumes): Party Hat, Crown, Wizard Hat, etc.
-- Outfits (4 costumes): Tuxedo, Princess Dress, etc.
-- Accessories (4 costumes): Bow Tie, Glasses, Necklace, Scarf
-- Special (4 costumes): Astronaut, Superhero Cape, Dragon, Unicorn, Angel Wings
-- VIP Exclusive (3 costumes): Bronze Collar, Silver Cape, Gold Crown
+The costume system has **two data sources** that are unified via `getCostumeById()`:
+
+1. **Standard Costumes** (`COSTUMES` in `costumes.ts`) - Always available
+2. **Seasonal Costumes** (`SEASONS[].costumes` in `seasonalContent.ts`) - Time-limited
+
+**Standard Categories (20 costumes):**
+- Hats (4): Party Hat, Top Hat, Crown, Wizard Hat
+- Outfits (4): Sweater, Tuxedo, Superhero Cape, Pirate
+- Accessories (4): Bow Tie, Sunglasses, Necklace, Scarf
+- Special (5): Angel Wings, Dragon, Astronaut, Unicorn
+- VIP Exclusive (3): Bronze Collar, Silver Cape, Gold Crown
+
+**Seasonal Categories (12 costumes across 4 seasons):**
+| Season | Costumes | Duration |
+|--------|----------|----------|
+| Winter Wonderland | Snowflake Collar, Ice Queen Crown, Aurora Wings | Jan 1 - Feb 28 |
+| Spring Bloom | Cherry Blossom Bow, Butterfly Wings, Flower Crown | Mar 1 - May 31 |
+| Summer Splash | Beach Sun Hat, Surfboard, Tropical Outfit | Jun 1 - Aug 31 |
+| Autumn Harvest | Leaf Scarf, Pumpkin Hat, Harvest Outfit | Sep 1 - Nov 30 |
+
+**Costume Lookup Flow:**
+```
+getCostumeById(id)
+    ↓
+Check COSTUMES array (standard costumes)
+    ↓
+If not found → Check all SEASONS[].costumes (seasonal)
+    ↓
+Return Costume | SeasonalCostume | undefined
+```
 
 **Animated Costume Effects:**
 | Costume | Animation | Effect |
@@ -295,18 +319,23 @@ See [Cat Visual System Documentation](./docs/CAT_VISUAL_SYSTEM.md) for full deta
 | VIP Bronze Collar | shimmer-bronze | Bronze shimmer effect |
 | VIP Silver Cape | flow + sparkles | Flowing + silver sparkle particles |
 | VIP Gold Crown | glow-vip + sparkles | Rainbow VIP glow + gold sparkles |
+| Ice Queen Crown | glow (cyan) | Icy blue glow |
+| Aurora Wings | rainbow + sparkles | Northern lights shimmer |
+| Pumpkin Hat | glow (orange) | Warm pumpkin glow |
 
 **Features:**
-- 19 costumes with full vector SVG definitions
-- Animated effects for legendary/VIP items
+- 32 total costumes (20 standard + 12 seasonal) with full vector SVG definitions
+- Animated effects for legendary/VIP/seasonal items
 - Particle systems (sparkles, stars, hearts, magic)
 - Respects reduced motion preferences
+- Seasonal costumes persist after season ends (players keep what they bought)
 
 **Data Integrity Invariants:**
-1. **Ownership Validation**: A costume can only be equipped if it exists in `ownedCostumes`
-2. **Sale Cleanup**: When a cat is sold (single or bulk), its entry is automatically removed from `catCostumes`
-3. **Costume Validation**: `getCostumeById()` validates costume existence before equipping
-4. **Error Feedback**: Invalid operations produce user-visible error messages and error sounds
+1. **Unified Lookup**: `getCostumeById()` searches both standard and seasonal sources
+2. **Ownership Validation**: A costume can only be equipped if it exists in `ownedCostumes`
+3. **Sale Cleanup**: When a cat is sold (single or bulk), its entry is automatically removed from `catCostumes`
+4. **Costume Validation**: `getCostumeById()` validates costume existence before equipping
+5. **Error Feedback**: Invalid operations produce user-visible error messages and error sounds
 
 ### 9. Show Events (`src/types/showEvents.ts`)
 

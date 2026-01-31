@@ -86,6 +86,16 @@ export {
 export type { Costume, CostumeRarity, CostumeCategory } from './costumes';
 export { COSTUMES, getCostumeById } from './costumes';
 
+// Seasonal content types
+export type { SeasonalCostume, Season, SeasonalBadge, RealSeason } from './seasonalContent';
+export {
+  SEASONS,
+  getCurrentSeason,
+  getAvailableSeasonalCostumes,
+  isSeasonalCostumeAvailable,
+  getDaysRemainingInSeason,
+} from './seasonalContent';
+
 // Battle pass types
 export type { BattlePassReward, BattlePassSeason } from './battlePass';
 
