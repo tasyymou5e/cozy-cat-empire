@@ -4,11 +4,13 @@ import { useGameState } from '@/hooks/game';
 import { useSound } from '@/contexts/SoundContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
+import { usePortraitReconciliation } from '@/hooks/usePortraitReconciliation';
 import { GameLayout } from '@/components/layouts/GameLayout';
 import { EmpireScene } from '@/components/empire/EmpireScene';
 import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,9 +35,14 @@ export default function Empire() {
   const { state, actions, kittensBreed, relationshipSystem } = useGameState(playSound);
   const { user, loading: authLoading } = useAuth();
   const { cloudLoad, cloudSave } = useCloudSave(user?.id);
+  const { toast } = useToast();
 
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
+
+  // Portrait reconciliation - auto-repair missing portrait URLs
+  const { missingPortraits, reconcilePortraits, autoRepairPortraits, repairedCount } =
+    usePortraitReconciliation(user?.id, state.cats, actions.updateCat);
 
   // Load saved game on mount - with isMounted guard and auth loading gate
   useEffect(() => {
@@ -84,6 +91,33 @@ export default function Empire() {
       isMounted = false;
     };
   }, [authLoading, user, hasLoadedCloud, cloudLoad, actions]);
+
+  // Run portrait reconciliation after cloud load
+  useEffect(() => {
+    if (hasLoadedCloud && state.cats.length > 0 && user) {
+      reconcilePortraits();
+    }
+  }, [hasLoadedCloud, state.cats.length, user, reconcilePortraits]);
+
+  // Auto-repair missing portraits and save
+  useEffect(() => {
+    if (missingPortraits.length > 0) {
+      console.log(`[Empire] Auto-repairing ${missingPortraits.length} missing portrait URLs`);
+      autoRepairPortraits();
+    }
+  }, [missingPortraits, autoRepairPortraits]);
+
+  // Notify user when portraits are repaired and trigger save
+  useEffect(() => {
+    if (repairedCount > 0 && hasLoadedCloud) {
+      toast({
+        title: 'Portraits Restored',
+        description: `Recovered ${repairedCount} missing portrait URL${repairedCount !== 1 ? 's' : ''}.`,
+      });
+      // Save the repaired state
+      saveGame();
+    }
+  }, [repairedCount, hasLoadedCloud, toast]);
 
   // Save after interactions - guarded by cloud load state
   const saveGame = useCallback(async () => {

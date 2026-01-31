@@ -680,6 +680,23 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Create a recovery snapshot after successful portrait generation
+    try {
+      await supabase.from('save_snapshots').insert({
+        user_id: userId,
+        snapshot_type: 'portrait_generated',
+        cat_count: -1, // Unknown at edge function level - game will update on next save
+        cat_names: [cat.name],
+        day: -1, // Unknown at edge function level
+        money: -1, // Unknown at edge function level
+        game_state_hash: `portrait_${cat.id}_${Date.now()}`,
+      });
+      console.log(`Created recovery snapshot for portrait generation: ${cat.name}`);
+    } catch (snapshotError) {
+      console.error('Failed to create recovery snapshot:', snapshotError);
+      // Non-critical - continue even if snapshot fails
+    }
+
     // Log successful generation
     await logAIUsage(supabase, userId, FUNCTION_NAME, MODEL, 'success', Date.now() - startTime, { ...catMetadata, portrait_url: portraitUrl });
 

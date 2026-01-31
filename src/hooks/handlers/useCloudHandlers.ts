@@ -3,14 +3,17 @@
  *
  * Manages cloud synchronization including auto-save intervals,
  * manual save/load, and initial cloud load on login.
- * Also handles external updates (e.g., admin modifications).
+ * Also handles external updates (e.g., admin modifications)
+ * and orphan detection after cloud load.
  *
  * @module hooks/handlers/useCloudHandlers
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave, AutoSaveStats } from '@/hooks/useAutoSave';
+import { useOrphanDetection, createRecoveryCat, type OrphanedCat } from '@/hooks/useOrphanDetection';
+import { useEventSnapshots, type SnapshotEventType } from '@/hooks/useEventSnapshots';
 import type { CatFarmState } from '../useCatFarmState';
 import type { AutoSaveStatus } from '@/components/game/AutoSaveIndicator';
 
@@ -38,6 +41,17 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
   const { playSound } = sound;
   const { toast } = useToast();
   const isReloadingRef = useRef(false);
+  const [showOrphanDialog, setShowOrphanDialog] = useState(false);
+
+  // Orphan detection - find cats with gallery photos but missing from save
+  const { orphanedCats, checkForOrphans, dismissOrphans, hasOrphans, isChecking } =
+    useOrphanDetection(
+      auth.user?.id,
+      state.cats.map((c) => c.id)
+    );
+
+  // Event snapshots - create tagged snapshots on significant events
+  const { createEventSnapshot } = useEventSnapshots(auth.user?.id, state);
 
   // Auto-reload when external update is detected (e.g., admin modified the save)
   useEffect(() => {
@@ -86,6 +100,11 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
           console.log(`[CloudSync] Load success: ${data.game_state.cats?.length ?? 0} cats, day ${data.game_state.day}`);
           actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
           ui.setLastCloudSave(data.last_played_at);
+          
+          // Check for orphaned cats after successful load
+          setTimeout(() => {
+            checkForOrphans();
+          }, 1000);
         } else {
           console.log('[CloudSync] No cloud save found - starting fresh');
         }
@@ -95,7 +114,14 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
         ui.setHasLoadedCloud(true); // Prevent future issues
       });
     }
-  }, [auth.user, ui.hasLoadedCloud, cloudSave, actions, ui]);
+  }, [auth.user, ui.hasLoadedCloud, cloudSave, actions, ui, checkForOrphans]);
+
+  // Show orphan recovery dialog when orphans are found
+  useEffect(() => {
+    if (hasOrphans && !isChecking) {
+      setShowOrphanDialog(true);
+    }
+  }, [hasOrphans, isChecking]);
 
   // Auto-save to cloud every 1 minute using the enhanced useAutoSave hook
   // CRITICAL: Only enabled after cloud data has loaded to prevent data loss
@@ -185,10 +211,41 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
     }
   }, [auth.user, cloudSave, actions, playSound, ui]);
 
+  // Handler for recovering orphaned cats
+  const handleRecoverOrphans = useCallback(async (orphansToRecover: OrphanedCat[]) => {
+    console.log(`[CloudSync] Recovering ${orphansToRecover.length} orphaned cats`);
+    
+    for (const orphan of orphansToRecover) {
+      const recoveredCat = createRecoveryCat(orphan);
+      actions.addReceivedCat?.(recoveredCat);
+    }
+
+    toast({
+      title: 'Cats Recovered! 🎉',
+      description: `Successfully recovered ${orphansToRecover.length} lost cat${orphansToRecover.length !== 1 ? 's' : ''}.`,
+    });
+
+    playSound?.('success');
+    setShowOrphanDialog(false);
+    dismissOrphans();
+  }, [actions, toast, playSound, dismissOrphans]);
+
+  const handleDismissOrphans = useCallback(() => {
+    setShowOrphanDialog(false);
+    dismissOrphans();
+  }, [dismissOrphans]);
+
   return {
     handleCloudSave,
     handleCloudLoad,
     autoSaveStatus,
     triggerManualSave: saveNow,
+    // Orphan recovery
+    orphanedCats,
+    showOrphanDialog,
+    handleRecoverOrphans,
+    handleDismissOrphans,
+    // Event snapshots
+    createEventSnapshot,
   };
 }
