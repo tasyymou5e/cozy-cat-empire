@@ -145,12 +145,17 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
         resources: resources as unknown as Record<string, number>,
       };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('game_saves')
         .update({ game_state: updatedGameState as Json })
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .select()
+        .single();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('Update failed - no rows were affected. Check admin permissions.');
+      }
 
       await logActivity({
         actionType: 'inventory_modify',
@@ -303,16 +308,21 @@ export function PlayerInventoryEditor({ userId, gameState, onUpdate }: PlayerInv
         catCostumes: {},
       };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('game_saves')
         .update({
           game_state: resetGameState,
           kittens_bred: 0,
           relationships: [],
         })
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .select()
+        .single();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('Reset failed - no rows were affected. Check admin permissions.');
+      }
 
       await logActivity({
         actionType: 'game_reset',
