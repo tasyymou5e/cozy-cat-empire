@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.generate-empire-scene]
 verify_jwt = false
+
+[functions.cat-ai-assistant]
+verify_jwt = false

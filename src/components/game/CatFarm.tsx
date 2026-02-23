@@ -26,6 +26,7 @@ import { MessageBar } from './MessageBar';
 import { VirtualizedCatGrid } from './VirtualizedCatGrid';
 import { MobileNavBar } from './MobileNavBar';
 import { MobileGameDrawer } from './MobileGameDrawer';
+import { AICatAdvisor } from './AICatAdvisor';
 
 // UI primitives
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
@@ -428,6 +429,13 @@ export function CatFarm() {
           day={state.day}
           money={state.money}
         />
+
+        <AICatAdvisor
+          cats={state.cats}
+          state={state}
+          onRenameCat={actions.renameCat}
+          onSaveBackstory={(catId, backstory) => actions.updateCat?.(catId, { backstory })}
+        />
       </AnimatedBackground>
     );
   }
@@ -758,6 +766,12 @@ export function CatFarm() {
                 </aside>
               </main>
             </Tabs>
+            <AICatAdvisor
+              cats={state.cats}
+              state={state}
+              onRenameCat={actions.renameCat}
+              onSaveBackstory={(catId, backstory) => actions.updateCat?.(catId, { backstory })}
+            />
           </AnimatedBackground>
         </SidebarInset>
       </div>

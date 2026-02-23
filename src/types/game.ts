@@ -128,6 +128,8 @@ export interface Cat {
   prestigeLevel?: number;
   /** Total times this cat has prestiged */
   totalPrestiges?: number;
+  /** AI-generated backstory */
+  backstory?: string;
 }
 
 // ============================================================================
