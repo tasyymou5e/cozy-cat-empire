@@ -273,24 +273,12 @@ export const COSTUME_RARITY_COLORS: Record<Costume['rarity'], string> = {
 };
 
 /**
- * Lookup a costume by ID from both standard and seasonal sources.
- * Searches standard costumes first, then all seasonal costumes.
+ * Lookup a costume by ID from the standard COSTUMES array only.
+ * For a unified lookup that includes seasonal costumes, use
+ * `getCostumeById` from `@/lib/costumeRegistry`.
  *
- * @param id - Costume ID to find
- * @returns The costume if found, undefined otherwise
+ * @deprecated Use `getCostumeById` from `@/lib/costumeRegistry` instead
  */
 export function getCostumeById(id: string): Costume | undefined {
-  // First check standard costumes
-  const standard = COSTUMES.find((c) => c.id === id);
-  if (standard) return standard;
-
-  // Then check all seasonal costumes across all seasons
-  // Import dynamically to avoid circular dependency
-  const { SEASONS } = require('./seasonalContent');
-  for (const season of SEASONS) {
-    const seasonal = season.costumes.find((c: Costume) => c.id === id);
-    if (seasonal) return seasonal;
-  }
-
-  return undefined;
+  return COSTUMES.find((c) => c.id === id);
 }

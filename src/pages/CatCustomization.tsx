@@ -36,7 +36,8 @@ import {
   generateDefaultAppearance,
   randomizeAppearance,
 } from '@/types/catAppearance';
-import { COSTUMES, getCostumeById } from '@/types/costumes';
+import { COSTUMES } from '@/types/costumes';
+import { getCostumeById } from '@/lib/costumeRegistry';
 import { computeAppearanceHash } from '@/lib/portraitUtils';
 import {
   ArrowLeft,

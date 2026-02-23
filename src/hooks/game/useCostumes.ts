@@ -12,7 +12,7 @@
  */
 
 import { useCallback } from 'react';
-import { getCostumeById } from '@/types/costumes';
+import { getCostumeById } from '@/lib/costumeRegistry';
 import { GameHookDependencies } from './types';
 
 /**
