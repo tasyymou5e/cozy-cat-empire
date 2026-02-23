@@ -31,5 +31,6 @@ export const TAB_LABELS: Record<string, { label: string; icon: string }> = {
   battlepass: { label: 'Season Pass', icon: '📜' },
   coop: { label: 'Co-op', icon: '🤝' },
   clubs: { label: 'Club', icon: '🏰' },
+  ai: { label: 'AI Advisor', icon: '🤖' },
   more: { label: 'Settings', icon: '⚙️' },
 };
