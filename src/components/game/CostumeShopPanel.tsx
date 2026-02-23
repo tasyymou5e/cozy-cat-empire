@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Cat, BREEDS } from '@/types/game';
-import { COSTUMES, Costume, COSTUME_RARITY_COLORS, getCostumeById } from '@/types/costumes';
+import { COSTUMES, Costume, COSTUME_RARITY_COLORS } from '@/types/costumes';
+import { getCostumeById } from '@/lib/costumeRegistry';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

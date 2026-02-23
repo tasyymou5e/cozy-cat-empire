@@ -31,7 +31,7 @@ import {
   ShoppingCart,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { getCostumeById } from '@/types/costumes';
+import { getCostumeById } from '@/lib/costumeRegistry';
 import {
   isPortraitOutdated,
   computeAppearanceHash,

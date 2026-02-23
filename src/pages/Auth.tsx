@@ -719,10 +719,13 @@ export default function Auth() {
       {/* Floating cat decorations with parallax */}
       <FloatingDecorations variant="kawaii-cats" density="high" parallax className="opacity-60" />
 
-      <div className="relative z-10 w-full max-w-md space-y-6 animate-fade-in-up">
+      <div className="relative z-10 w-full max-w-md space-y-5 animate-fade-in-up">
         {/* Hero Section */}
-        <div className="text-center space-y-3">
-          <div className="flex justify-center items-end gap-1">
+        <div className="text-center space-y-4">
+          {/* Glowing background pulse */}
+          <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary/20 rounded-full blur-3xl animate-pulse pointer-events-none" />
+          
+          <div className="flex justify-center items-end gap-1 relative">
             <span className="text-4xl animate-bounce" style={{ animationDelay: '0s' }}>
               😺
             </span>
@@ -733,7 +736,38 @@ export default function Auth() {
               😸
             </span>
           </div>
-          <p className="text-muted-foreground text-sm">Build your purr-fect cat empire 🐾</p>
+
+          {/* Big gradient headline */}
+          <h1 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] animate-[gradient-shift_3s_ease-in-out_infinite] bg-clip-text text-transparent drop-shadow-sm">
+            Cozy Cat Empire
+          </h1>
+
+          {/* Rotating taglines */}
+          <div className="h-6 overflow-hidden relative">
+            <div className="animate-[tagline-rotate_9s_ease-in-out_infinite] flex flex-col">
+              <span className="h-6 flex items-center justify-center text-sm font-semibold text-foreground/80">🏰 Build Your Purr-fect Empire!</span>
+              <span className="h-6 flex items-center justify-center text-sm font-semibold text-foreground/80">🏆 Compete on Global Leaderboards!</span>
+              <span className="h-6 flex items-center justify-center text-sm font-semibold text-foreground/80">✨ Collect Rare Breeds & Costumes!</span>
+            </div>
+          </div>
+
+          {/* Feature badges strip */}
+          <div className="flex flex-wrap justify-center gap-2 px-2">
+            {[
+              { emoji: '🐾', label: '50+ Breeds' },
+              { emoji: '🏆', label: 'Leaderboards' },
+              { emoji: '🎁', label: 'Trade & Gift' },
+              { emoji: '❄️', label: 'Seasonal Events' },
+            ].map((badge, i) => (
+              <span
+                key={badge.label}
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-primary/15 text-primary border border-primary/20 backdrop-blur-sm animate-fade-in"
+                style={{ animationDelay: `${i * 150}ms`, animationFillMode: 'both' }}
+              >
+                {badge.emoji} {badge.label}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Auth Card with Cat Ears */}
@@ -1018,19 +1052,23 @@ export default function Auth() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/20"
+                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] animate-[gradient-shift_3s_ease-in-out_infinite] hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/25 relative overflow-hidden group"
                   disabled={isSubmitting || (mode === 'signup' && !!hasSignupErrors)}
                 >
-                  <PawPrint className="h-4 w-4 mr-2" />
+                  {/* Shimmer effect */}
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                  <PawPrint className="h-5 w-5 mr-2 relative z-10" />
+                  <span className="relative z-10">
                   {isSubmitting
                     ? 'Please wait...'
                     : mode === 'login'
-                      ? 'Log In'
+                      ? 'Enter Your Kingdom 🏰'
                       : mode === 'signup'
-                        ? 'Create Account'
+                        ? 'Start Your Empire! 🚀'
                         : mode === 'update-password'
                           ? 'Update Password'
                           : 'Send Reset Email'}
+                  </span>
                 </Button>
               </form>
 
@@ -1076,8 +1114,11 @@ export default function Auth() {
           </GlassCard>
         </div>
 
-        {/* Footer Decoration */}
-        <div className="text-center space-y-2">
+        {/* Social Proof + Footer */}
+        <div className="text-center space-y-3">
+          <p className="text-sm font-medium text-foreground/70 animate-fade-in" style={{ animationDelay: '600ms', animationFillMode: 'both' }}>
+            🐾 Join thousands of cat lovers worldwide! 🐾
+          </p>
           <div className="flex justify-center gap-2 text-xl">
             <span className="animate-float" style={{ animationDelay: '0s' }}>
               🐱

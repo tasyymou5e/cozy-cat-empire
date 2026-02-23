@@ -5,7 +5,8 @@ import {
   EYE_COLORS,
   generateDefaultAppearance,
 } from '@/types/catAppearance';
-import { Costume, getCostumeById } from '@/types/costumes';
+import { Costume } from '@/types/costumes';
+import { getCostumeById } from '@/lib/costumeRegistry';
 import { getGradeTier } from '@/types/grading';
 import { cn } from '@/lib/utils';
 

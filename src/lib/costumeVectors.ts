@@ -5,7 +5,8 @@
  * instead of emoji overlays.
  */
 
-import { COSTUMES, getCostumeById } from '@/types/costumes';
+import { COSTUMES } from '@/types/costumes';
+import { getCostumeById } from '@/lib/costumeRegistry';
 
 /**
  * Vector costume definition

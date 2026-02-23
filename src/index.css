@@ -1,5 +1,19 @@
 @tailwind base;
 
+/* Auth page animations */
+@keyframes gradient-shift {
+  0% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+  100% { background-position: 0% center; }
+}
+
+@keyframes tagline-rotate {
+  0%, 30% { transform: translateY(0); }
+  33%, 63% { transform: translateY(-24px); }
+  66%, 96% { transform: translateY(-48px); }
+  100% { transform: translateY(0); }
+}
+
 /* Empire page animations */
 @keyframes float {
   0%, 100% { transform: translateY(0) translateX(0); opacity: 0.6; }
