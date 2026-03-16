@@ -218,6 +218,54 @@ export type Database = {
         }
         Relationships: []
       }
+      application_logs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          function_name: string | null
+          id: string
+          label: string | null
+          level: Database["public"]["Enums"]["log_level"]
+          message: string
+          metadata: Json | null
+          request_id: string | null
+          source: string | null
+          stack_trace: string | null
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          function_name?: string | null
+          id?: string
+          label?: string | null
+          level?: Database["public"]["Enums"]["log_level"]
+          message: string
+          metadata?: Json | null
+          request_id?: string | null
+          source?: string | null
+          stack_trace?: string | null
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          function_name?: string | null
+          id?: string
+          label?: string | null
+          level?: Database["public"]["Enums"]["log_level"]
+          message?: string
+          metadata?: Json | null
+          request_id?: string | null
+          source?: string | null
+          stack_trace?: string | null
+          timestamp?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       auth_attempts_log: {
         Row: {
           attempt_type: string
@@ -1963,6 +2011,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      log_level:
+        | "error"
+        | "warn"
+        | "info"
+        | "http"
+        | "verbose"
+        | "debug"
+        | "silly"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2091,6 +2147,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      log_level: ["error", "warn", "info", "http", "verbose", "debug", "silly"],
     },
   },
 } as const
