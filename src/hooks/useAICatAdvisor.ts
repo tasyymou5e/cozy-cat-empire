@@ -175,7 +175,9 @@ export function useAICatAdvisor() {
       const data = await resp.json();
       setNameSuggestions(data.names || []);
     } catch (e) {
-      if ((e as Error).message !== 'rate_limited' && (e as Error).message !== 'credits_exhausted') {
+      const msg = e instanceof Error ? e.message : '';
+      if (msg !== 'rate_limited' && msg !== 'credits_exhausted') {
+        log.error('Failed to generate names:', e);
         toast.error('Failed to generate names');
       }
     } finally {
