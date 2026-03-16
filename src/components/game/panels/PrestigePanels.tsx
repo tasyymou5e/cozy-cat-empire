@@ -26,7 +26,7 @@ export function PrestigePanels({
   onUnlockCostume,
 }: PrestigePanelsProps) {
   return (
-    <TabsContent value="prestige" className="mt-0">
+    <TabsContent value="prestige" className="mt-0 panel-animate-in">
       <PanelErrorBoundary panelName="PrestigePanel">
         <Suspense fallback={<PanelSkeleton rows={4} />}>
           <PrestigePanel

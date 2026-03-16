@@ -37,7 +37,7 @@ export function EconomyPanels({
 }: EconomyPanelsProps) {
   return (
     <>
-      <TabsContent value="chores" className="mt-0">
+      <TabsContent value="chores" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="ChorePanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <ChorePanel
@@ -48,7 +48,7 @@ export function EconomyPanels({
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="supplies" className="mt-0">
+      <TabsContent value="supplies" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="ResourcePanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <ResourcePanel
@@ -67,7 +67,7 @@ export function EconomyPanels({
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="market" className="mt-0">
+      <TabsContent value="market" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="MarketPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <MarketPanel

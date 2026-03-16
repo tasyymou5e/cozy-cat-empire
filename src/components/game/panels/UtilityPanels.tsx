@@ -138,7 +138,7 @@ export function UtilityPanels({
 }: UtilityPanelsProps) {
   return (
     <>
-      <TabsContent value="legacy" className="mt-0">
+      <TabsContent value="legacy" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="HallOfFamePanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <HallOfFamePanel
@@ -154,7 +154,7 @@ export function UtilityPanels({
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="specializations" className="mt-0">
+      <TabsContent value="specializations" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="SpecializationPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <SpecializationPanel
@@ -170,7 +170,7 @@ export function UtilityPanels({
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="battlepass" className="mt-0">
+      <TabsContent value="battlepass" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="BattlePassPanel">
           <Suspense fallback={<PanelSkeleton rows={5} />}>
             <BattlePassPanel

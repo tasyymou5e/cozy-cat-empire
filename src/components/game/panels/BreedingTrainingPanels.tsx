@@ -65,7 +65,7 @@ export function BreedingTrainingPanels({
 }: BreedingTrainingPanelsProps) {
   return (
     <>
-      <TabsContent value="costumes" className="mt-0">
+      <TabsContent value="costumes" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="CostumeShopPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <CostumeShopPanel
@@ -80,7 +80,7 @@ export function BreedingTrainingPanels({
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="breeding" className="mt-0">
+      <TabsContent value="breeding" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="BreedingPanel">
           <Suspense fallback={<PanelSkeleton rows={3} />}>
             <BreedingPanel
@@ -97,7 +97,7 @@ export function BreedingTrainingPanels({
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="training" className="mt-0">
+      <TabsContent value="training" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="TrainingPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <TrainingPanel

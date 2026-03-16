@@ -73,7 +73,7 @@ export function SocialPanels({
 }: SocialPanelsProps) {
   return (
     <>
-      <TabsContent value="bulk" className="mt-0">
+      <TabsContent value="bulk" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="BulkActionsPanel">
           <Suspense fallback={<PanelSkeleton rows={5} />}>
             <BulkActionsPanel
