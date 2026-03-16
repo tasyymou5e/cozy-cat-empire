@@ -10,6 +10,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('AdminAuth');
 
 /**
  * Return type for the useAdminAuth hook
@@ -124,7 +127,7 @@ export function useAdminAuth(): UseAdminAuthResult {
           checkInProgress.current = null;
         }
       } catch (err) {
-        console.error('[useAdminAuth] Role check error:', err);
+        log.error('Role check error:', err);
         if (checkInProgress.current === userIdBeingChecked) {
           setIsAdmin(false);
           setCheckedUserId(userIdBeingChecked);

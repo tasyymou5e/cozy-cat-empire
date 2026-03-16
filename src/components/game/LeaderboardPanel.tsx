@@ -137,7 +137,7 @@ export const LeaderboardPanel = memo(function LeaderboardPanel({
         })
         .sort((a, b) => b.friendCount - a.friendCount)
         .slice(0, 5)
-        .map((cat, i) => ({ ...cat, rank: i + 1, score: (cat as any).friendCount })),
+        .map((cat, i) => ({ ...cat, rank: i + 1, score: cat.friendCount })),
     [cats, relationships]
   );
 

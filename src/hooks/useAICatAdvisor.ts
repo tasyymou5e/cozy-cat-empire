@@ -1,6 +1,9 @@
 import { useState, useCallback } from 'react';
 import { Cat, GameState } from '@/types/game';
 import { toast } from 'sonner';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('AICatAdvisor');
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cat-ai-assistant`;
 
@@ -147,7 +150,9 @@ export function useAICatAdvisor() {
           }
         }
       } catch (e) {
-        if ((e as Error).message !== 'rate_limited' && (e as Error).message !== 'credits_exhausted') {
+        const msg = e instanceof Error ? e.message : '';
+        if (msg !== 'rate_limited' && msg !== 'credits_exhausted') {
+          log.error('Failed to get AI response:', e);
           toast.error('Failed to get AI response');
         }
       } finally {
@@ -170,7 +175,9 @@ export function useAICatAdvisor() {
       const data = await resp.json();
       setNameSuggestions(data.names || []);
     } catch (e) {
-      if ((e as Error).message !== 'rate_limited' && (e as Error).message !== 'credits_exhausted') {
+      const msg = e instanceof Error ? e.message : '';
+      if (msg !== 'rate_limited' && msg !== 'credits_exhausted') {
+        log.error('Failed to generate names:', e);
         toast.error('Failed to generate names');
       }
     } finally {
@@ -195,7 +202,9 @@ export function useAICatAdvisor() {
       const data = await resp.json();
       setGeneratedStory(data.story || '');
     } catch (e) {
-      if ((e as Error).message !== 'rate_limited' && (e as Error).message !== 'credits_exhausted') {
+      const msg = e instanceof Error ? e.message : '';
+      if (msg !== 'rate_limited' && msg !== 'credits_exhausted') {
+        log.error('Failed to generate story:', e);
         toast.error('Failed to generate story');
       }
     } finally {
@@ -222,7 +231,9 @@ export function useAICatAdvisor() {
       const data = await resp.json();
       setTips(data.tips || []);
     } catch (e) {
-      if ((e as Error).message !== 'rate_limited' && (e as Error).message !== 'credits_exhausted') {
+      const msg = e instanceof Error ? e.message : '';
+      if (msg !== 'rate_limited' && msg !== 'credits_exhausted') {
+        log.error('Failed to generate tips:', e);
         toast.error('Failed to generate tips');
       }
     } finally {

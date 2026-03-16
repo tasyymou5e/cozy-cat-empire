@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { createLogger } from '@/lib/logger';
+import { handleAsyncError } from '@/lib/errorHandling';
+
+const log = createLogger('Notifications');
 
 /**
  * Notification data structure for in-app alerts
@@ -111,7 +115,11 @@ export function useNotifications(userId: string | undefined) {
       setNotifications(allNotifications);
       setUnreadCount(allNotifications.length);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      handleAsyncError(error, {
+        source: 'useNotifications',
+        operation: 'fetchNotifications',
+        userId,
+      }, 'Failed to fetch notifications');
     }
   }, [userId]);
 

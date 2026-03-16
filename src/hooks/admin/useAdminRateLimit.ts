@@ -10,6 +10,9 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('AdminRateLimit');
 
 interface RateLimitConfig {
   actionType: string;
@@ -70,7 +73,7 @@ export function useAdminRateLimit() {
 
       if (error && error.code !== 'PGRST116') {
         // PGRST116 = no rows returned (which is fine)
-        console.error('Rate limit check error:', error);
+        log.error('Rate limit check error:', error);
         return { allowed: true, remaining: config.limit, resetAt: null };
       }
 
@@ -96,7 +99,7 @@ export function useAdminRateLimit() {
         resetAt: windowEnd,
       };
     } catch (err) {
-      console.error('Rate limit check error:', err);
+      log.error('Rate limit check error:', err);
       return { allowed: true, remaining: config.limit, resetAt: null };
     }
   };
@@ -151,7 +154,7 @@ export function useAdminRateLimit() {
 
       return true;
     } catch (err) {
-      console.error('Rate limit record error:', err);
+      log.error('Rate limit record error:', err);
       return false;
     }
   };
