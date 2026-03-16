@@ -29,17 +29,10 @@ export function MobileNavBar({
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border pb-safe">
       <div className="flex items-center justify-between h-14 px-4">
-        {/* Quick Stats */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 px-2 py-1 rounded bg-muted/50 text-sm">
-            <span>📅</span>
-            <span className="font-medium">{day}</span>
-          </div>
-          <div className="flex items-center gap-1 px-2 py-1 rounded bg-muted/50 text-sm">
-            <span>💰</span>
-            <span className="font-bold text-gradient-gold">${money.toLocaleString()}</span>
-          </div>
-        </div>
+        {/* Active tab label */}
+        <span className="text-sm font-medium text-muted-foreground truncate max-w-[200px]">
+          🐱 Cat Farm
+        </span>
 
         {/* Menu Button - Touch-friendly size */}
         <button

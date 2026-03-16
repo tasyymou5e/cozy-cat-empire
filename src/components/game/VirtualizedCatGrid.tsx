@@ -187,7 +187,7 @@ export const VirtualizedCatGrid = memo(function VirtualizedCatGrid({
   // For small lists, use regular grid (virtualization overhead not worth it)
   if (cats.length < virtualizationThreshold) {
     return (
-      <div className={`cat-grid ${className || ''}`}>
+      <div className={`grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 ${className || ''}`}>
         {cats.map((cat) => (
           <CatCardItem
             key={cat.id}

@@ -7,6 +7,7 @@ import { Slider } from '@/components/ui/slider';
 import { NotificationCenter } from './NotificationCenter';
 import { AutoSaveIndicator, AutoSaveStatus } from './AutoSaveIndicator';
 import { WeeklyEventBanner } from './WeeklyEventBanner';
+import { cn } from '@/lib/utils';
 import {
   Volume2,
   VolumeX,
