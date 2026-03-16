@@ -20,12 +20,18 @@ const mockEq = vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle });
 const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
 const mockUpdate = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
 
+const makeChainable = () => {
+  const obj: Record<string, unknown> = {};
+  const self = () => obj;
+  ['select','insert','delete','eq','order','limit','in','then'].forEach(m => { obj[m] = vi.fn().mockImplementation((...args: unknown[]) => { if (m === 'then') { const cb = args[0] as Function; cb?.({ error: null, data: [] }); return Promise.resolve(); } return obj; }); });
+  return obj;
+};
+
 const mockFrom = vi.fn().mockImplementation((table: string) => {
   if (table === 'game_saves') {
     return { select: mockSelect, upsert: mockUpsert, update: mockUpdate };
   }
-  // save_snapshots, error_logs – fire-and-forget
-  return { insert: mockInsert, select: vi.fn().mockReturnThis(), delete: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), limit: vi.fn().mockReturnThis(), in: vi.fn().mockReturnThis(), then: vi.fn() };
+  return makeChainable();
 });
 
 const mockSubscribe = vi.fn().mockReturnThis();
