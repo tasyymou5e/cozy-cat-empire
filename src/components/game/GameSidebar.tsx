@@ -20,8 +20,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { ChevronDown, BarChart3, LayoutGrid, Heart, Camera, Image, Globe, Castle } from 'lucide-react';
+import { ChevronDown, BarChart3, LayoutGrid, Heart, Camera, Image, Globe, Castle, Lock } from 'lucide-react';
 import { CATEGORIES, getCategoryForTab } from './CategoryTabBar';
 
 interface GameSidebarProps {
@@ -31,6 +32,8 @@ interface GameSidebarProps {
   day: number;
   money: number;
   highlightedTab?: string | null;
+  isTabUnlocked?: (tabId: string) => boolean;
+  getTabUnlockHint?: (tabId: string) => string | null;
 }
 
 const EXTERNAL_LINKS = [
