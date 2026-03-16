@@ -19,8 +19,8 @@ const Index = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <span className="text-6xl animate-bounce inline-block">🐱</span>
-          <p className="mt-4 text-xl text-muted-foreground">Loading Cat Farm...</p>
+          <span className="text-6xl animate-bounce inline-block">😺</span>
+          <p className="mt-4 text-xl text-muted-foreground">Waking up the kittens...</p>
         </div>
       </div>
     );
