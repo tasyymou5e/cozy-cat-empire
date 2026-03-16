@@ -143,6 +143,20 @@ export function useCatFarmState() {
   const friends = useFriends(auth.user?.id);
   const coopChallenges = useCoopChallenges(auth.user?.id, friends.friends, playSound);
 
+  // === NEW GAMIFICATION HOOKS ===
+  const tabUnlocks = useTabUnlocks({
+    catsOwned: state.cats.length,
+    day: state.day,
+    totalMoneyEarned: state.totalMoneyEarned,
+    totalShowWins: state.totalShowWins,
+    kittensBred: kittensBreed,
+    isAuthenticated: !!auth.user,
+  });
+  const welcomeBack = useWelcomeBack();
+  const floatingRewards = useFloatingRewards();
+  const gamificationAnalytics = useGamificationAnalytics(auth.user?.id);
+  const playerPrestige = usePlayerPrestige();
+
   // Badge counts
   const badgeCounts = useBadgeCounts({
     state,
@@ -206,6 +220,13 @@ export function useCatFarmState() {
     friends,
     coopChallenges,
     badgeCounts,
+
+    // New gamification systems
+    tabUnlocks,
+    welcomeBack,
+    floatingRewards,
+    gamificationAnalytics,
+    playerPrestige,
 
     // UI State (from useCatFarmUIState)
     ui,
