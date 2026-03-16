@@ -126,7 +126,7 @@ async function flushLogs() {
       stack_trace: entry.stackTrace?.slice(0, 10000) || null,
     }));
 
-    const { error } = await supabase.from('application_logs').insert(rows);
+    const { error } = await supabase.from('application_logs').insert(rows as any);
     if (error) {
       // Don't recurse — just console.warn
       console.warn('[WinstonLogger] Failed to flush logs to DB:', error.message);
