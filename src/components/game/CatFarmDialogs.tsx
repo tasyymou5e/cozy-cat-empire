@@ -112,6 +112,10 @@ export function CatFarmDialogs({
   showOrphanDialog,
   onRecoverOrphans,
   onDismissOrphans,
+  showWelcomeBack,
+  welcomeBackBonus,
+  onClaimWelcomeBack,
+  onDismissWelcomeBack,
 }: CatFarmDialogsProps) {
   return (
     <>
