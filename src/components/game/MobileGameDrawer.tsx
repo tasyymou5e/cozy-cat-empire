@@ -83,8 +83,8 @@ export function MobileGameDrawer({
           </DrawerTitle>
         </DrawerHeader>
 
-        <ScrollArea className="flex-1 px-4 pb-safe">
-          <div className="space-y-2 pb-4">
+        <ScrollArea className="flex-1 px-4 pb-safe" style={{ scrollBehavior: 'smooth' }}>
+          <div className="space-y-2 pb-4 snap-scroll-x">
             {/* Categories with accordion */}
             {CATEGORIES.map((category) => {
               const isActiveCategory = category.id === activeCategory;
