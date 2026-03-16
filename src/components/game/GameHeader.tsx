@@ -48,6 +48,7 @@ interface GameHeaderProps {
   onShowShortcutsHelp: () => void;
   onShowWhatsNew: () => void;
   onShowDailyRewards: () => void;
+  onShowDailyWizard?: () => void;
 
   // User
   user: { id: string; email?: string } | null;
