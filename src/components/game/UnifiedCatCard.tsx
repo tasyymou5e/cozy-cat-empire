@@ -456,9 +456,12 @@ export function UnifiedCatCard({
       </div>
 
       <p className="text-xs text-muted-foreground mb-1">{breedInfo.name}</p>
-      <p className="text-xs text-muted-foreground mb-2">
+      <span className={cn(
+        'inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border mb-2 w-fit',
+        personalityColors[cat.personality] || 'bg-muted text-muted-foreground border-border'
+      )}>
         {personalityEmojis[cat.personality]} {cat.personality}
-      </p>
+      </span>
 
       {/* Relationship Badges */}
       {shouldShowRelationships &&
