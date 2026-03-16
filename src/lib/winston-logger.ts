@@ -115,10 +115,10 @@ async function flushLogs() {
 
   try {
     const rows = batch.map((entry) => ({
-      level: entry.level,
+      level: entry.level as string,
       message: entry.message.slice(0, 5000),
       label: entry.label || null,
-      metadata: entry.metadata || {},
+      metadata: (entry.metadata || {}) as Record<string, unknown>,
       source: entry.source || 'client',
       function_name: entry.functionName || null,
       duration_ms: entry.durationMs || null,
