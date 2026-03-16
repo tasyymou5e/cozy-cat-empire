@@ -1070,7 +1070,7 @@
 
 /* Glassmorphism panel treatment */
 .glass-panel {
-  @apply bg-card/60 backdrop-blur-md border border-white/15 dark:border-white/8 shadow-lg;
+  @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-lg;
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
