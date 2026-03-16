@@ -40,6 +40,28 @@ export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory, onNavi
 
   const selectedCat = cats.find((c) => c.id === selectedCatId);
 
+  // Load persistent chat history on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(CHAT_HISTORY_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          ai.restoreMessages(parsed.slice(-MAX_HISTORY));
+        }
+      }
+    } catch { /* ignore */ }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist chat messages
+  useEffect(() => {
+    if (ai.chatMessages.length > 0) {
+      try {
+        localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(ai.chatMessages.slice(-MAX_HISTORY)));
+      } catch { /* ignore */ }
+    }
+  }, [ai.chatMessages]);
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [ai.chatMessages]);
