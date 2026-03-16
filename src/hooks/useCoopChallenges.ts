@@ -253,8 +253,13 @@ export function useCoopChallenges(
     }
   }, [userId, activeChallenges, playSound]);
 
+  const templates = COOP_CHALLENGE_TEMPLATES;
+  const getActiveCount = useCallback(() => activeChallenges.filter((c) => c.status === 'active').length, [activeChallenges]);
+  const getPendingCount = useCallback(() => pendingInvites.length, [pendingInvites]);
+
   return {
-    activeChallenges, pendingInvites, sentInvites, loading,
+    activeChallenges, pendingInvites, sentInvites, loading, templates,
     sendInvite, acceptInvite, declineInvite, cancelInvite, updateProgress, claimReward,
+    getActiveCount, getPendingCount,
   };
 }
