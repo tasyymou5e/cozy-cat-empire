@@ -84,7 +84,7 @@ export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory, onNavi
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <button
-            className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30 flex items-center justify-center text-white text-2xl hover:scale-110 transition-transform animate-pulse hover:animate-none"
+            className="fixed bottom-32 right-4 md:bottom-6 md:right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30 flex items-center justify-center text-white text-2xl hover:scale-110 transition-transform animate-pulse hover:animate-none"
             aria-label="AI Cat Advisor"
           >
             🤖
