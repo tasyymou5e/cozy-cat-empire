@@ -80,7 +80,7 @@ export const CompactStatusBar = React.forwardRef<HTMLDivElement, CompactStatusBa
     return (
       <div
         ref={ref}
-        className="bg-muted/30 border-b border-border px-4 py-2 flex items-center justify-between gap-4 overflow-x-auto scrollbar-hide"
+        className="bg-muted/30 border-b border-border px-3 sm:px-4 py-2 flex items-center justify-between gap-3 sm:gap-4 overflow-x-auto scrollbar-hide"
       >
         {/* Left: Core Stats */}
         <div className="flex items-center gap-4 shrink-0">
