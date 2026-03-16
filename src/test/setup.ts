@@ -1,12 +1,14 @@
 /**
  * @fileoverview Vitest setup file
  *
- * Configures the test environment with necessary mocks and globals.
+ * Configures the test environment with necessary mocks, globals,
+ * and centralized module mocks shared across all test suites.
  */
 
 import { vi } from 'vitest';
 
-// Mock window.matchMedia for components using media queries
+// ── Global DOM mocks ─────────────────────────────────────────────────────
+
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation((query) => ({
@@ -21,16 +23,47 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-// Mock ResizeObserver
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }));
 
-// Mock IntersectionObserver
 global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
+}));
+
+// ── Centralized module mocks (reduces boilerplate per-test) ──────────────
+
+vi.mock('@/lib/logger', () => ({
+  createLogger: () => ({
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  }),
+  logger: {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+vi.mock('@/types/guards', () => ({
+  isValidGameState: vi.fn().mockReturnValue(true),
+  isCatRelationship: vi.fn().mockReturnValue(true),
+  isRelationshipEvent: vi.fn().mockReturnValue(true),
+}));
+
+vi.mock('@/hooks/useErrorLogger', () => ({
+  logErrorToDatabase: vi.fn(),
+  useErrorLogger: () => ({
+    logError: vi.fn(),
+    logInteractionError: vi.fn(),
+    logNetworkError: vi.fn(),
+    logComponentError: vi.fn(),
+  }),
 }));
