@@ -37,33 +37,24 @@ interface RenderRequest {
 
 // Dwelling tier descriptions for prompt building
 const TIER_DESCRIPTIONS: Record<string, string> = {
-  apartment: `Cozy urban apartment interior with warm amber walls, wood laminate flooring, 
-    city skyline visible through a large window, potted plants, cat tree, cozy cat bed, 
-    bookshelf, floor cushions, and a radiator for warmth.`,
-  house: `Suburban living room with cream-colored walls, soft carpet, bay window with garden view,
-    warm fireplace, comfortable couch, cat tower, ottoman, cozy rug, and garden door.`,
-  mansion: `Grand luxury parlor with lavender walls, marble flooring, crystal chandelier overhead,
-    marble columns, grand piano, velvet chaise lounge, ornate fountain, cat throne,
-    and fine art on the walls.`,
-  farm: `Outdoor pastoral farmland scene with rolling green hills, bright sky, red barn in background,
-    wooden fences, hay bales scattered around, windmill on the horizon, apple trees,
-    tractor, and sunny spots on the grass.`,
+  apartment: "Warm cozy apartment interior, honey-amber walls, oak hardwood floor, large window showing city skyline, potted monstera plant, knitted blankets on couch, cat tree by window, soft woven rug, bookshelf with trinkets, warm lamp light",
+  house: "Bright suburban living room, cream walls, plush carpet, bay window with garden view, stone fireplace with crackling fire, overstuffed sofa, cat tower, potted ferns, sunlight streaming in, family photos on wall",
+  mansion: "Grand luxury parlor, pale lavender walls with gold trim, white marble floor, crystal chandelier, marble columns, grand piano, velvet chaise lounge, ornate gold-framed paintings, fresh flower arrangements, tall arched windows",
+  farm: "Pastoral countryside scene, rolling emerald hills, bright blue sky with fluffy clouds, red barn in midground, wooden post fences, golden hay bales, old windmill, apple orchard, warm sunlit grass, dirt path",
 };
 
-// Time of day lighting descriptions
 const TIME_LIGHTING: Record<string, string> = {
-  morning: "Warm golden morning light from upper left, soft yellow-orange ambient glow, long shadows, fresh dewy atmosphere",
-  afternoon: "Bright natural daylight, clear and even lighting, minimal shadows, vibrant colors",
-  evening: "Warm orange-pink sunset lighting, dramatic shadows, cozy golden hour atmosphere",
-  night: "Cool blue-purple night lighting, soft moonlight, warm glow from indoor lights, starry atmosphere",
+  morning: "Warm golden morning light from upper left, soft yellow-orange ambient glow, long gentle shadows, fresh dewy atmosphere, light rays through windows",
+  afternoon: "Bright natural daylight, clear even lighting, vibrant saturated colors, crisp details, blue sky reflected light",
+  evening: "Warm orange-pink sunset lighting, long dramatic shadows, cozy golden hour atmosphere, amber rim lighting on subjects",
+  night: "Cool blue-purple moonlight, soft diffused shadows, warm indoor lamp glow, starry sky visible, gentle ambient light",
 };
 
-// Season descriptions
 const SEASON_ELEMENTS: Record<string, string> = {
-  spring: "Cherry blossoms falling, tulips blooming, baby chicks, butterflies, fresh green growth",
-  summer: "Bright sunshine, sunflowers, butterflies, bees buzzing, lush green foliage",
-  autumn: "Falling orange and red leaves, pumpkins, harvest decorations, warm amber tones",
-  winter: "Light snow falling, snowman, holiday decorations, cozy warm lights, frost on surfaces",
+  spring: "Pink cherry blossom petals drifting, tulips in bloom, butterflies, fresh green leaves, soft pastel tones",
+  summer: "Bright warm sunshine, sunflowers, lush green foliage, butterflies, vivid saturated colors",
+  autumn: "Falling orange and red maple leaves, pumpkins, warm amber and burnt sienna tones, cozy harvest decorations",
+  winter: "Gentle snow falling, frost on surfaces, warm cozy indoor lights, evergreen garlands, soft white and blue tones",
 };
 
 // Costume render instructions
