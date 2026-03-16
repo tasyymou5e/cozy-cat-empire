@@ -238,9 +238,9 @@ describe('useCostumes', () => {
       expect(mockDeps.getMessages()).toContainEqual(expect.objectContaining({ type: 'success' }));
     });
 
-    it('should find all seasonal costumes via getCostumeById', () => {
+    it('should find all seasonal costumes via getCostumeById', async () => {
       // Test that the lookup function finds costumes from all seasons
-      const { getCostumeById } = require('@/types/costumes');
+      const { getCostumeById } = await import('@/types/costumes');
 
       // Winter costumes
       expect(getCostumeById('snowflake_collar')).toBeDefined();
