@@ -98,6 +98,15 @@ const personalityEmojis: Record<string, string> = {
   shy: '🙈',
 };
 
+const personalityColors: Record<string, string> = {
+  lazy: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/20',
+  playful: 'bg-amber-500/15 text-amber-400 border-amber-500/20',
+  affectionate: 'bg-pink-500/15 text-pink-400 border-pink-500/20',
+  independent: 'bg-sky-500/15 text-sky-400 border-sky-500/20',
+  curious: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
+  shy: 'bg-violet-500/15 text-violet-400 border-violet-500/20',
+};
+
 const typeLabels: Record<string, { label: string; color: string }> = {
   stray: { label: 'Stray', color: 'bg-gray-500' },
   adopted: { label: 'Adopted', color: 'bg-blue-500' },
