@@ -61,3 +61,13 @@ export type {
 
 // Sync health monitoring
 export { useSyncHealthLogs, useSyncHealthSummary } from './useSyncHealth';
+
+// Winston-style structured logging
+export {
+  useWinstonLogs,
+  useWinstonLogStats,
+  useWinstonLogTrends,
+  useDeleteWinstonLogs,
+  useClearWinstonLogs,
+  useRealtimeWinstonLogs,
+} from './useWinstonLogs';
