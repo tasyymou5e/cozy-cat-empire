@@ -58,6 +58,7 @@ const AdminGameSaveRepair = lazyWithRetry(() => import('./pages/admin/AdminGameS
 const AdminSaveRecovery = lazyWithRetry(() => import('./pages/admin/AdminSaveRecovery'));
 const AdminDocs = lazyWithRetry(() => import('./pages/admin/AdminDocs'));
 const AdminWinstonLogs = lazyWithRetry(() => import('./pages/admin/AdminWinstonLogs'));
+const AdminTracking = lazyWithRetry(() => import('./pages/admin/AdminTracking'));
 
 const queryClient = new QueryClient();
 
