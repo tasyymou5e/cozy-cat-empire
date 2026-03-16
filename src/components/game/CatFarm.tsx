@@ -184,6 +184,7 @@ export function CatFarm() {
           onShowShortcutsHelp={() => ui.setShowShortcutsHelp(true)}
           onShowWhatsNew={() => ui.setShowWhatsNew(true)}
           onShowDailyRewards={() => dailyRewards.setShowModal(true)}
+          onShowDailyWizard={dailyWizard.openWizard}
           user={auth.user}
           onSignOut={auth.signOut}
           onManualSave={triggerManualSave}
