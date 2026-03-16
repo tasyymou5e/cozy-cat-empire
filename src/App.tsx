@@ -35,6 +35,7 @@ const Stats = lazyWithRetry(() => import('./pages/Stats'));
 const Empire = lazyWithRetry(() => import('./pages/Empire'));
 const Auth = lazyWithRetry(() => import('./pages/Auth'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
+const CardShowcase = lazyWithRetry(() => import('./pages/CardShowcase'));
 
 // Admin pages - lazy loaded with retry
 const AdminAuth = lazyWithRetry(() => import('./pages/AdminAuth'));
