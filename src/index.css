@@ -1260,6 +1260,104 @@
   animation: message-out 0.3s ease-out forwards;
 }
 
+/* === TIER CARD KEYFRAMES === */
+
+/* Metallic light sweep for gold/veryRare cards */
+@keyframes metallic-sheen {
+  0% {
+    background-position: -200% 0;
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    background-position: 200% 0;
+    opacity: 0;
+  }
+}
+
+/* Crystal shimmer for rare/amethyst cards */
+@keyframes crystal-shimmer {
+  0%, 100% {
+    opacity: 0.3;
+    background-position: 0% 0%;
+  }
+  50% {
+    opacity: 0.7;
+    background-position: 100% 100%;
+  }
+}
+
+/* Pulsing golden glow */
+@keyframes golden-glow {
+  0%, 100% {
+    box-shadow: 0 0 12px 2px hsl(40 85% 55% / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 22px 6px hsl(40 85% 55% / 0.5), 0 0 40px 10px hsl(35 90% 50% / 0.15);
+  }
+}
+
+.animate-golden-glow {
+  animation: golden-glow 2.5s ease-in-out infinite;
+}
+
+/* Pulsing amethyst glow */
+@keyframes purple-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px 2px hsl(270 70% 60% / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 18px 5px hsl(270 70% 60% / 0.45), 0 0 35px 8px hsl(280 60% 50% / 0.12);
+  }
+}
+
+.animate-purple-glow {
+  animation: purple-glow 3s ease-in-out infinite;
+}
+
+/* Rainbow cycling glow */
+@keyframes rainbow-glow {
+  0% {
+    box-shadow: 0 0 18px 4px hsl(300 70% 60% / 0.4);
+  }
+  25% {
+    box-shadow: 0 0 18px 4px hsl(350 80% 60% / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 18px 4px hsl(40 90% 55% / 0.4);
+  }
+  75% {
+    box-shadow: 0 0 18px 4px hsl(180 70% 50% / 0.4);
+  }
+  100% {
+    box-shadow: 0 0 18px 4px hsl(270 70% 60% / 0.4);
+  }
+}
+
+.animate-rainbow-glow {
+  animation: rainbow-glow 4s linear infinite;
+}
+
+/* Tier label gradient text for MYTHIC */
+.text-gradient-rainbow {
+  background: linear-gradient(90deg, hsl(300 70% 60%), hsl(330 80% 60%), hsl(40 90% 55%), hsl(180 70% 50%), hsl(270 70% 60%));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 3s linear infinite;
+}
+
+/* Stat bar gradient helper */
+.stat-bar-gradient {
+  transition: all 0.3s ease;
+}
+
 /* === PHASE 4: GRAPHIC IMPROVEMENTS === */
 
 /* Glassmorphism panel treatment */

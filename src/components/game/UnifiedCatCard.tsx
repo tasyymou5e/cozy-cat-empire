@@ -284,19 +284,45 @@ export function UnifiedCatCard({
     );
   }
 
+  // Compute stat bar color based on value
+  const getStatColor = (value: number) => {
+    if (value >= 70) return 'hsl(145 60% 45%)';
+    if (value >= 40) return 'hsl(40 90% 50%)';
+    return 'hsl(0 72% 50%)';
+  };
+
   // Default 'card' variant
   return (
     <div
       className={cn(
         'cat-card relative overflow-visible transition-all duration-300',
+        tierVisuals.cardClass,
         gradeBorder,
         !isHealthy && 'border-destructive/50',
         reaction && 'animate-card-glow',
         className
       )}
-      style={glowColor ? ({ '--glow-color': glowColor } as React.CSSProperties) : undefined}
+      style={{
+        ...(glowColor ? { '--glow-color': glowColor } as React.CSSProperties : {}),
+      }}
       onClick={onClick}
     >
+      {/* Tier label badge for rare+ */}
+      {tierVisuals.tierLabel && (
+        <div className="absolute -top-2.5 right-2 z-20">
+          <span
+            className={cn(
+              'px-2 py-0.5 text-[9px] font-extrabold tracking-widest rounded-full shadow-md uppercase',
+              tier === 'rare' && 'bg-purple-500/90 text-white',
+              tier === 'veryRare' && 'bg-gradient-to-r from-amber-500 to-yellow-400 text-amber-950',
+              tier === 'ultraRare' && 'text-gradient-rainbow bg-white/90 dark:bg-black/80'
+            )}
+          >
+            {tierVisuals.tierLabel}
+          </span>
+        </div>
+      )}
+
       {/* Ultra rare sparkle overlay */}
       {tier === 'ultraRare' && GRAPHICS_CONFIG.enableSparkles && (
         <>
@@ -328,7 +354,20 @@ export function UnifiedCatCard({
 
       {/* Header with avatar and grade */}
       <div className="flex items-start justify-between w-full mb-2">
-        <div className="flex items-center gap-1">
+        <div className="relative flex items-center gap-1">
+          {/* Soft radial glow behind avatar for rare+ */}
+          {(tier === 'rare' || tier === 'veryRare' || tier === 'ultraRare') && (
+            <div
+              className="absolute -inset-2 rounded-full opacity-20 blur-md pointer-events-none"
+              style={{
+                background: tier === 'rare'
+                  ? 'radial-gradient(circle, hsl(270 70% 60%) 0%, transparent 70%)'
+                  : tier === 'veryRare'
+                    ? 'radial-gradient(circle, hsl(40 85% 55%) 0%, transparent 70%)'
+                    : 'radial-gradient(circle, hsl(330 80% 60%) 0%, transparent 70%)',
+              }}
+            />
+          )}
           <CatVisual
             cat={cat}
             size="md"
@@ -440,29 +479,44 @@ export function UnifiedCatCard({
           </div>
         )}
 
-      {/* Stats */}
+      {/* Stats with gradient color bars */}
       {shouldShowStats && (
         <div className="w-full space-y-1.5 mb-3">
           <div className="stat-row">
             <span className="text-xs">❤️</span>
-            <Progress
-              value={cat.health}
-              className={cn('h-1.5 flex-1', cat.health < 50 && 'bg-destructive/20')}
-            />
+            <div className="relative h-1.5 flex-1 rounded-full bg-secondary overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${cat.health}%`,
+                  background: `linear-gradient(90deg, ${getStatColor(cat.health)}, ${getStatColor(cat.health)}dd)`,
+                }}
+              />
+            </div>
           </div>
           <div className="stat-row">
             <span className="text-xs">😊</span>
-            <Progress
-              value={cat.happiness}
-              className={cn('h-1.5 flex-1', cat.happiness < 50 && 'bg-amber-500/30')}
-            />
+            <div className="relative h-1.5 flex-1 rounded-full bg-secondary overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${cat.happiness}%`,
+                  background: `linear-gradient(90deg, ${getStatColor(cat.happiness)}, ${getStatColor(cat.happiness)}dd)`,
+                }}
+              />
+            </div>
           </div>
           <div className="stat-row">
             <span className="text-xs">🍖</span>
-            <Progress
-              value={cat.hunger}
-              className={cn('h-1.5 flex-1', cat.hunger < 30 && 'bg-amber-500/30')}
-            />
+            <div className="relative h-1.5 flex-1 rounded-full bg-secondary overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${cat.hunger}%`,
+                  background: `linear-gradient(90deg, ${getStatColor(cat.hunger)}, ${getStatColor(cat.hunger)}dd)`,
+                }}
+              />
+            </div>
           </div>
         </div>
       )}

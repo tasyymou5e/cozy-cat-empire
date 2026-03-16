@@ -112,6 +112,9 @@ export const TIER_VISUALS = {
     bgGradient: 'bg-card',
     glowClass: '',
     textColor: 'text-muted-foreground',
+    cardClass: 'cat-card-common',
+    accentColor: 'hsl(var(--muted))',
+    tierLabel: '',
   },
   uncommon: {
     borderColor: 'border-blue-400',
@@ -119,18 +122,27 @@ export const TIER_VISUALS = {
     glowClass:
       'shadow-[0_0_12px_2px_rgba(59,130,246,0.35)] hover:shadow-[0_0_18px_4px_rgba(59,130,246,0.5)]',
     textColor: 'text-blue-400',
+    cardClass: 'cat-card-uncommon',
+    accentColor: 'hsl(210 90% 60%)',
+    tierLabel: '',
   },
   rare: {
     borderColor: 'border-purple-400',
     bgGradient: 'bg-gradient-to-b from-purple-50 to-card dark:from-purple-950/30',
     glowClass: 'animate-purple-glow',
     textColor: 'text-purple-400',
+    cardClass: 'cat-card-rare',
+    accentColor: 'hsl(270 70% 60%)',
+    tierLabel: 'RARE',
   },
   veryRare: {
     borderColor: 'border-yellow-400',
     bgGradient: 'bg-gradient-to-b from-yellow-50 to-card dark:from-yellow-950/30',
     glowClass: 'animate-golden-glow',
     textColor: 'text-yellow-400',
+    cardClass: 'cat-card-very-rare',
+    accentColor: 'hsl(40 85% 55%)',
+    tierLabel: 'LEGENDARY',
   },
   ultraRare: {
     borderColor: 'border-pink-400',
@@ -139,6 +151,9 @@ export const TIER_VISUALS = {
     glowClass: 'animate-rainbow-glow',
     textColor: 'text-pink-400',
     gradient: 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500',
+    cardClass: 'cat-card-ultra-rare',
+    accentColor: 'linear-gradient(90deg, hsl(300 70% 60%), hsl(330 80% 60%), hsl(40 90% 55%))',
+    tierLabel: 'MYTHIC',
   },
 } as const;
 
