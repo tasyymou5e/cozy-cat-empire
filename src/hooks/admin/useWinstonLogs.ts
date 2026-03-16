@@ -40,7 +40,7 @@ export function useWinstonLogs(filters: LogFilters = {}) {
         .order('timestamp', { ascending: false })
         .range((page - 1) * pageSize, page * pageSize - 1);
 
-      if (level) query = query.eq('level', level);
+      if (level) query = query.eq('level', level as any);
       if (label) query = query.eq('label', label);
       if (source) query = query.eq('source', source);
       if (search) query = query.ilike('message', `%${search}%`);
