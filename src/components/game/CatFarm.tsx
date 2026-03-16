@@ -543,8 +543,6 @@ export function CatFarm() {
               onCloseWhatsNew={() => ui.setShowWhatsNew(false)}
               orphanedCats={orphanedCats}
               showOrphanDialog={showOrphanDialog}
-              orphanedCats={orphanedCats}
-              showOrphanDialog={showOrphanDialog}
               onRecoverOrphans={handleRecoverOrphans}
               onDismissOrphans={handleDismissOrphans}
               showWelcomeBack={welcomeBack.showWelcomeBack}
