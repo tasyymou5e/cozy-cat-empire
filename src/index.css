@@ -441,12 +441,19 @@
   }
 
   .cat-card:hover {
-    transform: translateY(-4px) scale(1.03);
+    transform: translateY(-6px) scale(1.03);
     box-shadow: 
-      0 12px 32px -8px hsl(var(--foreground) / 0.15),
-      0 4px 12px -4px hsl(var(--foreground) / 0.08),
+      0 16px 40px -8px hsl(var(--foreground) / 0.18),
+      0 6px 16px -4px hsl(var(--foreground) / 0.1),
       inset 0 1px 0 hsl(255 100% 100% / 0.1);
     background: hsl(var(--card) / 0.88);
+  }
+
+  /* 3D tilt effect for premium tier cards */
+  .cat-card-rare:hover,
+  .cat-card-very-rare:hover,
+  .cat-card-ultra-rare:hover {
+    transform: translateY(-8px) scale(1.04) perspective(800px) rotateX(2deg);
   }
 
   /* Tier accent bar at top of card */
