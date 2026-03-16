@@ -76,6 +76,9 @@ export function CatFarm() {
     badgeCounts,
     ui,
     theme,
+    tabUnlocks,
+    welcomeBack,
+    floatingRewards,
   } = farmState;
 
   const {
