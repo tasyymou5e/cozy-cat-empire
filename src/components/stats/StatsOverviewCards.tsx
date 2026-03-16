@@ -53,7 +53,7 @@ export function StatsOverviewCards({ stats }: StatsOverviewCardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 panel-fade-in">
       {cards.map((card) => (
         <Card key={card.label} className="overflow-hidden glass-panel">
           <CardContent className="p-4">

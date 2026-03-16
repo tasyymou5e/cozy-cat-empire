@@ -82,7 +82,7 @@ export default function Stats() {
         </header>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto p-4 space-y-6">
+        <main className="max-w-7xl mx-auto p-4 space-y-6 panel-fade-in">
           {loading && !stats ? (
             <div className="text-center py-12">
               <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
