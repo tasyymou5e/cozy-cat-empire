@@ -37,6 +37,7 @@ const ADMIN_NAV_ITEMS = [
   { id: 'tutorial', label: 'Tutorial Analytics', icon: GraduationCap, path: '/catking/tutorial' },
   { id: 'ai-metrics', label: 'AI Metrics', icon: Sparkles, path: '/catking/ai-metrics' },
   { id: 'errors', label: 'Error Logs', icon: AlertTriangle, path: '/catking/errors' },
+  { id: 'winston', label: 'Winston Logger', icon: Terminal, path: '/catking/winston' },
   { id: 'moderation', label: 'Moderation', icon: Shield, path: '/catking/moderation' },
   { id: 'security', label: 'Security Audit', icon: Shield, path: '/catking/security' },
   { id: 'announcements', label: 'Announcements', icon: Megaphone, path: '/catking/announcements' },
