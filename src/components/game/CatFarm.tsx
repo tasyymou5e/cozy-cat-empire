@@ -120,15 +120,12 @@ export function CatFarm() {
   const handleClaimWelcomeBack = useCallback(() => {
     const bonus = welcomeBack.claimWelcomeBack();
     if (bonus) {
-      // Add coins via state action
-      for (let i = 0; i < bonus.coins; i += 50) {
-        // Use chore-like reward mechanism - coins added through state
-      }
+      actions.addReward?.(bonus.coins, {});
       floatingRewards.showCoinReward(bonus.coins);
       farmState.sound.playSound('achievement');
       farmState.confetti.fireConfetti();
     }
-  }, [welcomeBack, floatingRewards, farmState.sound, farmState.confetti]);
+  }, [welcomeBack, actions, floatingRewards, farmState.sound, farmState.confetti]);
 
   if (auth.loading || (auth.user && !ui.hasLoadedCloud)) {
     return <CatFarmSkeleton />;
