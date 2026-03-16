@@ -12,6 +12,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ErrorLoggerProvider } from './components/ErrorLoggerProvider';
 import { AdminRoute } from './components/admin/AdminRoute';
 import { lazyWithRetry } from './lib/lazyWithRetry';
+import { TrackingScripts } from './components/TrackingScripts';
 
 // Page loading fallback component
 const PageLoader = () => (
@@ -58,6 +59,7 @@ const AdminGameSaveRepair = lazyWithRetry(() => import('./pages/admin/AdminGameS
 const AdminSaveRecovery = lazyWithRetry(() => import('./pages/admin/AdminSaveRecovery'));
 const AdminDocs = lazyWithRetry(() => import('./pages/admin/AdminDocs'));
 const AdminWinstonLogs = lazyWithRetry(() => import('./pages/admin/AdminWinstonLogs'));
+const AdminTracking = lazyWithRetry(() => import('./pages/admin/AdminTracking'));
 
 const queryClient = new QueryClient();
 
@@ -74,6 +76,7 @@ const App = () => {
                     <Toaster />
                     <Sonner />
                     <BrowserRouter>
+                      <TrackingScripts />
                       <Suspense fallback={<PageLoader />}>
                         <Routes>
                           <Route path="/" element={<Index />} />
@@ -237,6 +240,14 @@ const App = () => {
                             element={
                               <AdminRoute>
                                 <AdminWinstonLogs />
+                              </AdminRoute>
+                            }
+                          />
+                          <Route
+                            path="/catking/tracking"
+                            element={
+                              <AdminRoute>
+                                <AdminTracking />
                               </AdminRoute>
                             }
                           />

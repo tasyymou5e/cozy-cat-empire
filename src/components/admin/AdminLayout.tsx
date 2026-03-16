@@ -28,6 +28,7 @@ import {
   ChevronDown,
   PanelLeftClose,
   PanelLeft,
+  Crosshair,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -95,6 +96,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: 'scheduled-jobs', label: 'Scheduled Jobs', icon: Clock, path: '/catking/scheduled-jobs' },
       { id: 'config', label: 'Game Config', icon: Sliders, path: '/catking/config' },
+      { id: 'tracking', label: 'Ad Tracking', icon: Crosshair, path: '/catking/tracking' },
       { id: 'docs', label: 'Documentation', icon: BookOpen, path: '/catking/docs' },
       { id: 'settings', label: 'Settings', icon: Settings, path: '/catking/settings' },
     ],
