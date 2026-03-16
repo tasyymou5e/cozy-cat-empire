@@ -28,6 +28,7 @@ import {
   ChevronDown,
   PanelLeftClose,
   PanelLeft,
+  Crosshair,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
