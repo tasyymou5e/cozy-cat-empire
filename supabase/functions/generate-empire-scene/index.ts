@@ -225,7 +225,7 @@ serve(async (req) => {
       });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
       global: { headers: { Authorization: authHeader } },
     });
 
@@ -240,17 +240,17 @@ serve(async (req) => {
     }
     const userId = claims.claims.sub as string;
 
-    // Parse request
-    const request: RenderRequest = await req.json();
-    const { houseSize, timeOfDay, season, cats, catCostumes, gameDay } = request;
-
-    // Validate request
-    if (!houseSize || !timeOfDay || !season) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+    // Parse and validate request
+    const rawBody = await req.json();
+    const parsed = RenderRequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: "Invalid request", details: parsed.error.flatten() }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const { houseSize, timeOfDay, season, cats, catCostumes, gameDay } = parsed.data;
+    const request = parsed.data;
 
     // Build the prompt
     const prompt = buildEmpirePrompt(request);
