@@ -12,6 +12,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { createLogger } from '@/lib/logger';
 
+const log = createLogger('AdminRateLimit');
+
 interface RateLimitConfig {
   actionType: string;
   limit: number;
