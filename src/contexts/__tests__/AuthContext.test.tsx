@@ -63,12 +63,15 @@ describe('AuthContext', () => {
     expect(result.current.user).toBeNull();
   });
 
-  it('sets user when session is present', async () => {
+  it('sets user when session is present via getSession', async () => {
     const mockUser = { id: 'user-1', email: 'test@test.com' };
     const mockSession = { user: mockUser };
 
+    mockGetSession.mockResolvedValue({ data: { session: mockSession } });
+
     const { result } = renderHook(() => useAuth(), { wrapper });
 
+    // Trigger auth callback with session
     await act(async () => {
       capturedAuthCallback?.('SIGNED_IN', mockSession);
     });
