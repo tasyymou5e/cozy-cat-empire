@@ -282,7 +282,7 @@ describe('saveMigration', () => {
             catCostumes: {},
             ownedCostumes: [],
             achievements: [
-              { id: 'first_cat', name: 'First Cat', unlocked: true },
+              { id: 'first_cat', name: 'First Cat', description: 'Get your first cat', target: 1 },
             ],
           },
         };

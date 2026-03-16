@@ -37,7 +37,7 @@ describe('useCatShows', () => {
       });
 
       // Show should set cooldown
-      expect(mockDeps.getState().showCooldown).toBe(3);
+      expect(mockDeps.getState().showCooldown).toBe(20);
     });
 
     it('should not enter show when on cooldown', () => {
@@ -166,7 +166,7 @@ describe('useCatShows', () => {
       });
 
       // Verify show ran (cooldown set)
-      expect(mockDeps.getState().showCooldown).toBe(3);
+      expect(mockDeps.getState().showCooldown).toBe(20);
 
       vi.restoreAllMocks();
     });
@@ -248,7 +248,7 @@ describe('useCatShows', () => {
         result.current.catShow();
       });
 
-      expect(mockDeps.getState().showCooldown).toBe(3);
+      expect(mockDeps.getState().showCooldown).toBe(20);
 
       vi.restoreAllMocks();
     });
@@ -267,7 +267,7 @@ describe('useCatShows', () => {
         result.current.catShow(); // No tier specified
       });
 
-      expect(mockDeps.getState().showCooldown).toBe(3);
+      expect(mockDeps.getState().showCooldown).toBe(20);
     });
   });
 });

@@ -1,13 +1,30 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createLogger } from '../logger';
+/**
+ * @fileoverview Tests for the real logger implementation
+ *
+ * Uses vi.importActual to bypass the global mock in setup.ts.
+ */
+
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// Unmock logger for this test file so we test the real implementation
+vi.unmock('@/lib/logger');
 
 describe('createLogger', () => {
+  let warnSpy: ReturnType<typeof vi.spyOn>;
+  let errorSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
-  it('creates a logger with all methods', () => {
+  afterEach(() => {
+    warnSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('creates a logger with all methods', async () => {
+    const { createLogger } = await vi.importActual<typeof import('@/lib/logger')>('@/lib/logger');
     const log = createLogger('Test');
     expect(log).toHaveProperty('debug');
     expect(log).toHaveProperty('info');
@@ -15,15 +32,17 @@ describe('createLogger', () => {
     expect(log).toHaveProperty('error');
   });
 
-  it('warn always outputs with namespace prefix', () => {
+  it('warn always outputs with namespace prefix', async () => {
+    const { createLogger } = await vi.importActual<typeof import('@/lib/logger')>('@/lib/logger');
     const log = createLogger('MyModule');
     log.warn('something happened');
-    expect(console.warn).toHaveBeenCalledWith('[MyModule]', 'something happened');
+    expect(warnSpy).toHaveBeenCalledWith('[MyModule]', 'something happened');
   });
 
-  it('error always outputs with namespace prefix', () => {
+  it('error always outputs with namespace prefix', async () => {
+    const { createLogger } = await vi.importActual<typeof import('@/lib/logger')>('@/lib/logger');
     const log = createLogger('MyModule');
     log.error('bad thing', { code: 500 });
-    expect(console.error).toHaveBeenCalledWith('[MyModule]', 'bad thing', { code: 500 });
+    expect(errorSpy).toHaveBeenCalledWith('[MyModule]', 'bad thing', { code: 500 });
   });
 });
