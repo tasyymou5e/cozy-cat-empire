@@ -115,6 +115,17 @@ export function CatFarm() {
 
   const dailyWizard = useDailyWizard(state, relationshipSystem.relationships);
 
+  // Welcome-back claim handler
+  const handleClaimWelcomeBack = useCallback(() => {
+    const bonus = welcomeBack.claimWelcomeBack();
+    if (bonus) {
+      actions.addMoney?.(bonus.coins) ?? dispatchAction('ADD_MONEY', { amount: bonus.coins });
+      floatingRewards.showCoinReward(bonus.coins);
+      farmState.sound.playSound('achievement');
+      farmState.confetti.fireConfetti();
+    }
+  }, [welcomeBack, actions, floatingRewards, farmState.sound, farmState.confetti]);
+
   if (auth.loading || (auth.user && !ui.hasLoadedCloud)) {
     return <CatFarmSkeleton />;
   }
