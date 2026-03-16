@@ -86,6 +86,7 @@ const App = () => {
                           <Route path="/stats" element={<Stats />} />
                           <Route path="/empire" element={<Empire />} />
                           <Route path="/auth" element={<Auth />} />
+                          <Route path="/card-showcase" element={<CardShowcase />} />
                           <Route path="/catking" element={<AdminAuth />} />
                           <Route
                             path="/catking/dashboard"
