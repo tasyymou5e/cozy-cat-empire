@@ -27,6 +27,8 @@ import { VirtualizedCatGrid } from './VirtualizedCatGrid';
 import { MobileNavBar } from './MobileNavBar';
 import { MobileGameDrawer } from './MobileGameDrawer';
 import { AICatAdvisor } from './AICatAdvisor';
+import { DailyWizardDialog } from './DailyWizardDialog';
+import { useDailyWizard } from '@/hooks/useDailyWizard';
 
 // UI primitives
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
@@ -107,6 +109,8 @@ export function CatFarm() {
     handleDismissOrphans,
   } = handlers;
 
+  const dailyWizard = useDailyWizard(state, relationshipSystem.relationships);
+
   if (auth.loading || (auth.user && !ui.hasLoadedCloud)) {
     return <CatFarmSkeleton />;
   }
@@ -180,6 +184,7 @@ export function CatFarm() {
           onShowShortcutsHelp={() => ui.setShowShortcutsHelp(true)}
           onShowWhatsNew={() => ui.setShowWhatsNew(true)}
           onShowDailyRewards={() => dailyRewards.setShowModal(true)}
+          onShowDailyWizard={dailyWizard.openWizard}
           user={auth.user}
           onSignOut={auth.signOut}
           onManualSave={triggerManualSave}
@@ -435,6 +440,20 @@ export function CatFarm() {
           state={state}
           onRenameCat={actions.renameCat}
           onSaveBackstory={(catId, backstory) => actions.updateCat?.(catId, { backstory })}
+          onNavigateTab={ui.setSideTab}
+        />
+
+        <DailyWizardDialog
+          open={dailyWizard.isOpen}
+          onClose={dailyWizard.closeWizard}
+          onDismissForToday={dailyWizard.dismissForToday}
+          steps={dailyWizard.steps}
+          currentStep={dailyWizard.currentStep}
+          progress={dailyWizard.progress}
+          totalSteps={dailyWizard.totalSteps}
+          onNext={dailyWizard.nextStep}
+          onPrev={dailyWizard.prevStep}
+          onNavigateTab={(tab) => { ui.setSideTab(tab); dailyWizard.closeWizard(); }}
         />
       </AnimatedBackground>
     );
@@ -520,6 +539,7 @@ export function CatFarm() {
               onShowShortcutsHelp={() => ui.setShowShortcutsHelp(true)}
               onShowWhatsNew={() => ui.setShowWhatsNew(true)}
               onShowDailyRewards={() => dailyRewards.setShowModal(true)}
+              onShowDailyWizard={dailyWizard.openWizard}
               user={auth.user}
               onSignOut={auth.signOut}
               onManualSave={triggerManualSave}
@@ -771,6 +791,20 @@ export function CatFarm() {
               state={state}
               onRenameCat={actions.renameCat}
               onSaveBackstory={(catId, backstory) => actions.updateCat?.(catId, { backstory })}
+              onNavigateTab={ui.setSideTab}
+            />
+
+            <DailyWizardDialog
+              open={dailyWizard.isOpen}
+              onClose={dailyWizard.closeWizard}
+              onDismissForToday={dailyWizard.dismissForToday}
+              steps={dailyWizard.steps}
+              currentStep={dailyWizard.currentStep}
+              progress={dailyWizard.progress}
+              totalSteps={dailyWizard.totalSteps}
+              onNext={dailyWizard.nextStep}
+              onPrev={dailyWizard.prevStep}
+              onNavigateTab={(tab) => { ui.setSideTab(tab); dailyWizard.closeWizard(); }}
             />
           </AnimatedBackground>
         </SidebarInset>

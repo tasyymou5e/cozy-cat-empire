@@ -9,15 +9,27 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import ReactMarkdown from 'react-markdown';
 
 interface AICatAdvisorProps {
   cats: Cat[];
   state: GameState;
   onRenameCat?: (catId: string, name: string) => void;
   onSaveBackstory?: (catId: string, backstory: string) => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
-export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory }: AICatAdvisorProps) {
+const QUICK_PROMPTS = [
+  { label: '🎯 What next?', prompt: 'What should I do next?' },
+  { label: '🐱 Cats needing care?', prompt: 'Which of my cats need attention right now?' },
+  { label: '💕 Best breeding pair?', prompt: 'What is the best breeding pair right now?' },
+  { label: '💰 Earn fast?', prompt: 'How can I earn money fast?' },
+];
+
+const CHAT_HISTORY_KEY = 'cat-farm-ai-chat-history';
+const MAX_HISTORY = 20;
+
+export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory, onNavigateTab }: AICatAdvisorProps) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [chatInput, setChatInput] = useState('');
@@ -27,6 +39,28 @@ export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory }: AICa
   const ai = useAICatAdvisor();
 
   const selectedCat = cats.find((c) => c.id === selectedCatId);
+
+  // Load persistent chat history on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(CHAT_HISTORY_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          ai.restoreMessages(parsed.slice(-MAX_HISTORY));
+        }
+      }
+    } catch { /* ignore */ }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist chat messages
+  useEffect(() => {
+    if (ai.chatMessages.length > 0) {
+      try {
+        localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(ai.chatMessages.slice(-MAX_HISTORY)));
+      } catch { /* ignore */ }
+    }
+  }, [ai.chatMessages]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -50,14 +84,14 @@ export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory }: AICa
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <button
-            className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30 flex items-center justify-center text-white text-2xl hover:scale-110 transition-transform animate-pulse hover:animate-none"
+            className="fixed bottom-32 right-4 md:bottom-6 md:right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30 flex items-center justify-center text-white text-2xl hover:scale-110 transition-transform animate-pulse hover:animate-none"
             aria-label="AI Cat Advisor"
           >
             🤖
           </button>
         </SheetTrigger>
 
-        <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col">
+        <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col max-h-screen">
           <SheetHeader className="p-4 pb-2 border-b border-border">
             <SheetTitle className="flex items-center gap-2 text-lg">
               <span className="text-2xl">🐱</span>
@@ -109,14 +143,20 @@ export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory }: AICa
                       className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
+                        className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
                           msg.role === 'user'
                             ? 'bg-primary text-primary-foreground rounded-br-md'
                             : 'bg-muted text-foreground rounded-bl-md'
                         }`}
                       >
                         {msg.role === 'assistant' && <span className="text-xs font-medium text-muted-foreground block mb-1">🐱 Whiskers</span>}
-                        {msg.content}
+                        {msg.role === 'assistant' ? (
+                          <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-1.5 [&>ul]:mb-1.5 [&>ol]:mb-1.5 [&>p:last-child]:mb-0">
+                            <ReactMarkdown>{msg.content}</ReactMarkdown>
+                          </div>
+                        ) : (
+                          <span className="whitespace-pre-wrap">{msg.content}</span>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -130,6 +170,23 @@ export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory }: AICa
                   <div ref={chatEndRef} />
                 </div>
               </ScrollArea>
+
+              {/* Quick action chips */}
+              <div className="px-4 py-2 flex gap-1.5 flex-wrap border-t border-border">
+                {QUICK_PROMPTS.map((qp) => (
+                  <button
+                    key={qp.prompt}
+                    onClick={() => {
+                      setChatInput('');
+                      ai.sendChatMessage(qp.prompt);
+                    }}
+                    disabled={ai.isChatLoading}
+                    className="text-[11px] px-2.5 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-foreground transition-colors disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {qp.label}
+                  </button>
+                ))}
+              </div>
 
               <div className="p-4 pt-2 border-t border-border flex gap-2">
                 <Input

@@ -243,12 +243,17 @@ export function useAICatAdvisor() {
 
   const clearChat = useCallback(() => setChatMessages([]), []);
 
+  const restoreMessages = useCallback((msgs: ChatMessage[]) => {
+    setChatMessages(msgs);
+  }, []);
+
   return {
     // Chat
     chatMessages,
     isChatLoading,
     sendChatMessage,
     clearChat,
+    restoreMessages,
     // Names
     nameSuggestions,
     isNamesLoading,
