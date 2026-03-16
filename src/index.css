@@ -363,6 +363,200 @@
            bg-card/80 backdrop-blur-sm shadow-lg
            transition-all duration-300 
            hover:shadow-xl hover:-translate-y-1 hover:bg-card/90;
+    position: relative;
+    overflow: visible;
+  }
+
+  /* Tier accent bar at top of card */
+  .cat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 3px;
+    border-radius: 0 0 4px 4px;
+    background: var(--tier-accent, hsl(var(--border)));
+    transition: all 0.3s ease;
+    opacity: 0.8;
+  }
+
+  .cat-card:hover::before {
+    left: 5%;
+    right: 5%;
+    opacity: 1;
+  }
+
+  /* === TIER-SPECIFIC CARD STYLES === */
+
+  .cat-card-common {
+    --tier-accent: hsl(var(--muted));
+  }
+
+  .cat-card-uncommon {
+    --tier-accent: hsl(210 90% 60%);
+    box-shadow: 0 4px 12px -2px hsl(210 90% 60% / 0.15), inset 0 1px 0 hsl(210 90% 60% / 0.1);
+  }
+
+  .cat-card-uncommon:hover {
+    box-shadow: 0 8px 20px -4px hsl(210 90% 60% / 0.25), inset 0 1px 0 hsl(210 90% 60% / 0.15);
+  }
+
+  /* Rare: Amethyst / Crystalline */
+  .cat-card-rare {
+    --tier-accent: hsl(270 70% 60%);
+    background: linear-gradient(
+      145deg,
+      hsl(270 40% 95%) 0%,
+      hsl(var(--card)) 40%,
+      hsl(280 30% 94%) 100%
+    );
+    box-shadow:
+      0 4px 16px -2px hsl(270 70% 60% / 0.2),
+      inset 0 1px 2px hsl(270 70% 60% / 0.1),
+      inset 0 -1px 2px hsl(280 50% 80% / 0.15);
+  }
+
+  .dark .cat-card-rare {
+    background: linear-gradient(
+      145deg,
+      hsl(270 40% 18%) 0%,
+      hsl(var(--card)) 40%,
+      hsl(280 30% 16%) 100%
+    );
+    box-shadow:
+      0 4px 16px -2px hsl(270 70% 60% / 0.25),
+      inset 0 1px 2px hsl(270 70% 60% / 0.15),
+      inset 0 -1px 2px hsl(280 50% 30% / 0.2);
+  }
+
+  .cat-card-rare::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      transparent 30%,
+      hsl(270 70% 80% / 0.08) 50%,
+      transparent 70%
+    );
+    animation: crystal-shimmer 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .cat-card-rare:hover {
+    box-shadow:
+      0 8px 24px -4px hsl(270 70% 60% / 0.35),
+      inset 0 1px 3px hsl(270 70% 60% / 0.15);
+  }
+
+  /* Very Rare: Gold / Metallic */
+  .cat-card-very-rare {
+    --tier-accent: linear-gradient(90deg, hsl(40 85% 55%), hsl(30 90% 50%), hsl(45 90% 60%));
+    background: linear-gradient(
+      145deg,
+      hsl(40 50% 95%) 0%,
+      hsl(var(--card)) 35%,
+      hsl(35 40% 93%) 70%,
+      hsl(45 45% 96%) 100%
+    );
+    box-shadow:
+      0 4px 16px -2px hsl(40 85% 55% / 0.25),
+      inset 0 1px 3px hsl(40 85% 55% / 0.12),
+      inset 0 -1px 2px hsl(35 70% 70% / 0.15);
+  }
+
+  .dark .cat-card-very-rare {
+    background: linear-gradient(
+      145deg,
+      hsl(40 40% 16%) 0%,
+      hsl(var(--card)) 35%,
+      hsl(35 35% 14%) 70%,
+      hsl(45 40% 18%) 100%
+    );
+    box-shadow:
+      0 4px 16px -2px hsl(40 85% 55% / 0.3),
+      inset 0 1px 3px hsl(40 85% 55% / 0.15),
+      inset 0 -1px 2px hsl(35 70% 40% / 0.2);
+  }
+
+  .cat-card-very-rare::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      105deg,
+      transparent 20%,
+      hsl(40 80% 70% / 0.12) 40%,
+      hsl(45 90% 80% / 0.15) 50%,
+      transparent 80%
+    );
+    animation: metallic-sheen 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .cat-card-very-rare:hover {
+    box-shadow:
+      0 8px 28px -4px hsl(40 85% 55% / 0.4),
+      inset 0 1px 4px hsl(40 85% 55% / 0.15);
+  }
+
+  /* Ultra Rare: Holographic / Prismatic */
+  .cat-card-ultra-rare {
+    --tier-accent: linear-gradient(90deg, hsl(300 70% 60%), hsl(330 80% 60%), hsl(20 90% 60%), hsl(50 90% 60%), hsl(180 70% 50%), hsl(270 70% 60%));
+    background: linear-gradient(
+      145deg,
+      hsl(280 30% 95%) 0%,
+      hsl(var(--card)) 25%,
+      hsl(330 25% 94%) 50%,
+      hsl(var(--card)) 75%,
+      hsl(200 30% 95%) 100%
+    );
+    box-shadow:
+      0 4px 20px -2px hsl(330 80% 60% / 0.25),
+      0 0 30px -8px hsl(270 70% 60% / 0.15),
+      inset 0 1px 3px hsl(330 80% 60% / 0.1);
+  }
+
+  .dark .cat-card-ultra-rare {
+    background: linear-gradient(
+      145deg,
+      hsl(280 30% 16%) 0%,
+      hsl(var(--card)) 25%,
+      hsl(330 25% 14%) 50%,
+      hsl(var(--card)) 75%,
+      hsl(200 30% 16%) 100%
+    );
+    box-shadow:
+      0 4px 20px -2px hsl(330 80% 60% / 0.3),
+      0 0 30px -8px hsl(270 70% 60% / 0.2),
+      inset 0 1px 3px hsl(330 80% 60% / 0.15);
+  }
+
+  .cat-card-ultra-rare::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      var(--gradient-angle, 0deg),
+      hsl(300 70% 70% / 0.06),
+      hsl(330 80% 70% / 0.08),
+      hsl(50 90% 70% / 0.06),
+      hsl(180 70% 60% / 0.08),
+      hsl(270 70% 70% / 0.06)
+    );
+    animation: gradient-rotate 4s linear infinite;
+    pointer-events: none;
+  }
+
+  .cat-card-ultra-rare:hover {
+    box-shadow:
+      0 8px 32px -4px hsl(330 80% 60% / 0.4),
+      0 0 40px -8px hsl(270 70% 60% / 0.25),
+      inset 0 1px 4px hsl(330 80% 60% / 0.12);
   }
 
   .cat-card-compact {
@@ -1064,6 +1258,104 @@
 
 .animate-message-out {
   animation: message-out 0.3s ease-out forwards;
+}
+
+/* === TIER CARD KEYFRAMES === */
+
+/* Metallic light sweep for gold/veryRare cards */
+@keyframes metallic-sheen {
+  0% {
+    background-position: -200% 0;
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    background-position: 200% 0;
+    opacity: 0;
+  }
+}
+
+/* Crystal shimmer for rare/amethyst cards */
+@keyframes crystal-shimmer {
+  0%, 100% {
+    opacity: 0.3;
+    background-position: 0% 0%;
+  }
+  50% {
+    opacity: 0.7;
+    background-position: 100% 100%;
+  }
+}
+
+/* Pulsing golden glow */
+@keyframes golden-glow {
+  0%, 100% {
+    box-shadow: 0 0 12px 2px hsl(40 85% 55% / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 22px 6px hsl(40 85% 55% / 0.5), 0 0 40px 10px hsl(35 90% 50% / 0.15);
+  }
+}
+
+.animate-golden-glow {
+  animation: golden-glow 2.5s ease-in-out infinite;
+}
+
+/* Pulsing amethyst glow */
+@keyframes purple-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px 2px hsl(270 70% 60% / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 18px 5px hsl(270 70% 60% / 0.45), 0 0 35px 8px hsl(280 60% 50% / 0.12);
+  }
+}
+
+.animate-purple-glow {
+  animation: purple-glow 3s ease-in-out infinite;
+}
+
+/* Rainbow cycling glow */
+@keyframes rainbow-glow {
+  0% {
+    box-shadow: 0 0 18px 4px hsl(300 70% 60% / 0.4);
+  }
+  25% {
+    box-shadow: 0 0 18px 4px hsl(350 80% 60% / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 18px 4px hsl(40 90% 55% / 0.4);
+  }
+  75% {
+    box-shadow: 0 0 18px 4px hsl(180 70% 50% / 0.4);
+  }
+  100% {
+    box-shadow: 0 0 18px 4px hsl(270 70% 60% / 0.4);
+  }
+}
+
+.animate-rainbow-glow {
+  animation: rainbow-glow 4s linear infinite;
+}
+
+/* Tier label gradient text for MYTHIC */
+.text-gradient-rainbow {
+  background: linear-gradient(90deg, hsl(300 70% 60%), hsl(330 80% 60%), hsl(40 90% 55%), hsl(180 70% 50%), hsl(270 70% 60%));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 3s linear infinite;
+}
+
+/* Stat bar gradient helper */
+.stat-bar-gradient {
+  transition: all 0.3s ease;
 }
 
 /* === PHASE 4: GRAPHIC IMPROVEMENTS === */

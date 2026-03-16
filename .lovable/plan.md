@@ -1,48 +1,28 @@
 
 
-## Improve Cat Cards — Premium Tier Visuals
+# Stop the Login Button from Blinking
 
-### Current State
-- Cat cards use a basic `.cat-card` class with minimal glassmorphism (`bg-card/80 backdrop-blur-sm`)
-- Tier glow animations (`golden-glow`, `purple-glow`, `rainbow-glow`) exist in tailwind config but are only applied as border glows on trading cards — not on the main card variant
-- No tier-specific background treatments, accent bars, or differentiated layouts
-- Stats use plain `Progress` bars with no color variation
+The submit button on line 1053-1055 of `src/pages/Auth.tsx` currently has `animate-[gradient-shift_3s_ease-in-out_infinite]` which creates a constantly shifting/blinking gradient animation.
 
-### Plan
+## Change
 
-**1. Add tier-specific CSS classes in `src/index.css`**
+**File: `src/pages/Auth.tsx` (line 1055)**
 
-New classes that layer on top of `.cat-card`:
-- `.cat-card-common` — subtle gray border, no glow
-- `.cat-card-uncommon` — soft blue inner glow, blue-tinted top accent strip
-- `.cat-card-rare` — **Amethyst/crystalline theme**: purple gradient background, faceted inset shadow (purple tones), subtle crystalline shimmer overlay via `::after` pseudo-element
-- `.cat-card-very-rare` — **Gold/metallic theme**: warm amber gradient background, golden inner glow, metallic sheen sweep animation via `::after`
-- `.cat-card-ultra-rare` — **Holographic prismatic**: animated rainbow gradient border (using existing `rainbow-glow`), prismatic shimmer overlay, enhanced sparkle particles
+Replace the animated gradient button class with a solid, attractive gradient that does not animate:
 
-Add a `::before` accent bar (3px colored strip at card top) driven by a `--tier-accent` CSS variable.
+```
+// Before:
+className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] animate-[gradient-shift_3s_ease-in-out_infinite] hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/25 relative overflow-hidden group"
 
-**2. Add new keyframes in `src/index.css`**
-- `@keyframes metallic-sheen` — diagonal light sweep for gold cards
-- `@keyframes crystal-shimmer` — subtle faceted light pulse for rare cards
+// After:
+className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/25 relative overflow-hidden group"
+```
 
-**3. Update `UnifiedCatCard.tsx` default "card" variant (lines 288-509)**
-- Compute tier-specific class name and apply it alongside `.cat-card`
-- Set `--tier-accent` CSS variable per tier (gray, blue, purple, gold, rainbow gradient)
-- Add a tier label badge in top-right for rare+ cats: "RARE" (purple), "LEGENDARY" (gold), "MYTHIC" (rainbow gradient text)
-- Upgrade stat bars: apply inline gradient colors on the Progress indicator (green→yellow→red based on value)
-- Polish layout: add a soft radial gradient behind the avatar area
+Key changes:
+- Remove `animate-[gradient-shift_3s_ease-in-out_infinite]` (stops the blinking)
+- Remove `bg-[length:200%_auto]` (no longer needed without animation)
+- Simplify to a clean `from-primary to-accent` two-tone gradient
+- Keep hover scale, shadow, and shimmer-on-hover effects intact
 
-**4. Update `TradingCardView` (lines 569-804)**
-- Apply matching tier background classes
-- Add crystalline overlay for rare, metallic sheen for veryRare
-- Keep existing ultraRare holographic border, enhance with prismatic inner glow
-
-**5. Update `TIER_VISUALS` in `src/config/graphics.ts`**
-- Add `accentColor` and `tierLabel` properties for each tier
-- Update `bgGradient` values to richer, more distinct gradients
-
-### Files to modify
-- `src/index.css` — tier card classes, accent bar, new keyframes
-- `src/components/game/UnifiedCatCard.tsx` — apply tier classes, accent variable, tier labels, stat bar gradients
-- `src/config/graphics.ts` — enhanced tier config with accent colors and labels
+This gives a solid, vibrant gradient button that still feels polished with the hover effects.
 
