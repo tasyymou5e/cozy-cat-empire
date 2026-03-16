@@ -14,7 +14,7 @@ export function LoginForm({ email, password, isSubmitting, onEmailChange, onPass
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="email" className="flex items-center gap-2">
+        <Label htmlFor="email" className="flex items-center gap-2 font-serif">
           <Mail className="h-4 w-4 text-primary" />
           Email
         </Label>
@@ -26,11 +26,11 @@ export function LoginForm({ email, password, isSubmitting, onEmailChange, onPass
           onChange={(e) => onEmailChange(e.target.value)}
           disabled={isSubmitting}
           required
-          className="bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20"
+          className="auth-input-glow bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20"
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password" className="flex items-center gap-2">
+        <Label htmlFor="password" className="flex items-center gap-2 font-serif">
           <Lock className="h-4 w-4 text-primary" />
           Password
         </Label>
@@ -43,7 +43,7 @@ export function LoginForm({ email, password, isSubmitting, onEmailChange, onPass
           disabled={isSubmitting}
           required
           minLength={6}
-          className="bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20"
+          className="auth-input-glow bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20"
         />
       </div>
     </>

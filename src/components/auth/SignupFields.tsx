@@ -138,7 +138,7 @@ export function SignupFields({
             disabled={isSubmitting}
             required
             maxLength={20}
-            className={`bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20 pl-8 pr-10 ${
+            className={`auth-input-glow bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20 pl-8 pr-10 ${
               usernameError ? 'border-destructive' : usernameAvailable === true ? 'border-green-500' : ''
             }`}
           />
