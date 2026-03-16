@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useCatFarmState, TAB_LABELS } from '@/hooks/useCatFarmState';
 import { useCatFarmHandlers, MOOD_LABELS } from '@/hooks/useCatFarmHandlers';
 import { GameActions } from '@/types/gameEvents';
