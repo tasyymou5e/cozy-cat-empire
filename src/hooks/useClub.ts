@@ -190,7 +190,7 @@ export function useClub(userId?: string): UseClubReturn {
     if (!myClub || (myRole !== 'owner' && myRole !== 'officer')) return { success: false, error: 'Not authorized' };
     const member = members.find((m) => m.id === memberId);
     if (!member) return { success: false, error: 'Member not found' };
-    if (member.role === 'owner') return { success: false, error: \"Can't kick the owner\" };
+    if (member.role === 'owner') return { success: false, error: "Can't kick the owner" };
     try {
       await supabase.from('club_members').delete().eq('id', memberId);
       setMembers((prev) => prev.filter((m) => m.id !== memberId));
