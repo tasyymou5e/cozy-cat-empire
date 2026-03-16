@@ -85,6 +85,7 @@ export function GameHeader({
   onShowShortcutsHelp,
   onShowWhatsNew,
   onShowDailyRewards,
+  onShowDailyWizard,
   user,
   onSignOut,
   onManualSave,
