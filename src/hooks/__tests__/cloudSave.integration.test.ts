@@ -53,26 +53,12 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/lib/logger', () => ({
-  createLogger: () => ({
-    debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn(),
-  }),
-}));
+// logger, guards, and useErrorLogger are centralized in src/test/setup.ts
 
 vi.mock('@/lib/saveMigration', () => ({
   needsMigration: vi.fn().mockReturnValue(false),
   getSaveVersionInfo: vi.fn(),
   migrateSaveData: vi.fn(),
-}));
-
-vi.mock('@/types/guards', () => ({
-  isValidGameState: vi.fn().mockReturnValue(true),
-  isCatRelationship: vi.fn().mockReturnValue(true),
-  isRelationshipEvent: vi.fn().mockReturnValue(true),
-}));
-
-vi.mock('../useErrorLogger', () => ({
-  logErrorToDatabase: vi.fn(),
 }));
 
 // ── Helpers ──────────────────────────────────────────────────────────────
