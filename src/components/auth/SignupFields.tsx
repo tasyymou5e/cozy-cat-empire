@@ -56,7 +56,7 @@ export function SignupFields({
     <>
       {/* Avatar Selection */}
       <div className="space-y-2">
-        <Label className="flex items-center gap-2">Choose your avatar</Label>
+        <Label className="flex items-center gap-2 font-serif">Choose your avatar</Label>
         <div className="flex flex-wrap gap-2 justify-center">
           {AVATAR_OPTIONS.map((emoji) => (
             <button
