@@ -177,6 +177,40 @@ STYLE REQUIREMENTS:
   return prompt;
 }
 
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+
+// Validate env at startup
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !LOVABLE_API_KEY) {
+  throw new Error("Missing required env vars: SUPABASE_URL, SUPABASE_ANON_KEY, LOVABLE_API_KEY");
+}
+
+const FETCH_TIMEOUT_MS = 60_000;
+
+const RenderRequestSchema = z.object({
+  houseSize: z.enum(["apartment", "house", "mansion", "farm"]),
+  timeOfDay: z.enum(["morning", "afternoon", "evening", "night"]),
+  season: z.enum(["spring", "summer", "autumn", "winter"]),
+  cats: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    breed: z.string(),
+    personality: z.string(),
+    appearance: z.object({
+      furColor: z.string().optional(),
+      pattern: z.string().optional(),
+      eyeColor: z.string().optional(),
+      hairLength: z.string().optional(),
+      facialFeatures: z.array(z.string()).optional(),
+    }).optional(),
+    portraitUrl: z.string().optional(),
+  })).default([]),
+  catCostumes: z.record(z.string()).default({}),
+  gameDay: z.number().int().min(1),
+});
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -189,14 +223,6 @@ serve(async (req) => {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-    }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-
-    if (!lovableApiKey) {
-      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
