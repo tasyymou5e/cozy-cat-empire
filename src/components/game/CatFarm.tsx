@@ -27,6 +27,8 @@ import { VirtualizedCatGrid } from './VirtualizedCatGrid';
 import { MobileNavBar } from './MobileNavBar';
 import { MobileGameDrawer } from './MobileGameDrawer';
 import { AICatAdvisor } from './AICatAdvisor';
+import { DailyWizardDialog } from './DailyWizardDialog';
+import { useDailyWizard } from '@/hooks/useDailyWizard';
 
 // UI primitives
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
