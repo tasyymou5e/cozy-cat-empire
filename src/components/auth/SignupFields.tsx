@@ -77,7 +77,7 @@ export function SignupFields({
 
       {/* Display Name */}
       <div className="space-y-2">
-        <Label htmlFor="displayName" className="flex items-center gap-2">
+        <Label htmlFor="displayName" className="flex items-center gap-2 font-serif">
           <User className="h-4 w-4 text-primary" />
           Display Name *
         </Label>
