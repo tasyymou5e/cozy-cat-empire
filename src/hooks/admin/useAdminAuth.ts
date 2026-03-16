@@ -10,6 +10,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { createLogger } from '@/lib/logger';
 
 /**
  * Return type for the useAdminAuth hook
