@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
     // Authorization check: users can only send to themselves unless they're admin
     if (targetUserId !== user.id) {
       // Check if user has admin role using service client
-      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+      const supabaseAdmin = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
       const { data: roleData } = await supabaseAdmin
         .from('user_roles')
         .select('role')
