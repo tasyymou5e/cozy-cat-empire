@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import type { TrickId } from '@/types/grading';
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/game';
@@ -199,7 +200,7 @@ export default function CatCollection() {
   const totalWins = state.cats.reduce((sum, c) => sum + c.showWins, 0);
 
   const handleTrain = (catId: string, trickId: string) => {
-    actions.trainCat(catId, trickId as any);
+    actions.trainCat(catId, trickId as TrickId);
   };
 
   // Handle portrait generation with cloud save - guarded by cloud load state

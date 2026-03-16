@@ -1,10 +1,38 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const FETCH_TIMEOUT_MS = 60_000;
+
+// ============================================================================
+// Input schema
+// ============================================================================
+
+const RequestSchema = z.object({
+  forceRegenerate: z.boolean().optional().default(false),
+  season: z.enum(["spring", "summer", "autumn", "winter"]).optional(),
+}).optional().default({});
+
+// ============================================================================
+// Env validation
+// ============================================================================
+
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error("Missing required env vars: LOVABLE_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY");
+}
+
+// ============================================================================
+// Season prompts
+// ============================================================================
 
 type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 
@@ -64,19 +92,20 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
-    // Parse request body
-    const { forceRegenerate, season } = await req.json().catch(() => ({}));
-    const BACKGROUND_KEY = getBackgroundKey(season);
+    // Parse and validate request body
+    const rawBody = await req.json().catch(() => ({}));
+    const parsed = RequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid request", details: parsed.error.flatten() }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { forceRegenerate, season } = parsed.data;
+    const BACKGROUND_KEY = getBackgroundKey(season as Season | undefined);
     const prompt = season && SEASONAL_PROMPTS[season as Season] ? SEASONAL_PROMPTS[season as Season] : DEFAULT_PROMPT;
 
     console.log(`Processing request - Season: ${season}, ForceRegenerate: ${forceRegenerate}, Key: ${BACKGROUND_KEY}`);
@@ -122,6 +151,7 @@ serve(async (req) => {
         messages: [{ role: "user", content: prompt }],
         modalities: ["image", "text"],
       }),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
 
     if (!aiResponse.ok) {

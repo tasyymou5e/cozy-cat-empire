@@ -1,4 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,6 +8,72 @@ const corsHeaders = {
 };
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const FETCH_TIMEOUT_MS = 30_000;
+
+// ============================================================================
+// Input Schemas
+// ============================================================================
+
+const MessageSchema = z.object({
+  role: z.enum(["user", "assistant", "system"]),
+  content: z.string().min(1).max(10000),
+});
+
+const ChatSchema = z.object({
+  action: z.literal("chat"),
+  messages: z.array(MessageSchema).min(1).max(50),
+});
+
+const NameSchema = z.object({
+  action: z.literal("name"),
+  breed: z.string().min(1).max(50),
+  personality: z.string().min(1).max(50),
+  appearance: z.record(z.unknown()).optional(),
+});
+
+const StorySchema = z.object({
+  action: z.literal("story"),
+  name: z.string().min(1).max(100),
+  breed: z.string().min(1).max(50),
+  personality: z.string().min(1).max(50),
+  grade: z.number().int().min(1).max(20).optional(),
+  showWins: z.number().int().min(0).optional(),
+  tricksLearned: z.array(z.string()).optional(),
+  appearance: z.record(z.unknown()).optional(),
+});
+
+const TipsSchema = z.object({
+  action: z.literal("tips"),
+  money: z.number().min(0),
+  day: z.number().int().min(1),
+  catCount: z.number().int().min(0),
+  space: z.number().int().min(1),
+  houseSize: z.string().min(1),
+  resources: z.record(z.number()),
+  totalShowWins: z.number().int().min(0),
+  acres: z.number().int().min(0).optional(),
+  breedingCooldown: z.number().int().min(0).optional(),
+});
+
+const ActionSchema = z.object({
+  action: z.enum(["chat", "name", "story", "tips"]),
+}).passthrough();
+
+// ============================================================================
+// Env validation
+// ============================================================================
+
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+if (!LOVABLE_API_KEY) {
+  throw new Error("LOVABLE_API_KEY is not configured — function cannot start");
+}
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+// ============================================================================
+// System prompt
+// ============================================================================
 
 const WHISKERS_SYSTEM_PROMPT = `You are Whiskers, a wise and charming old cat who serves as a game advisor in "Cozy Cat Empire" — a browser-based cat farming game. You speak with cat-themed personality (occasional purrs, meows, and cat wisdom) but remain genuinely helpful.
 
@@ -23,28 +90,91 @@ Key game mechanics you know about:
 
 Keep responses concise, fun, and actionable. Use emoji sparingly. If asked about something outside the game, gently redirect to game topics.`;
 
-serve(async (req) => {
+// ============================================================================
+// Main handler
+// ============================================================================
+
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    // Verify JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    const { action, ...payload } = await req.json();
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: "Invalid or expired token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Parse and validate action type
+    const body = await req.json();
+    const actionResult = ActionSchema.safeParse(body);
+    if (!actionResult.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid request", details: actionResult.error.flatten() }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { action } = actionResult.data;
 
     switch (action) {
-      case "chat":
-        return handleChat(payload, LOVABLE_API_KEY);
-      case "name":
-        return handleNameGeneration(payload, LOVABLE_API_KEY);
-      case "story":
-        return handleStoryGeneration(payload, LOVABLE_API_KEY);
-      case "tips":
-        return handleTipsGeneration(payload, LOVABLE_API_KEY);
+      case "chat": {
+        const parsed = ChatSchema.safeParse(body);
+        if (!parsed.success) {
+          return new Response(
+            JSON.stringify({ error: "Invalid chat payload", details: parsed.error.flatten() }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        return handleChat(parsed.data, LOVABLE_API_KEY);
+      }
+      case "name": {
+        const parsed = NameSchema.safeParse(body);
+        if (!parsed.success) {
+          return new Response(
+            JSON.stringify({ error: "Invalid name payload", details: parsed.error.flatten() }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        return handleNameGeneration(parsed.data, LOVABLE_API_KEY);
+      }
+      case "story": {
+        const parsed = StorySchema.safeParse(body);
+        if (!parsed.success) {
+          return new Response(
+            JSON.stringify({ error: "Invalid story payload", details: parsed.error.flatten() }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        return handleStoryGeneration(parsed.data, LOVABLE_API_KEY);
+      }
+      case "tips": {
+        const parsed = TipsSchema.safeParse(body);
+        if (!parsed.success) {
+          return new Response(
+            JSON.stringify({ error: "Invalid tips payload", details: parsed.error.flatten() }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        return handleTipsGeneration(parsed.data, LOVABLE_API_KEY);
+      }
       default:
         return new Response(
           JSON.stringify({ error: `Unknown action: ${action}` }),
@@ -60,8 +190,12 @@ serve(async (req) => {
   }
 });
 
+// ============================================================================
+// Action handlers
+// ============================================================================
+
 async function handleChat(
-  payload: { messages: { role: string; content: string }[] },
+  payload: z.infer<typeof ChatSchema>,
   apiKey: string
 ) {
   const response = await fetch(GATEWAY_URL, {
@@ -78,6 +212,7 @@ async function handleChat(
       ],
       stream: true,
     }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 
   if (!response.ok) {
@@ -90,12 +225,12 @@ async function handleChat(
 }
 
 async function handleNameGeneration(
-  payload: { breed: string; personality: string; appearance?: Record<string, unknown> },
+  payload: z.infer<typeof NameSchema>,
   apiKey: string
 ) {
   const prompt = `Generate 6 creative and unique names for a ${payload.breed} cat with a ${payload.personality} personality.${
     payload.appearance
-      ? ` The cat has ${payload.appearance.furColor || ""} fur, ${payload.appearance.eyeColor || ""} eyes, and ${payload.appearance.pattern || "solid"} pattern.`
+      ? ` The cat has ${(payload.appearance as Record<string, string>).furColor || ""} fur, ${(payload.appearance as Record<string, string>).eyeColor || ""} eyes, and ${(payload.appearance as Record<string, string>).pattern || "solid"} pattern.`
       : ""
   } Each name should be memorable, fun, and fitting for the cat's characteristics. Include names from various inspirations: mythology, food, nature, pop culture, and wordplay.`;
 
@@ -144,6 +279,7 @@ async function handleNameGeneration(
       ],
       tool_choice: { type: "function", function: { name: "suggest_names" } },
     }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 
   if (!response.ok) {
@@ -165,15 +301,7 @@ async function handleNameGeneration(
 }
 
 async function handleStoryGeneration(
-  payload: {
-    name: string;
-    breed: string;
-    personality: string;
-    grade?: number;
-    showWins?: number;
-    tricksLearned?: string[];
-    appearance?: Record<string, unknown>;
-  },
+  payload: z.infer<typeof StorySchema>,
   apiKey: string
 ) {
   const tricks = payload.tricksLearned?.length
@@ -202,6 +330,7 @@ Make it feel like a charming storybook entry. Include how they came to the farm,
         { role: "user", content: prompt },
       ],
     }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 
   if (!response.ok) {
@@ -216,17 +345,7 @@ Make it feel like a charming storybook entry. Include how they came to the farm,
 }
 
 async function handleTipsGeneration(
-  payload: {
-    money: number;
-    day: number;
-    catCount: number;
-    space: number;
-    houseSize: string;
-    resources: Record<string, number>;
-    totalShowWins: number;
-    acres?: number;
-    breedingCooldown?: number;
-  },
+  payload: z.infer<typeof TipsSchema>,
   apiKey: string
 ) {
   const prompt = `Analyze this cat farm and provide 3-5 strategic tips:
@@ -235,7 +354,7 @@ async function handleTipsGeneration(
 - Money: $${payload.money}
 - Cats: ${payload.catCount}/${payload.space} capacity
 - Housing: ${payload.houseSize}${payload.acres ? ` (${payload.acres} acres)` : ""}
-- Resources: Food=${payload.resources.food}, Medicine=${payload.resources.medicine}, Toys=${payload.resources.toys}, Treats=${payload.resources.treats}
+- Resources: Food=${payload.resources.food ?? 0}, Medicine=${payload.resources.medicine ?? 0}, Toys=${payload.resources.toys ?? 0}, Treats=${payload.resources.treats ?? 0}
 - Show Wins: ${payload.totalShowWins}
 - Breeding Cooldown: ${payload.breedingCooldown || 0} days
 
@@ -287,6 +406,7 @@ Consider: resource management, housing upgrades, breeding strategy, show prepara
       ],
       tool_choice: { type: "function", function: { name: "suggest_tips" } },
     }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 
   if (!response.ok) {

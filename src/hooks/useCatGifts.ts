@@ -239,19 +239,19 @@ export function useCatGifts(userId: string | undefined) {
             return;
           }
           // Fetch sender name for the new gift popup
-          const newGift = payload.new as any;
+          const newGift = payload.new as Record<string, unknown>;
           const { data: senderProfile } = await supabase
             .from('public_profiles')
             .select('display_name')
-            .eq('id', newGift.sender_id)
+            .eq('id', String(newGift.sender_id))
             .maybeSingle();
 
-          const giftWithSender: CatGift = {
-            ...newGift,
+          const giftWithSender = {
+            ...(newGift as unknown as CatGift),
             cat_data: newGift.cat_data as Cat,
             status: newGift.status as CatGiftStatus,
             sender_name: senderProfile?.display_name || 'A friend',
-          };
+          } as CatGift;
 
           setNewGiftAlert(giftWithSender);
           fetchGifts();

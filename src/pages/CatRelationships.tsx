@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import type { TrickId } from '@/types/grading';
 import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/game';
 import { useSound } from '@/contexts/SoundContext';
@@ -124,7 +125,7 @@ export default function CatRelationships() {
   const selectedCat = selectedCatId ? state.cats.find((c) => c.id === selectedCatId) : null;
 
   const handleTrain = (catId: string, trickId: string) => {
-    actions.trainCat(catId, trickId as any);
+    actions.trainCat(catId, trickId as TrickId);
   };
 
   if (isLoading) {

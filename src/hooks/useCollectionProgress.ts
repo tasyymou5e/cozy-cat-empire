@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import type { TrickId } from '@/types/grading';
 import { Cat } from '@/types/game';
 import {
   CollectionProgress,
@@ -163,7 +164,7 @@ export function useCollectionProgress(
   const trickProgress = useMemo(() => {
     const items = TRICK_COLLECTION.map((t) => ({
       ...t,
-      collected: collectedTricks.includes(t.id as any),
+      collected: collectedTricks.includes(t.id as TrickId),
     }));
     return {
       collected: items.filter((i) => i.collected).length,

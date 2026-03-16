@@ -171,18 +171,18 @@ export function useCoopChallenges(
           filter: `recipient_id=eq.${userId}`,
         },
         (payload) => {
-          const newInvite = payload.new as any;
+          const newInvite = payload.new as Record<string, unknown>;
           const sender = friends.find((f) => f.friend_id === newInvite.sender_id);
           setPendingInvites((prev) => [
             ...prev,
             {
-              id: newInvite.id,
-              challenge: newInvite.challenge_data,
-              senderId: newInvite.sender_id,
+              id: String(newInvite.id),
+              challenge: newInvite.challenge_data as CoopChallengeInvite['challenge'],
+              senderId: String(newInvite.sender_id),
               senderName: sender?.display_name || 'Friend',
               senderAvatar: sender?.avatar_emoji || '😺',
-              sentAt: newInvite.sent_at,
-              expiresAt: newInvite.expires_at,
+              sentAt: String(newInvite.sent_at),
+              expiresAt: String(newInvite.expires_at),
             },
           ]);
           playSound?.('notification');

@@ -294,13 +294,13 @@ export function useTrading(userId: string | undefined) {
           }
           if (payload.eventType === 'INSERT') {
             // Fetch sender name for the popup
-            const newTrade = payload.new as any;
+            const newTrade = payload.new as Record<string, unknown>;
             let senderName = 'Unknown';
 
             const { data: profile } = await supabase
               .from('public_profiles')
               .select('display_name')
-              .eq('id', newTrade.sender_id)
+              .eq('id', String(newTrade.sender_id))
               .maybeSingle();
 
             if (profile?.display_name) {
@@ -308,7 +308,7 @@ export function useTrading(userId: string | undefined) {
             }
 
             setNewTradeAlert({
-              ...newTrade,
+              ...(newTrade as unknown as TradeOffer),
               offered_cats: (newTrade.offered_cats || []) as Cat[],
               offered_resources: (newTrade.offered_resources || {}) as Partial<Resources>,
               requested_cats: (newTrade.requested_cats || []) as Cat[],
