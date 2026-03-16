@@ -27,29 +27,15 @@ interface VirtualizedCatGridProps {
   virtualizationThreshold?: number;
 }
 
-// Responsive grid container styles
-const gridContainerStyle = {
-  display: 'grid',
-  gap: '1rem',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-};
 
-// Media query breakpoints handled via CSS class
-const gridClassName = 'virtualized-cat-grid';
-
-// Custom list container for VirtuosoGrid
+// Custom list container for VirtuosoGrid - responsive columns via CSS class
 const ListContainer = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ style, children, ...props }, ref) => (
     <div
       ref={ref}
       {...props}
-      className={gridClassName}
-      style={{
-        ...style,
-        display: 'grid',
-        gap: '1rem',
-        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-      }}
+      className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
+      style={style}
     >
       {children}
     </div>
@@ -192,7 +178,7 @@ export const VirtualizedCatGrid = memo(function VirtualizedCatGrid({
   // For small lists, use regular grid (virtualization overhead not worth it)
   if (cats.length < virtualizationThreshold) {
     return (
-      <div className={`cat-grid ${className || ''}`}>
+      <div className={`grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 ${className || ''}`}>
         {cats.map((cat) => (
           <CatCardItem
             key={cat.id}
