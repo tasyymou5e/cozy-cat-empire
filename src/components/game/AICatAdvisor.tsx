@@ -91,7 +91,7 @@ export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory, onNavi
           </button>
         </SheetTrigger>
 
-        <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col">
+        <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col max-h-screen">
           <SheetHeader className="p-4 pb-2 border-b border-border">
             <SheetTitle className="flex items-center gap-2 text-lg">
               <span className="text-2xl">🐱</span>
