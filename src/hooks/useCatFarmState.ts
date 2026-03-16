@@ -32,6 +32,11 @@ import { useRelationshipReminders } from '@/hooks/useRelationshipReminders';
 import { useGameMessages } from '@/hooks/useGameMessages';
 import { useCatFarmUIState } from './useCatFarmUIState';
 import { useCatFarmSystems } from './useCatFarmSystems';
+import { useTabUnlocks } from '@/hooks/useTabUnlocks';
+import { useWelcomeBack } from '@/hooks/useWelcomeBack';
+import { useFloatingRewards } from '@/components/game/FloatingRewardPopup';
+import { useGamificationAnalytics } from '@/hooks/useGamificationAnalytics';
+import { usePlayerPrestige } from '@/hooks/usePlayerPrestige';
 
 // Re-export TAB_LABELS for backward compatibility
 export { TAB_LABELS } from '@/constants/tabs';
