@@ -12,6 +12,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ErrorLoggerProvider } from './components/ErrorLoggerProvider';
 import { AdminRoute } from './components/admin/AdminRoute';
 import { lazyWithRetry } from './lib/lazyWithRetry';
+import { TrackingScripts } from './components/TrackingScripts';
 
 // Page loading fallback component
 const PageLoader = () => (
