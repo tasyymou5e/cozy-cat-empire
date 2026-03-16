@@ -441,6 +441,16 @@ async function checkRateLimit(
 // MAIN HANDLER
 // ============================================================================
 
+// Validate env at startup
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const LOVABLE_API_KEY_ENV = Deno.env.get('LOVABLE_API_KEY');
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !LOVABLE_API_KEY_ENV) {
+  throw new Error('Missing required env vars: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, LOVABLE_API_KEY');
+}
+
+const FETCH_TIMEOUT_MS = 60_000;
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -450,19 +460,12 @@ Deno.serve(async (req) => {
   const startTime = Date.now();
   const FUNCTION_NAME = 'generate-cat-portrait';
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
   let userId: string | null = null;
-  let catMetadata: Record<string, any> = {};
+  let catMetadata: Record<string, unknown> = {};
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
     // Parse request body first to get quality preference
     const requestBody = await req.json() as { cat: CatData; highQuality?: boolean };
     const { cat, highQuality = false } = requestBody;
@@ -564,7 +567,7 @@ Deno.serve(async (req) => {
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY_ENV}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -577,6 +580,7 @@ Deno.serve(async (req) => {
         ],
         modalities: ['image', 'text'],
       }),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
 
     const executionTime = Date.now() - startTime;

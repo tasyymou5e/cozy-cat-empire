@@ -1,9 +1,18 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Validate env at startup
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error('Missing required env vars');
+}
 
 // Rate limit: 50 notifications per user per hour
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
@@ -30,14 +39,14 @@ function checkInMemoryRateLimit(userId: string): { allowed: boolean; remaining: 
   return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - userLimit.count };
 }
 
-interface PushPayload {
-  userId?: string; // Optional - defaults to authenticated user
-  title: string;
-  body: string;
-  icon?: string;
-  url?: string;
-  notificationType?: 'friend_requests' | 'gifts' | 'trades' | 'rewards' | 'challenges';
-}
+const PushPayloadSchema = z.object({
+  userId: z.string().uuid().optional(),
+  title: z.string().min(1).max(200),
+  body: z.string().min(1).max(1000),
+  icon: z.string().max(500).optional(),
+  url: z.string().max(500).optional(),
+  notificationType: z.enum(['friend_requests', 'gifts', 'trades', 'rewards', 'challenges']).optional(),
+});
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -46,9 +55,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
     const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
 
@@ -63,7 +69,7 @@ Deno.serve(async (req) => {
     }
 
     // Create client with user's token to verify identity
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+    const supabaseAuth = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
       global: { headers: { Authorization: authHeader } }
     });
 
@@ -99,7 +105,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { userId, title, body, icon, url, notificationType }: PushPayload = await req.json();
+    const rawBody = await req.json();
+    const parsedBody = PushPayloadSchema.safeParse(rawBody);
+    if (!parsedBody.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid payload', details: parsedBody.error.flatten() }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { userId, title, body, icon, url, notificationType } = parsedBody.data;
     
     // Determine target user - default to self if not specified
     const targetUserId = userId || user.id;
@@ -107,7 +121,7 @@ Deno.serve(async (req) => {
     // Authorization check: users can only send to themselves unless they're admin
     if (targetUserId !== user.id) {
       // Check if user has admin role using service client
-      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+      const supabaseAdmin = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
       const { data: roleData } = await supabaseAdmin
         .from('user_roles')
         .select('role')
@@ -136,7 +150,7 @@ Deno.serve(async (req) => {
     }
 
     // Use service role client for database operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
     // Get user's push subscriptions
     const { data: subscriptions, error: fetchError } = await supabase

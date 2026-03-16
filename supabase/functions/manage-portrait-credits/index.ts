@@ -1,9 +1,21 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Validate env at startup
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error('Missing required env vars: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY');
+}
+
+const PostBodySchema = z.object({
+  action: z.enum(['purchase', 'consume']),
+});
 
 interface PortraitCredits {
   id: string;
@@ -27,9 +39,7 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
   try {
     // Get user from auth header
@@ -92,7 +102,15 @@ Deno.serve(async (req) => {
 
     // POST: Handle purchase or consume actions
     if (req.method === 'POST') {
-      const { action } = await req.json();
+      const rawBody = await req.json();
+      const parsed = PostBodySchema.safeParse(rawBody);
+      if (!parsed.success) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid action. Use "purchase" or "consume".', details: parsed.error.flatten() }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      const { action } = parsed.data;
 
       if (action === 'purchase') {
         // Fetch portrait package config
