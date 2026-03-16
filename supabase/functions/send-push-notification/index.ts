@@ -105,7 +105,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { userId, title, body, icon, url, notificationType }: PushPayload = await req.json();
+    const rawBody = await req.json();
+    const parsedBody = PushPayloadSchema.safeParse(rawBody);
+    if (!parsedBody.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid payload', details: parsedBody.error.flatten() }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { userId, title, body, icon, url, notificationType } = parsedBody.data;
     
     // Determine target user - default to self if not specified
     const targetUserId = userId || user.id;
