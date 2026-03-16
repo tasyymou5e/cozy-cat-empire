@@ -53,6 +53,8 @@ export function GameSidebar({
   day,
   money,
   highlightedTab,
+  isTabUnlocked,
+  getTabUnlockHint,
 }: GameSidebarProps) {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
