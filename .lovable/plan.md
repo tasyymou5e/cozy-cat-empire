@@ -1,22 +1,28 @@
 
 
-## Card Showcase Page
+# Stop the Login Button from Blinking
 
-I'll create a standalone **Card Showcase** page at `/card-showcase` that displays mock cats at every tier level (Common, Uncommon, Rare, Legendary, Mythic) so you can see and compare the new premium tier designs without needing to be in-game.
+The submit button on line 1053-1055 of `src/pages/Auth.tsx` currently has `animate-[gradient-shift_3s_ease-in-out_infinite]` which creates a constantly shifting/blinking gradient animation.
 
-### What it will show
-- **5 mock cats** — one per tier — each with realistic stats, names, breeds, and personalities
-- Both the **standard card** variant and the **trading card** variant side by side
-- Dark mode toggle so you can preview both themes
-- Each cat will have tier-appropriate grades so all the new CSS effects (amethyst crystalline for Rare, gold metallic for Legendary, holographic for Mythic) are visible
+## Change
 
-### Implementation
-- Create `src/pages/CardShowcase.tsx` with hardcoded mock `Cat` objects at grades 1, 6, 11, 16, and 20 (covering all 5 tiers)
-- Render them in a grid using `UnifiedCatCard` with `variant="card"` and `variant="trading"`
-- Add a lazy route at `/card-showcase` (no auth required)
-- This is a dev/preview page — can be removed later
+**File: `src/pages/Auth.tsx` (line 1055)**
 
-### Files
-- **New**: `src/pages/CardShowcase.tsx`
-- **Edit**: `src/App.tsx` — add route
+Replace the animated gradient button class with a solid, attractive gradient that does not animate:
+
+```
+// Before:
+className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] animate-[gradient-shift_3s_ease-in-out_infinite] hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/25 relative overflow-hidden group"
+
+// After:
+className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/25 relative overflow-hidden group"
+```
+
+Key changes:
+- Remove `animate-[gradient-shift_3s_ease-in-out_infinite]` (stops the blinking)
+- Remove `bg-[length:200%_auto]` (no longer needed without animation)
+- Simplify to a clean `from-primary to-accent` two-tone gradient
+- Keep hover scale, shadow, and shimmer-on-hover effects intact
+
+This gives a solid, vibrant gradient button that still feels polished with the hover effects.
 
