@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentRealSeason, type RealSeason } from '@/lib/seasonUtils';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('AuthBackground');
 
 const CACHE_KEY_PREFIX = 'auth-background-url';
 const CACHE_TIMESTAMP_KEY = 'auth-background-timestamp-v2';
@@ -54,7 +57,7 @@ export function useAuthBackground() {
               }
             } catch {
               // URL not accessible, will regenerate
-              console.log('Cached background URL not accessible, regenerating...');
+              log.info('Cached background URL not accessible, regenerating...');
             }
           }
         }
@@ -79,7 +82,7 @@ export function useAuthBackground() {
         throw new Error(data.error);
       }
     } catch (err) {
-      console.error('Error fetching auth background:', err);
+      log.error('Error fetching auth background:', err);
       setState(prev => ({
         ...prev,
         isLoading: false,

@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Club, ClubMember, ClubChallenge, ClubInvite, ClubChallengeType, getClubLevel } from '@/types/clubs';
 import { createLogger } from '@/lib/logger';
+import { handleAsyncError } from '@/lib/errorHandling';
 
 const log = createLogger('Club');
 
@@ -100,7 +101,7 @@ export function useClub(userId?: string): UseClubReturn {
         completedAt: c.completed_at as string | undefined,
       })));
     } catch (err) {
-      log.error('Error fetching club data:', err);
+      handleAsyncError(err, { source: 'useClub', operation: 'fetchClubData', userId }, 'Failed to load club data');
       setError('Failed to load club data');
     } finally {
       setLoading(false);
@@ -118,7 +119,10 @@ export function useClub(userId?: string): UseClubReturn {
       await supabase.from('club_members').insert({ club_id: data.id, user_id: userId, role: 'owner' });
       await fetchClubData();
       return { success: true };
-    } catch (err) { log.error('Error creating club:', err); return { success: false, error: 'Failed to create club' }; }
+    } catch (err) {
+      handleAsyncError(err, { source: 'useClub', operation: 'createClub', userId }, 'Failed to create club');
+      return { success: false, error: 'Failed to create club' };
+    }
   }, [userId, myClub, fetchClubData]);
 
   const joinClub = useCallback(async (clubId: string) => {
@@ -129,7 +133,10 @@ export function useClub(userId?: string): UseClubReturn {
       if (joinError) throw joinError;
       await fetchClubData();
       return { success: true };
-    } catch (err) { log.error('Error joining club:', err); return { success: false, error: 'Failed to join club' }; }
+    } catch (err) {
+      handleAsyncError(err, { source: 'useClub', operation: 'joinClub', userId }, 'Failed to join club');
+      return { success: false, error: 'Failed to join club' };
+    }
   }, [userId, myClub, fetchClubData]);
 
   const leaveClub = useCallback(async () => {
@@ -140,7 +147,10 @@ export function useClub(userId?: string): UseClubReturn {
       if (leaveError) throw leaveError;
       setMyClub(null); setMembers([]); setChallenges([]);
       return { success: true };
-    } catch (err) { log.error('Error leaving club:', err); return { success: false, error: 'Failed to leave club' }; }
+    } catch (err) {
+      handleAsyncError(err, { source: 'useClub', operation: 'leaveClub', userId }, 'Failed to leave club');
+      return { success: false, error: 'Failed to leave club' };
+    }
   }, [userId, myClub, myRole]);
 
   const invitePlayer = useCallback(async (inviteeId: string) => {
@@ -151,7 +161,10 @@ export function useClub(userId?: string): UseClubReturn {
       const { error: inviteError } = await supabase.from('club_invites').insert({ club_id: myClub.id, inviter_id: userId, invitee_id: inviteeId, status: 'pending', expires_at: expiresAt.toISOString() });
       if (inviteError) throw inviteError;
       return { success: true };
-    } catch (err) { log.error('Error inviting player:', err); return { success: false, error: 'Failed to send invite' }; }
+    } catch (err) {
+      handleAsyncError(err, { source: 'useClub', operation: 'invitePlayer', userId }, 'Failed to send invite');
+      return { success: false, error: 'Failed to send invite' };
+    }
   }, [userId, myClub, myRole]);
 
   const acceptInvite = useCallback(async (inviteId: string) => {
@@ -163,7 +176,10 @@ export function useClub(userId?: string): UseClubReturn {
       await supabase.from('club_members').insert({ club_id: invite.club_id, user_id: userId, role: 'member' });
       await fetchClubData();
       return { success: true };
-    } catch (err) { log.error('Error accepting invite:', err); return { success: false, error: 'Failed to accept invite' }; }
+    } catch (err) {
+      handleAsyncError(err, { source: 'useClub', operation: 'acceptInvite', userId }, 'Failed to accept invite');
+      return { success: false, error: 'Failed to accept invite' };
+    }
   }, [userId, fetchClubData]);
 
   const declineInvite = useCallback(async (inviteId: string) => {
@@ -172,7 +188,10 @@ export function useClub(userId?: string): UseClubReturn {
       await supabase.from('club_invites').update({ status: 'declined' }).eq('id', inviteId);
       setPendingInvites((prev) => prev.filter((i) => i.id !== inviteId));
       return { success: true };
-    } catch (err) { log.error('Error declining invite:', err); return { success: false, error: 'Failed to decline invite' }; }
+    } catch (err) {
+      handleAsyncError(err, { source: 'useClub', operation: 'declineInvite', userId }, 'Failed to decline invite');
+      return { success: false, error: 'Failed to decline invite' };
+    }
   }, [userId]);
 
   const contributeToChallenge = useCallback(async (challengeId: string, amount: number): Promise<boolean> => {
@@ -183,8 +202,11 @@ export function useClub(userId?: string): UseClubReturn {
       await supabase.from('club_challenges').update({ current_progress: challenge.currentProgress + amount }).eq('id', challengeId);
       await fetchClubData();
       return true;
-    } catch (err) { log.error('Error contributing to challenge:', err); return false; }
-  }, [myClub, challenges, fetchClubData]);
+    } catch (err) {
+      handleAsyncError(err, { source: 'useClub', operation: 'contributeToChallenge', userId }, 'Failed to contribute');
+      return false;
+    }
+  }, [myClub, challenges, fetchClubData, userId]);
 
   const kickMember = useCallback(async (memberId: string) => {
     if (!myClub || (myRole !== 'owner' && myRole !== 'officer')) return { success: false, error: 'Not authorized' };
@@ -195,8 +217,11 @@ export function useClub(userId?: string): UseClubReturn {
       await supabase.from('club_members').delete().eq('id', memberId);
       setMembers((prev) => prev.filter((m) => m.id !== memberId));
       return { success: true };
-    } catch (err) { log.error('Error kicking member:', err); return { success: false, error: 'Failed to kick member' }; }
-  }, [myClub, myRole, members]);
+    } catch (err) {
+      handleAsyncError(err, { source: 'useClub', operation: 'kickMember', userId }, 'Failed to kick member');
+      return { success: false, error: 'Failed to kick member' };
+    }
+  }, [myClub, myRole, members, userId]);
 
   const promoteMember = useCallback(async (memberId: string) => {
     if (!myClub || myRole !== 'owner') return { success: false, error: 'Only owner can promote' };
@@ -204,8 +229,11 @@ export function useClub(userId?: string): UseClubReturn {
       await supabase.from('club_members').update({ role: 'officer' }).eq('id', memberId);
       setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, role: 'officer' as const } : m)));
       return { success: true };
-    } catch (err) { log.error('Error promoting member:', err); return { success: false, error: 'Failed to promote member' }; }
-  }, [myClub, myRole]);
+    } catch (err) {
+      handleAsyncError(err, { source: 'useClub', operation: 'promoteMember', userId }, 'Failed to promote member');
+      return { success: false, error: 'Failed to promote member' };
+    }
+  }, [myClub, myRole, userId]);
 
   return {
     myClub, members, challenges, pendingInvites, loading, error, myRole,
