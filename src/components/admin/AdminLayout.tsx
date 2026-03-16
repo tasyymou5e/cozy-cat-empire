@@ -24,6 +24,7 @@ import {
   GraduationCap,
   Database,
   BookOpen,
+  Terminal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
