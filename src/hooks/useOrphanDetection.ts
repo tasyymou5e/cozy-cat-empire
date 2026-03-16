@@ -1,16 +1,15 @@
 /**
  * @fileoverview useOrphanDetection - Detect cats with gallery photos but missing from save
  *
- * Checks for gallery photos that reference cat IDs not present in the
- * current game save. This allows recovery of cats that were lost due
- * to save overwrites or sync issues.
- *
  * @module hooks/useOrphanDetection
  */
 
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Cat, CatBreed, CatPersonality } from '@/types/game';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('OrphanDetection');
 
 export interface OrphanedCat {
   catId: string;
@@ -22,37 +21,13 @@ export interface OrphanedCat {
 }
 
 interface OrphanDetectionResult {
-  /** Orphaned cats found in gallery/logs but not in current save */
   orphanedCats: OrphanedCat[];
-  /** Whether detection is in progress */
   isChecking: boolean;
-  /** Check for orphaned cats */
   checkForOrphans: () => Promise<void>;
-  /** Dismiss orphan detection (user chose not to recover) */
   dismissOrphans: () => void;
-  /** Whether there are orphans to recover */
   hasOrphans: boolean;
 }
 
-/**
- * Hook to detect orphaned cats that have gallery photos but are missing from game save.
- *
- * @param userId - The authenticated user's ID
- * @param currentCatIds - Array of cat IDs currently in the game save
- * @returns Detection state and actions
- *
- * @example
- * ```typescript
- * const { orphanedCats, checkForOrphans, hasOrphans } = useOrphanDetection(
- *   user?.id,
- *   state.cats.map(c => c.id)
- * );
- *
- * useEffect(() => {
- *   if (hasLoadedCloud) checkForOrphans();
- * }, [hasLoadedCloud]);
- * ```
- */
 export function useOrphanDetection(
   userId: string | undefined,
   currentCatIds: string[]
@@ -65,22 +40,20 @@ export function useOrphanDetection(
     if (!userId || hasChecked.current) return;
 
     setIsChecking(true);
-    console.log('[OrphanDetection] Checking for orphaned cats...');
+    log.debug('Checking for orphaned cats...');
 
     try {
-      // 1. Get all gallery photos for this user
       const { data: galleryPhotos, error: galleryError } = await supabase
         .from('gallery_photos')
         .select('cat_id, cat_name')
         .eq('user_id', userId);
 
       if (galleryError) {
-        console.error('[OrphanDetection] Failed to fetch gallery photos:', galleryError);
+        log.error('Failed to fetch gallery photos:', galleryError);
         setIsChecking(false);
         return;
       }
 
-      // 2. Get AI portraits from ai_usage_log
       const { data: aiLogs, error: aiError } = await supabase
         .from('ai_usage_log')
         .select('metadata, created_at')
@@ -90,10 +63,9 @@ export function useOrphanDetection(
         .order('created_at', { ascending: false });
 
       if (aiError) {
-        console.error('[OrphanDetection] Failed to fetch AI logs:', aiError);
+        log.error('Failed to fetch AI logs:', aiError);
       }
 
-      // 3. Find cat IDs referenced in gallery but not in current save
       const galleryCatIds = new Set<string>();
       const catNameMap = new Map<string, string>();
 
@@ -106,30 +78,23 @@ export function useOrphanDetection(
 
       const currentCatIdSet = new Set(currentCatIds);
 
-      // Build portrait URL map from AI logs
       const portraitMap = new Map<string, { url: string; breed: CatBreed; createdAt: string }>();
-      for (const log of aiLogs || []) {
-        const metadata = log.metadata as Record<string, unknown> | null;
+      for (const logEntry of aiLogs || []) {
+        const metadata = logEntry.metadata as Record<string, unknown> | null;
         const catId = metadata?.cat_id as string | undefined;
         const url = metadata?.portrait_url as string | undefined;
         const breed = (metadata?.breed as CatBreed) || 'stray';
 
         if (catId && !portraitMap.has(catId)) {
-          portraitMap.set(catId, {
-            url: url || '',
-            breed,
-            createdAt: log.created_at || 'Unknown',
-          });
+          portraitMap.set(catId, { url: url || '', breed, createdAt: logEntry.created_at || 'Unknown' });
         }
       }
 
-      // Find orphans
       const orphans: OrphanedCat[] = [];
       galleryCatIds.forEach((catId) => {
         if (!currentCatIdSet.has(catId)) {
           const portraitData = portraitMap.get(catId);
           const photoCount = (galleryPhotos || []).filter((p) => p.cat_id === catId).length;
-
           orphans.push({
             catId,
             catName: catNameMap.get(catId) || 'Unknown',
@@ -142,18 +107,15 @@ export function useOrphanDetection(
       });
 
       if (orphans.length > 0) {
-        console.log(
-          `[OrphanDetection] Found ${orphans.length} orphaned cats:`,
-          orphans.map((o) => o.catName)
-        );
+        log.info(`Found ${orphans.length} orphaned cats:`, orphans.map((o) => o.catName));
       } else {
-        console.log('[OrphanDetection] No orphaned cats found');
+        log.debug('No orphaned cats found');
       }
 
       setOrphanedCats(orphans);
       hasChecked.current = true;
     } catch (err) {
-      console.error('[OrphanDetection] Error during detection:', err);
+      log.error('Error during detection:', err);
     } finally {
       setIsChecking(false);
     }
@@ -163,24 +125,12 @@ export function useOrphanDetection(
     setOrphanedCats([]);
   }, []);
 
-  return {
-    orphanedCats,
-    isChecking,
-    checkForOrphans,
-    dismissOrphans,
-    hasOrphans: orphanedCats.length > 0,
-  };
+  return { orphanedCats, isChecking, checkForOrphans, dismissOrphans, hasOrphans: orphanedCats.length > 0 };
 }
 
-/**
- * Create a Cat object from orphaned cat data for recovery.
- *
- * @param orphan - Orphaned cat data
- * @returns A full Cat object with default stats
- */
 export function createRecoveryCat(orphan: OrphanedCat): Cat {
   return {
-    id: orphan.catId, // Keep original ID for portrait URL matching
+    id: orphan.catId,
     type: 'adopted',
     breed: orphan.breed,
     name: orphan.catName,
@@ -194,13 +144,7 @@ export function createRecoveryCat(orphan: OrphanedCat): Cat {
     isForSale: false,
     grade: 1,
     tricksLearned: [],
-    trickProgress: {
-      sit: 0,
-      paw: 0,
-      rollOver: 0,
-      jump: 0,
-      fetch: 0,
-    },
+    trickProgress: { sit: 0, paw: 0, rollOver: 0, jump: 0, fetch: 0 },
     restLevel: 100,
     feedingScore: 0,
     lastTrainingDay: 0,
