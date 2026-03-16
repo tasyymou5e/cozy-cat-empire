@@ -203,7 +203,7 @@ export function CatFarm() {
           queueCount={messageSystem.queueCount}
         />
 
-        <Tabs value={ui.sideTab} onValueChange={ui.setSideTab} className="flex-1 flex flex-col pb-16">
+        <Tabs value={ui.sideTab} onValueChange={ui.setSideTab} className="flex-1 flex flex-col pb-20">
           <main className="game-main">
             <section className="cat-grid-section">
               <div className="flex items-center justify-between mb-4">

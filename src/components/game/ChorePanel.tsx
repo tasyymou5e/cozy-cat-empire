@@ -33,7 +33,7 @@ export function ChorePanel({ onDoChore }: ChorePanelProps) {
             key={chore.id}
             variant="outline"
             onClick={() => onDoChore(chore.id, chore.baseReward)}
-            className="w-full justify-between h-auto py-2"
+            className="w-full justify-between h-auto py-3 min-h-[48px]"
           >
             <span className="flex items-center gap-2">
               <span className="text-lg">{chore.emoji}</span>
