@@ -4,6 +4,7 @@ import { MilestonePopup } from './MilestonePopup';
 import { DailyRewardsPanel } from './DailyRewardsPanel';
 import { WhatsNewPopup } from './WhatsNewPopup';
 import { OrphanRecoveryDialog } from './OrphanRecoveryDialog';
+import { WelcomeBackDialog, WelcomeBackBonus } from './WelcomeBackDialog';
 import { Milestone } from '@/types/milestones';
 import { VIPTier } from '@/types/dailyRewards';
 import { Cat, Resources } from '@/types/game';
@@ -76,6 +77,12 @@ interface CatFarmDialogsProps {
   showOrphanDialog: boolean;
   onRecoverOrphans: (cats: OrphanedCat[]) => Promise<void>;
   onDismissOrphans: () => void;
+
+  // Welcome Back
+  showWelcomeBack?: boolean;
+  welcomeBackBonus?: WelcomeBackBonus | null;
+  onClaimWelcomeBack?: () => void;
+  onDismissWelcomeBack?: () => void;
 }
 
 export function CatFarmDialogs({
@@ -105,6 +112,10 @@ export function CatFarmDialogs({
   showOrphanDialog,
   onRecoverOrphans,
   onDismissOrphans,
+  showWelcomeBack,
+  welcomeBackBonus,
+  onClaimWelcomeBack,
+  onDismissWelcomeBack,
 }: CatFarmDialogsProps) {
   return (
     <>
@@ -154,6 +165,16 @@ export function CatFarmDialogs({
         onClose={onDismissOrphans}
         onRecover={onRecoverOrphans}
       />
+
+      {/* Welcome Back Dialog */}
+      {onClaimWelcomeBack && onDismissWelcomeBack && (
+        <WelcomeBackDialog
+          open={!!showWelcomeBack}
+          bonus={welcomeBackBonus ?? null}
+          onClaim={onClaimWelcomeBack}
+          onDismiss={onDismissWelcomeBack}
+        />
+      )}
     </>
   );
 }

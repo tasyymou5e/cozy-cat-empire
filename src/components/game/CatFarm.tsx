@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useCatFarmState, TAB_LABELS } from '@/hooks/useCatFarmState';
 import { useCatFarmHandlers, MOOD_LABELS } from '@/hooks/useCatFarmHandlers';
 import { GameActions } from '@/types/gameEvents';
@@ -22,6 +23,7 @@ import {
 
 // Panel and UI components
 import { CompactStatusBar } from './CompactStatusBar';
+import { FloatingRewardPopups } from './FloatingRewardPopup';
 import { MessageBar } from './MessageBar';
 import { VirtualizedCatGrid } from './VirtualizedCatGrid';
 import { MobileNavBar } from './MobileNavBar';
@@ -75,6 +77,9 @@ export function CatFarm() {
     badgeCounts,
     ui,
     theme,
+    tabUnlocks,
+    welcomeBack,
+    floatingRewards,
   } = farmState;
 
   const {
@@ -110,6 +115,17 @@ export function CatFarm() {
   } = handlers;
 
   const dailyWizard = useDailyWizard(state, relationshipSystem.relationships);
+
+  // Welcome-back claim handler
+  const handleClaimWelcomeBack = useCallback(() => {
+    const bonus = welcomeBack.claimWelcomeBack();
+    if (bonus) {
+      actions.addReward?.(bonus.coins, {});
+      floatingRewards.showCoinReward(bonus.coins);
+      farmState.sound.playSound('achievement');
+      farmState.confetti.fireConfetti();
+    }
+  }, [welcomeBack, actions, floatingRewards, farmState.sound, farmState.confetti]);
 
   if (auth.loading || (auth.user && !ui.hasLoadedCloud)) {
     return <CatFarmSkeleton />;
@@ -166,7 +182,13 @@ export function CatFarm() {
           showOrphanDialog={showOrphanDialog}
           onRecoverOrphans={handleRecoverOrphans}
           onDismissOrphans={handleDismissOrphans}
+          showWelcomeBack={welcomeBack.showWelcomeBack}
+          welcomeBackBonus={welcomeBack.welcomeBackBonus}
+          onClaimWelcomeBack={handleClaimWelcomeBack}
+          onDismissWelcomeBack={welcomeBack.dismissWelcomeBack}
         />
+
+        <FloatingRewardPopups popups={floatingRewards.popups} />
 
         <GameHeader
           day={state.day}
@@ -470,6 +492,8 @@ export function CatFarm() {
           day={state.day}
           money={state.money}
           highlightedTab={ui.highlightedTab}
+          isTabUnlocked={tabUnlocks.isUnlocked}
+          getTabUnlockHint={tabUnlocks.getHint}
         />
 
         <SidebarInset className="flex flex-col flex-1 overflow-hidden">
@@ -521,7 +545,13 @@ export function CatFarm() {
               showOrphanDialog={showOrphanDialog}
               onRecoverOrphans={handleRecoverOrphans}
               onDismissOrphans={handleDismissOrphans}
+              showWelcomeBack={welcomeBack.showWelcomeBack}
+              welcomeBackBonus={welcomeBack.welcomeBackBonus}
+              onClaimWelcomeBack={handleClaimWelcomeBack}
+              onDismissWelcomeBack={welcomeBack.dismissWelcomeBack}
             />
+
+            <FloatingRewardPopups popups={floatingRewards.popups} />
 
             <GameHeader
               day={state.day}
