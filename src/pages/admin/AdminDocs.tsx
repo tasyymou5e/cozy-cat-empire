@@ -50,8 +50,8 @@ function slugify(text: string): string {
 }
 
 // Custom heading renderer that adds ids for anchor links
-function HeadingRenderer({ level, children, ...props }: { level: number; children: React.ReactNode; [key: string]: unknown }) {
-  const text = String(children).replace(/[*_`\[\]()]/g, '').trim();
+function HeadingRenderer({ level, children, ...props }: { level: number; children?: React.ReactNode; [key: string]: unknown }) {
+  const text = String(children ?? '').replace(/[*_`\[\]()]/g, '').trim();
   const id = slugify(text);
   const Tag = `h${level}` as keyof JSX.IntrinsicElements;
   return <Tag id={id} {...props}>{children}</Tag>;
