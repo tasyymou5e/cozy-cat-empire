@@ -44,6 +44,7 @@ export default function Auth() {
   useCriticalPrefetch();
 
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
