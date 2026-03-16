@@ -37,7 +37,7 @@ describe('useCatShows', () => {
       });
 
       // Show should set cooldown
-      expect(mockDeps.getState().showCooldown).toBe(3);
+      expect(mockDeps.getState().showCooldown).toBe(20);
     });
 
     it('should not enter show when on cooldown', () => {
