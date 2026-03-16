@@ -154,7 +154,7 @@ export function useAdminRateLimit() {
 
       return true;
     } catch (err) {
-      console.error('Rate limit record error:', err);
+      log.error('Rate limit record error:', err);
       return false;
     }
   };
