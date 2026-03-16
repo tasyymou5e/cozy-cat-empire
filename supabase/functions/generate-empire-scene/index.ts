@@ -114,56 +114,66 @@ const PATTERN_DESCRIPTIONS: Record<string, string> = {
   calico: "calico with random patches of orange, black, and white",
 };
 
-function buildCatDescription(cat: Cat, costumeId?: string): string {
-  const breed = BREED_TRAITS[cat.breed] || "cute cat";
+function buildCatDescription(cat: Cat, costumeId?: string, index?: number): string {
+  const breed = cat.breed;
   const appearance = cat.appearance || {};
   
-  const furColor = appearance.furColor ? FUR_COLORS[appearance.furColor] || appearance.furColor : "tabby colored";
-  const pattern = appearance.pattern ? PATTERN_DESCRIPTIONS[appearance.pattern] || appearance.pattern : "";
+  const furColor = appearance.furColor ? (FUR_COLORS[appearance.furColor] || appearance.furColor) : "tabby colored";
+  const pattern = appearance.pattern ? (PATTERN_DESCRIPTIONS[appearance.pattern] || appearance.pattern) : "";
   const eyeColor = appearance.eyeColor || "bright";
   const hairLength = appearance.hairLength || "medium";
+  const breedTraits = BREED_TRAITS[cat.breed] || "";
   
   const costume = costumeId ? COSTUME_DESCRIPTIONS[costumeId] || "" : "";
   
-  return `"${cat.name}" - a ${hairLength}-haired ${furColor} ${pattern} ${cat.breed} cat with ${eyeColor} eyes, ${breed}${costume ? ", " + costume : ""}`;
+  // Concise comma-separated tag format
+  const parts = [
+    `Cat ${(index ?? 0) + 1} "${cat.name}"`,
+    breed,
+    `${hairLength} fur`,
+    furColor,
+    pattern,
+    `${eyeColor} eyes`,
+    breedTraits,
+    costume,
+  ].filter(Boolean);
+  
+  return parts.join(", ");
+}
+
+function getSceneActivity(catCount: number): string {
+  if (catCount === 0) return "The space is empty and inviting, waiting for its first cat resident";
+  if (catCount === 1) return "The cat is lounging peacefully in a comfortable spot";
+  if (catCount <= 3) return "The cats are relaxing together, one grooming while another watches curiously";
+  return "Cats are scattered naturally throughout the scene — some napping on furniture, some playing, some perched up high observing";
 }
 
 function buildEmpirePrompt(request: RenderRequest): string {
   const { houseSize, timeOfDay, season, cats, catCostumes } = request;
   
-  // Build cat descriptions
   const catDescriptions = cats.map((cat, index) => {
     const costume = catCostumes[cat.id];
-    const desc = buildCatDescription(cat, costume);
-    const position = `Position ${index + 1}`;
-    return `${index + 1}. ${desc}\n   ${position}: naturally placed in the scene`;
+    return buildCatDescription(cat, costume, index);
   }).join("\n");
 
-  const prompt = `Create a beautiful ${timeOfDay.toUpperCase()} scene in ${season.toUpperCase()} at a cat empire.
+  const activity = getSceneActivity(cats.length);
 
-SCENE DESCRIPTION:
-${TIER_DESCRIPTIONS[houseSize]}
+  const prompt = `SCENE: ${TIER_DESCRIPTIONS[houseSize]}
 
-LIGHTING:
-${TIME_LIGHTING[timeOfDay]}
+LIGHTING: ${TIME_LIGHTING[timeOfDay]}
 
-SEASONAL ELEMENTS:
-${SEASON_ELEMENTS[season]}
+SEASON: ${SEASON_ELEMENTS[season]}
 
-CATS IN SCENE (${cats.length} total):
-${catDescriptions || "No cats yet - show an inviting empty space"}
+CATS (${cats.length} total):
+${catDescriptions || "No cats — show an inviting empty space"}
 
-STYLE REQUIREMENTS:
-- Cute kawaii cartoon scene in the style of Studio Ghibli meets modern mobile game art
-- Warm cozy lighting with soft cel-shaded look and gradients
-- Large expressive eyes on all cats with sparkle reflections
-- Pink noses with subtle shine, blush marks on cheeks
-- Professional quality, ultra-cute aesthetic throughout
-- Panoramic wide 16:9 aspect ratio composition
-- All cats naturally integrated into the scene, interacting with furniture
-- 4K resolution, masterpiece quality
-- High detail on fur textures with visible individual strands
-- Magical whimsical atmosphere with the seasonal elements`;
+ACTIVITY: ${activity}
+
+COMPOSITION: Wide 16:9 panoramic view, slight low-angle camera, depth of field with sharp foreground cats and softly blurred background details, warm rim lighting on cat fur edges, cats naturally placed on furniture and floor throughout the scene.
+
+STYLE: Digital illustration, soft watercolor rendering with clean precise outlines, children's picture book aesthetic, Pixar-quality lighting and color grading, rich detailed textures, professional concept art quality, 4K resolution, masterpiece quality, high detail on fur textures with visible individual strands.
+
+AVOID: Squiggly lines, rough sketches, wobbly linework, abstract patterns, text or letters anywhere in the image, deformed cat anatomy, extra limbs, extra tails, blurry faces, watermarks, signatures, borders, vignettes, cats in the background that were not specified, random floating objects.`;
 
   return prompt;
 }
