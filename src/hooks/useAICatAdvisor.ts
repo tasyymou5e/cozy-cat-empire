@@ -1,6 +1,9 @@
 import { useState, useCallback } from 'react';
 import { Cat, GameState } from '@/types/game';
 import { toast } from 'sonner';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('AICatAdvisor');
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cat-ai-assistant`;
 
