@@ -326,10 +326,14 @@ describe('Cloud Save Integration', () => {
       await result.current.cloudLoad();
     });
 
+    let saveResult: { success: boolean; error?: string } | undefined;
     await act(async () => {
-      await result.current.cloudSave(makeState(), 0, REL_DATA);
+      saveResult = await result.current.cloudSave(makeState(), 0, REL_DATA);
+      // Flush microtasks from fire-and-forget snapshot chains
+      await new Promise((r) => setTimeout(r, 0));
     });
 
+    expect(saveResult?.success).toBe(true);
     expect(result.current.getLastSaveTime()).not.toBeNull();
   });
 });
