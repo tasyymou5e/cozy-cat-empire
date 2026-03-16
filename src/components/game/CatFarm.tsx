@@ -22,6 +22,7 @@ import {
 
 // Panel and UI components
 import { CompactStatusBar } from './CompactStatusBar';
+import { FloatingRewardPopups } from './FloatingRewardPopup';
 import { MessageBar } from './MessageBar';
 import { VirtualizedCatGrid } from './VirtualizedCatGrid';
 import { MobileNavBar } from './MobileNavBar';
