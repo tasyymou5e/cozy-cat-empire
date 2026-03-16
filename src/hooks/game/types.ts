@@ -348,7 +348,7 @@ export interface GameActions {
   loadFromData: (
     gameState: GameState,
     kittens: number,
-    relationshipData?: { relationships: any[]; events: any[] }
+    relationshipData?: RelationshipSaveData
   ) => void;
 
   // ============ Costumes (2 actions) ============

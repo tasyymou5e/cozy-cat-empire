@@ -199,7 +199,7 @@ export default function CatCollection() {
   const totalWins = state.cats.reduce((sum, c) => sum + c.showWins, 0);
 
   const handleTrain = (catId: string, trickId: string) => {
-    actions.trainCat(catId, trickId as any);
+    actions.trainCat(catId, trickId as TrickId);
   };
 
   // Handle portrait generation with cloud save - guarded by cloud load state

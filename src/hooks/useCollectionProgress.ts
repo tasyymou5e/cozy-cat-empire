@@ -163,7 +163,7 @@ export function useCollectionProgress(
   const trickProgress = useMemo(() => {
     const items = TRICK_COLLECTION.map((t) => ({
       ...t,
-      collected: collectedTricks.includes(t.id as any),
+      collected: collectedTricks.includes(t.id as TrickId),
     }));
     return {
       collected: items.filter((i) => i.collected).length,

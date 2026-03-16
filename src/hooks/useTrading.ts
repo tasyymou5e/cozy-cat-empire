@@ -294,7 +294,7 @@ export function useTrading(userId: string | undefined) {
           }
           if (payload.eventType === 'INSERT') {
             // Fetch sender name for the popup
-            const newTrade = payload.new as any;
+            const newTrade = payload.new as Record<string, unknown>;
             let senderName = 'Unknown';
 
             const { data: profile } = await supabase

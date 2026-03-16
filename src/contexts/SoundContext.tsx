@@ -239,7 +239,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 
   const initAudio = useCallback(() => {
     if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioContextRef.current = new (window.AudioContext || (window as unknown as Record<string, typeof AudioContext>).webkitAudioContext)();
     }
     return audioContextRef.current;
   }, []);

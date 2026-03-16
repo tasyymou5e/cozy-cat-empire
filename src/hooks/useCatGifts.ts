@@ -239,7 +239,7 @@ export function useCatGifts(userId: string | undefined) {
             return;
           }
           // Fetch sender name for the new gift popup
-          const newGift = payload.new as any;
+          const newGift = payload.new as Record<string, unknown>;
           const { data: senderProfile } = await supabase
             .from('public_profiles')
             .select('display_name')

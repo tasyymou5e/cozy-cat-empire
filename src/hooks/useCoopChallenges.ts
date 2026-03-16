@@ -171,7 +171,7 @@ export function useCoopChallenges(
           filter: `recipient_id=eq.${userId}`,
         },
         (payload) => {
-          const newInvite = payload.new as any;
+          const newInvite = payload.new as Record<string, unknown>;
           const sender = friends.find((f) => f.friend_id === newInvite.sender_id);
           setPendingInvites((prev) => [
             ...prev,
