@@ -165,6 +165,16 @@ export function CatFarmDialogs({
         onClose={onDismissOrphans}
         onRecover={onRecoverOrphans}
       />
+
+      {/* Welcome Back Dialog */}
+      {onClaimWelcomeBack && onDismissWelcomeBack && (
+        <WelcomeBackDialog
+          open={!!showWelcomeBack}
+          bonus={welcomeBackBonus ?? null}
+          onClaim={onClaimWelcomeBack}
+          onDismiss={onDismissWelcomeBack}
+        />
+      )}
     </>
   );
 }
