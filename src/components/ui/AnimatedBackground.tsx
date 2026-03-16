@@ -34,7 +34,7 @@ export function AnimatedBackground({
   return (
     <div
       className={cn(
-        'relative min-h-screen overflow-hidden',
+        'relative min-h-screen overflow-hidden noise-overlay',
         variant === 'auth' && 'auth-cozy-bg',
         variant === 'cozy' &&
           'bg-gradient-to-br from-[hsl(var(--primary)/0.1)] via-background to-[hsl(var(--accent)/0.15)]',

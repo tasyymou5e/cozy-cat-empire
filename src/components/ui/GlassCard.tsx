@@ -25,9 +25,8 @@ const GlassCard = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivE
     <div
       ref={ref}
       className={cn(
-        'rounded-2xl bg-card/80 backdrop-blur-md',
-        'border border-white/20 dark:border-white/10',
-        'shadow-xl shadow-black/5',
+        'rounded-2xl glass-panel',
+        'hover:shadow-xl hover:border-primary/20',
         'transition-all duration-300',
         className
       )}

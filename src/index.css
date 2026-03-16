@@ -1066,6 +1066,126 @@
   animation: message-out 0.3s ease-out forwards;
 }
 
+/* === PHASE 4: GRAPHIC IMPROVEMENTS === */
+
+/* Glassmorphism panel treatment */
+.glass-panel {
+  @apply bg-card/60 backdrop-blur-md border border-white/15 dark:border-white/8 shadow-lg;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.glass-panel:hover {
+  @apply shadow-xl;
+  border-color: hsl(var(--primary) / 0.2);
+}
+
+/* Animated gradient border for highlighted/active panels */
+@property --gradient-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes gradient-rotate {
+  to { --gradient-angle: 360deg; }
+}
+
+.gradient-border-active {
+  position: relative;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+.gradient-border-active::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(from var(--gradient-angle), hsl(var(--primary)), hsl(var(--accent-foreground)), hsl(var(--primary)));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: gradient-rotate 4s linear infinite;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Selected cat glow ring */
+.cat-card-selected {
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.5), 0 0 16px 2px hsl(var(--primary) / 0.2);
+}
+
+/* Subtle noise texture overlay for dark mode depth */
+.dark .noise-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* === PHASE 5: FLUIDITY IMPROVEMENTS === */
+
+/* Tab panel transition */
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panel-animate-in {
+  animation: panel-enter 0.25s ease-out;
+}
+
+/* Number roll-up effect */
+@keyframes count-up-flash {
+  0% { color: hsl(var(--primary)); transform: scale(1.15); }
+  100% { color: inherit; transform: scale(1); }
+}
+
+.animate-count-flash {
+  animation: count-up-flash 0.4s ease-out;
+}
+
+/* Smooth scroll for drawer category list */
+.snap-scroll-x {
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+}
+
+.snap-scroll-x > * {
+  scroll-snap-align: start;
+}
+
+/* Pull-to-refresh indicator */
+@keyframes pull-spin {
+  to { transform: rotate(360deg); }
+}
+
+.pull-refresh-spinner {
+  animation: pull-spin 0.8s linear infinite;
+}
+
+/* Skeleton pulse with smoother gradient */
+@keyframes skeleton-wave {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, hsl(var(--muted) / 0.3) 25%, hsl(var(--muted) / 0.5) 50%, hsl(var(--muted) / 0.3) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-wave 1.8s ease-in-out infinite;
+}
+
 /* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {
   .animated-gradient-bg,
@@ -1094,7 +1214,10 @@
   .animate-blossom-float,
   .animate-firefly-glow,
   .animate-leaf-fall,
-  .animate-bounce-in {
+  .animate-bounce-in,
+  .panel-animate-in,
+  .gradient-border-active::before,
+  .animate-count-flash {
     animation: none;
   }
 
