@@ -230,6 +230,14 @@ const App = () => {
                               </AdminRoute>
                             }
                           />
+                          <Route
+                            path="/catking/winston"
+                            element={
+                              <AdminRoute>
+                                <AdminWinstonLogs />
+                              </AdminRoute>
+                            }
+                          />
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </Suspense>
