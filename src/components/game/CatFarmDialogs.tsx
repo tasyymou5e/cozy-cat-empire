@@ -77,6 +77,12 @@ interface CatFarmDialogsProps {
   showOrphanDialog: boolean;
   onRecoverOrphans: (cats: OrphanedCat[]) => Promise<void>;
   onDismissOrphans: () => void;
+
+  // Welcome Back
+  showWelcomeBack?: boolean;
+  welcomeBackBonus?: WelcomeBackBonus | null;
+  onClaimWelcomeBack?: () => void;
+  onDismissWelcomeBack?: () => void;
 }
 
 export function CatFarmDialogs({
