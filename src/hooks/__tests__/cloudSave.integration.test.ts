@@ -315,25 +315,17 @@ describe('Cloud Save Integration', () => {
     expect(loadResult?.error).toBeDefined();
   });
 
-  // ── getLastSaveTime updates after save ─────────────────────────────
+  // ── hasCloudSave helper ─────────────────────────────────────────────
 
-  it('updates getLastSaveTime after successful save', async () => {
+  it('hasCloudSave returns false when no save exists', async () => {
+    mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
     const { result } = renderHook(() => useCloudSave(USER_ID));
 
-    expect(result.current.getLastSaveTime()).toBeNull();
-
+    let hasSave: boolean | undefined;
     await act(async () => {
-      await result.current.cloudLoad();
+      hasSave = await result.current.hasCloudSave();
     });
 
-    let saveResult: { success: boolean; error?: string } | undefined;
-    await act(async () => {
-      saveResult = await result.current.cloudSave(makeState(), 0, REL_DATA);
-      // Flush microtasks from fire-and-forget snapshot chains
-      await new Promise((r) => setTimeout(r, 0));
-    });
-
-    expect(saveResult?.success).toBe(true);
-    expect(result.current.getLastSaveTime()).not.toBeNull();
+    expect(hasSave).toBe(false);
   });
 });
