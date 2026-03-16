@@ -24,7 +24,7 @@ export default function Leaderboard() {
 
   return (
     <GameLayout currentPage="/leaderboard">
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen cozy-page-bg">
         <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
           <div className="container flex h-16 items-center justify-between px-4">
             <div className="flex items-center gap-4">

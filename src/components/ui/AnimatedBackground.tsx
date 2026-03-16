@@ -38,7 +38,7 @@ export function AnimatedBackground({
         variant === 'auth' && 'auth-cozy-bg',
         variant === 'cozy' &&
           'bg-gradient-to-br from-[hsl(var(--primary)/0.1)] via-background to-[hsl(var(--accent)/0.15)]',
-        variant === 'game' && 'bg-background',
+        variant === 'game' && 'cozy-page-bg',
         variant === 'default' && 'bg-background',
         className
       )}

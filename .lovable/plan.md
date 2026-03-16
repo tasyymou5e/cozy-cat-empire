@@ -1,39 +1,28 @@
 
 
-## Apply Showcase Card Styling Site-Wide
+# Stop the Login Button from Blinking
 
-The cozy card enhancements (hover lift, glassmorphism, rounded corners, warm gradients, Playfair Display headings, fade-in animations) currently only appear on `/card-showcase`. Here's the plan to propagate them across the main site.
+The submit button on line 1053-1055 of `src/pages/Auth.tsx` currently has `animate-[gradient-shift_3s_ease-in-out_infinite]` which creates a constantly shifting/blinking gradient animation.
 
-### Changes
+## Change
 
-**1. Global CSS (`src/index.css`)**
-- Add a `.page-heading` utility class using Playfair Display for consistent heading typography across all pages
-- Add a `.cozy-page-bg` utility class with the warm beige-to-coral gradient background (light) and deep purple gradient (dark) from the showcase
-- Add a global `.panel-fade-in` animation class for staggered panel entrance animations
-- Ensure `.glass-panel` cards also get the softer 18px border-radius and hover lift treatment matching `.cat-card`
+**File: `src/pages/Auth.tsx` (line 1055)**
 
-**2. Game Layout (`src/components/game/CatFarm.tsx`)**
-- Apply the warm gradient background to the game wrapper (replace plain `bg-background` in `AnimatedBackground`)
-- Add fade-in animations to the cat grid section and action sidebar panels
+Replace the animated gradient button class with a solid, attractive gradient that does not animate:
 
-**3. Auth Page (`src/pages/Auth.tsx`)**
-- Already uses `AnimatedBackground` with `variant="auth"` and `GlassCard` — no major changes needed, just ensure heading uses Playfair Display
+```
+// Before:
+className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] animate-[gradient-shift_3s_ease-in-out_infinite] hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/25 relative overflow-hidden group"
 
-**4. Other Pages (`Stats.tsx`, `Empire.tsx`, `Leaderboard.tsx`, `CatCollection.tsx`, etc.)**
-- Apply `cozy-page-bg` background class
-- Use Playfair Display on page headings via the `.page-heading` class
-- Add entrance fade-in animations to card grids
+// After:
+className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/25 relative overflow-hidden group"
+```
 
-**5. Component Updates**
-- `StatsOverviewCards.tsx` — add hover lift and glassmorphism to stat cards
-- `GameHeader.tsx` — apply Playfair Display to the game title/branding
-- `AnimatedBackground.tsx` — update the `game` variant to use the warm cozy gradient instead of plain `bg-background`
+Key changes:
+- Remove `animate-[gradient-shift_3s_ease-in-out_infinite]` (stops the blinking)
+- Remove `bg-[length:200%_auto]` (no longer needed without animation)
+- Simplify to a clean `from-primary to-accent` two-tone gradient
+- Keep hover scale, shadow, and shimmer-on-hover effects intact
 
-### Files Affected
-- `src/index.css` — new utility classes
-- `src/components/ui/AnimatedBackground.tsx` — warm gradient for `game` variant
-- `src/components/game/GameHeader.tsx` — Playfair heading
-- `src/components/game/CatFarm.tsx` — fade-in on panels
-- `src/components/stats/StatsOverviewCards.tsx` — glass + hover lift
-- `src/pages/Stats.tsx`, `Empire.tsx`, `Leaderboard.tsx`, `CatCollection.tsx`, `CatGallery.tsx` — cozy bg + heading font + fade-in
+This gives a solid, vibrant gradient button that still feels polished with the hover effects.
 

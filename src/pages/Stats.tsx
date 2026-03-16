@@ -60,7 +60,7 @@ export default function Stats() {
 
   return (
     <GameLayout currentPage="/stats">
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen cozy-page-bg">
         {/* Header */}
         <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -69,7 +69,7 @@ export default function Stats() {
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{stats?.avatar_emoji || '😺'}</span>
                 <div>
-                  <h1 className="text-xl font-bold">{stats?.display_name || 'Your Stats'}</h1>
+                  <h1 className="text-xl font-bold page-heading">{stats?.display_name || 'Your Stats'}</h1>
                   <p className="text-sm text-muted-foreground">Personal Statistics Dashboard</p>
                 </div>
               </div>
@@ -82,7 +82,7 @@ export default function Stats() {
         </header>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto p-4 space-y-6">
+        <main className="max-w-7xl mx-auto p-4 space-y-6 panel-fade-in">
           {loading && !stats ? (
             <div className="text-center py-12">
               <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />

@@ -105,6 +105,8 @@
 
 @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
 
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&display=swap');
+
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
 
 @layer base {
@@ -1377,13 +1379,68 @@
 /* Glassmorphism panel treatment */
 .glass-panel {
   @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-lg;
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  border-radius: 18px;
+  transition: all 0.3s ease;
 }
 
 .glass-panel:hover {
   @apply shadow-xl;
   border-color: hsl(var(--primary) / 0.2);
+  transform: translateY(-2px);
 }
+
+/* === COZY BRAND UTILITIES === */
+
+/* Page heading with Playfair Display */
+.page-heading {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Warm cozy page background */
+.cozy-page-bg {
+  background: linear-gradient(
+    135deg,
+    hsl(35 40% 96%) 0%,
+    hsl(var(--background)) 40%,
+    hsl(15 45% 94%) 100%
+  );
+}
+
+.dark .cozy-page-bg {
+  background: linear-gradient(
+    135deg,
+    hsl(270 20% 12%) 0%,
+    hsl(var(--background)) 40%,
+    hsl(280 15% 10%) 100%
+  );
+}
+
+/* Staggered panel fade-in animation */
+@keyframes panel-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panel-fade-in > * {
+  animation: panel-fade-in 0.5s ease-out backwards;
+}
+
+.panel-fade-in > *:nth-child(1) { animation-delay: 0ms; }
+.panel-fade-in > *:nth-child(2) { animation-delay: 80ms; }
+.panel-fade-in > *:nth-child(3) { animation-delay: 160ms; }
+.panel-fade-in > *:nth-child(4) { animation-delay: 240ms; }
+.panel-fade-in > *:nth-child(5) { animation-delay: 320ms; }
+.panel-fade-in > *:nth-child(6) { animation-delay: 400ms; }
+.panel-fade-in > *:nth-child(7) { animation-delay: 480ms; }
+.panel-fade-in > *:nth-child(8) { animation-delay: 560ms; }
 
 /* Animated gradient border for highlighted/active panels */
 @property --gradient-angle {

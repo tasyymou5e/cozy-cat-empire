@@ -179,7 +179,7 @@ export default function Empire() {
 
   return (
     <GameLayout currentPage="/empire" day={state.day} money={state.money}>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen cozy-page-bg">
         {/* Header */}
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
