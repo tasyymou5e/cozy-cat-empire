@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import type { TrickId } from '@/types/grading';
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/game';

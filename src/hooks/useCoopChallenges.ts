@@ -176,13 +176,13 @@ export function useCoopChallenges(
           setPendingInvites((prev) => [
             ...prev,
             {
-              id: newInvite.id,
-              challenge: newInvite.challenge_data,
-              senderId: newInvite.sender_id,
+              id: String(newInvite.id),
+              challenge: newInvite.challenge_data as CoopChallengeInvite['challenge'],
+              senderId: String(newInvite.sender_id),
               senderName: sender?.display_name || 'Friend',
               senderAvatar: sender?.avatar_emoji || '😺',
-              sentAt: newInvite.sent_at,
-              expiresAt: newInvite.expires_at,
+              sentAt: String(newInvite.sent_at),
+              expiresAt: String(newInvite.expires_at),
             },
           ]);
           playSound?.('notification');

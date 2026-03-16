@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import type { TrickId } from '@/types/grading';
 import { Link } from 'react-router-dom';
 import { useGameState } from '@/hooks/game';
 import { useSound } from '@/contexts/SoundContext';

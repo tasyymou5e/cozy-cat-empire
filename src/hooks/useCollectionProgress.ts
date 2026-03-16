@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import type { TrickId } from '@/types/grading';
 import { Cat } from '@/types/game';
 import {
   CollectionProgress,
