@@ -73,7 +73,7 @@ export function useAdminRateLimit() {
 
       if (error && error.code !== 'PGRST116') {
         // PGRST116 = no rows returned (which is fine)
-        console.error('Rate limit check error:', error);
+        log.error('Rate limit check error:', error);
         return { allowed: true, remaining: config.limit, resetAt: null };
       }
 
