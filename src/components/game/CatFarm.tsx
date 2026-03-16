@@ -789,6 +789,20 @@ export function CatFarm() {
               state={state}
               onRenameCat={actions.renameCat}
               onSaveBackstory={(catId, backstory) => actions.updateCat?.(catId, { backstory })}
+              onNavigateTab={ui.setSideTab}
+            />
+
+            <DailyWizardDialog
+              open={dailyWizard.isOpen}
+              onClose={dailyWizard.closeWizard}
+              onDismissForToday={dailyWizard.dismissForToday}
+              steps={dailyWizard.steps}
+              currentStep={dailyWizard.currentStep}
+              progress={dailyWizard.progress}
+              totalSteps={dailyWizard.totalSteps}
+              onNext={dailyWizard.nextStep}
+              onPrev={dailyWizard.prevStep}
+              onNavigateTab={(tab) => { ui.setSideTab(tab); dailyWizard.closeWizard(); }}
             />
           </AnimatedBackground>
         </SidebarInset>

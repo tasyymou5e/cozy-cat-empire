@@ -129,6 +129,19 @@ export function GameHeader({
 
       {/* Right: Essential Actions */}
       <div className="flex items-center gap-1">
+        {/* Daily Wizard Button */}
+        {onShowDailyWizard && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onShowDailyWizard}
+            title="Daily Wizard"
+            className="relative"
+          >
+            <Sparkles className="h-4 w-4 text-amber-500" />
+          </Button>
+        )}
+
         {/* Empire Button - Featured */}
         {user && (
           <Link to="/empire">

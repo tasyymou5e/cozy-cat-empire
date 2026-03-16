@@ -137,6 +137,23 @@ export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory }: AICa
                 </div>
               </ScrollArea>
 
+              {/* Quick action chips */}
+              <div className="px-4 py-2 flex gap-1.5 flex-wrap border-t border-border">
+                {QUICK_PROMPTS.map((qp) => (
+                  <button
+                    key={qp.prompt}
+                    onClick={() => {
+                      setChatInput('');
+                      ai.sendChatMessage(qp.prompt);
+                    }}
+                    disabled={ai.isChatLoading}
+                    className="text-[11px] px-2.5 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-foreground transition-colors disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {qp.label}
+                  </button>
+                ))}
+              </div>
+
               <div className="p-4 pt-2 border-t border-border flex gap-2">
                 <Input
                   value={chatInput}
