@@ -135,7 +135,7 @@ export function useWinstonLogTrends() {
           const { count } = await supabase
             .from('application_logs')
             .select('*', { count: 'exact', head: true })
-            .eq('level', lvl as string)
+            .eq('level', lvl as any)
             .gte('timestamp', start)
             .lt('timestamp', end);
           counts[lvl] = count || 0;
