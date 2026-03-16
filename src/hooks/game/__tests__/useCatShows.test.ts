@@ -248,7 +248,7 @@ describe('useCatShows', () => {
         result.current.catShow();
       });
 
-      expect(mockDeps.getState().showCooldown).toBe(3);
+      expect(mockDeps.getState().showCooldown).toBe(20);
 
       vi.restoreAllMocks();
     });
