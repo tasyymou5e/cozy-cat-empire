@@ -22,8 +22,14 @@ const mockUpdate = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ err
 
 const makeChainable = () => {
   const obj: Record<string, unknown> = {};
-  const self = () => obj;
-  ['select','insert','delete','eq','order','limit','in','then'].forEach(m => { obj[m] = vi.fn().mockImplementation((...args: unknown[]) => { if (m === 'then') { const cb = args[0] as Function; cb?.({ error: null, data: [] }); return Promise.resolve(); } return obj; }); });
+  ['select','insert','delete','eq','order','limit','in'].forEach(m => {
+    obj[m] = vi.fn().mockReturnValue(obj);
+  });
+  // Make it thenable so .then() works like a promise
+  obj.then = vi.fn().mockImplementation((resolve?: Function) => {
+    resolve?.({ error: null, data: [] });
+    return Promise.resolve({ error: null, data: [] });
+  });
   return obj;
 };
 
