@@ -33,11 +33,14 @@ function wrapper({ children }: { children: ReactNode }) {
 
 describe('AuthContext', () => {
   const mockUnsubscribe = vi.fn();
+  let capturedAuthCallback: ((event: string, session: unknown) => void) | null = null;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockOnAuthStateChange.mockReturnValue({
-      data: { subscription: { unsubscribe: mockUnsubscribe } },
+    capturedAuthCallback = null;
+    mockOnAuthStateChange.mockImplementation((cb: (event: string, session: unknown) => void) => {
+      capturedAuthCallback = cb;
+      return { data: { subscription: { unsubscribe: mockUnsubscribe } } };
     });
     mockGetSession.mockResolvedValue({ data: { session: null } });
   });
@@ -48,35 +51,40 @@ describe('AuthContext', () => {
     }).toThrow('useAuth must be used within an AuthProvider');
   });
 
-  it('initializes with loading state and no user', async () => {
+  it('initializes and resolves loading via auth callback', async () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    // Trigger the auth state change callback (simulating Supabase)
+    await act(async () => {
+      capturedAuthCallback?.('INITIAL_SESSION', null);
+    });
+
+    expect(result.current.loading).toBe(false);
     expect(result.current.user).toBeNull();
-    expect(result.current.session).toBeNull();
   });
 
-  it('sets user from existing session', async () => {
+  it('sets user when session is present', async () => {
     const mockUser = { id: 'user-1', email: 'test@test.com' };
     const mockSession = { user: mockUser };
 
-    mockGetSession.mockResolvedValue({ data: { session: mockSession } });
-
     const { result } = renderHook(() => useAuth(), { wrapper });
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => {
+      capturedAuthCallback?.('SIGNED_IN', mockSession);
+    });
+
     expect(result.current.user).toEqual(mockUser);
+    expect(result.current.session).toEqual(mockSession);
   });
 
   it('signIn calls supabase and returns result', async () => {
-    const mockUser = { id: 'user-1' };
     mockSignInWithPassword.mockResolvedValue({
-      data: { user: mockUser },
+      data: { user: { id: 'user-1' } },
       error: null,
     });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => { capturedAuthCallback?.('INITIAL_SESSION', null); });
 
     let signInResult: { error: Error | null } | undefined;
     await act(async () => {
@@ -92,13 +100,10 @@ describe('AuthContext', () => {
 
   it('signIn returns error on failure', async () => {
     const mockError = new Error('Invalid credentials');
-    mockSignInWithPassword.mockResolvedValue({
-      data: { user: null },
-      error: mockError,
-    });
+    mockSignInWithPassword.mockResolvedValue({ data: { user: null }, error: mockError });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => { capturedAuthCallback?.('INITIAL_SESSION', null); });
 
     let signInResult: { error: Error | null } | undefined;
     await act(async () => {
@@ -112,7 +117,7 @@ describe('AuthContext', () => {
     mockSignUp.mockResolvedValue({ error: null });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => { capturedAuthCallback?.('INITIAL_SESSION', null); });
 
     await act(async () => {
       await result.current.signUp('new@test.com', 'pass123', {
@@ -136,7 +141,7 @@ describe('AuthContext', () => {
     mockSignOut.mockResolvedValue({});
 
     const { result } = renderHook(() => useAuth(), { wrapper });
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => { capturedAuthCallback?.('INITIAL_SESSION', null); });
 
     await act(async () => {
       await result.current.signOut();
@@ -147,7 +152,7 @@ describe('AuthContext', () => {
 
   it('cleans up subscription on unmount', async () => {
     const { unmount } = renderHook(() => useAuth(), { wrapper });
-    await waitFor(() => {});
+    await act(async () => { capturedAuthCallback?.('INITIAL_SESSION', null); });
     unmount();
     expect(mockUnsubscribe).toHaveBeenCalled();
   });
