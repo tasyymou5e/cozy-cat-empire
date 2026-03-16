@@ -13,14 +13,17 @@ Deno.serve(async (req) => {
 
   console.log('[cleanup-error-logs] Starting cleanup job')
 
+  // Validate env
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')
+  const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Missing required environment variables' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-
-    if (!supabaseUrl || !supabaseServiceRoleKey) {
-      throw new Error('Missing required environment variables')
-    }
-
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
 
     // Delete error logs older than 30 days

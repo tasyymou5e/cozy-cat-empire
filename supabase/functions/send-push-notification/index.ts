@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
     }
 
     // Use service role client for database operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
     // Get user's push subscriptions
     const { data: subscriptions, error: fetchError } = await supabase

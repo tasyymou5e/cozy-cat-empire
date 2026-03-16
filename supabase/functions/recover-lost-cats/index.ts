@@ -90,16 +90,16 @@ serve(async (req) => {
       });
     }
 
-    // Parse request body
-    const body: RecoveryRequest = await req.json();
-    const { userId, catNames = [] } = body;
-
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'userId is required' }), {
+    // Parse and validate request body
+    const rawBody = await req.json();
+    const parsed = RecoveryRequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: 'Invalid request', details: parsed.error.flatten() }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    const { userId, catNames } = parsed.data;
 
     const result: RecoveryResult = {
       success: true,

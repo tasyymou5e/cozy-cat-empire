@@ -102,7 +102,15 @@ Deno.serve(async (req) => {
 
     // POST: Handle purchase or consume actions
     if (req.method === 'POST') {
-      const { action } = await req.json();
+      const rawBody = await req.json();
+      const parsed = PostBodySchema.safeParse(rawBody);
+      if (!parsed.success) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid action. Use "purchase" or "consume".', details: parsed.error.flatten() }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      const { action } = parsed.data;
 
       if (action === 'purchase') {
         // Fetch portrait package config
