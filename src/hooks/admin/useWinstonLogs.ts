@@ -131,11 +131,11 @@ export function useWinstonLogTrends() {
         });
 
         const counts: Record<string, number> = {};
-        for (const lvl of ['error', 'warn', 'info']) {
+        for (const lvl of ['error', 'warn', 'info'] as WinstonLogLevel[]) {
           const { count } = await supabase
             .from('application_logs')
             .select('*', { count: 'exact', head: true })
-            .eq('level', lvl)
+            .eq('level', lvl as string)
             .gte('timestamp', start)
             .lt('timestamp', end);
           counts[lvl] = count || 0;
