@@ -425,14 +425,14 @@ export default function AdminModeration() {
                             </TableCell>
                             <TableCell>
                               {trade.offered_money ? `$${trade.offered_money}` : '-'}
-                              {(trade.offered_cats as any[])?.length
-                                ? ` + ${(trade.offered_cats as any[]).length} cats`
+                              {Array.isArray(trade.offered_cats) && trade.offered_cats.length
+                                ? ` + ${trade.offered_cats.length} cats`
                                 : ''}
                             </TableCell>
                             <TableCell>
                               {trade.requested_money ? `$${trade.requested_money}` : '-'}
-                              {(trade.requested_cats as any[])?.length
-                                ? ` + ${(trade.requested_cats as any[]).length} cats`
+                              {Array.isArray(trade.requested_cats) && trade.requested_cats.length
+                                ? ` + ${trade.requested_cats.length} cats`
                                 : ''}
                             </TableCell>
                             <TableCell className="text-muted-foreground">
