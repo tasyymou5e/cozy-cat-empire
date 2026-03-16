@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
+import { trackLogin, trackSignupCompleted } from '@/lib/tracking';
 
 interface AuthContextType {
   user: User | null;
