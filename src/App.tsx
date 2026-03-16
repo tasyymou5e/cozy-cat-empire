@@ -221,6 +221,14 @@ const App = () => {
                               </AdminRoute>
                             }
                           />
+                          <Route
+                            path="/catking/docs"
+                            element={
+                              <AdminRoute>
+                                <AdminDocs />
+                              </AdminRoute>
+                            }
+                          />
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </Suspense>
