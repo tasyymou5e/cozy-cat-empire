@@ -50,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error, data } = await supabase.auth.signInWithPassword({ email, password });
 
     if (!error && data.user) {
+      trackLogin('email');
       logPlayerActivity(data.user.id, {
         activityType: 'login',
         activityDescription: 'Logged into Cat Farm',
