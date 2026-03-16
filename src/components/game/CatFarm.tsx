@@ -109,6 +109,8 @@ export function CatFarm() {
     handleDismissOrphans,
   } = handlers;
 
+  const dailyWizard = useDailyWizard(state, relationshipSystem.relationships);
+
   if (auth.loading || (auth.user && !ui.hasLoadedCloud)) {
     return <CatFarmSkeleton />;
   }
