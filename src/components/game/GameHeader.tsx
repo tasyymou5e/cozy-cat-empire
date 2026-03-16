@@ -106,11 +106,11 @@ export function GameHeader({
           <div className="flex items-center gap-3 text-sm">
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/50">
               <span>📅</span>
-              <span className="font-medium">Day {day}</span>
+              <span className="font-medium">Day <AnimatedCounter value={day} /></span>
             </div>
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/50">
               <span>💰</span>
-              <span className="font-bold text-gradient-gold">${money.toLocaleString()}</span>
+              <span className="font-bold text-gradient-gold"><AnimatedCounter value={money} prefix="$" /></span>
             </div>
             {/* Weekly Event Banner */}
             <WeeklyEventBanner compact />
