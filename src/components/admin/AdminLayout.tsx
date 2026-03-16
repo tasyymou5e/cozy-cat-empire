@@ -23,6 +23,7 @@ import {
   Clock,
   GraduationCap,
   Database,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -42,6 +43,7 @@ const ADMIN_NAV_ITEMS = [
   { id: 'notifications', label: 'Notifications', icon: Bell, path: '/catking/notifications' },
   { id: 'scheduled-jobs', label: 'Scheduled Jobs', icon: Clock, path: '/catking/scheduled-jobs' },
   { id: 'config', label: 'Game Config', icon: Sliders, path: '/catking/config' },
+  { id: 'docs', label: 'Documentation', icon: BookOpen, path: '/catking/docs' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/catking/settings' },
 ];
 

@@ -55,6 +55,7 @@ const AdminScheduledJobs = lazyWithRetry(() => import('./pages/admin/AdminSchedu
 const AdminSecurity = lazyWithRetry(() => import('./pages/admin/AdminSecurity'));
 const AdminGameSaveRepair = lazyWithRetry(() => import('./pages/admin/AdminGameSaveRepair'));
 const AdminSaveRecovery = lazyWithRetry(() => import('./pages/admin/AdminSaveRecovery'));
+const AdminDocs = lazyWithRetry(() => import('./pages/admin/AdminDocs'));
 
 const queryClient = new QueryClient();
 
@@ -217,6 +218,14 @@ const App = () => {
                             element={
                               <AdminRoute>
                                 <AdminSaveRecovery />
+                              </AdminRoute>
+                            }
+                          />
+                          <Route
+                            path="/catking/docs"
+                            element={
+                              <AdminRoute>
+                                <AdminDocs />
                               </AdminRoute>
                             }
                           />
