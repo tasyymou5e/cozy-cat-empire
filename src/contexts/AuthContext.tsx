@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
+import { trackLogin, trackSignupCompleted } from '@/lib/tracking';
 
 interface AuthContextType {
   user: User | null;
@@ -49,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error, data } = await supabase.auth.signInWithPassword({ email, password });
 
     if (!error && data.user) {
+      trackLogin('email');
       logPlayerActivity(data.user.id, {
         activityType: 'login',
         activityDescription: 'Logged into Cat Farm',
@@ -70,9 +72,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: metadata, // Pass to raw_user_meta_data for trigger
+        data: metadata,
       },
     });
+    if (!error) {
+      trackSignupCompleted('email');
+    }
     return { error: error as Error | null };
   };
 
