@@ -492,6 +492,8 @@ export function CatFarm() {
           day={state.day}
           money={state.money}
           highlightedTab={ui.highlightedTab}
+          isTabUnlocked={tabUnlocks.isTabUnlocked}
+          getTabUnlockHint={tabUnlocks.getUnlockHint}
         />
 
         <SidebarInset className="flex flex-col flex-1 overflow-hidden">
