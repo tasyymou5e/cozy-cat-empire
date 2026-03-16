@@ -72,9 +72,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: metadata, // Pass to raw_user_meta_data for trigger
+        data: metadata,
       },
     });
+    if (!error) {
+      trackSignupCompleted('email');
+    }
     return { error: error as Error | null };
   };
 
