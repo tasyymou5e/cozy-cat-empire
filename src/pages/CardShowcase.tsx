@@ -1,7 +1,7 @@
 import { Cat } from '@/types/game';
 import { UnifiedCatCard } from '@/components/game/UnifiedCatCard';
 import { useTheme } from 'next-themes';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const MOCK_CATS: Cat[] = [
@@ -108,48 +108,99 @@ const MOCK_CATS: Cat[] = [
 ];
 
 const TIER_LABELS = ['Common', 'Uncommon', 'Rare', 'Legendary', 'Mythic'];
+const TIER_EMOJIS = ['🐾', '💎', '🔮', '👑', '✨'];
 
 export default function CardShowcase() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-background p-6 md:p-10">
+    <div className="min-h-screen bg-gradient-to-b from-[hsl(30_30%_96%)] via-background to-[hsl(30_20%_94%)] dark:from-[hsl(240_10%_8%)] dark:via-background dark:to-[hsl(260_10%_6%)] p-6 md:p-12">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">🐱 Card Showcase</h1>
-            <p className="text-muted-foreground mt-1">Preview all tier styles — pick your favorite look</p>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-12 animate-fade-in">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 backdrop-blur-sm border border-primary/10">
+                <Sparkles className="h-6 w-6 text-primary" />
+              </div>
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+                Card Showcase
+              </h1>
+            </div>
+            <p className="text-muted-foreground text-lg ml-14">
+              Preview all tier styles — pick your favorite look
+            </p>
           </div>
           <Button
             variant="outline"
             size="icon"
+            className="rounded-2xl h-11 w-11 backdrop-blur-sm bg-card/60 border-border/50 shadow-sm hover:shadow-md transition-all duration-300"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
-            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
         </div>
 
-        {/* Standard Card Variant */}
-        <h2 className="text-xl font-semibold text-foreground mb-4">Standard Cards</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-12">
-          {MOCK_CATS.map((cat, i) => (
-            <div key={cat.id} className="space-y-2">
-              <span className="text-sm font-medium text-muted-foreground">{TIER_LABELS[i]}</span>
-              <UnifiedCatCard cat={cat} variant="card" showStats showActions={false} />
-            </div>
-          ))}
+        {/* Decorative cat SVGs */}
+        <div className="relative">
+          {/* Floating paw prints */}
+          <div className="absolute -top-8 right-12 text-4xl opacity-10 animate-float pointer-events-none select-none" style={{ animationDuration: '6s' }}>🐾</div>
+          <div className="absolute top-20 -left-4 text-3xl opacity-10 animate-float pointer-events-none select-none" style={{ animationDuration: '8s', animationDelay: '2s' }}>🐾</div>
         </div>
 
+        {/* Standard Card Variant */}
+        <section className="mb-16">
+          <div className="flex items-center gap-3 mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+            <h2 className="text-2xl font-semibold text-foreground tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Standard Cards
+            </h2>
+            <div className="h-px flex-1 bg-gradient-to-r from-border via-transparent to-transparent" />
+          </div>
+
+          <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+            {MOCK_CATS.map((cat, i) => (
+              <div
+                key={cat.id}
+                className="space-y-3 animate-fade-in"
+                style={{ animationDelay: `${150 + i * 100}ms`, animationFillMode: 'both' }}
+              >
+                <div className="flex items-center gap-2 px-1">
+                  <span className="text-lg">{TIER_EMOJIS[i]}</span>
+                  <span className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">{TIER_LABELS[i]}</span>
+                </div>
+                <UnifiedCatCard cat={cat} variant="card" showStats showActions={false} />
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Trading Card Variant */}
-        <h2 className="text-xl font-semibold text-foreground mb-4">Trading Cards</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {MOCK_CATS.map((cat, i) => (
-            <div key={`trading-${cat.id}`} className="space-y-2">
-              <span className="text-sm font-medium text-muted-foreground">{TIER_LABELS[i]}</span>
-              <UnifiedCatCard cat={cat} variant="trading" showFlip />
-            </div>
-          ))}
-        </div>
+        <section className="mb-16">
+          <div className="flex items-center gap-3 mb-6 animate-fade-in" style={{ animationDelay: '600ms' }}>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+            <h2 className="text-2xl font-semibold text-foreground tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Trading Cards
+            </h2>
+            <div className="h-px flex-1 bg-gradient-to-r from-border via-transparent to-transparent" />
+          </div>
+
+          <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+            {MOCK_CATS.map((cat, i) => (
+              <div
+                key={`trading-${cat.id}`}
+                className="space-y-3 animate-fade-in"
+                style={{ animationDelay: `${700 + i * 100}ms`, animationFillMode: 'both' }}
+              >
+                <div className="flex items-center gap-2 px-1">
+                  <span className="text-lg">{TIER_EMOJIS[i]}</span>
+                  <span className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">{TIER_LABELS[i]}</span>
+                </div>
+                <UnifiedCatCard cat={cat} variant="trading" showFlip />
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );
