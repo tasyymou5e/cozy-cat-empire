@@ -1,11 +1,6 @@
 /**
  * @fileoverview Cloud save/load handlers for CatFarm
  *
- * Manages cloud synchronization including auto-save intervals,
- * manual save/load, and initial cloud load on login.
- * Also handles external updates (e.g., admin modifications)
- * and orphan detection after cloud load.
- *
  * @module hooks/handlers/useCloudHandlers
  */
 
@@ -16,26 +11,18 @@ import { useOrphanDetection, createRecoveryCat, type OrphanedCat } from '@/hooks
 import { useEventSnapshots, type SnapshotEventType } from '@/hooks/useEventSnapshots';
 import type { CatFarmState } from '../useCatFarmState';
 import type { AutoSaveStatus } from '@/components/game/AutoSaveIndicator';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('CloudSync');
 
 interface CloudHandlersDeps {
   farmState: CatFarmState;
 }
 
-/**
- * Hook providing cloud save/load handlers and effects
- */
 export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
   const {
-    sound,
-    auth,
-    state,
-    kittensBreed,
-    relationshipSystem,
-    cloudSave,
-    leaderboard,
-    profile,
-    actions,
-    ui,
+    sound, auth, state, kittensBreed, relationshipSystem,
+    cloudSave, leaderboard, profile, actions, ui,
   } = farmState;
 
   const { playSound } = sound;
@@ -43,39 +30,30 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
   const isReloadingRef = useRef(false);
   const [showOrphanDialog, setShowOrphanDialog] = useState(false);
 
-  // Orphan detection - find cats with gallery photos but missing from save
   const { orphanedCats, checkForOrphans, dismissOrphans, hasOrphans, isChecking } =
-    useOrphanDetection(
-      auth.user?.id,
-      state.cats.map((c) => c.id)
-    );
+    useOrphanDetection(auth.user?.id, state.cats.map((c) => c.id));
 
-  // Event snapshots - create tagged snapshots on significant events
   const { createEventSnapshot } = useEventSnapshots(auth.user?.id, state);
 
-  // Auto-reload when external update is detected (e.g., admin modified the save)
   useEffect(() => {
     if (cloudSave.hasExternalUpdate && ui.hasLoadedCloud && !isReloadingRef.current) {
       isReloadingRef.current = true;
-      console.log('[CloudSync] External update detected - reloading game state');
+      log.info('External update detected - reloading game state');
       
       cloudSave.cloudLoad().then(({ data, error }) => {
         if (error) {
-          console.error('[CloudSync] Failed to reload after external update:', error);
+          log.error('Failed to reload after external update:', error);
           toast({
             title: 'Sync Error',
             description: 'Failed to sync updated data. Please refresh the page.',
             variant: 'destructive',
           });
         } else if (data) {
-          console.log('[CloudSync] Reloaded after external update');
+          log.info('Reloaded after external update');
           actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
           ui.setLastCloudSave(data.last_played_at);
           playSound?.('success');
-          toast({
-            title: 'Game Updated',
-            description: 'Your game data has been updated.',
-          });
+          toast({ title: 'Game Updated', description: 'Your game data has been updated.' });
         }
         isReloadingRef.current = false;
       }).catch(() => {
@@ -84,66 +62,53 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
     }
   }, [cloudSave.hasExternalUpdate, ui.hasLoadedCloud, cloudSave, actions, ui, playSound, toast]);
 
-  // Load cloud save on login
   useEffect(() => {
     if (auth.user && !ui.hasLoadedCloud) {
-      console.log('[CloudSync] Starting cloud load for user:', auth.user.id);
+      log.info('Starting cloud load for user:', auth.user.id);
       
       cloudSave.cloudLoad().then(({ data, error }) => {
         if (error) {
-          console.error('[CloudSync] Cloud load failed:', error);
-          ui.setHasLoadedCloud(true); // Mark as loaded to prevent save issues
+          log.error('Cloud load failed:', error);
+          ui.setHasLoadedCloud(true);
           return;
         }
         
         if (data) {
-          console.log(`[CloudSync] Load success: ${data.game_state.cats?.length ?? 0} cats, day ${data.game_state.day}`);
+          log.info(`Load success: ${data.game_state.cats?.length ?? 0} cats, day ${data.game_state.day}`);
           actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
           ui.setLastCloudSave(data.last_played_at);
-          
-          // Check for orphaned cats after successful load
-          setTimeout(() => {
-            checkForOrphans();
-          }, 1000);
+          setTimeout(() => { checkForOrphans(); }, 1000);
         } else {
-          console.log('[CloudSync] No cloud save found - starting fresh');
+          log.info('No cloud save found - starting fresh');
         }
         ui.setHasLoadedCloud(true);
       }).catch((err) => {
-        console.error('[CloudSync] Cloud load exception:', err);
-        ui.setHasLoadedCloud(true); // Prevent future issues
+        log.error('Cloud load exception:', err);
+        ui.setHasLoadedCloud(true);
       });
     }
   }, [auth.user, ui.hasLoadedCloud, cloudSave, actions, ui, checkForOrphans]);
 
-  // Show orphan recovery dialog when orphans are found
   useEffect(() => {
     if (hasOrphans && !isChecking) {
       setShowOrphanDialog(true);
     }
   }, [hasOrphans, isChecking]);
 
-  // Auto-save to cloud every 1 minute using the enhanced useAutoSave hook
-  // CRITICAL: Only enabled after cloud data has loaded to prevent data loss
   const { stats: autoSaveStats, saveNow } = useAutoSave(
-    auth.user?.id,
-    state,
-    kittensBreed,
+    auth.user?.id, state, kittensBreed,
     relationshipSystem.getRelationshipSaveData(),
     {
-      intervalMs: 60 * 1000, // 1 minute
+      intervalMs: 60 * 1000,
       enabled: !!auth.user && ui.hasLoadedCloud,
-      onSaveStart: () => {
-        ui.setCloudSyncing(true);
-      },
+      onSaveStart: () => { ui.setCloudSyncing(true); },
       onSaveComplete: () => {
         ui.setCloudSyncing(false);
         ui.setLastCloudSave(new Date().toISOString());
       },
       onSaveError: (error, retryCount) => {
         ui.setCloudSyncing(false);
-        console.error(`[CloudSync] Auto-save failed after ${retryCount} retries:`, error.message);
-        // Optionally show toast for persistent errors
+        log.error(`Auto-save failed after ${retryCount} retries:`, error.message);
         if (retryCount >= 2) {
           toast({
             title: 'Save Warning',
@@ -155,7 +120,6 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
     }
   );
 
-  // Build auto-save status for the indicator component
   const autoSaveStatus: AutoSaveStatus = {
     isSyncing: ui.cloudSyncing,
     isRetrying: autoSaveStats.isRetrying,
@@ -168,38 +132,24 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
   const handleCloudSave = useCallback(async () => {
     if (!auth.user) return;
     if (!ui.hasLoadedCloud) {
-      console.warn('[CloudSync] Skipping cloud save - cloud data not yet loaded');
+      log.warn('Skipping cloud save - cloud data not yet loaded');
       return;
     }
     ui.setCloudSyncing(true);
     const result = await cloudSave.cloudSave(
-      state,
-      kittensBreed,
-      relationshipSystem.getRelationshipSaveData()
+      state, kittensBreed, relationshipSystem.getRelationshipSaveData()
     );
     if (result.success) {
       ui.setLastCloudSave(new Date().toISOString());
       await leaderboard.syncPlayerStats(
-        state,
-        kittensBreed,
+        state, kittensBreed,
         profile.profile?.display_name || undefined,
         profile.profile?.avatar_emoji || undefined
       );
       playSound?.('success');
     }
     ui.setCloudSyncing(false);
-  }, [
-    auth.user,
-    ui.hasLoadedCloud,
-    state,
-    kittensBreed,
-    relationshipSystem,
-    cloudSave,
-    leaderboard,
-    profile,
-    playSound,
-    ui,
-  ]);
+  }, [auth.user, ui.hasLoadedCloud, state, kittensBreed, relationshipSystem, cloudSave, leaderboard, profile, playSound, ui]);
 
   const handleCloudLoad = useCallback(async () => {
     if (!auth.user) return;
@@ -211,20 +161,16 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
     }
   }, [auth.user, cloudSave, actions, playSound, ui]);
 
-  // Handler for recovering orphaned cats
   const handleRecoverOrphans = useCallback(async (orphansToRecover: OrphanedCat[]) => {
-    console.log(`[CloudSync] Recovering ${orphansToRecover.length} orphaned cats`);
-    
+    log.info(`Recovering ${orphansToRecover.length} orphaned cats`);
     for (const orphan of orphansToRecover) {
       const recoveredCat = createRecoveryCat(orphan);
       actions.addReceivedCat?.(recoveredCat);
     }
-
     toast({
       title: 'Cats Recovered! 🎉',
       description: `Successfully recovered ${orphansToRecover.length} lost cat${orphansToRecover.length !== 1 ? 's' : ''}.`,
     });
-
     playSound?.('success');
     setShowOrphanDialog(false);
     dismissOrphans();
@@ -236,16 +182,9 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
   }, [dismissOrphans]);
 
   return {
-    handleCloudSave,
-    handleCloudLoad,
-    autoSaveStatus,
+    handleCloudSave, handleCloudLoad, autoSaveStatus,
     triggerManualSave: saveNow,
-    // Orphan recovery
-    orphanedCats,
-    showOrphanDialog,
-    handleRecoverOrphans,
-    handleDismissOrphans,
-    // Event snapshots
+    orphanedCats, showOrphanDialog, handleRecoverOrphans, handleDismissOrphans,
     createEventSnapshot,
   };
 }

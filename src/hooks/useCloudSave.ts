@@ -5,6 +5,9 @@ import { CatRelationship, RelationshipEvent } from '@/types/relationships';
 import { isValidGameState, isCatRelationship, isRelationshipEvent } from '@/types/guards';
 import { migrateSaveData, needsMigration, getSaveVersionInfo } from '@/lib/saveMigration';
 import { Json } from '@/integrations/supabase/types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('CloudSync');
 
 /**
  * Generate a simple hash of the game state for comparison
@@ -15,7 +18,7 @@ function generateStateHash(gameState: GameState): string {
   for (let i = 0; i < key.length; i++) {
     const char = key.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
   return hash.toString(16);
 }
@@ -23,7 +26,6 @@ function generateStateHash(gameState: GameState): string {
 interface RelationshipSaveData {
   relationships: CatRelationship[];
   events: RelationshipEvent[];
-  // Maintenance streak tracking
   maintenanceStreak?: number;
   longestMaintenanceStreak?: number;
   lastMaintenanceDay?: number | null;
@@ -36,47 +38,15 @@ interface CloudSaveData {
   last_played_at: string;
 }
 
-/** Validate relationship save data structure */
 function isValidRelationshipData(value: unknown): value is RelationshipSaveData {
   if (typeof value !== 'object' || value === null) return false;
   const obj = value as Record<string, unknown>;
-
-  if (!Array.isArray(obj.relationships) || !obj.relationships.every(isCatRelationship)) {
-    return false;
-  }
-  if (!Array.isArray(obj.events) || !obj.events.every(isRelationshipEvent)) {
-    return false;
-  }
-
+  if (!Array.isArray(obj.relationships) || !obj.relationships.every(isCatRelationship)) return false;
+  if (!Array.isArray(obj.events) || !obj.events.every(isRelationshipEvent)) return false;
   return true;
 }
 
-/**
- * useCloudSave - Cloud save/load functionality for game persistence
- *
- * Provides functions to save and load game state to/from the cloud database.
- * Requires user authentication to function.
- *
- * @param userId - The authenticated user's ID
- * @param onExternalUpdate - Optional callback when save is updated externally (e.g., by admin)
- *
- * @returns Object containing:
- * - `cloudSave` - Save game state to cloud
- * - `cloudLoad` - Load game state from cloud
- * - `hasCloudSave` - Check if cloud save exists
- * - `getLastSaveTime` - Get timestamp of last save
- * - `hasExternalUpdate` - Whether there's a pending external update
- * - `clearExternalUpdate` - Clear the external update flag
- *
- * @example
- * ```tsx
- * const { cloudSave, cloudLoad, hasCloudSave, hasExternalUpdate } = useCloudSave(user?.id);
- * await cloudSave(gameState, kittensBreed, relationshipData);
- * const { data } = await cloudLoad();
- * ```
- */
 interface CloudSaveOptions {
-  /** Mark this save as explicitly from a new user (allows day 1 empty state) */
   isNewUser?: boolean;
 }
 
@@ -84,10 +54,8 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
   const lastSaveRef = useRef<string | null>(null);
   const lastSaveTimestampRef = useRef<string | null>(null);
   const [hasExternalUpdate, setHasExternalUpdate] = useState(false);
-  /** Tracks whether initial cloud load has been attempted */
   const isLoadedRef = useRef(false);
 
-  // Subscribe to real-time updates on the user's game_saves row
   useEffect(() => {
     if (!userId) return;
 
@@ -105,19 +73,18 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
           const newRecord = payload.new as { last_played_at?: string };
           const newTimestamp = newRecord.last_played_at;
           
-          // Ignore if this update was from our own save (within 5 seconds)
           if (lastSaveTimestampRef.current && newTimestamp) {
             const ourSaveTime = new Date(lastSaveTimestampRef.current).getTime();
             const updateTime = new Date(newTimestamp).getTime();
             const timeDiff = Math.abs(updateTime - ourSaveTime);
             
             if (timeDiff < 5000) {
-              console.log('[CloudSync] Ignoring own save update');
+              log.debug('Ignoring own save update');
               return;
             }
           }
           
-          console.log('[CloudSync] External update detected on game_saves');
+          log.info('External update detected on game_saves');
           setHasExternalUpdate(true);
           onExternalUpdate?.();
         }
@@ -136,13 +103,10 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
       relationshipData: RelationshipSaveData,
       options?: CloudSaveOptions
     ): Promise<{ success: boolean; error?: string }> => {
-      if (!userId) {
-        return { success: false, error: 'Not logged in' };
-      }
+      if (!userId) return { success: false, error: 'Not logged in' };
 
-      // CRITICAL: Block saves if cloud data hasn't been loaded yet (race condition prevention)
       if (!isLoadedRef.current) {
-        console.warn('[CloudSync] Blocked save: Cloud data not yet loaded', {
+        log.warn('Blocked save: Cloud data not yet loaded', {
           catsCount: gameState.cats.length,
           day: gameState.day,
           userId: userId.slice(0, 8) + '...',
@@ -150,29 +114,25 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
         return { success: false, error: 'Cloud data not loaded yet' };
       }
 
-      // SAFETY CHECK: Prevent saving empty cat arrays that might indicate unloaded state
-      // Only allow empty cats if day is 1 AND explicitly marked as new user
       if (gameState.cats.length === 0 && gameState.day > 1) {
-        console.warn('[CloudSync] Blocked save: Empty cats array on day > 1 suggests data loss');
+        log.warn('Blocked save: Empty cats array on day > 1 suggests data loss');
         return { success: false, error: 'Save blocked - possible data loss detected' };
       }
 
-      // ENHANCED: Block day 1 empty saves unless explicitly a new user
       if (gameState.cats.length === 0 && gameState.day === 1 && !options?.isNewUser) {
-        console.warn('[CloudSync] Blocked save: Empty state on day 1 without isNewUser flag', {
+        log.warn('Blocked save: Empty state on day 1 without isNewUser flag', {
           userId: userId.slice(0, 8) + '...',
         });
         return { success: false, error: 'Blocked potential race condition save' };
       }
 
-      console.log('[CloudSync] Save attempt', {
+      log.debug('Save attempt', {
         isLoaded: isLoadedRef.current,
         catsCount: gameState.cats.length,
         day: gameState.day,
         userId: userId.slice(0, 8) + '...',
       });
 
-      // Pre-save integrity checks and auto-correction
       const integrityIssues: string[] = [];
       const correctedState = { ...gameState };
 
@@ -187,17 +147,14 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
       }
 
       if (integrityIssues.length > 0) {
-        console.warn('[CloudSync] Auto-corrected integrity issues:', integrityIssues);
+        log.warn('Auto-corrected integrity issues:', integrityIssues);
       }
 
       try {
         const now = new Date().toISOString();
-        
-        // Create a snapshot before saving for recovery purposes
         const catNames = correctedState.cats.map(c => c.name);
         const stateHash = generateStateHash(correctedState);
         
-        // Insert snapshot (non-blocking, don't wait) - Phase 5: Enhanced error logging
         supabase.from('save_snapshots').insert({
           user_id: userId,
           snapshot_type: 'auto',
@@ -208,8 +165,7 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
           game_state_hash: stateHash,
         }).then(({ error: snapError }) => {
           if (snapError) {
-            console.error('[CloudSync] Snapshot insert failed:', snapError.message);
-            // Log to error_logs for monitoring
+            log.error('Snapshot insert failed:', snapError.message);
             supabase.from('error_logs').insert({
               user_id: userId,
               error_type: 'snapshot_insert_failed',
@@ -220,10 +176,9 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
                 money: correctedState.money,
               },
             }).then(() => {
-              console.log('[CloudSync] Snapshot error logged to error_logs');
+              log.debug('Snapshot error logged to error_logs');
             });
           } else {
-            // Prune old snapshots (keep last 10) - fire and forget
             supabase
               .from('save_snapshots')
               .delete()
@@ -231,7 +186,6 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
               .order('created_at', { ascending: true })
               .limit(100)
               .then(() => {
-                // After getting all, keep only the latest 10
                 supabase
                   .from('save_snapshots')
                   .select('id, created_at')
@@ -245,7 +199,7 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
                         .delete()
                         .in('id', toDelete)
                         .then(() => {
-                          console.log('[CloudSync] Pruned old snapshots');
+                          log.debug('Pruned old snapshots');
                         });
                     }
                   });
@@ -269,11 +223,10 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
 
         lastSaveRef.current = now;
         lastSaveTimestampRef.current = now;
-        // Clear external update flag after we save (our state is now authoritative)
         setHasExternalUpdate(false);
         return { success: true };
       } catch (err) {
-        console.error('[CloudSync] Save error:', err);
+        log.error('Save error:', err);
         return { success: false, error: 'Failed to save to cloud' };
       }
     },
@@ -284,9 +237,7 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
     data: CloudSaveData | null;
     error?: string;
   }> => {
-    if (!userId) {
-      return { data: null, error: 'Not logged in' };
-    }
+    if (!userId) return { data: null, error: 'Not logged in' };
 
     try {
       const { data, error } = await supabase
@@ -298,22 +249,18 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
       if (error) throw error;
 
       if (!data) {
-        // No cloud save exists - mark as loaded (new user)
         isLoadedRef.current = true;
-        console.log('[CloudSync] No cloud save found, marking as loaded (new user)');
+        log.info('No cloud save found, marking as loaded (new user)');
         return { data: null };
       }
 
-      // Update our timestamp reference to prevent false external update detection
       if (data.last_played_at) {
         lastSaveTimestampRef.current = data.last_played_at;
       }
       
-      // Mark as loaded after successful data retrieval
       isLoadedRef.current = true;
-      console.log('[CloudSync] Cloud data loaded successfully');
+      log.info('Cloud data loaded successfully');
 
-      // Build raw save data for migration check
       const rawSaveData = {
         game_state: data.game_state,
         kittens_bred: data.kittens_bred,
@@ -321,24 +268,22 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
         last_played_at: data.last_played_at,
       };
 
-      // Check if migration is needed
       if (needsMigration(rawSaveData)) {
         const versionInfo = getSaveVersionInfo(rawSaveData);
-        console.log(`Migrating cloud save from v${versionInfo.currentVersion} to v${versionInfo.targetVersion}`);
+        log.info(`Migrating cloud save from v${versionInfo.currentVersion} to v${versionInfo.targetVersion}`);
 
         const migrationResult = migrateSaveData(rawSaveData);
 
         if (!migrationResult.success) {
           const errorResult = migrationResult as { success: false; error: string };
-          console.error('Cloud save migration failed:', errorResult.error);
+          log.error('Cloud save migration failed:', errorResult.error);
           return { data: null, error: 'Cloud save data could not be migrated' };
         }
 
         if (migrationResult.warnings.length > 0) {
-          console.warn('Cloud migration warnings:', migrationResult.warnings);
+          log.warn('Cloud migration warnings:', migrationResult.warnings);
         }
 
-        // Save the migrated data back to cloud
         const { error: updateError } = await supabase
           .from('game_saves')
           .update({
@@ -350,12 +295,11 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
           .eq('user_id', userId);
 
         if (updateError) {
-          console.error('Failed to save migrated data:', updateError);
+          log.error('Failed to save migrated data:', updateError);
         } else {
-          console.log('Cloud save migrated and updated');
+          log.info('Cloud save migrated and updated');
         }
 
-        // Clear external update flag after loading
         setHasExternalUpdate(false);
 
         return {
@@ -368,20 +312,17 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
         };
       }
 
-      // No migration needed - validate as before
       const gameState = data.game_state as unknown;
       if (!isValidGameState(gameState)) {
-        console.error('Cloud load: Invalid game state structure');
+        log.error('Cloud load: Invalid game state structure');
         return { data: null, error: 'Cloud save data is corrupted' };
       }
 
-      // Validate relationship data with fallback
       const rawRelationships = data.relationships as unknown;
       const relationships: RelationshipSaveData = isValidRelationshipData(rawRelationships)
         ? rawRelationships
         : { relationships: [], events: [] };
 
-      // Clear external update flag after loading
       setHasExternalUpdate(false);
 
       return {
@@ -393,21 +334,19 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
         },
       };
     } catch (err) {
-      console.error('Cloud load error:', err);
+      log.error('Cloud load error:', err);
       return { data: null, error: 'Failed to load from cloud' };
     }
   }, [userId]);
 
   const hasCloudSave = useCallback(async (): Promise<boolean> => {
     if (!userId) return false;
-
     try {
       const { data } = await supabase
         .from('game_saves')
         .select('id')
         .eq('user_id', userId)
         .maybeSingle();
-
       return !!data;
     } catch {
       return false;
@@ -427,7 +366,6 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
     getLastSaveTime,
     hasExternalUpdate,
     clearExternalUpdate,
-    /** Whether initial cloud load has been completed */
     isLoaded: isLoadedRef.current,
   };
 }
