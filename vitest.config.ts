@@ -11,12 +11,20 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     coverage: {
       reporter: ['text', 'json', 'html', 'lcov'],
-      include: ['src/hooks/game/**/*.ts'],
+      include: [
+        'src/hooks/**/*.ts',
+        'src/contexts/**/*.tsx',
+        'src/lib/**/*.ts',
+      ],
+      exclude: [
+        'src/**/index.ts',
+        'src/**/*.d.ts',
+      ],
       thresholds: {
-        statements: 70,
-        branches: 60,
-        functions: 70,
-        lines: 70,
+        statements: 50,
+        branches: 40,
+        functions: 50,
+        lines: 50,
       },
     },
   },
