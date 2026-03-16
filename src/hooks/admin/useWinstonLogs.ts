@@ -66,14 +66,14 @@ export function useWinstonLogStats() {
         .rpc('get_log_level_counts' as never);
 
       // Fallback: query manually
-      const levels = ['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly'];
+      const levels: WinstonLogLevel[] = ['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly'];
       const counts: Record<string, number> = {};
 
       for (const lvl of levels) {
         const { count } = await supabase
           .from('application_logs')
           .select('*', { count: 'exact', head: true })
-          .eq('level', lvl);
+          .eq('level', lvl as string);
         counts[lvl] = count || 0;
       }
 
