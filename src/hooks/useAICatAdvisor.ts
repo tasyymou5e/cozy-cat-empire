@@ -202,7 +202,9 @@ export function useAICatAdvisor() {
       const data = await resp.json();
       setGeneratedStory(data.story || '');
     } catch (e) {
-      if ((e as Error).message !== 'rate_limited' && (e as Error).message !== 'credits_exhausted') {
+      const msg = e instanceof Error ? e.message : '';
+      if (msg !== 'rate_limited' && msg !== 'credits_exhausted') {
+        log.error('Failed to generate story:', e);
         toast.error('Failed to generate story');
       }
     } finally {
