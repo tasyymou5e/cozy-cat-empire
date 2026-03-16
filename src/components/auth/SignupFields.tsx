@@ -119,7 +119,7 @@ export function SignupFields({
 
       {/* Username */}
       <div className="space-y-2">
-        <Label htmlFor="username" className="flex items-center gap-2">
+        <Label htmlFor="username" className="flex items-center gap-2 font-serif">
           <AtSign className="h-4 w-4 text-primary" />
           Username *
         </Label>
