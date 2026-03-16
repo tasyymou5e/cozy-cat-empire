@@ -39,14 +39,14 @@ function checkInMemoryRateLimit(userId: string): { allowed: boolean; remaining: 
   return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - userLimit.count };
 }
 
-interface PushPayload {
-  userId?: string; // Optional - defaults to authenticated user
-  title: string;
-  body: string;
-  icon?: string;
-  url?: string;
-  notificationType?: 'friend_requests' | 'gifts' | 'trades' | 'rewards' | 'challenges';
-}
+const PushPayloadSchema = z.object({
+  userId: z.string().uuid().optional(),
+  title: z.string().min(1).max(200),
+  body: z.string().min(1).max(1000),
+  icon: z.string().max(500).optional(),
+  url: z.string().max(500).optional(),
+  notificationType: z.enum(['friend_requests', 'gifts', 'trades', 'rewards', 'challenges']).optional(),
+});
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
