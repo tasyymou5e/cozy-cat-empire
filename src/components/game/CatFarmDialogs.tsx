@@ -4,6 +4,7 @@ import { MilestonePopup } from './MilestonePopup';
 import { DailyRewardsPanel } from './DailyRewardsPanel';
 import { WhatsNewPopup } from './WhatsNewPopup';
 import { OrphanRecoveryDialog } from './OrphanRecoveryDialog';
+import { WelcomeBackDialog, WelcomeBackBonus } from './WelcomeBackDialog';
 import { Milestone } from '@/types/milestones';
 import { VIPTier } from '@/types/dailyRewards';
 import { Cat, Resources } from '@/types/game';
