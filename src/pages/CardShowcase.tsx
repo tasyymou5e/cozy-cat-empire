@@ -107,8 +107,13 @@ const MOCK_CATS: Cat[] = [
   },
 ];
 
-const TIER_LABELS = ['Common', 'Uncommon', 'Rare', 'Legendary', 'Mythic'];
-const TIER_EMOJIS = ['🐾', '💎', '🔮', '👑', '✨'];
+const TIER_INFO = [
+  { label: 'Common', emoji: '🐾', desc: 'Your everyday companions', color: 'text-muted-foreground' },
+  { label: 'Uncommon', emoji: '💎', desc: 'A step above the rest', color: 'text-blue-400' },
+  { label: 'Rare', emoji: '🔮', desc: 'Crystalline amethyst glow', color: 'text-purple-400' },
+  { label: 'Legendary', emoji: '👑', desc: 'Gilded metallic sheen', color: 'text-yellow-400' },
+  { label: 'Mythic', emoji: '✨', desc: 'Holographic prismatic aura', color: 'text-pink-400' },
+];
 
 export default function CardShowcase() {
   const { theme, setTheme } = useTheme();
@@ -141,16 +146,15 @@ export default function CardShowcase() {
           </Button>
         </div>
 
-        {/* Decorative cat SVGs */}
+        {/* Decorative paw prints */}
         <div className="relative">
-          {/* Floating paw prints */}
           <div className="absolute -top-8 right-12 text-4xl opacity-10 animate-float pointer-events-none select-none" style={{ animationDuration: '6s' }}>🐾</div>
           <div className="absolute top-20 -left-4 text-3xl opacity-10 animate-float pointer-events-none select-none" style={{ animationDuration: '8s', animationDelay: '2s' }}>🐾</div>
         </div>
 
         {/* Standard Card Variant */}
-        <section className="mb-16">
-          <div className="flex items-center gap-3 mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
+        <section className="mb-20">
+          <div className="flex items-center gap-3 mb-8 animate-fade-in" style={{ animationDelay: '100ms' }}>
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
             <h2 className="text-2xl font-semibold text-foreground tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
               Standard Cards
@@ -158,16 +162,23 @@ export default function CardShowcase() {
             <div className="h-px flex-1 bg-gradient-to-r from-border via-transparent to-transparent" />
           </div>
 
-          <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+          <div className="grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
             {MOCK_CATS.map((cat, i) => (
               <div
                 key={cat.id}
                 className="space-y-3 animate-fade-in"
                 style={{ animationDelay: `${150 + i * 100}ms`, animationFillMode: 'both' }}
               >
-                <div className="flex items-center gap-2 px-1">
-                  <span className="text-lg">{TIER_EMOJIS[i]}</span>
-                  <span className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">{TIER_LABELS[i]}</span>
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{TIER_INFO[i].emoji}</span>
+                    <span className={`text-sm font-bold tracking-wide uppercase ${TIER_INFO[i].color}`}>
+                      {TIER_INFO[i].label}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground italic">
+                    {TIER_INFO[i].desc}
+                  </span>
                 </div>
                 <UnifiedCatCard cat={cat} variant="card" showStats showActions={false} />
               </div>
@@ -177,7 +188,7 @@ export default function CardShowcase() {
 
         {/* Trading Card Variant */}
         <section className="mb-16">
-          <div className="flex items-center gap-3 mb-6 animate-fade-in" style={{ animationDelay: '600ms' }}>
+          <div className="flex items-center gap-3 mb-8 animate-fade-in" style={{ animationDelay: '600ms' }}>
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
             <h2 className="text-2xl font-semibold text-foreground tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
               Trading Cards
@@ -185,16 +196,23 @@ export default function CardShowcase() {
             <div className="h-px flex-1 bg-gradient-to-r from-border via-transparent to-transparent" />
           </div>
 
-          <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+          <div className="grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
             {MOCK_CATS.map((cat, i) => (
               <div
                 key={`trading-${cat.id}`}
                 className="space-y-3 animate-fade-in"
                 style={{ animationDelay: `${700 + i * 100}ms`, animationFillMode: 'both' }}
               >
-                <div className="flex items-center gap-2 px-1">
-                  <span className="text-lg">{TIER_EMOJIS[i]}</span>
-                  <span className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">{TIER_LABELS[i]}</span>
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{TIER_INFO[i].emoji}</span>
+                    <span className={`text-sm font-bold tracking-wide uppercase ${TIER_INFO[i].color}`}>
+                      {TIER_INFO[i].label}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground italic">
+                    Tap to flip
+                  </span>
                 </div>
                 <UnifiedCatCard cat={cat} variant="trading" showFlip />
               </div>

@@ -98,6 +98,15 @@ const personalityEmojis: Record<string, string> = {
   shy: '🙈',
 };
 
+const personalityColors: Record<string, string> = {
+  lazy: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/20',
+  playful: 'bg-amber-500/15 text-amber-400 border-amber-500/20',
+  affectionate: 'bg-pink-500/15 text-pink-400 border-pink-500/20',
+  independent: 'bg-sky-500/15 text-sky-400 border-sky-500/20',
+  curious: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
+  shy: 'bg-violet-500/15 text-violet-400 border-violet-500/20',
+};
+
 const typeLabels: Record<string, { label: string; color: string }> = {
   stray: { label: 'Stray', color: 'bg-gray-500' },
   adopted: { label: 'Adopted', color: 'bg-blue-500' },
@@ -447,9 +456,12 @@ export function UnifiedCatCard({
       </div>
 
       <p className="text-xs text-muted-foreground mb-1">{breedInfo.name}</p>
-      <p className="text-xs text-muted-foreground mb-2">
+      <span className={cn(
+        'inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border mb-2 w-fit',
+        personalityColors[cat.personality] || 'bg-muted text-muted-foreground border-border'
+      )}>
         {personalityEmojis[cat.personality]} {cat.personality}
-      </p>
+      </span>
 
       {/* Relationship Badges */}
       {shouldShowRelationships &&
@@ -678,7 +690,12 @@ function TradingCardView({
       )}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
-          <span className="text-lg">{personalityEmojis[cat.personality]}</span>
+          <span className={cn(
+            'inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full border',
+            personalityColors[cat.personality] || 'bg-muted text-muted-foreground border-border'
+          )}>
+            {personalityEmojis[cat.personality]}
+          </span>
           <span className="font-bold text-sm truncate max-w-[100px]">{cat.name}</span>
         </div>
         <GradeBadge grade={cat.grade} size="sm" />
