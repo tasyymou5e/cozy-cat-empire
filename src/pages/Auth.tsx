@@ -44,6 +44,7 @@ export default function Auth() {
   useCriticalPrefetch();
 
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -331,6 +332,9 @@ export default function Auth() {
     return 'Send Reset Email';
   };
 
+  // Skip landing gate for recovery flows
+  const shouldShowForm = showForm || isRecoveryFlow || mode === 'update-password';
+
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 lg:p-8">
       {/* Admin Regenerate Background Button */}
@@ -362,130 +366,176 @@ export default function Auth() {
       <AnimatedFarmCats count={4} className="opacity-80" interactive soundEnabled />
       <FloatingDecorations variant="kawaii-cats" density="high" parallax className="opacity-60" />
 
-      {/* Split-panel layout */}
-      <div className="relative z-10 auth-split-layout">
-        {/* Left: Hero panel */}
-        <div className="auth-hero-panel flex flex-col items-center justify-center p-6 lg:p-10 relative overflow-hidden rounded-t-2xl lg:rounded-l-2xl lg:rounded-tr-none bg-card/30 backdrop-blur-sm">
-          <div className="absolute inset-0 pointer-events-none z-[1]">
-            <div className="bokeh-bubble w-32 h-32 top-[8%] left-[5%] opacity-40" style={{ animationDelay: '0s' }} />
-            <div className="bokeh-bubble w-48 h-48 top-[15%] right-[8%] opacity-40" style={{ animationDelay: '1s' }} />
-            <div className="bokeh-bubble w-24 h-24 bottom-[25%] left-[12%] opacity-40" style={{ animationDelay: '2s' }} />
-            <div className="bokeh-bubble w-40 h-40 bottom-[18%] right-[15%] opacity-40" style={{ animationDelay: '0.5s' }} />
-          </div>
-          <div className="relative z-10">
-            <AuthHero mode={mode} />
-          </div>
+      {!shouldShowForm ? (
+        /* ===== Landing state: centered hero with CTA ===== */
+        <div className="relative z-10 w-full max-w-xl animate-fade-in">
+          <GlassCard className="border-primary/20 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.2)] !backdrop-blur-lg !bg-card/70 rounded-2xl">
+            <GlassCardContent className="p-6 lg:p-10">
+              <div className="relative overflow-hidden">
+                {/* Bokeh bubbles */}
+                <div className="absolute inset-0 pointer-events-none z-[1]">
+                  <div className="bokeh-bubble w-32 h-32 top-[8%] left-[5%] opacity-40" style={{ animationDelay: '0s' }} />
+                  <div className="bokeh-bubble w-48 h-48 top-[15%] right-[8%] opacity-40" style={{ animationDelay: '1s' }} />
+                  <div className="bokeh-bubble w-24 h-24 bottom-[25%] left-[12%] opacity-40" style={{ animationDelay: '2s' }} />
+                </div>
 
-          {/* Social Proof */}
-          <div className="relative z-10 text-center space-y-3 mt-6">
-            <p className="page-heading text-sm italic text-foreground/70 animate-fade-in" style={{ animationDelay: '600ms', animationFillMode: 'both' }}>
-              🐾 Join thousands of cat lovers worldwide! 🐾
-            </p>
-            <div className="flex justify-center gap-2 text-xl">
-              {['🐱', '😺', '🐈‍⬛', '😻', '😸'].map((emoji, i) => (
-                <span key={emoji} className="animate-float" style={{ animationDelay: `${i * 0.2}s` }}>{emoji}</span>
-              ))}
-            </div>
-            <p className="text-muted-foreground text-xs">Made with 💜 for cat lovers</p>
-          </div>
-        </div>
+                <div className="relative z-10">
+                  <AuthHero mode={mode} />
+                </div>
 
-        {/* Right: Form panel */}
-        <div className="auth-form-panel flex flex-col justify-center">
-          <GlassCard className="border-primary/20 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.2)] !backdrop-blur-lg !bg-card/70 rounded-b-2xl lg:rounded-r-2xl lg:rounded-bl-none rounded-t-none lg:rounded-tl-none">
-            <GlassCardHeader className="text-center pb-4">
-              <GlassCardTitle className="page-heading text-gradient-primary text-2xl lg:text-3xl">Cozy Cat Empire</GlassCardTitle>
-              <GlassCardDescription className="text-base font-serif">{getTitle()}</GlassCardDescription>
-            </GlassCardHeader>
-            <GlassCardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {mode === 'signup' && (
-                  <SignupFields
-                    avatarEmoji={avatarEmoji}
-                    displayName={displayName}
-                    username={username}
-                    isSubmitting={isSubmitting}
-                    isCheckingName={isCheckingName}
-                    nameError={nameError}
-                    nameAvailable={nameAvailable}
-                    nameSuggestions={nameSuggestions}
-                    onAvatarChange={setAvatarEmoji}
-                    onDisplayNameChange={(v) => { setDisplayName(v); setNameError(''); setNameSuggestions([]); setNameAvailable(null); }}
-                    onUsernameChange={(v) => { setUsername(v); setUsernameError(''); setUsernameSuggestions([]); setUsernameAvailable(null); }}
-                    onNameBlur={handleNameBlur}
-                    onUsernameBlur={handleUsernameBlur}
-                    onRegenerateNameSuggestions={() => displayName.trim() && setNameSuggestions(generateNameSuggestions(displayName))}
-                    onSelectNameSuggestion={(s) => { setDisplayName(s); setNameError(''); setNameSuggestions([]); setNameAvailable(null); validateDisplayName(s); }}
-                    isCheckingUsername={isCheckingUsername}
-                    usernameError={usernameError}
-                    usernameAvailable={usernameAvailable}
-                    usernameSuggestions={usernameSuggestions}
-                    onRegenerateUsernameSuggestions={() => username.trim() && setUsernameSuggestions(generateUsernameSuggestions(username))}
-                    onSelectUsernameSuggestion={(s) => { setUsername(s); setUsernameError(''); setUsernameSuggestions([]); setUsernameAvailable(null); validateUsername(s); }}
-                  />
-                )}
-
-                {mode === 'login' && (
-                  <LoginForm
-                    email={email}
-                    password={password}
-                    isSubmitting={isSubmitting}
-                    onEmailChange={setEmail}
-                    onPasswordChange={setPassword}
-                  />
-                )}
-
-                {mode === 'forgot-password' && (
-                  <ForgotPasswordForm email={email} isSubmitting={isSubmitting} onEmailChange={setEmail} />
-                )}
-
-                {mode === 'update-password' && (
-                  <UpdatePasswordForm
-                    password={password}
-                    confirmPassword={confirmPassword}
-                    isSubmitting={isSubmitting}
-                    onPasswordChange={setPassword}
-                    onConfirmPasswordChange={setConfirmPassword}
-                  />
-                )}
-
-                {mode === 'signup' && (
-                  <LoginForm
-                    email={email}
-                    password={password}
-                    isSubmitting={isSubmitting}
-                    onEmailChange={setEmail}
-                    onPasswordChange={setPassword}
-                  />
-                )}
-
-                {error && (
-                  <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-xl text-sm text-destructive flex items-center gap-2">
-                    <span>😿</span> {error}
+                {/* Social Proof */}
+                <div className="relative z-10 text-center space-y-3 mt-6">
+                  <p className="page-heading text-sm italic text-foreground/70 animate-fade-in" style={{ animationDelay: '600ms', animationFillMode: 'both' }}>
+                    🐾 Join thousands of cat lovers worldwide! 🐾
+                  </p>
+                  <div className="flex justify-center gap-2 text-xl">
+                    {['🐱', '😺', '🐈‍⬛', '😻', '😸'].map((emoji, i) => (
+                      <span key={emoji} className="animate-float" style={{ animationDelay: `${i * 0.2}s` }}>{emoji}</span>
+                    ))}
                   </div>
-                )}
-                {success && (
-                  <div className="p-3 bg-[hsl(var(--success))]/10 border border-[hsl(var(--success))]/30 rounded-xl text-sm text-[hsl(var(--success))] flex items-center gap-2">
-                    <span>😻</span> {success}
-                  </div>
-                )}
+                  <p className="text-muted-foreground text-xs">Made with 💜 for cat lovers</p>
+                </div>
 
-                <Button
-                  type="submit"
-                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/25 relative overflow-hidden group"
-                  disabled={isSubmitting || (mode === 'signup' && !!hasSignupErrors)}
-                >
-                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                  <PawPrint className="h-5 w-5 mr-2 relative z-10" />
-                  <span className="relative z-10">{getSubmitLabel()}</span>
-                </Button>
-              </form>
-
-              <AuthFooter mode={mode} onSwitchMode={switchMode} />
+                {/* Let's Have Fun CTA */}
+                <div className="relative z-10 mt-8 flex justify-center">
+                  <Button
+                    onClick={() => { setShowForm(true); setMode('login'); }}
+                    className="h-14 px-10 text-lg font-bold bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300 hover:scale-[1.04] active:scale-[0.98] shadow-lg shadow-primary/25 relative overflow-hidden group rounded-full"
+                  >
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                    <PawPrint className="h-5 w-5 mr-2 relative z-10" />
+                    <span className="relative z-10">Let's Have Fun 🎉</span>
+                  </Button>
+                </div>
+              </div>
             </GlassCardContent>
           </GlassCard>
         </div>
-      </div>
+      ) : (
+        /* ===== Form state: split-panel layout ===== */
+        <div className="relative z-10 auth-split-layout animate-fade-in">
+          {/* Left: Hero panel */}
+          <div className="auth-hero-panel flex flex-col items-center justify-center p-6 lg:p-10 relative overflow-hidden rounded-t-2xl lg:rounded-l-2xl lg:rounded-tr-none bg-card/30 backdrop-blur-sm">
+            <div className="absolute inset-0 pointer-events-none z-[1]">
+              <div className="bokeh-bubble w-32 h-32 top-[8%] left-[5%] opacity-40" style={{ animationDelay: '0s' }} />
+              <div className="bokeh-bubble w-48 h-48 top-[15%] right-[8%] opacity-40" style={{ animationDelay: '1s' }} />
+              <div className="bokeh-bubble w-24 h-24 bottom-[25%] left-[12%] opacity-40" style={{ animationDelay: '2s' }} />
+              <div className="bokeh-bubble w-40 h-40 bottom-[18%] right-[15%] opacity-40" style={{ animationDelay: '0.5s' }} />
+            </div>
+            <div className="relative z-10">
+              <AuthHero mode={mode} />
+            </div>
+
+            {/* Social Proof */}
+            <div className="relative z-10 text-center space-y-3 mt-6">
+              <p className="page-heading text-sm italic text-foreground/70 animate-fade-in" style={{ animationDelay: '600ms', animationFillMode: 'both' }}>
+                🐾 Join thousands of cat lovers worldwide! 🐾
+              </p>
+              <div className="flex justify-center gap-2 text-xl">
+                {['🐱', '😺', '🐈‍⬛', '😻', '😸'].map((emoji, i) => (
+                  <span key={emoji} className="animate-float" style={{ animationDelay: `${i * 0.2}s` }}>{emoji}</span>
+                ))}
+              </div>
+              <p className="text-muted-foreground text-xs">Made with 💜 for cat lovers</p>
+            </div>
+          </div>
+
+          {/* Right: Form panel */}
+          <div className="auth-form-panel flex flex-col justify-center">
+            <GlassCard className="border-primary/20 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.2)] !backdrop-blur-lg !bg-card/70 rounded-b-2xl lg:rounded-r-2xl lg:rounded-bl-none rounded-t-none lg:rounded-tl-none">
+              <GlassCardHeader className="text-center pb-4">
+                <GlassCardDescription className="text-base font-serif">{getTitle()}</GlassCardDescription>
+              </GlassCardHeader>
+              <GlassCardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {mode === 'signup' && (
+                    <SignupFields
+                      avatarEmoji={avatarEmoji}
+                      displayName={displayName}
+                      username={username}
+                      isSubmitting={isSubmitting}
+                      isCheckingName={isCheckingName}
+                      nameError={nameError}
+                      nameAvailable={nameAvailable}
+                      nameSuggestions={nameSuggestions}
+                      onAvatarChange={setAvatarEmoji}
+                      onDisplayNameChange={(v) => { setDisplayName(v); setNameError(''); setNameSuggestions([]); setNameAvailable(null); }}
+                      onUsernameChange={(v) => { setUsername(v); setUsernameError(''); setUsernameSuggestions([]); setUsernameAvailable(null); }}
+                      onNameBlur={handleNameBlur}
+                      onUsernameBlur={handleUsernameBlur}
+                      onRegenerateNameSuggestions={() => displayName.trim() && setNameSuggestions(generateNameSuggestions(displayName))}
+                      onSelectNameSuggestion={(s) => { setDisplayName(s); setNameError(''); setNameSuggestions([]); setNameAvailable(null); validateDisplayName(s); }}
+                      isCheckingUsername={isCheckingUsername}
+                      usernameError={usernameError}
+                      usernameAvailable={usernameAvailable}
+                      usernameSuggestions={usernameSuggestions}
+                      onRegenerateUsernameSuggestions={() => username.trim() && setUsernameSuggestions(generateUsernameSuggestions(username))}
+                      onSelectUsernameSuggestion={(s) => { setUsername(s); setUsernameError(''); setUsernameSuggestions([]); setUsernameAvailable(null); validateUsername(s); }}
+                    />
+                  )}
+
+                  {mode === 'login' && (
+                    <LoginForm
+                      email={email}
+                      password={password}
+                      isSubmitting={isSubmitting}
+                      onEmailChange={setEmail}
+                      onPasswordChange={setPassword}
+                    />
+                  )}
+
+                  {mode === 'forgot-password' && (
+                    <ForgotPasswordForm email={email} isSubmitting={isSubmitting} onEmailChange={setEmail} />
+                  )}
+
+                  {mode === 'update-password' && (
+                    <UpdatePasswordForm
+                      password={password}
+                      confirmPassword={confirmPassword}
+                      isSubmitting={isSubmitting}
+                      onPasswordChange={setPassword}
+                      onConfirmPasswordChange={setConfirmPassword}
+                    />
+                  )}
+
+                  {mode === 'signup' && (
+                    <LoginForm
+                      email={email}
+                      password={password}
+                      isSubmitting={isSubmitting}
+                      onEmailChange={setEmail}
+                      onPasswordChange={setPassword}
+                    />
+                  )}
+
+                  {error && (
+                    <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-xl text-sm text-destructive flex items-center gap-2">
+                      <span>😿</span> {error}
+                    </div>
+                  )}
+                  {success && (
+                    <div className="p-3 bg-[hsl(var(--success))]/10 border border-[hsl(var(--success))]/30 rounded-xl text-sm text-[hsl(var(--success))] flex items-center gap-2">
+                      <span>😻</span> {success}
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/25 relative overflow-hidden group"
+                    disabled={isSubmitting || (mode === 'signup' && !!hasSignupErrors)}
+                  >
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                    <PawPrint className="h-5 w-5 mr-2 relative z-10" />
+                    <span className="relative z-10">{getSubmitLabel()}</span>
+                  </Button>
+                </form>
+
+                <AuthFooter mode={mode} onSwitchMode={switchMode} />
+              </GlassCardContent>
+            </GlassCard>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

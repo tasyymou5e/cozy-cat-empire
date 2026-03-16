@@ -1,29 +1,28 @@
 
 
-## Add "Let's Have Fun" Landing State to Auth Page
+# Stop the Login Button from Blinking
 
-### Concept
-Show only the hero panel (centered, full-width) with a "Let's Have Fun" button on initial load. The login form panel is hidden until the user clicks the button, at which point the split-panel layout animates in.
+The submit button on line 1053-1055 of `src/pages/Auth.tsx` currently has `animate-[gradient-shift_3s_ease-in-out_infinite]` which creates a constantly shifting/blinking gradient animation.
 
-### Changes
+## Change
 
-**`src/pages/Auth.tsx`**
-- Add a `showForm` state (`useState(false)`), defaulting to `false`
-- When `showForm` is false: render only the hero panel centered (no split layout, no form panel), with a large "Let's Have Fun 🎉" button at the bottom beneath the social proof section
-- When `showForm` is true: render the current split-panel layout as-is
-- Hide the `GlassCardTitle` "Cozy Cat Empire" and `GlassCardDescription` from the form panel (they're redundant since the hero already shows this)
-- Skip the `showForm` gate for recovery flows (`isRecoveryFlow` or `mode === 'update-password'` should go straight to form)
+**File: `src/pages/Auth.tsx` (line 1055)**
 
-**`src/index.css`**
-- Add a transition class for the layout expanding from centered hero to split-panel (fade + scale)
+Replace the animated gradient button class with a solid, attractive gradient that does not animate:
 
-### Detail
+```
+// Before:
+className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] animate-[gradient-shift_3s_ease-in-out_infinite] hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/25 relative overflow-hidden group"
 
-The hero panel in landing state will be a single centered card (max-width ~600px) containing:
-1. AuthHero (cats, headline, badges)
-2. Social proof section
-3. "Made with 💜" footer
-4. **"Let's Have Fun 🎉"** button — same gradient style as the submit button, centered below everything
+// After:
+className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-primary/25 relative overflow-hidden group"
+```
 
-On click → `setShowForm(true)` + `setMode('login')`, the split layout slides in.
+Key changes:
+- Remove `animate-[gradient-shift_3s_ease-in-out_infinite]` (stops the blinking)
+- Remove `bg-[length:200%_auto]` (no longer needed without animation)
+- Simplify to a clean `from-primary to-accent` two-tone gradient
+- Keep hover scale, shadow, and shimmer-on-hover effects intact
+
+This gives a solid, vibrant gradient button that still feels polished with the hover effects.
 
