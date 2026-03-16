@@ -55,7 +55,7 @@ export function StatsOverviewCards({ stats }: StatsOverviewCardsProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       {cards.map((card) => (
-        <Card key={card.label} className="overflow-hidden">
+        <Card key={card.label} className="overflow-hidden glass-panel">
           <CardContent className="p-4">
             <div className={`inline-flex p-2 rounded-lg ${card.bgColor} mb-2`}>
               <card.icon className={`h-5 w-5 ${card.color}`} />
