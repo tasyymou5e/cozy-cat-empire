@@ -660,8 +660,22 @@ function TradingCardView({
 
   const CardFront = (
     <div
-      className={cn(tierVisuals.bgGradient, 'rounded-lg p-3 h-full flex flex-col backface-hidden')}
+      className={cn(tierVisuals.bgGradient, tierVisuals.cardClass, 'rounded-lg p-3 h-full flex flex-col backface-hidden relative overflow-hidden')}
     >
+      {/* Crystalline overlay for rare */}
+      {tier === 'rare' && (
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'linear-gradient(135deg, transparent 30%, hsl(270 70% 80% / 0.06) 50%, transparent 70%)',
+          animation: 'crystal-shimmer 4s ease-in-out infinite',
+        }} />
+      )}
+      {/* Metallic sheen for veryRare */}
+      {tier === 'veryRare' && (
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'linear-gradient(105deg, transparent 20%, hsl(40 80% 70% / 0.1) 40%, hsl(45 90% 80% / 0.12) 50%, transparent 80%)',
+          animation: 'metallic-sheen 3s ease-in-out infinite',
+        }} />
+      )}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <span className="text-lg">{personalityEmojis[cat.personality]}</span>
