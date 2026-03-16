@@ -1,0 +1,215 @@
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { AdminLayout } from '@/components/admin/AdminLayout';
+import { DOC_CATEGORIES, ALL_DOCS, type DocEntry } from '@/data/docsRegistry';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Search, FileText, ChevronRight, ChevronDown, BookOpen, Menu, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+// Import all docs as raw text using Vite's ?raw import
+const docModules = import.meta.glob('/docs/*.md', { query: '?raw', import: 'default' });
+
+export default function AdminDocs() {
+  const [activeDocId, setActiveDocId] = useState<string>('readme');
+  const [docContent, setDocContent] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set(DOC_CATEGORIES.map((c) => c.id))
+  );
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const activeDoc = useMemo(() => ALL_DOCS.find((d) => d.id === activeDocId), [activeDocId]);
+
+  const loadDoc = useCallback(async (fileName: string) => {
+    setLoading(true);
+    try {
+      const key = `/docs/${fileName}`;
+      const loader = docModules[key];
+      if (loader) {
+        const content = (await loader()) as string;
+        setDocContent(content);
+      } else {
+        setDocContent(`# Document Not Found\n\nCould not load \`${fileName}\`.`);
+      }
+    } catch {
+      setDocContent('# Error\n\nFailed to load document.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeDoc) {
+      loadDoc(activeDoc.fileName);
+    }
+  }, [activeDoc, loadDoc]);
+
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) return DOC_CATEGORIES;
+    const q = searchQuery.toLowerCase();
+    return DOC_CATEGORIES.map((cat) => ({
+      ...cat,
+      docs: cat.docs.filter(
+        (d) =>
+          d.title.toLowerCase().includes(q) ||
+          d.description.toLowerCase().includes(q)
+      ),
+    })).filter((cat) => cat.docs.length > 0);
+  }, [searchQuery]);
+
+  const toggleCategory = (catId: string) => {
+    setExpandedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(catId)) next.delete(catId);
+      else next.add(catId);
+      return next;
+    });
+  };
+
+  const selectDoc = (doc: DocEntry) => {
+    setActiveDocId(doc.id);
+    // On mobile, close sidebar
+    if (window.innerWidth < 768) setSidebarOpen(false);
+  };
+
+  return (
+    <AdminLayout>
+      <div className="flex flex-col h-[calc(100vh-5rem)]">
+        {/* Header */}
+        <div className="flex items-center gap-3 pb-4 border-b border-border">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </Button>
+          <BookOpen className="h-6 w-6 text-primary" />
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Documentation</h1>
+            <p className="text-xs text-muted-foreground">
+              {ALL_DOCS.length} documents across {DOC_CATEGORIES.length} categories
+            </p>
+          </div>
+        </div>
+
+        {/* Main content */}
+        <div className="flex flex-1 min-h-0 mt-4 gap-4">
+          {/* Sidebar */}
+          <div
+            className={cn(
+              'w-72 shrink-0 flex flex-col border border-border rounded-lg bg-card transition-all',
+              'md:relative md:translate-x-0',
+              sidebarOpen
+                ? 'absolute z-30 left-0 top-0 h-full md:static'
+                : 'hidden md:flex'
+            )}
+          >
+            {/* Search */}
+            <div className="p-3 border-b border-border">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search docs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-9 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Doc tree */}
+            <ScrollArea className="flex-1">
+              <div className="p-2">
+                {filteredCategories.map((cat) => {
+                  const isExpanded = expandedCategories.has(cat.id);
+                  return (
+                    <div key={cat.id} className="mb-1">
+                      <button
+                        onClick={() => toggleCategory(cat.id)}
+                        className="flex items-center gap-2 w-full px-2 py-1.5 text-sm font-semibold text-foreground hover:bg-muted rounded-md transition-colors"
+                      >
+                        {isExpanded ? (
+                          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                        )}
+                        <span>{cat.emoji}</span>
+                        <span>{cat.label}</span>
+                        <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0">
+                          {cat.docs.length}
+                        </Badge>
+                      </button>
+                      {isExpanded && (
+                        <div className="ml-4 border-l border-border pl-2">
+                          {cat.docs.map((doc) => (
+                            <button
+                              key={doc.id}
+                              onClick={() => selectDoc(doc)}
+                              className={cn(
+                                'flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded-md transition-colors text-left',
+                                activeDocId === doc.id
+                                  ? 'bg-primary/10 text-primary font-medium'
+                                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                              )}
+                            >
+                              <FileText className="h-3.5 w-3.5 shrink-0" />
+                              <span className="truncate">{doc.title}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {filteredCategories.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-8">No docs match your search.</p>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+
+          {/* Document content */}
+          <div className="flex-1 min-w-0 border border-border rounded-lg bg-card overflow-hidden">
+            {/* Doc header */}
+            {activeDoc && (
+              <div className="px-6 py-3 border-b border-border bg-muted/30">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                  <span>
+                    {DOC_CATEGORIES.find((c) => c.id === activeDoc.category)?.emoji}{' '}
+                    {DOC_CATEGORIES.find((c) => c.id === activeDoc.category)?.label}
+                  </span>
+                  <ChevronRight className="h-3 w-3" />
+                  <span className="text-foreground font-medium">{activeDoc.title}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{activeDoc.description}</p>
+              </div>
+            )}
+
+            {/* Markdown content */}
+            <ScrollArea className="h-[calc(100%-4rem)]">
+              <div className="p-6">
+                {loading ? (
+                  <div className="flex items-center justify-center py-20">
+                    <span className="text-4xl animate-bounce">📄</span>
+                  </div>
+                ) : (
+                  <article className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-code:text-primary prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-table:border-collapse prose-th:border prose-th:border-border prose-th:px-3 prose-th:py-2 prose-th:bg-muted prose-td:border prose-td:border-border prose-td:px-3 prose-td:py-2 prose-a:text-primary prose-li:text-muted-foreground">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{docContent}</ReactMarkdown>
+                  </article>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+        </div>
+      </div>
+    </AdminLayout>
+  );
+}
