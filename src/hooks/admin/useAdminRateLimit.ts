@@ -99,7 +99,7 @@ export function useAdminRateLimit() {
         resetAt: windowEnd,
       };
     } catch (err) {
-      console.error('Rate limit check error:', err);
+      log.error('Rate limit check error:', err);
       return { allowed: true, remaining: config.limit, resetAt: null };
     }
   };
