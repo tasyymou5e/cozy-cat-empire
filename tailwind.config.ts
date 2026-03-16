@@ -501,6 +501,24 @@ export default {
 				'0%, 100%': { transform: 'translateY(0)' },
 				'25%': { transform: 'translateY(-2px)' },
 				'75%': { transform: 'translateY(-2px)' }
+			},
+			'reward-float': {
+				'0%': {
+					transform: 'translateY(0) scale(0.5)',
+					opacity: '0'
+				},
+				'15%': {
+					transform: 'translateY(-10px) scale(1.2)',
+					opacity: '1'
+				},
+				'30%': {
+					transform: 'translateY(-25px) scale(1)',
+					opacity: '1'
+				},
+				'100%': {
+					transform: 'translateY(-80px) scale(0.8)',
+					opacity: '0'
+				}
 			}
 		},
   		animation: {
@@ -554,7 +572,9 @@ export default {
 			'trade-pulse': 'trade-pulse 1s ease-in-out infinite',
 			'zoomies': 'zoomies 0.2s ease-in-out infinite',
 			// Empire roaming animation
-			'cat-walk': 'cat-walk 0.5s ease-in-out infinite'
+			'cat-walk': 'cat-walk 0.5s ease-in-out infinite',
+			// Reward float animation
+			'reward-float': 'reward-float 1.8s ease-out forwards'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',

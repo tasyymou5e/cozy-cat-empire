@@ -20,8 +20,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { ChevronDown, BarChart3, LayoutGrid, Heart, Camera, Image, Globe, Castle } from 'lucide-react';
+import { ChevronDown, BarChart3, LayoutGrid, Heart, Camera, Image, Globe, Castle, Lock } from 'lucide-react';
 import { CATEGORIES, getCategoryForTab } from './CategoryTabBar';
 
 interface GameSidebarProps {
@@ -31,6 +32,8 @@ interface GameSidebarProps {
   day: number;
   money: number;
   highlightedTab?: string | null;
+  isTabUnlocked?: (tabId: string) => boolean;
+  getTabUnlockHint?: (tabId: string) => string | null;
 }
 
 const EXTERNAL_LINKS = [
@@ -50,6 +53,8 @@ export function GameSidebar({
   day,
   money,
   highlightedTab,
+  isTabUnlocked,
+  getTabUnlockHint,
 }: GameSidebarProps) {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
@@ -141,36 +146,53 @@ export function GameSidebar({
                         const isActive = tab.id === activeTab;
                         const tabBadge = badges[tab.id] || 0;
                         const isHighlighted = tab.id === highlightedTab;
+                        const locked = isTabUnlocked ? !isTabUnlocked(tab.id) : false;
+                        const hint = locked && getTabUnlockHint ? getTabUnlockHint(tab.id) : null;
 
                         return (
                           <SidebarMenuItem key={tab.id}>
-                            <SidebarMenuButton
-                              isActive={isActive}
-                              onClick={() => onTabChange(tab.id)}
-                              tooltip={isCollapsed ? tab.label : undefined}
-                              className={cn(
-                                'w-full justify-start gap-2 transition-colors',
-                                isActive && 'bg-primary text-primary-foreground hover:bg-primary/90',
-                                isHighlighted && !isActive && 'tutorial-hotspot-active ring-2 ring-primary ring-offset-2 ring-offset-background'
-                              )}
-                            >
-                              <span className="text-sm shrink-0">
-                                {typeof tab.icon === 'string' ? tab.icon : tab.icon}
-                              </span>
-                              {!isCollapsed && (
-                                <>
-                                  <span className="flex-1 text-left">{tab.label}</span>
-                                  {tabBadge > 0 && (
-                                    <Badge
-                                      variant={isActive ? 'secondary' : 'destructive'}
-                                      className="h-4 min-w-4 px-1 text-[10px]"
-                                    >
-                                      {tabBadge > 9 ? '9+' : tabBadge}
-                                    </Badge>
-                                  )}
-                                </>
-                              )}
-                            </SidebarMenuButton>
+                            <TooltipProvider delayDuration={200}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <SidebarMenuButton
+                                    isActive={isActive && !locked}
+                                    onClick={() => !locked && onTabChange(tab.id)}
+                                    tooltip={isCollapsed ? tab.label : undefined}
+                                    className={cn(
+                                      'w-full justify-start gap-2 transition-colors',
+                                      isActive && !locked && 'bg-primary text-primary-foreground hover:bg-primary/90',
+                                      isHighlighted && !isActive && 'tutorial-hotspot-active ring-2 ring-primary ring-offset-2 ring-offset-background',
+                                      locked && 'opacity-50 cursor-not-allowed'
+                                    )}
+                                  >
+                                    <span className="text-sm shrink-0">
+                                      {locked ? <Lock className="h-3.5 w-3.5" /> : (typeof tab.icon === 'string' ? tab.icon : tab.icon)}
+                                    </span>
+                                    {!isCollapsed && (
+                                      <>
+                                        <span className={cn('flex-1 text-left', locked && 'line-through')}>{tab.label}</span>
+                                        {!locked && tabBadge > 0 && (
+                                          <Badge
+                                            variant={isActive ? 'secondary' : 'destructive'}
+                                            className="h-4 min-w-4 px-1 text-[10px]"
+                                          >
+                                            {tabBadge > 9 ? '9+' : tabBadge}
+                                          </Badge>
+                                        )}
+                                      </>
+                                    )}
+                                  </SidebarMenuButton>
+                                </TooltipTrigger>
+                                {locked && hint && (
+                                  <TooltipContent side="right">
+                                    <div className="text-center">
+                                      <div className="font-medium">🔒 Locked</div>
+                                      <div className="text-xs text-muted-foreground">{hint}</div>
+                                    </div>
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+                            </TooltipProvider>
                           </SidebarMenuItem>
                         );
                       })}

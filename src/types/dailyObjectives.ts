@@ -121,18 +121,26 @@ export const OBJECTIVE_DEFINITIONS: ObjectiveDefinition[] = [
   },
 ];
 
-export function generateDailyObjectives(count: number = 3): DailyObjective[] {
-  // Shuffle and pick random objectives
+/**
+ * Generate daily objectives with difficulty scaling based on player day
+ */
+export function generateDailyObjectives(count: number = 3, playerDay: number = 1): DailyObjective[] {
+  // Scale factor: 1.0 at day 1, up to 2.5 at day 100+
+  const scaleFactor = 1 + Math.min(playerDay / 100, 1.5);
+
   const shuffled = [...OBJECTIVE_DEFINITIONS].sort(() => Math.random() - 0.5);
   const selected = shuffled.slice(0, count);
 
   return selected.map((def, index) => {
-    const target = Math.floor(
+    const baseTarget = Math.floor(
       Math.random() * (def.targetRange[1] - def.targetRange[0] + 1) + def.targetRange[0]
     );
-    const reward = Math.floor(
+    const target = Math.max(1, Math.round(baseTarget * scaleFactor));
+
+    const baseReward = Math.floor(
       Math.random() * (def.rewardRange[1] - def.rewardRange[0] + 1) + def.rewardRange[0]
     );
+    const reward = Math.round(baseReward * scaleFactor);
 
     return {
       id: `${def.id}_${Date.now()}_${index}`,
