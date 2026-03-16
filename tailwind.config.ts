@@ -554,7 +554,9 @@ export default {
 			'trade-pulse': 'trade-pulse 1s ease-in-out infinite',
 			'zoomies': 'zoomies 0.2s ease-in-out infinite',
 			// Empire roaming animation
-			'cat-walk': 'cat-walk 0.5s ease-in-out infinite'
+			'cat-walk': 'cat-walk 0.5s ease-in-out infinite',
+			// Reward float animation
+			'reward-float': 'reward-float 1.8s ease-out forwards'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',
