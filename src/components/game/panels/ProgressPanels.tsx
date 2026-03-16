@@ -57,7 +57,7 @@ export function ProgressPanels({
 }: ProgressPanelsProps) {
   return (
     <>
-      <TabsContent value="leaderboard" className="mt-0">
+      <TabsContent value="leaderboard" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="LeaderboardPanel">
           <Suspense fallback={<PanelSkeleton rows={5} />}>
             <LeaderboardPanel
@@ -68,7 +68,7 @@ export function ProgressPanels({
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="challenges" className="mt-0">
+      <TabsContent value="challenges" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="WeeklyChallengesPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <WeeklyChallengesPanel
@@ -89,7 +89,7 @@ export function ProgressPanels({
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="objectives" className="mt-0">
+      <TabsContent value="objectives" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="DailyObjectivesPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <DailyObjectivesPanel
@@ -101,7 +101,7 @@ export function ProgressPanels({
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="wheel" className="mt-0">
+      <TabsContent value="wheel" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="LuckyWheelPanel">
           <Suspense fallback={<PanelSkeleton rows={3} showButtons={false} />}>
             <LuckyWheelPanel
@@ -118,7 +118,7 @@ export function ProgressPanels({
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="collection" className="mt-0">
+      <TabsContent value="collection" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="CollectionProgressPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <CollectionProgressPanel

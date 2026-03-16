@@ -26,7 +26,7 @@ export function CatManagementPanels({
   onNextDay,
 }: CatManagementPanelsProps) {
   return (
-    <TabsContent value="actions" className="mt-0">
+    <TabsContent value="actions" className="mt-0 panel-animate-in">
       <PanelErrorBoundary panelName="ActionPanel">
         <Suspense fallback={<PanelSkeleton rows={2} />}>
           <ActionPanel

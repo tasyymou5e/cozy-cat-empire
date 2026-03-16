@@ -75,21 +75,21 @@ export function SocialFeaturesPanels({
 }: SocialFeaturesPanelsProps) {
   return (
     <>
-      <TabsContent value="friends" className="mt-0">
+      <TabsContent value="friends" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="FriendsPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <FriendsPanel userId={userId} />
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="profile" className="mt-0">
+      <TabsContent value="profile" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="PlayerProfilePanel">
           <Suspense fallback={<PanelSkeleton rows={3} />}>
             <PlayerProfilePanel userId={userId} />
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="gifts" className="mt-0">
+      <TabsContent value="gifts" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="CatGiftingPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <CatGiftingPanel
@@ -102,7 +102,7 @@ export function SocialFeaturesPanels({
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="trading" className="mt-0">
+      <TabsContent value="trading" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="TradingPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <TradingPanel
@@ -119,7 +119,7 @@ export function SocialFeaturesPanels({
           </Suspense>
         </PanelErrorBoundary>
       </TabsContent>
-      <TabsContent value="coop" className="mt-0">
+      <TabsContent value="coop" className="mt-0 panel-animate-in">
         <PanelErrorBoundary panelName="CoopChallengesPanel">
           <Suspense fallback={<PanelSkeleton rows={4} />}>
             <CoopChallengesPanel

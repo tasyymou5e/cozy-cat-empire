@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -105,11 +106,11 @@ export function GameHeader({
           <div className="flex items-center gap-3 text-sm">
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/50">
               <span>📅</span>
-              <span className="font-medium">Day {day}</span>
+              <span className="font-medium">Day <AnimatedCounter value={day} /></span>
             </div>
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/50">
               <span>💰</span>
-              <span className="font-bold text-gradient-gold">${money.toLocaleString()}</span>
+              <span className="font-bold text-gradient-gold"><AnimatedCounter value={money} prefix="$" /></span>
             </div>
             {/* Weekly Event Banner */}
             <WeeklyEventBanner compact />
