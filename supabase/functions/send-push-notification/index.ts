@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
     }
 
     // Create client with user's token to verify identity
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+    const supabaseAuth = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
       global: { headers: { Authorization: authHeader } }
     });
 
