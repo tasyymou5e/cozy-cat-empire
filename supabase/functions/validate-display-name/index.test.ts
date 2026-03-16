@@ -92,7 +92,7 @@ Deno.test("validate-display-name: validates username action", async () => {
     },
     body: JSON.stringify({
       displayName: "dummy",
-      username: "testuser" + Date.now(),
+      username: "testplayer" + Math.floor(Math.random() * 999),
       action: "validate_username",
     }),
   });
@@ -100,7 +100,6 @@ Deno.test("validate-display-name: validates username action", async () => {
   const body = await response.json();
   assertEquals(response.status, 200);
   assertEquals(body.valid, true);
-  await response.text().catch(() => {});
 });
 
 Deno.test("validate-display-name: handles CORS preflight", async () => {
