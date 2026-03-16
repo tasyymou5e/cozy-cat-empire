@@ -125,7 +125,7 @@ export function useAdminAuth(): UseAdminAuthResult {
           checkInProgress.current = null;
         }
       } catch (err) {
-        console.error('[useAdminAuth] Role check error:', err);
+        log.error('Role check error:', err);
         if (checkInProgress.current === userIdBeingChecked) {
           setIsAdmin(false);
           setCheckedUserId(userIdBeingChecked);
