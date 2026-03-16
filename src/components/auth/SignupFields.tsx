@@ -56,7 +56,7 @@ export function SignupFields({
     <>
       {/* Avatar Selection */}
       <div className="space-y-2">
-        <Label className="flex items-center gap-2">Choose your avatar</Label>
+        <Label className="flex items-center gap-2 font-serif">Choose your avatar</Label>
         <div className="flex flex-wrap gap-2 justify-center">
           {AVATAR_OPTIONS.map((emoji) => (
             <button
@@ -77,7 +77,7 @@ export function SignupFields({
 
       {/* Display Name */}
       <div className="space-y-2">
-        <Label htmlFor="displayName" className="flex items-center gap-2">
+        <Label htmlFor="displayName" className="flex items-center gap-2 font-serif">
           <User className="h-4 w-4 text-primary" />
           Display Name *
         </Label>
@@ -92,7 +92,7 @@ export function SignupFields({
             disabled={isSubmitting}
             required
             maxLength={30}
-            className={`bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20 pr-10 ${
+            className={`auth-input-glow bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20 pr-10 ${
               nameError ? 'border-destructive' : nameAvailable === true ? 'border-green-500' : ''
             }`}
           />
@@ -119,7 +119,7 @@ export function SignupFields({
 
       {/* Username */}
       <div className="space-y-2">
-        <Label htmlFor="username" className="flex items-center gap-2">
+        <Label htmlFor="username" className="flex items-center gap-2 font-serif">
           <AtSign className="h-4 w-4 text-primary" />
           Username *
         </Label>
@@ -138,7 +138,7 @@ export function SignupFields({
             disabled={isSubmitting}
             required
             maxLength={20}
-            className={`bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20 pl-8 pr-10 ${
+            className={`auth-input-glow bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary/50 focus:ring-primary/20 pl-8 pr-10 ${
               usernameError ? 'border-destructive' : usernameAvailable === true ? 'border-green-500' : ''
             }`}
           />

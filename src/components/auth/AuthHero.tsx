@@ -16,8 +16,8 @@ export function AuthHero({ mode }: AuthHeroProps) {
         <span className="text-4xl animate-bounce" style={{ animationDelay: '0.2s' }}>😸</span>
       </div>
 
-      {/* Big gradient headline */}
-      <h1 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] animate-[gradient-shift_3s_ease-in-out_infinite] bg-clip-text text-transparent drop-shadow-sm">
+      {/* Big gradient headline — Playfair Display via page-heading */}
+      <h1 className="page-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-primary via-accent-foreground to-primary bg-[length:200%_auto] animate-[gradient-shift_3s_ease-in-out_infinite] bg-clip-text text-transparent drop-shadow-sm">
         Cozy Cat Empire
       </h1>
 
@@ -30,7 +30,7 @@ export function AuthHero({ mode }: AuthHeroProps) {
         </div>
       </div>
 
-      {/* Feature badges strip */}
+      {/* Feature badges strip — glass-like */}
       <div className="flex flex-wrap justify-center gap-2 px-2">
         {[
           { emoji: '🐾', label: '50+ Breeds' },
@@ -40,7 +40,7 @@ export function AuthHero({ mode }: AuthHeroProps) {
         ].map((badge, i) => (
           <span
             key={badge.label}
-            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-primary/15 text-primary border border-primary/20 backdrop-blur-sm animate-fade-in"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-card/50 backdrop-blur-sm text-primary border border-primary/20 shadow-sm animate-fade-in"
             style={{ animationDelay: `${i * 150}ms`, animationFillMode: 'both' }}
           >
             {badge.emoji} {badge.label}
