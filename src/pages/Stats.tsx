@@ -69,7 +69,7 @@ export default function Stats() {
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{stats?.avatar_emoji || '😺'}</span>
                 <div>
-                  <h1 className="text-xl font-bold">{stats?.display_name || 'Your Stats'}</h1>
+                  <h1 className="text-xl font-bold page-heading">{stats?.display_name || 'Your Stats'}</h1>
                   <p className="text-sm text-muted-foreground">Personal Statistics Dashboard</p>
                 </div>
               </div>
