@@ -9,15 +9,27 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import ReactMarkdown from 'react-markdown';
 
 interface AICatAdvisorProps {
   cats: Cat[];
   state: GameState;
   onRenameCat?: (catId: string, name: string) => void;
   onSaveBackstory?: (catId: string, backstory: string) => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
-export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory }: AICatAdvisorProps) {
+const QUICK_PROMPTS = [
+  { label: '🎯 What next?', prompt: 'What should I do next?' },
+  { label: '🐱 Cats needing care?', prompt: 'Which of my cats need attention right now?' },
+  { label: '💕 Best breeding pair?', prompt: 'What is the best breeding pair right now?' },
+  { label: '💰 Earn fast?', prompt: 'How can I earn money fast?' },
+];
+
+const CHAT_HISTORY_KEY = 'cat-farm-ai-chat-history';
+const MAX_HISTORY = 20;
+
+export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory, onNavigateTab }: AICatAdvisorProps) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [chatInput, setChatInput] = useState('');
