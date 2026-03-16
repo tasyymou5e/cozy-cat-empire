@@ -37,33 +37,24 @@ interface RenderRequest {
 
 // Dwelling tier descriptions for prompt building
 const TIER_DESCRIPTIONS: Record<string, string> = {
-  apartment: `Cozy urban apartment interior with warm amber walls, wood laminate flooring, 
-    city skyline visible through a large window, potted plants, cat tree, cozy cat bed, 
-    bookshelf, floor cushions, and a radiator for warmth.`,
-  house: `Suburban living room with cream-colored walls, soft carpet, bay window with garden view,
-    warm fireplace, comfortable couch, cat tower, ottoman, cozy rug, and garden door.`,
-  mansion: `Grand luxury parlor with lavender walls, marble flooring, crystal chandelier overhead,
-    marble columns, grand piano, velvet chaise lounge, ornate fountain, cat throne,
-    and fine art on the walls.`,
-  farm: `Outdoor pastoral farmland scene with rolling green hills, bright sky, red barn in background,
-    wooden fences, hay bales scattered around, windmill on the horizon, apple trees,
-    tractor, and sunny spots on the grass.`,
+  apartment: "Warm cozy apartment interior, honey-amber walls, oak hardwood floor, large window showing city skyline, potted monstera plant, knitted blankets on couch, cat tree by window, soft woven rug, bookshelf with trinkets, warm lamp light",
+  house: "Bright suburban living room, cream walls, plush carpet, bay window with garden view, stone fireplace with crackling fire, overstuffed sofa, cat tower, potted ferns, sunlight streaming in, family photos on wall",
+  mansion: "Grand luxury parlor, pale lavender walls with gold trim, white marble floor, crystal chandelier, marble columns, grand piano, velvet chaise lounge, ornate gold-framed paintings, fresh flower arrangements, tall arched windows",
+  farm: "Pastoral countryside scene, rolling emerald hills, bright blue sky with fluffy clouds, red barn in midground, wooden post fences, golden hay bales, old windmill, apple orchard, warm sunlit grass, dirt path",
 };
 
-// Time of day lighting descriptions
 const TIME_LIGHTING: Record<string, string> = {
-  morning: "Warm golden morning light from upper left, soft yellow-orange ambient glow, long shadows, fresh dewy atmosphere",
-  afternoon: "Bright natural daylight, clear and even lighting, minimal shadows, vibrant colors",
-  evening: "Warm orange-pink sunset lighting, dramatic shadows, cozy golden hour atmosphere",
-  night: "Cool blue-purple night lighting, soft moonlight, warm glow from indoor lights, starry atmosphere",
+  morning: "Warm golden morning light from upper left, soft yellow-orange ambient glow, long gentle shadows, fresh dewy atmosphere, light rays through windows",
+  afternoon: "Bright natural daylight, clear even lighting, vibrant saturated colors, crisp details, blue sky reflected light",
+  evening: "Warm orange-pink sunset lighting, long dramatic shadows, cozy golden hour atmosphere, amber rim lighting on subjects",
+  night: "Cool blue-purple moonlight, soft diffused shadows, warm indoor lamp glow, starry sky visible, gentle ambient light",
 };
 
-// Season descriptions
 const SEASON_ELEMENTS: Record<string, string> = {
-  spring: "Cherry blossoms falling, tulips blooming, baby chicks, butterflies, fresh green growth",
-  summer: "Bright sunshine, sunflowers, butterflies, bees buzzing, lush green foliage",
-  autumn: "Falling orange and red leaves, pumpkins, harvest decorations, warm amber tones",
-  winter: "Light snow falling, snowman, holiday decorations, cozy warm lights, frost on surfaces",
+  spring: "Pink cherry blossom petals drifting, tulips in bloom, butterflies, fresh green leaves, soft pastel tones",
+  summer: "Bright warm sunshine, sunflowers, lush green foliage, butterflies, vivid saturated colors",
+  autumn: "Falling orange and red maple leaves, pumpkins, warm amber and burnt sienna tones, cozy harvest decorations",
+  winter: "Gentle snow falling, frost on surfaces, warm cozy indoor lights, evergreen garlands, soft white and blue tones",
 };
 
 // Costume render instructions
@@ -123,56 +114,66 @@ const PATTERN_DESCRIPTIONS: Record<string, string> = {
   calico: "calico with random patches of orange, black, and white",
 };
 
-function buildCatDescription(cat: Cat, costumeId?: string): string {
-  const breed = BREED_TRAITS[cat.breed] || "cute cat";
+function buildCatDescription(cat: Cat, costumeId?: string, index?: number): string {
+  const breed = cat.breed;
   const appearance = cat.appearance || {};
   
-  const furColor = appearance.furColor ? FUR_COLORS[appearance.furColor] || appearance.furColor : "tabby colored";
-  const pattern = appearance.pattern ? PATTERN_DESCRIPTIONS[appearance.pattern] || appearance.pattern : "";
+  const furColor = appearance.furColor ? (FUR_COLORS[appearance.furColor] || appearance.furColor) : "tabby colored";
+  const pattern = appearance.pattern ? (PATTERN_DESCRIPTIONS[appearance.pattern] || appearance.pattern) : "";
   const eyeColor = appearance.eyeColor || "bright";
   const hairLength = appearance.hairLength || "medium";
+  const breedTraits = BREED_TRAITS[cat.breed] || "";
   
   const costume = costumeId ? COSTUME_DESCRIPTIONS[costumeId] || "" : "";
   
-  return `"${cat.name}" - a ${hairLength}-haired ${furColor} ${pattern} ${cat.breed} cat with ${eyeColor} eyes, ${breed}${costume ? ", " + costume : ""}`;
+  // Concise comma-separated tag format
+  const parts = [
+    `Cat ${(index ?? 0) + 1} "${cat.name}"`,
+    breed,
+    `${hairLength} fur`,
+    furColor,
+    pattern,
+    `${eyeColor} eyes`,
+    breedTraits,
+    costume,
+  ].filter(Boolean);
+  
+  return parts.join(", ");
+}
+
+function getSceneActivity(catCount: number): string {
+  if (catCount === 0) return "The space is empty and inviting, waiting for its first cat resident";
+  if (catCount === 1) return "The cat is lounging peacefully in a comfortable spot";
+  if (catCount <= 3) return "The cats are relaxing together, one grooming while another watches curiously";
+  return "Cats are scattered naturally throughout the scene — some napping on furniture, some playing, some perched up high observing";
 }
 
 function buildEmpirePrompt(request: RenderRequest): string {
   const { houseSize, timeOfDay, season, cats, catCostumes } = request;
   
-  // Build cat descriptions
   const catDescriptions = cats.map((cat, index) => {
     const costume = catCostumes[cat.id];
-    const desc = buildCatDescription(cat, costume);
-    const position = `Position ${index + 1}`;
-    return `${index + 1}. ${desc}\n   ${position}: naturally placed in the scene`;
+    return buildCatDescription(cat, costume, index);
   }).join("\n");
 
-  const prompt = `Create a beautiful ${timeOfDay.toUpperCase()} scene in ${season.toUpperCase()} at a cat empire.
+  const activity = getSceneActivity(cats.length);
 
-SCENE DESCRIPTION:
-${TIER_DESCRIPTIONS[houseSize]}
+  const prompt = `SCENE: ${TIER_DESCRIPTIONS[houseSize]}
 
-LIGHTING:
-${TIME_LIGHTING[timeOfDay]}
+LIGHTING: ${TIME_LIGHTING[timeOfDay]}
 
-SEASONAL ELEMENTS:
-${SEASON_ELEMENTS[season]}
+SEASON: ${SEASON_ELEMENTS[season]}
 
-CATS IN SCENE (${cats.length} total):
-${catDescriptions || "No cats yet - show an inviting empty space"}
+CATS (${cats.length} total):
+${catDescriptions || "No cats — show an inviting empty space"}
 
-STYLE REQUIREMENTS:
-- Cute kawaii cartoon scene in the style of Studio Ghibli meets modern mobile game art
-- Warm cozy lighting with soft cel-shaded look and gradients
-- Large expressive eyes on all cats with sparkle reflections
-- Pink noses with subtle shine, blush marks on cheeks
-- Professional quality, ultra-cute aesthetic throughout
-- Panoramic wide 16:9 aspect ratio composition
-- All cats naturally integrated into the scene, interacting with furniture
-- 4K resolution, masterpiece quality
-- High detail on fur textures with visible individual strands
-- Magical whimsical atmosphere with the seasonal elements`;
+ACTIVITY: ${activity}
+
+COMPOSITION: Wide 16:9 panoramic view, slight low-angle camera, depth of field with sharp foreground cats and softly blurred background details, warm rim lighting on cat fur edges, cats naturally placed on furniture and floor throughout the scene.
+
+STYLE: Digital illustration, soft watercolor rendering with clean precise outlines, children's picture book aesthetic, Pixar-quality lighting and color grading, rich detailed textures, professional concept art quality, 4K resolution, masterpiece quality, high detail on fur textures with visible individual strands.
+
+AVOID: Squiggly lines, rough sketches, wobbly linework, abstract patterns, text or letters anywhere in the image, deformed cat anatomy, extra limbs, extra tails, blurry faces, watermarks, signatures, borders, vignettes, cats in the background that were not specified, random floating objects.`;
 
   return prompt;
 }
