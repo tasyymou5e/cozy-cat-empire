@@ -362,7 +362,7 @@ export function GameHeader({
               <div className="border-t pt-3 space-y-1">
                 <button
                   onClick={onThemeChange}
-                  className="flex items-center gap-2 w-full text-sm p-2 rounded-md hover:bg-muted transition-colors"
+                  className="flex items-center gap-2 w-full text-sm p-2 rounded-md hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                   {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
@@ -370,7 +370,7 @@ export function GameHeader({
 
                 <button
                   onClick={onShowShortcutsHelp}
-                  className="flex items-center gap-2 w-full text-sm p-2 rounded-md hover:bg-muted transition-colors"
+                  className="flex items-center gap-2 w-full text-sm p-2 rounded-md hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <Keyboard className="h-4 w-4" />
                   Keyboard Shortcuts
@@ -378,7 +378,7 @@ export function GameHeader({
 
                 <button
                   onClick={onShowWhatsNew}
-                  className="flex items-center gap-2 w-full text-sm p-2 rounded-md hover:bg-muted transition-colors"
+                  className="flex items-center gap-2 w-full text-sm p-2 rounded-md hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <Sparkles className="h-4 w-4" />
                   What's New
@@ -386,7 +386,7 @@ export function GameHeader({
 
                 <button
                   onClick={onResetGame}
-                  className="flex items-center gap-2 w-full text-sm p-2 rounded-md hover:bg-muted text-destructive transition-colors"
+                  className="flex items-center gap-2 w-full text-sm p-2 rounded-md hover:bg-muted text-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <RotateCcw className="h-4 w-4" />
                   New Game

@@ -27,15 +27,6 @@ interface VirtualizedCatGridProps {
   virtualizationThreshold?: number;
 }
 
-// Responsive grid container styles
-const gridContainerStyle = {
-  display: 'grid',
-  gap: '1rem',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-};
-
-// Media query breakpoints handled via CSS class
-const gridClassName = 'virtualized-cat-grid';
 
 // Custom list container for VirtuosoGrid - responsive columns via CSS class
 const ListContainer = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
