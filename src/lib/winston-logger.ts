@@ -47,7 +47,7 @@ export const LOG_LEVEL_EMOJI: Record<WinstonLogLevel, string> = {
 };
 
 interface LogMeta {
-  [key: string]: unknown;
+  [key: string]: string | number | boolean | null | undefined | LogMeta | LogMeta[];
 }
 
 interface LogEntry {
