@@ -690,7 +690,12 @@ function TradingCardView({
       )}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
-          <span className="text-lg">{personalityEmojis[cat.personality]}</span>
+          <span className={cn(
+            'inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full border',
+            personalityColors[cat.personality] || 'bg-muted text-muted-foreground border-border'
+          )}>
+            {personalityEmojis[cat.personality]}
+          </span>
           <span className="font-bold text-sm truncate max-w-[100px]">{cat.name}</span>
         </div>
         <GradeBadge grade={cat.grade} size="sm" />
