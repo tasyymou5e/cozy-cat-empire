@@ -68,7 +68,7 @@ vi.mock('../useErrorLogger', () => ({
 const USER_ID = 'user-integration-1';
 
 const makeState = (overrides: Partial<GameState> = {}): GameState => ({
-  cats: [{ id: 'cat-1', name: 'Whiskers', type: 'stray', breed: 'Tabby', health: 80, happiness: 70, hunger: 60, value: 80, age: 1, personality: 'Playful', showWins: 0, isForSale: false, grade: 3, tricksLearned: [], trickProgress: {}, restLevel: 80, feedingScore: 50, lastTrainingDay: 0 }] as GameState['cats'],
+  cats: [{ id: 'cat-1', name: 'Whiskers', type: 'stray', breed: 'tabby', health: 80, happiness: 70, hunger: 60, value: 80, age: 1, personality: 'playful', showWins: 0, isForSale: false, grade: 3, tricksLearned: [], trickProgress: {}, restLevel: 80, feedingScore: 50, lastTrainingDay: 0 }] as GameState['cats'],
   money: 500,
   space: 5,
   houseSize: 'apartment',
