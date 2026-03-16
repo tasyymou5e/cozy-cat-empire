@@ -89,7 +89,7 @@ export default function AdminTracking() {
       queryClient.invalidateQueries({ queryKey: ['tracking-config'] });
       setHasChanges(false);
       toast({ title: 'Tracking config saved', description: 'Changes will take effect on next page load.' });
-      logActivity('config_update', 'Updated tracking/analytics configuration', undefined, 'game_config');
+      logActivity({ actionType: 'config_update', actionDescription: 'Updated tracking/analytics configuration', targetTable: 'game_config' });
     },
     onError: (err: any) => {
       toast({ title: 'Save failed', description: err.message, variant: 'destructive' });
