@@ -12,6 +12,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { createLogger } from '@/lib/logger';
 
+const log = createLogger('AdminAuth');
+
 /**
  * Return type for the useAdminAuth hook
  *
