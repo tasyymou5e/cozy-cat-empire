@@ -25,12 +25,13 @@ const TIER_FRAME: Record<GradeTier, { frameClass: string; holoLevel: number; lab
   ultraRare: { frameClass: 'pokemon-frame-mythic', holoLevel: 4, label: 'Mythic', stars: '★H' },
 };
 
-export function PokemonCard({ cat, className, showFlip = true, onClick }: PokemonCardProps) {
+export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned = true, profileBaseUrl }: PokemonCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [shinePos, setShinePos] = useState({ x: 50, y: 50 });
   const [isHovering, setIsHovering] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const { playSound } = useSound();
 
   const tier = getGradeTier(cat.grade);
   const breedType = getBreedType(cat.breed);
@@ -39,6 +40,7 @@ export function PokemonCard({ cat, className, showFlip = true, onClick }: Pokemo
   const tierFrame = TIER_FRAME[tier];
   const retreatCost = getRetreatCost(cat);
   const cardNum = getCardNumber(cat);
+  const qrUrl = profileBaseUrl ? `${profileBaseUrl}/cat/${cat.id}` : `https://cozy-cat-empire.lovable.app/cat/${cat.id}`;
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isFlipped || !cardRef.current) return;
