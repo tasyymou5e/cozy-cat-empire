@@ -110,7 +110,7 @@ export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned 
             'absolute inset-0 rounded-2xl overflow-hidden',
             tierFrame.frameClass
           )}
-          style={{ backfaceVisibility: 'hidden' }}
+          style={{ backfaceVisibility: 'hidden', pointerEvents: isFlipped ? 'none' : 'auto' }}
         >
           {/* Gold/Silver Frame */}
           <div className="pokemon-card-frame absolute inset-0 rounded-2xl p-3">
