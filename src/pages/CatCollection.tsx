@@ -482,7 +482,7 @@ export default function CatCollection() {
                   <p className="text-muted-foreground">You need cats to build a deck!</p>
                 </div>
               ) : (
-                <DeckBuilder availableCats={state.cats} maxDeckSize={6} />
+                <DeckBuilder availableCats={state.cats} catCostumes={state.catCostumes} maxDeckSize={6} />
               )}
             </div>
           )}
