@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Cat } from '@/types/game';
 import { UnifiedCatCard } from '@/components/game/UnifiedCatCard';
 import { PokemonCard } from '@/components/game/PokemonCard';
 import { CardComparison, DeckBuilder, TradeAnimation } from '@/components/game/CardFeatures';
+import { PackOpening } from '@/components/game/PackOpening';
 import { useTheme } from 'next-themes';
-import { Sun, Moon, Sparkles, ArrowLeftRight, Layers, Swords } from 'lucide-react';
+import { Sun, Moon, Sparkles, ArrowLeftRight, Layers, Swords, Package, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 
 const MOCK_CATS: Cat[] = [
   {
@@ -60,6 +62,23 @@ const TIER_INFO = [
 export default function CardShowcase() {
   const { theme, setTheme } = useTheme();
   const [isTrading, setIsTrading] = useState(false);
+  const [collectedIds, setCollectedIds] = useState<Set<string>>(
+    new Set(['showcase-common', 'showcase-rare', 'showcase-mythic'])
+  );
+
+  const collectionStats = useMemo(() => ({
+    owned: collectedIds.size,
+    total: MOCK_CATS.length,
+    pct: Math.round((collectedIds.size / MOCK_CATS.length) * 100),
+  }), [collectedIds]);
+
+  const handlePackOpened = (cats: Cat[]) => {
+    setCollectedIds(prev => {
+      const next = new Set(prev);
+      cats.forEach(c => next.add(c.id));
+      return next;
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/30 via-background to-muted/20 p-6 md:p-12">
@@ -76,22 +95,29 @@ export default function CardShowcase() {
               </h1>
             </div>
             <p className="text-muted-foreground text-lg ml-14">
-              Pokémon TCG-style cards with holo effects, 3D tilt, comparison & deck builder
+              TCG cards with QR codes, pack opening, collection tracking & more
             </p>
           </div>
-          <Button
-            variant="outline" size="icon"
-            className="rounded-2xl h-11 w-11 backdrop-blur-sm bg-card/60 border-border/50"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="text-sm px-3 py-1.5 gap-1.5">
+              <BookOpen className="h-3.5 w-3.5" />
+              {collectionStats.owned}/{collectionStats.total} ({collectionStats.pct}%)
+            </Badge>
+            <Button
+              variant="outline" size="icon"
+              className="rounded-2xl h-11 w-11 backdrop-blur-sm bg-card/60 border-border/50"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="pokemon" className="space-y-8">
-          <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+          <TabsList className="grid grid-cols-6 w-full max-w-3xl">
             <TabsTrigger value="pokemon">🃏 TCG Cards</TabsTrigger>
-            <TabsTrigger value="standard">📋 Standard</TabsTrigger>
+            <TabsTrigger value="collection"><BookOpen className="h-3 w-3 mr-1" />Collection</TabsTrigger>
+            <TabsTrigger value="packs"><Package className="h-3 w-3 mr-1" />Packs</TabsTrigger>
             <TabsTrigger value="compare"><ArrowLeftRight className="h-3 w-3 mr-1" />Compare</TabsTrigger>
             <TabsTrigger value="deck"><Layers className="h-3 w-3 mr-1" />Deck</TabsTrigger>
             <TabsTrigger value="trade"><Swords className="h-3 w-3 mr-1" />Trade</TabsTrigger>
@@ -110,17 +136,46 @@ export default function CardShowcase() {
             </div>
           </TabsContent>
 
-          {/* Standard Cards */}
-          <TabsContent value="standard">
-            <SectionHeader title="Standard Cards" delay={100} />
-            <div className="grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-              {MOCK_CATS.map((cat, i) => (
-                <div key={cat.id} className="space-y-3 animate-fade-in" style={{ animationDelay: `${150 + i * 100}ms`, animationFillMode: 'both' }}>
-                  <TierLabel info={TIER_INFO[i]} />
-                  <UnifiedCatCard cat={cat} variant="card" showStats showActions={false} />
-                </div>
-              ))}
+          {/* Collection (owned vs unowned) */}
+          <TabsContent value="collection">
+            <SectionHeader title="Collection" delay={100} />
+            <div className="mb-6 flex items-center gap-4">
+              <div className="flex-1 bg-muted rounded-full h-3 overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-700"
+                  style={{ width: `${collectionStats.pct}%` }}
+                />
+              </div>
+              <span className="text-sm font-bold text-foreground">
+                {collectionStats.owned}/{collectionStats.total}
+              </span>
             </div>
+            <div className="grid gap-10 justify-items-center" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
+              {MOCK_CATS.map((cat, i) => {
+                const owned = collectedIds.has(cat.id);
+                return (
+                  <div key={cat.id} className="space-y-3 animate-fade-in" style={{ animationDelay: `${150 + i * 100}ms`, animationFillMode: 'both' }}>
+                    <div className="flex items-center justify-between px-1">
+                      <TierLabel info={TIER_INFO[i]} />
+                      <Badge variant={owned ? 'default' : 'secondary'} className="text-[10px]">
+                        {owned ? '✅ Owned' : '❌ Missing'}
+                      </Badge>
+                    </div>
+                    <PokemonCard cat={cat} showFlip={owned} isOwned={owned} />
+                  </div>
+                );
+              })}
+            </div>
+          </TabsContent>
+
+          {/* Pack Opening */}
+          <TabsContent value="packs">
+            <SectionHeader title="Pack Opening" delay={100} />
+            <PackOpening
+              availableCats={MOCK_CATS}
+              packSize={3}
+              onPackOpened={handlePackOpened}
+            />
           </TabsContent>
 
           {/* Compare */}
@@ -170,11 +225,9 @@ function SectionHeader({ title, delay = 0 }: { title: string; delay?: number }) 
 
 function TierLabel({ info }: { info: typeof TIER_INFO[number] }) {
   return (
-    <div className="flex items-center justify-between px-1">
-      <div className="flex items-center gap-2">
-        <span className="text-lg">{info.emoji}</span>
-        <span className={`text-sm font-bold tracking-wide uppercase ${info.color}`}>{info.label}</span>
-      </div>
+    <div className="flex items-center gap-2">
+      <span className="text-lg">{info.emoji}</span>
+      <span className={`text-sm font-bold tracking-wide uppercase ${info.color}`}>{info.label}</span>
       <span className="text-[11px] text-muted-foreground italic">{info.desc}</span>
     </div>
   );
