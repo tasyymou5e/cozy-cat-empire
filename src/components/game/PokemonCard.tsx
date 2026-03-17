@@ -94,7 +94,9 @@ export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned 
           width: 320,
           height: 448,
           transformStyle: 'preserve-3d',
-          transition: isFlipped ? 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)' : 'transform 0.1s ease-out',
+          transition: isFlipped
+            ? 'transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+            : 'transform 0.1s ease-out',
           transform: isFlipped
             ? 'rotateY(180deg)'
             : `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
@@ -305,75 +307,109 @@ export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned 
 
         {/* BACK FACE */}
         <div
-          className={cn(
-            'absolute inset-0 rounded-2xl overflow-hidden',
-            tierFrame.frameClass
-          )}
+          className="absolute inset-0 rounded-2xl overflow-hidden"
           style={{
             backfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)',
           }}
         >
-          <div className="pokemon-card-frame absolute inset-0 rounded-2xl p-3">
-            <div className="relative w-full h-full rounded-xl overflow-hidden flex flex-col items-center justify-between p-5"
-              style={{ background: 'linear-gradient(180deg, hsl(35 30% 93%) 0%, hsl(30 25% 88%) 100%)' }}
+          {/* Teal outer frame */}
+          <div className="absolute inset-0 rounded-2xl p-1"
+            style={{ background: 'linear-gradient(135deg, hsl(168 70% 42%), hsl(172 65% 50%), hsl(168 70% 42%))' }}
+          >
+            {/* Coral inner frame */}
+            <div className="w-full h-full rounded-xl p-1"
+              style={{ background: 'linear-gradient(135deg, hsl(12 80% 70%), hsl(15 85% 75%), hsl(12 80% 70%))' }}
             >
-              {/* Decorative illustration box */}
-              <div className="w-full rounded-xl border-2 p-4 flex flex-col items-center justify-center relative"
-                style={{ borderColor: 'hsl(40 60% 70%)', background: 'hsl(40 30% 96% / 0.8)' }}
+              {/* Card content */}
+              <div className="relative w-full h-full rounded-lg overflow-hidden flex flex-col items-center justify-between p-5"
+                style={{ background: 'linear-gradient(180deg, hsl(38 40% 95%) 0%, hsl(35 35% 90%) 50%, hsl(38 40% 95%) 100%)' }}
               >
-                <div className="flex items-center justify-between w-full text-base mb-1">
-                  <span>✨</span>
-                  <span>⭐</span>
-                </div>
-                <div className="rounded-lg border-2 px-5 py-2 flex items-center gap-2 my-1"
-                  style={{ borderColor: 'hsl(40 60% 70%)', background: 'hsl(40 20% 95% / 0.9)' }}
+                {/* Paw print watermark pattern */}
+                <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Ctext x='15' y='35' font-size='20'%3E🐾%3C/text%3E%3C/svg%3E")`,
+                    backgroundSize: '60px 60px',
+                  }}
+                />
+
+                {/* Floating hearts */}
+                <div className="absolute top-4 left-4 text-sm pokemon-floating-heart" style={{ animationDelay: '0s' }}>💕</div>
+                <div className="absolute top-12 right-5 text-xs pokemon-floating-heart" style={{ animationDelay: '1.5s' }}>💕</div>
+                <div className="absolute bottom-20 left-6 text-xs pokemon-floating-heart" style={{ animationDelay: '0.8s' }}>💕</div>
+
+                {/* Corner accents */}
+                <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 rounded-tl-md" style={{ borderColor: 'hsl(168 60% 50%)' }} />
+                <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 rounded-tr-md" style={{ borderColor: 'hsl(168 60% 50%)' }} />
+                <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 rounded-bl-md" style={{ borderColor: 'hsl(168 60% 50%)' }} />
+                <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 rounded-br-md" style={{ borderColor: 'hsl(168 60% 50%)' }} />
+
+                {/* Logo area */}
+                <div className="w-full rounded-xl border-2 p-4 flex flex-col items-center justify-center relative z-10"
+                  style={{ borderColor: 'hsl(168 50% 60%)', background: 'hsl(168 30% 96% / 0.9)' }}
                 >
-                  <span className="text-2xl">🏠</span>
-                  <span className="text-2xl">🐱</span>
+                  <div className="flex items-center justify-between w-full text-base mb-1">
+                    <span className="pokemon-twinkle-star">✨</span>
+                    <span className="pokemon-twinkle-star" style={{ animationDelay: '0.5s' }}>⭐</span>
+                  </div>
+                  {/* Circular logo badge */}
+                  <div className="relative w-16 h-16 rounded-full flex items-center justify-center my-1"
+                    style={{ background: 'linear-gradient(135deg, hsl(168 70% 42%), hsl(172 65% 50%))', boxShadow: '0 4px 12px hsl(168 60% 40% / 0.3)' }}
+                  >
+                    <span className="text-2xl">🏠</span>
+                    <span className="absolute -bottom-1 -right-1 text-lg bg-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm">🐱</span>
+                  </div>
+                  <div className="flex items-center justify-between w-full text-base mt-1">
+                    <span className="pokemon-twinkle-star" style={{ animationDelay: '1s' }}>✨</span>
+                    <span className="pokemon-twinkle-star" style={{ animationDelay: '1.5s' }}>⭐</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between w-full text-base mt-1">
-                  <span>✨</span>
-                  <span>⭐</span>
+
+                {/* Title */}
+                <div className="text-center mt-3 relative z-10">
+                  <h3 className="text-lg font-extrabold uppercase tracking-widest leading-tight"
+                    style={{ color: 'hsl(25 50% 30%)' }}
+                  >Happy Cat</h3>
+                  <h3 className="text-lg font-extrabold uppercase tracking-widest leading-tight"
+                    style={{ color: 'hsl(25 50% 30%)' }}
+                  >Homestead</h3>
                 </div>
-              </div>
 
-              {/* Title */}
-              <div className="text-center mt-3">
-                <h3 className="text-lg font-extrabold uppercase tracking-widest text-foreground leading-tight">Happy Cat</h3>
-                <h3 className="text-lg font-extrabold uppercase tracking-widest text-foreground leading-tight">Homestead</h3>
-              </div>
+                {/* Brand */}
+                <p className="text-[11px] font-bold uppercase tracking-wider mt-1 relative z-10"
+                  style={{ color: 'hsl(168 50% 35%)' }}
+                >Cozy Cat Empire</p>
 
-              {/* Brand */}
-              <div className="text-center mt-1">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Cozy Cat Empire</p>
-              </div>
-
-              {/* Tagline */}
-              <p className="text-[10px] text-muted-foreground text-center italic mt-1">
-                Where every cat finds their perfect sunny spot 🌻
-              </p>
-
-              {/* QR Code */}
-              <div className="bg-white p-1.5 rounded-lg shadow-sm mt-2">
-                <QRCodeSVG value={qrUrl} size={48} level="L" />
-              </div>
-
-              {/* Footer */}
-              <div className="flex justify-between items-center w-full mt-2 text-[8px] text-muted-foreground">
-                <span>© 2026 Cozy Cat Empire</span>
-                <span>CCE-{cardNum}</span>
-              </div>
-
-              {/* Flip button on back */}
-              {showFlip && (
-                <button
-                  onClick={handleFlip}
-                  className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-sm hover:bg-black/60 transition-colors backdrop-blur-sm"
+                {/* Tagline */}
+                <p className="text-[10px] text-center italic mt-1 relative z-10"
+                  style={{ color: 'hsl(25 30% 45%)' }}
                 >
-                  🔄
-                </button>
-              )}
+                  Where every cat finds their perfect sunny spot 🌻
+                </p>
+
+                {/* QR Code */}
+                <div className="bg-white p-1.5 rounded-lg shadow-sm mt-2 relative z-10">
+                  <QRCodeSVG value={qrUrl} size={48} level="L" />
+                </div>
+
+                {/* Footer */}
+                <div className="flex justify-between items-center w-full mt-2 text-[8px] relative z-10"
+                  style={{ color: 'hsl(25 20% 55%)' }}
+                >
+                  <span>© 2026 Cozy Cat Empire</span>
+                  <span>CCE-{cardNum}</span>
+                </div>
+
+                {/* Flip button on back */}
+                {showFlip && (
+                  <button
+                    onClick={handleFlip}
+                    className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-sm hover:bg-black/60 transition-colors backdrop-blur-sm"
+                  >
+                    🔄
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
