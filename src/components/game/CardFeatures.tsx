@@ -402,6 +402,7 @@ export function TradeAnimation({ sendCat, receiveCat, sendCostumeId, receiveCost
         <div className="transform scale-[0.28] origin-top-left">
           <PokemonCard
             cat={phase === 'slide-in' || phase === 'done' ? receiveCat : sendCat}
+            equippedCostumeId={phase === 'slide-in' || phase === 'done' ? receiveCostumeId : sendCostumeId}
             showFlip={false}
             isOwned
           />
