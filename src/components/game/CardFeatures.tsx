@@ -329,11 +329,13 @@ export function DeckBuilder({ availableCats, catCostumes = {}, maxDeckSize = 6, 
 interface TradeAnimationProps {
   sendCat: Cat;
   receiveCat: Cat;
+  sendCostumeId?: string;
+  receiveCostumeId?: string;
   isPlaying: boolean;
   onComplete?: () => void;
 }
 
-export function TradeAnimation({ sendCat, receiveCat, isPlaying, onComplete }: TradeAnimationProps) {
+export function TradeAnimation({ sendCat, receiveCat, sendCostumeId, receiveCostumeId, isPlaying, onComplete }: TradeAnimationProps) {
   const [phase, setPhase] = useState<'idle' | 'slide-out' | 'swap' | 'slide-in' | 'done'>('idle');
 
   React.useEffect(() => {
