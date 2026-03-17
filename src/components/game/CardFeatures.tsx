@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Cat, BREEDS } from '@/types/game';
-import { getGradeTier, getGradeStars } from '@/types/grading';
+import { Cat } from '@/types/game';
 import { getBreedType } from '@/config/breedTypes';
-import { generateMoves } from '@/lib/cardMoves';
+import { CatVisual } from './CatVisual';
 import { CatVisual } from './CatVisual';
 import { PokemonCard } from './PokemonCard';
 import { cn } from '@/lib/utils';
