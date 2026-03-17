@@ -356,7 +356,12 @@ export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned 
                 ${cat.value}
               </div>
 
-              <div className="text-[9px] text-muted-foreground mt-auto">
+              {/* QR Code */}
+              <div className="bg-white p-1.5 rounded-lg shadow-sm">
+                <QRCodeSVG value={qrUrl} size={56} level="L" />
+              </div>
+
+              <div className="text-[8px] text-muted-foreground">
                 Cozy Cat Empire · CCE Collection
               </div>
 
