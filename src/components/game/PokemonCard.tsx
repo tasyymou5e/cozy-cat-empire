@@ -162,7 +162,7 @@ export function PokemonCard({ cat, equippedCostumeId, className, showFlip = true
                 }}
               >
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <CatVisual cat={cat} size="lg" animated />
+                  <CatVisual cat={cat} equippedCostumeId={equippedCostumeId} size="lg" animated />
                 </div>
                 {/* Cosmos stars for Legendary+ */}
                 {tierFrame.holoLevel >= 3 && (
