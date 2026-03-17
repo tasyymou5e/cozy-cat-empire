@@ -214,7 +214,7 @@ export default function CatCollection() {
 
   return (
     <GameLayout currentPage="/collection" day={state.day} money={state.money}>
-      <div className="min-h-screen cozy-page-bg">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="min-h-screen cozy-page-bg">
         {/* Header */}
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
