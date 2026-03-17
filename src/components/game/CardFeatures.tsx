@@ -353,7 +353,7 @@ export function TradeAnimation({ sendCat, receiveCat, isPlaying, onComplete }: T
   const receiveType = getBreedType(receiveCat.breed);
 
   return (
-    <div className="relative h-48 w-full overflow-hidden rounded-2xl border bg-gradient-to-r from-card via-muted/30 to-card">
+    <div className="relative h-52 w-full overflow-hidden rounded-2xl border bg-gradient-to-r from-card via-muted/30 to-card">
       {/* Center swap icon */}
       <div className={cn(
         'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 transition-all duration-500',
