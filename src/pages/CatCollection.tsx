@@ -382,39 +382,36 @@ export default function CatCollection() {
         {/* Tab Content */}
         <main className="max-w-7xl mx-auto px-4 py-6">
           <TabsContent value="collection" className="mt-0">
-            <>
-              {isLoading ? (
-                <div className="text-center py-16">
-                  <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-                  <p className="text-muted-foreground">Loading your cats...</p>
-                </div>
-              ) : filteredAndSortedCats.length === 0 ? (
-                <div className="text-center py-16">
-                  <span className="text-6xl mb-4 block">🐾</span>
-                  <p className="text-muted-foreground">
-                    {state.cats.length === 0
-                      ? 'No cats yet! Go back and adopt some.'
-                      : 'No cats match your filters.'}
-                  </p>
-                </div>
-              ) : (
-                <VirtualizedCatGrid
-                  cats={filteredAndSortedCats}
-                  relationships={relationshipSystem.relationships}
-                  allCats={state.cats}
-                  catCostumes={state.catCostumes}
-                  variant="trading"
-                  onClick={(cat) => setSelectedCat(cat)}
-                  showFlip
-                  animated
-                  className="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
-                />
-              )}
-            </>
-          )}
+            {isLoading ? (
+              <div className="text-center py-16">
+                <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+                <p className="text-muted-foreground">Loading your cats...</p>
+              </div>
+            ) : filteredAndSortedCats.length === 0 ? (
+              <div className="text-center py-16">
+                <span className="text-6xl mb-4 block">🐾</span>
+                <p className="text-muted-foreground">
+                  {state.cats.length === 0
+                    ? 'No cats yet! Go back and adopt some.'
+                    : 'No cats match your filters.'}
+                </p>
+              </div>
+            ) : (
+              <VirtualizedCatGrid
+                cats={filteredAndSortedCats}
+                relationships={relationshipSystem.relationships}
+                allCats={state.cats}
+                catCostumes={state.catCostumes}
+                variant="trading"
+                onClick={(cat) => setSelectedCat(cat)}
+                showFlip
+                animated
+                className="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+              />
+            )}
+          </TabsContent>
 
-          {/* Cards Tab - Empire cards view */}
-          {activeTab === 'cards' && (
+          <TabsContent value="cards" className="mt-0">
             <div className="space-y-8 animate-fade-in">
               <SectionHeader title="Cat Empire Cards" />
               {state.cats.length === 0 ? (
@@ -432,10 +429,9 @@ export default function CatCollection() {
                 </div>
               )}
             </div>
-          )}
+          </TabsContent>
 
-          {/* Packs Tab */}
-          {activeTab === 'packs' && (
+          <TabsContent value="packs" className="mt-0">
             <div className="space-y-8 animate-fade-in">
               <SectionHeader title="Pack Opening" />
               {state.cats.length === 0 ? (
@@ -452,10 +448,9 @@ export default function CatCollection() {
                 />
               )}
             </div>
-          )}
+          </TabsContent>
 
-          {/* Compare Tab */}
-          {activeTab === 'compare' && (
+          <TabsContent value="compare" className="mt-0">
             <div className="space-y-8 animate-fade-in">
               <SectionHeader title="Card Comparison" />
               {state.cats.length < 2 ? (
@@ -467,10 +462,9 @@ export default function CatCollection() {
                 <CardComparison cats={state.cats.slice(0, 5)} catCostumes={state.catCostumes} />
               )}
             </div>
-          )}
+          </TabsContent>
 
-          {/* Deck Tab */}
-          {activeTab === 'deck' && (
+          <TabsContent value="deck" className="mt-0">
             <div className="space-y-8 animate-fade-in">
               <SectionHeader title="Deck Builder" />
               {state.cats.length === 0 ? (
@@ -482,10 +476,9 @@ export default function CatCollection() {
                 <DeckBuilder availableCats={state.cats} catCostumes={state.catCostumes} maxDeckSize={6} />
               )}
             </div>
-          )}
+          </TabsContent>
 
-          {/* Trade Tab */}
-          {activeTab === 'trade' && (
+          <TabsContent value="trade" className="mt-0">
             <div className="space-y-8 animate-fade-in">
               <SectionHeader title="Trade Animation" />
               {state.cats.length < 2 ? (
@@ -511,7 +504,7 @@ export default function CatCollection() {
                 </div>
               )}
             </div>
-          )}
+          </TabsContent>
         </main>
 
         {/* Detail Modal */}
