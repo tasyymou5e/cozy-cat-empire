@@ -251,7 +251,7 @@ export function DeckBuilder({ availableCats, catCostumes = {}, maxDeckSize = 6, 
                   <div className="w-10 h-10 mx-auto rounded-lg overflow-hidden mb-1"
                     style={{ background: getBreedType(cat.breed).imageGradient }}
                   >
-                    <CatVisual cat={cat} size="sm" />
+                    <CatVisual cat={cat} equippedCostumeId={catCostumes[cat.id]} size="sm" />
                   </div>
                   <p className="text-[9px] font-bold truncate w-full">{cat.name}</p>
                   <p className="text-[8px] text-muted-foreground">G{cat.grade}</p>
