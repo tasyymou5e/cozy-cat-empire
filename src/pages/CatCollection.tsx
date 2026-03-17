@@ -381,8 +381,7 @@ export default function CatCollection() {
 
         {/* Tab Content */}
         <main className="max-w-7xl mx-auto px-4 py-6">
-          {/* Collection Tab */}
-          {activeTab === 'collection' && (
+          <TabsContent value="collection" className="mt-0">
             <>
               {isLoading ? (
                 <div className="text-center py-16">
