@@ -5,12 +5,16 @@ import { getBreedType } from '@/config/breedTypes';
 import { generateMoves, getEvolutionStage, getRetreatCost, getCardNumber } from '@/lib/cardMoves';
 import { CatVisual } from './CatVisual';
 import { cn } from '@/lib/utils';
+import { useSound } from '@/contexts/SoundContext';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface PokemonCardProps {
   cat: Cat;
   className?: string;
   showFlip?: boolean;
   onClick?: () => void;
+  isOwned?: boolean;
+  profileBaseUrl?: string;
 }
 
 const TIER_FRAME: Record<GradeTier, { frameClass: string; holoLevel: number; label: string; stars: string }> = {
