@@ -449,6 +449,7 @@ export default function CatCollection() {
               ) : (
                 <PackOpening
                   availableCats={state.cats}
+                  catCostumes={state.catCostumes}
                   packSize={3}
                   onPackOpened={handlePackOpened}
                 />
