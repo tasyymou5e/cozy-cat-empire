@@ -91,11 +91,11 @@ export default function CardShowcase() {
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
-                Card Showcase
+                Cat Empire Cards
               </h1>
             </div>
             <p className="text-muted-foreground text-lg ml-14">
-              Cat cards with QR codes, pack opening, collection tracking & more
+              Cat Empire cards with QR codes, pack opening, collection tracking & more
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -125,7 +125,7 @@ export default function CardShowcase() {
 
           {/* Cat Cards */}
           <TabsContent value="pokemon">
-            <SectionHeader title="Cat Cards" delay={100} />
+            <SectionHeader title="Cat Empire Cards" delay={100} />
             <div className="grid gap-10 justify-items-center" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
               {MOCK_CATS.map((cat, i) => (
                 <div key={cat.id} className="space-y-3 animate-fade-in" style={{ animationDelay: `${150 + i * 100}ms`, animationFillMode: 'both' }}>

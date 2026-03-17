@@ -362,7 +362,7 @@ export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned 
               </div>
 
               <div className="text-[8px] text-muted-foreground">
-                Cozy Cat Empire · CCE Collection
+                Cat Empire Cards · CCE Collection
               </div>
 
               {/* Flip button on back */}
