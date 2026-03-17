@@ -17,6 +17,7 @@ import { Progress } from '@/components/ui/progress';
 
 interface CardComparisonProps {
   cats: Cat[];
+  catCostumes?: Record<string, string>;
   onClose?: () => void;
 }
 

@@ -155,7 +155,7 @@ export function PackOpening({ availableCats, catCostumes = {}, packSize = 3, onP
                     transitionDelay: `${i * 100}ms`,
                   }}
                 >
-                  <PokemonCard cat={cat} showFlip={isRevealed} />
+                  <PokemonCard cat={cat} equippedCostumeId={catCostumes[cat.id]} showFlip={isRevealed} />
                 </div>
               );
             })}
