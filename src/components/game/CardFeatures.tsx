@@ -73,17 +73,12 @@ export function CardComparison({ cats, onClose }: CardComparisonProps) {
       <div className="grid gap-4" style={{ gridTemplateColumns: `160px repeat(${compareCats.length}, 1fr)` }}>
         <div />
         {compareCats.map(cat => {
-          const breedType = getBreedType(cat.breed);
-          const tier = getGradeTier(cat.grade);
           return (
-            <div key={cat.id} className="text-center">
-              <div className="mx-auto w-16 h-16 rounded-xl overflow-hidden mb-2"
-                style={{ background: breedType.imageGradient }}
-              >
-                <CatVisual cat={cat} size="md" />
+            <div key={cat.id} className="flex flex-col items-center">
+              <div className="transform scale-[0.35] origin-top -mb-[160px]">
+                <PokemonCard cat={cat} showFlip={false} isOwned />
               </div>
-              <h4 className="font-bold text-sm truncate">{cat.name}</h4>
-              <p className="text-[10px] text-muted-foreground">{BREEDS[cat.breed].name} · {breedType.icon}</p>
+              <h4 className="font-bold text-sm truncate mt-2">{cat.name}</h4>
             </div>
           );
         })}
