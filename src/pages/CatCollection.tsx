@@ -429,7 +429,7 @@ export default function CatCollection() {
                 <div className="grid gap-10 justify-items-center" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
                   {filteredAndSortedCats.slice(0, 20).map((cat, i) => (
                     <div key={cat.id} className="animate-fade-in" style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'both' }}>
-                      <PokemonCard cat={cat} showFlip isOwned={collectedIds.has(cat.id)} />
+                      <PokemonCard cat={cat} equippedCostumeId={state.catCostumes[cat.id]} showFlip isOwned={collectedIds.has(cat.id)} />
                     </div>
                   ))}
                 </div>
