@@ -61,16 +61,19 @@ LegacyListContainer.displayName = 'LegacyListContainer';
 // Memoized PokemonCard wrapper for trading variant
 const PokemonCardItem = memo(function PokemonCardItem({
   cat,
+  equippedCostumeId,
   onClick,
   showFlip,
 }: {
   cat: Cat;
+  equippedCostumeId?: string;
   onClick?: (cat: Cat) => void;
   showFlip?: boolean;
 }) {
   return (
     <PokemonCard
       cat={cat}
+      equippedCostumeId={equippedCostumeId}
       showFlip={showFlip}
       onClick={onClick ? () => onClick(cat) : undefined}
       isOwned
