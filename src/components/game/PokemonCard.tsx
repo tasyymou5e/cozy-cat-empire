@@ -26,7 +26,7 @@ const TIER_FRAME: Record<GradeTier, { frameClass: string; holoLevel: number; lab
   ultraRare: { frameClass: 'pokemon-frame-mythic', holoLevel: 4, label: 'Mythic', stars: '★H' },
 };
 
-export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned = true, profileBaseUrl }: PokemonCardProps) {
+export function PokemonCard({ cat, equippedCostumeId, className, showFlip = true, onClick, isOwned = true, profileBaseUrl }: PokemonCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [shinePos, setShinePos] = useState({ x: 50, y: 50 });
