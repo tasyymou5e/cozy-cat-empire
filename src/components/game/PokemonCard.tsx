@@ -288,6 +288,19 @@ export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned 
               🔄
             </button>
           )}
+
+          {/* Unowned overlay */}
+          {!isOwned && (
+            <div className="absolute inset-0 rounded-2xl z-20 flex items-center justify-center"
+              style={{ background: 'linear-gradient(180deg, hsl(0 0% 10% / 0.85), hsl(0 0% 5% / 0.92))' }}
+            >
+              <div className="text-center space-y-2">
+                <div className="text-5xl opacity-30">❓</div>
+                <p className="text-xs font-bold text-white/40 uppercase tracking-widest">Not Collected</p>
+                <p className="text-[10px] text-white/25">{breedInfo.name} Cat</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* BACK FACE */}
