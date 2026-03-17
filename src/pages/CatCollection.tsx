@@ -501,6 +501,8 @@ export default function CatCollection() {
                   <TradeAnimation
                     sendCat={state.cats[0]}
                     receiveCat={state.cats[Math.min(1, state.cats.length - 1)]}
+                    sendCostumeId={state.catCostumes[state.cats[0]?.id]}
+                    receiveCostumeId={state.catCostumes[state.cats[Math.min(1, state.cats.length - 1)]?.id]}
                     isPlaying={isTrading}
                     onComplete={() => setIsTrading(false)}
                   />
