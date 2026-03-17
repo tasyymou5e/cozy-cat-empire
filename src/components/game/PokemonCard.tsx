@@ -86,7 +86,7 @@ export function PokemonCard({ cat, className, showFlip = true, onClick }: Pokemo
         style={{
           width: 320,
           height: 448,
-          transformStyle: 'preserve3d',
+          transformStyle: 'preserve-3d',
           transition: isFlipped ? 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)' : 'transform 0.1s ease-out',
           transform: isFlipped
             ? 'rotateY(180deg)'
