@@ -10,6 +10,7 @@ import { QRCodeSVG } from 'qrcode.react';
 
 interface PokemonCardProps {
   cat: Cat;
+  equippedCostumeId?: string;
   className?: string;
   showFlip?: boolean;
   onClick?: () => void;
