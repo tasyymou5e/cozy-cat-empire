@@ -39,7 +39,7 @@ const COMPARE_STATS: StatComparison[] = [
   { label: 'Tricks', emoji: '🎯', key: 'tricksLearned', max: 5 },
 ];
 
-export function CardComparison({ cats, onClose }: CardComparisonProps) {
+export function CardComparison({ cats, catCostumes = {}, onClose }: CardComparisonProps) {
   const compareCats = cats.slice(0, 3);
 
   const getStatValue = (cat: Cat, stat: StatComparison): number => {
