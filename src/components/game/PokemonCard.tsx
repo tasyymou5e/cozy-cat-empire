@@ -5,12 +5,16 @@ import { getBreedType } from '@/config/breedTypes';
 import { generateMoves, getEvolutionStage, getRetreatCost, getCardNumber } from '@/lib/cardMoves';
 import { CatVisual } from './CatVisual';
 import { cn } from '@/lib/utils';
+import { useSound } from '@/contexts/SoundContext';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface PokemonCardProps {
   cat: Cat;
   className?: string;
   showFlip?: boolean;
   onClick?: () => void;
+  isOwned?: boolean;
+  profileBaseUrl?: string;
 }
 
 const TIER_FRAME: Record<GradeTier, { frameClass: string; holoLevel: number; label: string; stars: string }> = {
@@ -21,12 +25,13 @@ const TIER_FRAME: Record<GradeTier, { frameClass: string; holoLevel: number; lab
   ultraRare: { frameClass: 'pokemon-frame-mythic', holoLevel: 4, label: 'Mythic', stars: '★H' },
 };
 
-export function PokemonCard({ cat, className, showFlip = true, onClick }: PokemonCardProps) {
+export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned = true, profileBaseUrl }: PokemonCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [shinePos, setShinePos] = useState({ x: 50, y: 50 });
   const [isHovering, setIsHovering] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const { playSound } = useSound();
 
   const tier = getGradeTier(cat.grade);
   const breedType = getBreedType(cat.breed);
@@ -35,6 +40,7 @@ export function PokemonCard({ cat, className, showFlip = true, onClick }: Pokemo
   const tierFrame = TIER_FRAME[tier];
   const retreatCost = getRetreatCost(cat);
   const cardNum = getCardNumber(cat);
+  const qrUrl = profileBaseUrl ? `${profileBaseUrl}/cat/${cat.id}` : `https://cozy-cat-empire.lovable.app/cat/${cat.id}`;
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isFlipped || !cardRef.current) return;
@@ -65,6 +71,7 @@ export function PokemonCard({ cat, className, showFlip = true, onClick }: Pokemo
 
   const handleFlip = (e: React.MouseEvent) => {
     e.stopPropagation();
+    playSound('cardFlip');
     setIsFlipped(!isFlipped);
     setTilt({ x: 0, y: 0 });
   };
@@ -281,6 +288,19 @@ export function PokemonCard({ cat, className, showFlip = true, onClick }: Pokemo
               🔄
             </button>
           )}
+
+          {/* Unowned overlay */}
+          {!isOwned && (
+            <div className="absolute inset-0 rounded-2xl z-20 flex items-center justify-center"
+              style={{ background: 'linear-gradient(180deg, hsl(0 0% 10% / 0.85), hsl(0 0% 5% / 0.92))' }}
+            >
+              <div className="text-center space-y-2">
+                <div className="text-5xl opacity-30">❓</div>
+                <p className="text-xs font-bold text-white/40 uppercase tracking-widest">Not Collected</p>
+                <p className="text-[10px] text-white/25">{breedInfo.name} Cat</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* BACK FACE */}
@@ -336,7 +356,12 @@ export function PokemonCard({ cat, className, showFlip = true, onClick }: Pokemo
                 ${cat.value}
               </div>
 
-              <div className="text-[9px] text-muted-foreground mt-auto">
+              {/* QR Code */}
+              <div className="bg-white p-1.5 rounded-lg shadow-sm">
+                <QRCodeSVG value={qrUrl} size={56} level="L" />
+              </div>
+
+              <div className="text-[8px] text-muted-foreground">
                 Cozy Cat Empire · CCE Collection
               </div>
 
