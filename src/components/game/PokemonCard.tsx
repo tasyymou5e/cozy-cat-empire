@@ -94,7 +94,9 @@ export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned 
           width: 320,
           height: 448,
           transformStyle: 'preserve-3d',
-          transition: isFlipped ? 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)' : 'transform 0.1s ease-out',
+          transition: isFlipped
+            ? 'transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+            : 'transform 0.1s ease-out',
           transform: isFlipped
             ? 'rotateY(180deg)'
             : `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
