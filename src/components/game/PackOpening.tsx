@@ -9,13 +9,14 @@ import { Button } from '@/components/ui/button';
 
 interface PackOpeningProps {
   availableCats: Cat[];
+  catCostumes?: Record<string, string>;
   packSize?: number;
   onPackOpened?: (cats: Cat[]) => void;
 }
 
 type Phase = 'idle' | 'shake' | 'tear' | 'reveal' | 'done';
 
-export function PackOpening({ availableCats, packSize = 3, onPackOpened }: PackOpeningProps) {
+export function PackOpening({ availableCats, catCostumes = {}, packSize = 3, onPackOpened }: PackOpeningProps) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [revealedCards, setRevealedCards] = useState<Cat[]>([]);
   const [currentRevealIndex, setCurrentRevealIndex] = useState(-1);
@@ -154,7 +155,7 @@ export function PackOpening({ availableCats, packSize = 3, onPackOpened }: PackO
                     transitionDelay: `${i * 100}ms`,
                   }}
                 >
-                  <PokemonCard cat={cat} showFlip={isRevealed} />
+                  <PokemonCard cat={cat} equippedCostumeId={catCostumes[cat.id]} showFlip={isRevealed} />
                 </div>
               );
             })}

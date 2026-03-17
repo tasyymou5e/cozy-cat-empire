@@ -429,7 +429,7 @@ export default function CatCollection() {
                 <div className="grid gap-10 justify-items-center" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
                   {filteredAndSortedCats.slice(0, 20).map((cat, i) => (
                     <div key={cat.id} className="animate-fade-in" style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'both' }}>
-                      <PokemonCard cat={cat} showFlip isOwned={collectedIds.has(cat.id)} />
+                      <PokemonCard cat={cat} equippedCostumeId={state.catCostumes[cat.id]} showFlip isOwned={collectedIds.has(cat.id)} />
                     </div>
                   ))}
                 </div>
@@ -449,6 +449,7 @@ export default function CatCollection() {
               ) : (
                 <PackOpening
                   availableCats={state.cats}
+                  catCostumes={state.catCostumes}
                   packSize={3}
                   onPackOpened={handlePackOpened}
                 />
@@ -466,7 +467,7 @@ export default function CatCollection() {
                   <p className="text-muted-foreground">You need at least 2 cats to compare!</p>
                 </div>
               ) : (
-                <CardComparison cats={state.cats.slice(0, 5)} />
+                <CardComparison cats={state.cats.slice(0, 5)} catCostumes={state.catCostumes} />
               )}
             </div>
           )}
@@ -481,7 +482,7 @@ export default function CatCollection() {
                   <p className="text-muted-foreground">You need cats to build a deck!</p>
                 </div>
               ) : (
-                <DeckBuilder availableCats={state.cats} maxDeckSize={6} />
+                <DeckBuilder availableCats={state.cats} catCostumes={state.catCostumes} maxDeckSize={6} />
               )}
             </div>
           )}
@@ -500,6 +501,8 @@ export default function CatCollection() {
                   <TradeAnimation
                     sendCat={state.cats[0]}
                     receiveCat={state.cats[Math.min(1, state.cats.length - 1)]}
+                    sendCostumeId={state.catCostumes[state.cats[0]?.id]}
+                    receiveCostumeId={state.catCostumes[state.cats[Math.min(1, state.cats.length - 1)]?.id]}
                     isPlaying={isTrading}
                     onComplete={() => setIsTrading(false)}
                   />

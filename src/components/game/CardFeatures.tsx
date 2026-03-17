@@ -17,6 +17,7 @@ import { Progress } from '@/components/ui/progress';
 
 interface CardComparisonProps {
   cats: Cat[];
+  catCostumes?: Record<string, string>;
   onClose?: () => void;
 }
 
@@ -38,7 +39,7 @@ const COMPARE_STATS: StatComparison[] = [
   { label: 'Tricks', emoji: '🎯', key: 'tricksLearned', max: 5 },
 ];
 
-export function CardComparison({ cats, onClose }: CardComparisonProps) {
+export function CardComparison({ cats, catCostumes = {}, onClose }: CardComparisonProps) {
   const compareCats = cats.slice(0, 3);
 
   const getStatValue = (cat: Cat, stat: StatComparison): number => {
@@ -76,7 +77,7 @@ export function CardComparison({ cats, onClose }: CardComparisonProps) {
           return (
             <div key={cat.id} className="flex flex-col items-center">
               <div className="transform scale-[0.35] origin-top -mb-[160px]">
-                <PokemonCard cat={cat} showFlip={false} isOwned />
+                <PokemonCard cat={cat} equippedCostumeId={catCostumes[cat.id]} showFlip={false} isOwned />
               </div>
               <h4 className="font-bold text-sm truncate mt-2">{cat.name}</h4>
             </div>
@@ -148,11 +149,12 @@ export function CardComparison({ cats, onClose }: CardComparisonProps) {
 
 interface DeckBuilderProps {
   availableCats: Cat[];
+  catCostumes?: Record<string, string>;
   maxDeckSize?: number;
   onDeckChange?: (deck: Cat[]) => void;
 }
 
-export function DeckBuilder({ availableCats, maxDeckSize = 6, onDeckChange }: DeckBuilderProps) {
+export function DeckBuilder({ availableCats, catCostumes = {}, maxDeckSize = 6, onDeckChange }: DeckBuilderProps) {
   const [deck, setDeck] = useState<Cat[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
 
@@ -249,7 +251,7 @@ export function DeckBuilder({ availableCats, maxDeckSize = 6, onDeckChange }: De
                   <div className="w-10 h-10 mx-auto rounded-lg overflow-hidden mb-1"
                     style={{ background: getBreedType(cat.breed).imageGradient }}
                   >
-                    <CatVisual cat={cat} size="sm" />
+                    <CatVisual cat={cat} equippedCostumeId={catCostumes[cat.id]} size="sm" />
                   </div>
                   <p className="text-[9px] font-bold truncate w-full">{cat.name}</p>
                   <p className="text-[8px] text-muted-foreground">G{cat.grade}</p>
@@ -327,11 +329,13 @@ export function DeckBuilder({ availableCats, maxDeckSize = 6, onDeckChange }: De
 interface TradeAnimationProps {
   sendCat: Cat;
   receiveCat: Cat;
+  sendCostumeId?: string;
+  receiveCostumeId?: string;
   isPlaying: boolean;
   onComplete?: () => void;
 }
 
-export function TradeAnimation({ sendCat, receiveCat, isPlaying, onComplete }: TradeAnimationProps) {
+export function TradeAnimation({ sendCat, receiveCat, sendCostumeId, receiveCostumeId, isPlaying, onComplete }: TradeAnimationProps) {
   const [phase, setPhase] = useState<'idle' | 'slide-out' | 'swap' | 'slide-in' | 'done'>('idle');
 
   React.useEffect(() => {
@@ -398,6 +402,7 @@ export function TradeAnimation({ sendCat, receiveCat, isPlaying, onComplete }: T
         <div className="transform scale-[0.28] origin-top-left">
           <PokemonCard
             cat={phase === 'slide-in' || phase === 'done' ? receiveCat : sendCat}
+            equippedCostumeId={phase === 'slide-in' || phase === 'done' ? receiveCostumeId : sendCostumeId}
             showFlip={false}
             isOwned
           />
@@ -418,6 +423,7 @@ export function TradeAnimation({ sendCat, receiveCat, isPlaying, onComplete }: T
         <div className="transform scale-[0.28] origin-top-right">
           <PokemonCard
             cat={phase === 'slide-in' || phase === 'done' ? sendCat : receiveCat}
+            equippedCostumeId={phase === 'slide-in' || phase === 'done' ? sendCostumeId : receiveCostumeId}
             showFlip={false}
             isOwned
           />
