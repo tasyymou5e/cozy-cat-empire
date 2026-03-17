@@ -115,7 +115,7 @@ export default function CatCollection() {
           const saveData = JSON.parse(saved);
           actions.loadFromData?.(
             saveData.state,
-            saveData.kittensBreek || 0,
+            saveData.kittensBreed || 0,
             saveData.relationships
           );
         } catch (e) {
@@ -214,7 +214,7 @@ export default function CatCollection() {
 
   return (
     <GameLayout currentPage="/collection" day={state.day} money={state.money}>
-      <div className="min-h-screen cozy-page-bg">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="min-h-screen cozy-page-bg">
         {/* Header */}
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -291,16 +291,14 @@ export default function CatCollection() {
         {/* Tabs Navigation */}
         <div className="sticky top-[57px] z-40 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
           <div className="max-w-7xl mx-auto">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-6 w-full max-w-3xl">
-                <TabsTrigger value="collection"><BookOpen className="h-3 w-3 mr-1" />Collection</TabsTrigger>
-                <TabsTrigger value="cards">🃏 Cards</TabsTrigger>
-                <TabsTrigger value="packs"><Package className="h-3 w-3 mr-1" />Packs</TabsTrigger>
-                <TabsTrigger value="compare"><ArrowLeftRight className="h-3 w-3 mr-1" />Compare</TabsTrigger>
-                <TabsTrigger value="deck"><Layers className="h-3 w-3 mr-1" />Deck</TabsTrigger>
-                <TabsTrigger value="trade"><Swords className="h-3 w-3 mr-1" />Trade</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <TabsList className="grid grid-cols-6 w-full max-w-3xl">
+              <TabsTrigger value="collection"><BookOpen className="h-3 w-3 mr-1" />Collection</TabsTrigger>
+              <TabsTrigger value="cards">🃏 Cards</TabsTrigger>
+              <TabsTrigger value="packs"><Package className="h-3 w-3 mr-1" />Packs</TabsTrigger>
+              <TabsTrigger value="compare"><ArrowLeftRight className="h-3 w-3 mr-1" />Compare</TabsTrigger>
+              <TabsTrigger value="deck"><Layers className="h-3 w-3 mr-1" />Deck</TabsTrigger>
+              <TabsTrigger value="trade"><Swords className="h-3 w-3 mr-1" />Trade</TabsTrigger>
+            </TabsList>
 
             {/* Collection filters - only show on collection tab */}
             {showCollectionFilters && (
@@ -383,41 +381,37 @@ export default function CatCollection() {
 
         {/* Tab Content */}
         <main className="max-w-7xl mx-auto px-4 py-6">
-          {/* Collection Tab */}
-          {activeTab === 'collection' && (
-            <>
-              {isLoading ? (
-                <div className="text-center py-16">
-                  <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-                  <p className="text-muted-foreground">Loading your cats...</p>
-                </div>
-              ) : filteredAndSortedCats.length === 0 ? (
-                <div className="text-center py-16">
-                  <span className="text-6xl mb-4 block">🐾</span>
-                  <p className="text-muted-foreground">
-                    {state.cats.length === 0
-                      ? 'No cats yet! Go back and adopt some.'
-                      : 'No cats match your filters.'}
-                  </p>
-                </div>
-              ) : (
-                <VirtualizedCatGrid
-                  cats={filteredAndSortedCats}
-                  relationships={relationshipSystem.relationships}
-                  allCats={state.cats}
-                  catCostumes={state.catCostumes}
-                  variant="trading"
-                  onClick={(cat) => setSelectedCat(cat)}
-                  showFlip
-                  animated
-                  className="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
-                />
-              )}
-            </>
-          )}
+          <TabsContent value="collection" className="mt-0">
+            {isLoading ? (
+              <div className="text-center py-16">
+                <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+                <p className="text-muted-foreground">Loading your cats...</p>
+              </div>
+            ) : filteredAndSortedCats.length === 0 ? (
+              <div className="text-center py-16">
+                <span className="text-6xl mb-4 block">🐾</span>
+                <p className="text-muted-foreground">
+                  {state.cats.length === 0
+                    ? 'No cats yet! Go back and adopt some.'
+                    : 'No cats match your filters.'}
+                </p>
+              </div>
+            ) : (
+              <VirtualizedCatGrid
+                cats={filteredAndSortedCats}
+                relationships={relationshipSystem.relationships}
+                allCats={state.cats}
+                catCostumes={state.catCostumes}
+                variant="trading"
+                onClick={(cat) => setSelectedCat(cat)}
+                showFlip
+                animated
+                className="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+              />
+            )}
+          </TabsContent>
 
-          {/* Cards Tab - Empire cards view */}
-          {activeTab === 'cards' && (
+          <TabsContent value="cards" className="mt-0">
             <div className="space-y-8 animate-fade-in">
               <SectionHeader title="Cat Empire Cards" />
               {state.cats.length === 0 ? (
@@ -435,10 +429,9 @@ export default function CatCollection() {
                 </div>
               )}
             </div>
-          )}
+          </TabsContent>
 
-          {/* Packs Tab */}
-          {activeTab === 'packs' && (
+          <TabsContent value="packs" className="mt-0">
             <div className="space-y-8 animate-fade-in">
               <SectionHeader title="Pack Opening" />
               {state.cats.length === 0 ? (
@@ -455,10 +448,9 @@ export default function CatCollection() {
                 />
               )}
             </div>
-          )}
+          </TabsContent>
 
-          {/* Compare Tab */}
-          {activeTab === 'compare' && (
+          <TabsContent value="compare" className="mt-0">
             <div className="space-y-8 animate-fade-in">
               <SectionHeader title="Card Comparison" />
               {state.cats.length < 2 ? (
@@ -470,10 +462,9 @@ export default function CatCollection() {
                 <CardComparison cats={state.cats.slice(0, 5)} catCostumes={state.catCostumes} />
               )}
             </div>
-          )}
+          </TabsContent>
 
-          {/* Deck Tab */}
-          {activeTab === 'deck' && (
+          <TabsContent value="deck" className="mt-0">
             <div className="space-y-8 animate-fade-in">
               <SectionHeader title="Deck Builder" />
               {state.cats.length === 0 ? (
@@ -485,10 +476,9 @@ export default function CatCollection() {
                 <DeckBuilder availableCats={state.cats} catCostumes={state.catCostumes} maxDeckSize={6} />
               )}
             </div>
-          )}
+          </TabsContent>
 
-          {/* Trade Tab */}
-          {activeTab === 'trade' && (
+          <TabsContent value="trade" className="mt-0">
             <div className="space-y-8 animate-fade-in">
               <SectionHeader title="Trade Animation" />
               {state.cats.length < 2 ? (
@@ -514,7 +504,7 @@ export default function CatCollection() {
                 </div>
               )}
             </div>
-          )}
+          </TabsContent>
         </main>
 
         {/* Detail Modal */}
@@ -539,7 +529,7 @@ export default function CatCollection() {
           currentMoney={state.money}
           onMoneyChange={actions.setMoney}
         />
-      </div>
+      </Tabs>
     </GameLayout>
   );
 }
