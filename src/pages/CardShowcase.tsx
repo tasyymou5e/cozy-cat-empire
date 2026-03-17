@@ -125,7 +125,7 @@ export default function CardShowcase() {
 
           {/* Cat Cards */}
           <TabsContent value="pokemon">
-            <SectionHeader title="Cat Cards" delay={100} />
+            <SectionHeader title="Cat Empire Cards" delay={100} />
             <div className="grid gap-10 justify-items-center" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
               {MOCK_CATS.map((cat, i) => (
                 <div key={cat.id} className="space-y-3 animate-fade-in" style={{ animationDelay: `${150 + i * 100}ms`, animationFillMode: 'both' }}>
