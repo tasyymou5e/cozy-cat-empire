@@ -149,11 +149,12 @@ export function CardComparison({ cats, catCostumes = {}, onClose }: CardComparis
 
 interface DeckBuilderProps {
   availableCats: Cat[];
+  catCostumes?: Record<string, string>;
   maxDeckSize?: number;
   onDeckChange?: (deck: Cat[]) => void;
 }
 
-export function DeckBuilder({ availableCats, maxDeckSize = 6, onDeckChange }: DeckBuilderProps) {
+export function DeckBuilder({ availableCats, catCostumes = {}, maxDeckSize = 6, onDeckChange }: DeckBuilderProps) {
   const [deck, setDeck] = useState<Cat[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
 
