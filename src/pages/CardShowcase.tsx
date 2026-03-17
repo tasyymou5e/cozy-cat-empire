@@ -115,7 +115,7 @@ export default function CardShowcase() {
 
         <Tabs defaultValue="pokemon" className="space-y-8">
           <TabsList className="grid grid-cols-6 w-full max-w-3xl">
-            <TabsTrigger value="pokemon">🃏 TCG Cards</TabsTrigger>
+            <TabsTrigger value="pokemon">🃏 Cards</TabsTrigger>
             <TabsTrigger value="collection"><BookOpen className="h-3 w-3 mr-1" />Collection</TabsTrigger>
             <TabsTrigger value="packs"><Package className="h-3 w-3 mr-1" />Packs</TabsTrigger>
             <TabsTrigger value="compare"><ArrowLeftRight className="h-3 w-3 mr-1" />Compare</TabsTrigger>
