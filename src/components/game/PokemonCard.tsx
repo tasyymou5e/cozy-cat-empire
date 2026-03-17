@@ -40,7 +40,7 @@ export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned 
   const tierFrame = TIER_FRAME[tier];
   const retreatCost = getRetreatCost(cat);
   const cardNum = getCardNumber(cat);
-  const qrUrl = profileBaseUrl ? `${profileBaseUrl}/cat/${cat.id}` : `https://cozy-cat-empire.lovable.app/cat/${cat.id}`;
+  const qrUrl = profileBaseUrl ? `${profileBaseUrl}/cat/${cat.id}` : `https://www.cozycatempire.com/cat/${cat.id}`;
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isFlipped || !cardRef.current) return;
