@@ -16,7 +16,7 @@ interface PackOpeningProps {
 
 type Phase = 'idle' | 'shake' | 'tear' | 'reveal' | 'done';
 
-export function PackOpening({ availableCats, packSize = 3, onPackOpened }: PackOpeningProps) {
+export function PackOpening({ availableCats, catCostumes = {}, packSize = 3, onPackOpened }: PackOpeningProps) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [revealedCards, setRevealedCards] = useState<Cat[]>([]);
   const [currentRevealIndex, setCurrentRevealIndex] = useState(-1);
