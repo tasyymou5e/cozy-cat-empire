@@ -4,6 +4,7 @@ import { getGradeTier, getGradeStars } from '@/types/grading';
 import { getBreedType } from '@/config/breedTypes';
 import { generateMoves } from '@/lib/cardMoves';
 import { CatVisual } from './CatVisual';
+import { PokemonCard } from './PokemonCard';
 import { cn } from '@/lib/utils';
 import { ArrowLeftRight, Crown, Minus, Plus, Trophy, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -72,17 +73,12 @@ export function CardComparison({ cats, onClose }: CardComparisonProps) {
       <div className="grid gap-4" style={{ gridTemplateColumns: `160px repeat(${compareCats.length}, 1fr)` }}>
         <div />
         {compareCats.map(cat => {
-          const breedType = getBreedType(cat.breed);
-          const tier = getGradeTier(cat.grade);
           return (
-            <div key={cat.id} className="text-center">
-              <div className="mx-auto w-16 h-16 rounded-xl overflow-hidden mb-2"
-                style={{ background: breedType.imageGradient }}
-              >
-                <CatVisual cat={cat} size="md" />
+            <div key={cat.id} className="flex flex-col items-center">
+              <div className="transform scale-[0.35] origin-top -mb-[160px]">
+                <PokemonCard cat={cat} showFlip={false} isOwned />
               </div>
-              <h4 className="font-bold text-sm truncate">{cat.name}</h4>
-              <p className="text-[10px] text-muted-foreground">{BREEDS[cat.breed].name} · {breedType.icon}</p>
+              <h4 className="font-bold text-sm truncate mt-2">{cat.name}</h4>
             </div>
           );
         })}
@@ -357,7 +353,7 @@ export function TradeAnimation({ sendCat, receiveCat, isPlaying, onComplete }: T
   const receiveType = getBreedType(receiveCat.breed);
 
   return (
-    <div className="relative h-48 w-full overflow-hidden rounded-2xl border bg-gradient-to-r from-card via-muted/30 to-card">
+    <div className="relative h-52 w-full overflow-hidden rounded-2xl border bg-gradient-to-r from-card via-muted/30 to-card">
       {/* Center swap icon */}
       <div className={cn(
         'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 transition-all duration-500',
@@ -392,46 +388,40 @@ export function TradeAnimation({ sendCat, receiveCat, isPlaying, onComplete }: T
       <div
         className={cn(
           'absolute top-1/2 -translate-y-1/2 transition-all duration-600 ease-in-out',
-          phase === 'idle' ? 'left-[15%]' :
+          phase === 'idle' ? 'left-[5%]' :
           phase === 'slide-out' ? 'left-[50%] -translate-x-1/2 opacity-0 scale-75' :
-          phase === 'swap' ? 'left-[85%] -translate-x-full opacity-0 scale-50' :
-          'left-[85%] -translate-x-full opacity-100 scale-100'
+          phase === 'swap' ? 'left-[70%] -translate-x-full opacity-0 scale-50' :
+          'left-[70%] -translate-x-full opacity-100 scale-100'
         )}
         style={{ transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
       >
-        <div className="w-20 h-28 rounded-xl overflow-hidden border-2 shadow-lg"
-          style={{ borderColor: sendType.primaryColor, background: sendType.imageGradient }}
-        >
-          <div className="flex items-center justify-center h-full">
-            <CatVisual cat={phase === 'slide-in' || phase === 'done' ? receiveCat : sendCat} size="md" />
-          </div>
+        <div className="transform scale-[0.28] origin-top-left">
+          <PokemonCard
+            cat={phase === 'slide-in' || phase === 'done' ? receiveCat : sendCat}
+            showFlip={false}
+            isOwned
+          />
         </div>
-        <p className="text-[10px] font-bold text-center mt-1 truncate w-20">
-          {phase === 'slide-in' || phase === 'done' ? receiveCat.name : sendCat.name}
-        </p>
       </div>
 
       {/* Right card (receiving) */}
       <div
         className={cn(
           'absolute top-1/2 -translate-y-1/2 transition-all duration-600 ease-in-out',
-          phase === 'idle' ? 'right-[15%]' :
+          phase === 'idle' ? 'right-[5%]' :
           phase === 'slide-out' ? 'right-[50%] translate-x-1/2 opacity-0 scale-75' :
-          phase === 'swap' ? 'right-[85%] translate-x-full opacity-0 scale-50' :
-          'right-[85%] translate-x-full opacity-100 scale-100'
+          phase === 'swap' ? 'right-[70%] translate-x-full opacity-0 scale-50' :
+          'right-[70%] translate-x-full opacity-100 scale-100'
         )}
         style={{ transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
       >
-        <div className="w-20 h-28 rounded-xl overflow-hidden border-2 shadow-lg"
-          style={{ borderColor: receiveType.primaryColor, background: receiveType.imageGradient }}
-        >
-          <div className="flex items-center justify-center h-full">
-            <CatVisual cat={phase === 'slide-in' || phase === 'done' ? sendCat : receiveCat} size="md" />
-          </div>
+        <div className="transform scale-[0.28] origin-top-right">
+          <PokemonCard
+            cat={phase === 'slide-in' || phase === 'done' ? sendCat : receiveCat}
+            showFlip={false}
+            isOwned
+          />
         </div>
-        <p className="text-[10px] font-bold text-center mt-1 truncate w-20">
-          {phase === 'slide-in' || phase === 'done' ? sendCat.name : receiveCat.name}
-        </p>
       </div>
 
       {/* Labels */}
