@@ -467,7 +467,7 @@ export default function CatCollection() {
                   <p className="text-muted-foreground">You need at least 2 cats to compare!</p>
                 </div>
               ) : (
-                <CardComparison cats={state.cats.slice(0, 5)} />
+                <CardComparison cats={state.cats.slice(0, 5)} catCostumes={state.catCostumes} />
               )}
             </div>
           )}
