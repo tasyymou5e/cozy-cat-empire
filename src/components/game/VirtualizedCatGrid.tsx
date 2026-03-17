@@ -201,6 +201,7 @@ export const VirtualizedCatGrid = memo(function VirtualizedCatGrid({
             <PokemonCardItem
               key={cat.id}
               cat={cat}
+              equippedCostumeId={catCostumes[cat.id]}
               onClick={onClick}
               showFlip={showFlip}
             />
