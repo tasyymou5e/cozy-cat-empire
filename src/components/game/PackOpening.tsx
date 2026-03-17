@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 
 interface PackOpeningProps {
   availableCats: Cat[];
+  catCostumes?: Record<string, string>;
   packSize?: number;
   onPackOpened?: (cats: Cat[]) => void;
 }
