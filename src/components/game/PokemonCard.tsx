@@ -375,10 +375,6 @@ export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned 
                   >Homestead</h3>
                 </div>
 
-                {/* Brand */}
-                <p className="text-[11px] font-bold uppercase tracking-wider mt-1 relative z-10"
-                  style={{ color: 'hsl(168 50% 35%)' }}
-                >Cozy Cat Empire</p>
 
                 {/* Tagline */}
                 <p className="text-[10px] text-center italic mt-1 relative z-10"
