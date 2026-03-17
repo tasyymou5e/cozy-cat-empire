@@ -4,6 +4,7 @@ import { Cat } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
 import { CatReaction } from '@/contexts/CatReactionContext';
 import { UnifiedCatCard } from './UnifiedCatCard';
+import { PokemonCard } from './PokemonCard';
 
 interface VirtualizedCatGridProps {
   cats: Cat[];
@@ -27,9 +28,23 @@ interface VirtualizedCatGridProps {
   virtualizationThreshold?: number;
 }
 
-
-// Custom list container for VirtuosoGrid - responsive columns via CSS class
+// Custom list container for VirtuosoGrid
 const ListContainer = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ style, children, ...props }, ref) => (
+    <div
+      ref={ref}
+      {...props}
+      className="grid gap-6 justify-items-center"
+      style={{ ...style, gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}
+    >
+      {children}
+    </div>
+  )
+);
+ListContainer.displayName = 'ListContainer';
+
+// Legacy list container for non-trading variants
+const LegacyListContainer = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ style, children, ...props }, ref) => (
     <div
       ref={ref}
@@ -41,9 +56,29 @@ const ListContainer = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
     </div>
   )
 );
-ListContainer.displayName = 'ListContainer';
+LegacyListContainer.displayName = 'LegacyListContainer';
 
-// Memoized cat card wrapper
+// Memoized PokemonCard wrapper for trading variant
+const PokemonCardItem = memo(function PokemonCardItem({
+  cat,
+  onClick,
+  showFlip,
+}: {
+  cat: Cat;
+  onClick?: (cat: Cat) => void;
+  showFlip?: boolean;
+}) {
+  return (
+    <PokemonCard
+      cat={cat}
+      showFlip={showFlip}
+      onClick={onClick ? () => onClick(cat) : undefined}
+      isOwned
+    />
+  );
+});
+
+// Memoized cat card wrapper for non-trading variants
 const CatCardItem = memo(function CatCardItem({
   cat,
   relationships,
@@ -102,10 +137,10 @@ const CatCardItem = memo(function CatCardItem({
 });
 
 /**
- * VirtualizedCatGrid - Renders a virtualized grid of cat cards
+ * VirtualizedCatGrid - Renders a grid of cat cards
  * 
- * Uses react-virtuoso's VirtuosoGrid for efficient rendering of large cat lists.
- * Falls back to a regular grid for small lists (<20 cats by default).
+ * When variant is "trading", uses PokemonCard (Cat Empire Cards style).
+ * Otherwise uses UnifiedCatCard.
  */
 export const VirtualizedCatGrid = memo(function VirtualizedCatGrid({
   cats,
@@ -127,93 +162,93 @@ export const VirtualizedCatGrid = memo(function VirtualizedCatGrid({
   className,
   virtualizationThreshold = 20,
 }: VirtualizedCatGridProps) {
-  // Memoize the item content renderer
-  const itemContent = useCallback(
-    (index: number) => {
-      const cat = cats[index];
-      if (!cat) return null;
+  const isTrading = variant === 'trading';
 
+  // For trading variant, render PokemonCards
+  if (isTrading) {
+    if (cats.length < virtualizationThreshold) {
       return (
-        <CatCardItem
-          key={cat.id}
-          cat={cat}
-          relationships={relationships}
-          allCats={allCats}
-          catCostumes={catCostumes}
-          variant={variant}
-          reaction={getCatReaction?.(cat.id)}
-          onSell={onSell}
-          onHeal={onHeal}
-          onComfort={onComfort}
-          onRename={onRename}
-          onClick={onClick}
-          showStats={showStats}
-          showRelationships={showRelationships}
-          showActions={showActions}
-          showFlip={showFlip}
-          animated={animated}
-        />
+        <div
+          className={`grid gap-6 justify-items-center ${className || ''}`}
+          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}
+        >
+          {cats.map((cat) => (
+            <PokemonCardItem
+              key={cat.id}
+              cat={cat}
+              onClick={onClick}
+              showFlip={showFlip}
+            />
+          ))}
+        </div>
       );
-    },
-    [
-      cats,
-      relationships,
-      allCats,
-      catCostumes,
-      variant,
-      getCatReaction,
-      onSell,
-      onHeal,
-      onComfort,
-      onRename,
-      onClick,
-      showStats,
-      showRelationships,
-      showActions,
-      showFlip,
-      animated,
-    ]
+    }
+
+    return (
+      <VirtuosoGrid
+        totalCount={cats.length}
+        overscan={200}
+        useWindowScroll
+        components={{ List: ListContainer }}
+        itemContent={(index) => {
+          const cat = cats[index];
+          if (!cat) return null;
+          return (
+            <PokemonCardItem
+              key={cat.id}
+              cat={cat}
+              onClick={onClick}
+              showFlip={showFlip}
+            />
+          );
+        }}
+        className={className}
+      />
+    );
+  }
+
+  // Non-trading variant: use UnifiedCatCard
+  const renderItem = (cat: Cat) => (
+    <CatCardItem
+      key={cat.id}
+      cat={cat}
+      relationships={relationships}
+      allCats={allCats}
+      catCostumes={catCostumes}
+      variant={variant}
+      reaction={getCatReaction?.(cat.id)}
+      onSell={onSell}
+      onHeal={onHeal}
+      onComfort={onComfort}
+      onRename={onRename}
+      onClick={onClick}
+      showStats={showStats}
+      showRelationships={showRelationships}
+      showActions={showActions}
+      showFlip={showFlip}
+      animated={animated}
+    />
   );
 
-  // For small lists, use regular grid (virtualization overhead not worth it)
   if (cats.length < virtualizationThreshold) {
     return (
       <div className={`grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 ${className || ''}`}>
-        {cats.map((cat) => (
-          <CatCardItem
-            key={cat.id}
-            cat={cat}
-            relationships={relationships}
-            allCats={allCats}
-            catCostumes={catCostumes}
-            variant={variant}
-            reaction={getCatReaction?.(cat.id)}
-            onSell={onSell}
-            onHeal={onHeal}
-            onComfort={onComfort}
-            onRename={onRename}
-            onClick={onClick}
-            showStats={showStats}
-            showRelationships={showRelationships}
-            showActions={showActions}
-            showFlip={showFlip}
-            animated={animated}
-          />
-        ))}
+        {cats.map(renderItem)}
       </div>
     );
   }
 
-  // Use virtualized grid for large lists
   return (
     <VirtuosoGrid
       totalCount={cats.length}
       overscan={200}
       useWindowScroll
-      components={{
-        List: ListContainer,
+      components={{ List: LegacyListContainer }}
+      itemContent={(index) => {
+        const cat = cats[index];
+        if (!cat) return null;
+        return renderItem(cat);
       }}
-      itemContent={itemContent}
       className={className}
     />
   );
