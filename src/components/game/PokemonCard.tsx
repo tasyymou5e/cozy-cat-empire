@@ -315,54 +315,54 @@ export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned 
           }}
         >
           <div className="pokemon-card-frame absolute inset-0 rounded-2xl p-3">
-            <div className="relative w-full h-full rounded-xl overflow-hidden flex flex-col items-center justify-center p-4 gap-3"
+            <div className="relative w-full h-full rounded-xl overflow-hidden flex flex-col items-center justify-between p-5"
               style={{ background: 'linear-gradient(180deg, hsl(35 30% 93%) 0%, hsl(30 25% 88%) 100%)' }}
             >
-              <h3 className="text-xl font-extrabold uppercase tracking-tight text-foreground">{cat.name}</h3>
-              <p className="text-xs text-muted-foreground">{breedInfo.name} · {cat.personality}</p>
-
-              {/* Stats grid */}
-              <div className="grid grid-cols-2 gap-2 w-full mt-2">
-                {[
-                  { label: 'Hunger', value: cat.hunger, emoji: '🍗' },
-                  { label: 'Rest', value: cat.restLevel, emoji: '💤' },
-                  { label: 'Feeding', value: cat.feedingScore, emoji: '🍽️' },
-                  { label: 'Wins', value: cat.showWins, emoji: '🏆' },
-                ].map(stat => (
-                  <div key={stat.label} className="rounded-lg p-2 text-center border"
-                    style={{ borderColor: 'hsl(40 60% 70%)', background: 'hsl(40 20% 95% / 0.9)' }}
-                  >
-                    <div className="text-lg">{stat.emoji}</div>
-                    <div className="text-xs font-bold text-foreground">{stat.value}</div>
-                    <div className="text-[8px] text-muted-foreground uppercase">{stat.label}</div>
-                  </div>
-                ))}
+              {/* Decorative illustration box */}
+              <div className="w-full rounded-xl border-2 p-4 flex flex-col items-center justify-center relative"
+                style={{ borderColor: 'hsl(40 60% 70%)', background: 'hsl(40 30% 96% / 0.8)' }}
+              >
+                <div className="flex items-center justify-between w-full text-base mb-1">
+                  <span>✨</span>
+                  <span>⭐</span>
+                </div>
+                <div className="rounded-lg border-2 px-5 py-2 flex items-center gap-2 my-1"
+                  style={{ borderColor: 'hsl(40 60% 70%)', background: 'hsl(40 20% 95% / 0.9)' }}
+                >
+                  <span className="text-2xl">🏠</span>
+                  <span className="text-2xl">🐱</span>
+                </div>
+                <div className="flex items-center justify-between w-full text-base mt-1">
+                  <span>✨</span>
+                  <span>⭐</span>
+                </div>
               </div>
 
-              {/* Tricks */}
-              <div className="flex gap-1 mt-1">
-                {['sit', 'paw', 'rollOver', 'jump', 'fetch'].map(trick => (
-                  <span key={trick} className={cn(
-                    'text-lg',
-                    cat.tricksLearned.includes(trick as any) ? 'opacity-100' : 'opacity-20'
-                  )}>
-                    {trick === 'sit' ? '🪑' : trick === 'paw' ? '🐾' : trick === 'rollOver' ? '🔄' : trick === 'jump' ? '⬆️' : '🎾'}
-                  </span>
-                ))}
+              {/* Title */}
+              <div className="text-center mt-3">
+                <h3 className="text-lg font-extrabold uppercase tracking-widest text-foreground leading-tight">Happy Cat</h3>
+                <h3 className="text-lg font-extrabold uppercase tracking-widest text-foreground leading-tight">Homestead</h3>
               </div>
 
-              {/* Value */}
-              <div className="text-lg font-extrabold text-foreground mt-1">
-                ${cat.value}
+              {/* Brand */}
+              <div className="text-center mt-1">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Cozy Cat Empire</p>
               </div>
+
+              {/* Tagline */}
+              <p className="text-[10px] text-muted-foreground text-center italic mt-1">
+                Where every cat finds their perfect sunny spot 🌻
+              </p>
 
               {/* QR Code */}
-              <div className="bg-white p-1.5 rounded-lg shadow-sm">
-                <QRCodeSVG value={qrUrl} size={56} level="L" />
+              <div className="bg-white p-1.5 rounded-lg shadow-sm mt-2">
+                <QRCodeSVG value={qrUrl} size={48} level="L" />
               </div>
 
-              <div className="text-[8px] text-muted-foreground">
-                Cat Empire Cards · CCE Collection
+              {/* Footer */}
+              <div className="flex justify-between items-center w-full mt-2 text-[8px] text-muted-foreground">
+                <span>© 2026 Cozy Cat Empire</span>
+                <span>CCE-{cardNum}</span>
               </div>
 
               {/* Flip button on back */}
