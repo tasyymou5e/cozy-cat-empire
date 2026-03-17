@@ -71,6 +71,7 @@ export function PokemonCard({ cat, className, showFlip = true, onClick, isOwned 
 
   const handleFlip = (e: React.MouseEvent) => {
     e.stopPropagation();
+    playSound('cardFlip');
     setIsFlipped(!isFlipped);
     setTilt({ x: 0, y: 0 });
   };
