@@ -95,7 +95,7 @@ export default function CardShowcase() {
               </h1>
             </div>
             <p className="text-muted-foreground text-lg ml-14">
-              TCG cards with QR codes, pack opening, collection tracking & more
+              Cat cards with QR codes, pack opening, collection tracking & more
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -115,7 +115,7 @@ export default function CardShowcase() {
 
         <Tabs defaultValue="pokemon" className="space-y-8">
           <TabsList className="grid grid-cols-6 w-full max-w-3xl">
-            <TabsTrigger value="pokemon">🃏 TCG Cards</TabsTrigger>
+            <TabsTrigger value="pokemon">🃏 Cards</TabsTrigger>
             <TabsTrigger value="collection"><BookOpen className="h-3 w-3 mr-1" />Collection</TabsTrigger>
             <TabsTrigger value="packs"><Package className="h-3 w-3 mr-1" />Packs</TabsTrigger>
             <TabsTrigger value="compare"><ArrowLeftRight className="h-3 w-3 mr-1" />Compare</TabsTrigger>
@@ -123,9 +123,9 @@ export default function CardShowcase() {
             <TabsTrigger value="trade"><Swords className="h-3 w-3 mr-1" />Trade</TabsTrigger>
           </TabsList>
 
-          {/* Pokémon TCG Cards */}
+          {/* Cat Cards */}
           <TabsContent value="pokemon">
-            <SectionHeader title="Pokémon TCG Cards" delay={100} />
+            <SectionHeader title="Cat Cards" delay={100} />
             <div className="grid gap-10 justify-items-center" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
               {MOCK_CATS.map((cat, i) => (
                 <div key={cat.id} className="space-y-3 animate-fade-in" style={{ animationDelay: `${150 + i * 100}ms`, animationFillMode: 'both' }}>
