@@ -115,7 +115,7 @@ export default function CatCollection() {
           const saveData = JSON.parse(saved);
           actions.loadFromData?.(
             saveData.state,
-            saveData.kittensBreek || 0,
+            saveData.kittensBreed || 0,
             saveData.relationships
           );
         } catch (e) {
