@@ -351,10 +351,7 @@ export function TradeAnimation({ sendCat, receiveCat, sendCostumeId, receiveCost
       onComplete?.();
     }, 2000);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-  }, [isPlaying, onComplete]);
-
-  const sendType = getBreedType(sendCat.breed);
-  const receiveType = getBreedType(receiveCat.breed);
+  }, [isPlaying]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="relative h-52 w-full overflow-hidden rounded-2xl border bg-gradient-to-r from-card via-muted/30 to-card">
