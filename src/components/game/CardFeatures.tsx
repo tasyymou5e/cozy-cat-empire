@@ -77,7 +77,7 @@ export function CardComparison({ cats, catCostumes = {}, onClose }: CardComparis
           return (
             <div key={cat.id} className="flex flex-col items-center">
               <div className="transform scale-[0.35] origin-top -mb-[160px]">
-                <PokemonCard cat={cat} showFlip={false} isOwned />
+                <PokemonCard cat={cat} equippedCostumeId={catCostumes[cat.id]} showFlip={false} isOwned />
               </div>
               <h4 className="font-bold text-sm truncate mt-2">{cat.name}</h4>
             </div>
