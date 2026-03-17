@@ -91,7 +91,7 @@ export default function CardShowcase() {
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
-                Card Showcase
+                Cat Empire Cards
               </h1>
             </div>
             <p className="text-muted-foreground text-lg ml-14">
