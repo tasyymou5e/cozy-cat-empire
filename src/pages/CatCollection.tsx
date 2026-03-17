@@ -529,7 +529,7 @@ export default function CatCollection() {
           currentMoney={state.money}
           onMoneyChange={actions.setMoney}
         />
-      </div>
+      </Tabs>
     </GameLayout>
   );
 }
