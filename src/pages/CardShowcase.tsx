@@ -95,7 +95,7 @@ export default function CardShowcase() {
               </h1>
             </div>
             <p className="text-muted-foreground text-lg ml-14">
-              TCG cards with QR codes, pack opening, collection tracking & more
+              Cat cards with QR codes, pack opening, collection tracking & more
             </p>
           </div>
           <div className="flex items-center gap-3">
