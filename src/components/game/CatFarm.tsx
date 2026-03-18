@@ -567,6 +567,7 @@ export function CatFarm() {
               showOrphanDialog={showOrphanDialog}
               onRecoverOrphans={handleRecoverOrphans}
               onDismissOrphans={handleDismissOrphans}
+              availableSpace={state.space - state.cats.length}
               showWelcomeBack={welcomeBack.showWelcomeBack}
               welcomeBackBonus={welcomeBack.welcomeBackBonus}
               onClaimWelcomeBack={handleClaimWelcomeBack}
