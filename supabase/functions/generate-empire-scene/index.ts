@@ -193,7 +193,7 @@ function getSceneActivity(catCount: number): string {
 }
 
 function buildEmpirePrompt(request: RenderRequest): string {
-  const { houseSize, timeOfDay, season, cats, catCostumes } = request;
+  const { houseSize, timeOfDay, season, cats, catCostumes, customPrompt } = request;
   
   const catDescriptions = cats.map((cat, index) => {
     const costume = catCostumes[cat.id];
