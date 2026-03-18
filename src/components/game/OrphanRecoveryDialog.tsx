@@ -27,6 +27,7 @@ interface OrphanRecoveryDialogProps {
   open: boolean;
   onClose: () => void;
   onRecover: (cats: OrphanedCat[]) => Promise<void>;
+  availableSpace?: number;
 }
 
 export function OrphanRecoveryDialog({
