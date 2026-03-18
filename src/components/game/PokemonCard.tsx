@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { useSound } from '@/contexts/SoundContext';
 import { QRCodeSVG } from 'qrcode.react';
 
-interface PokemonCardProps {
+interface CollectorCardProps {
   cat: Cat;
   equippedCostumeId?: string;
   className?: string;
@@ -19,14 +19,14 @@ interface PokemonCardProps {
 }
 
 const TIER_FRAME: Record<GradeTier, { frameClass: string; holoLevel: number; label: string; stars: string }> = {
-  common: { frameClass: 'pokemon-frame-common', holoLevel: 0, label: 'Common', stars: '★' },
-  uncommon: { frameClass: 'pokemon-frame-uncommon', holoLevel: 1, label: 'Uncommon', stars: '★★' },
-  rare: { frameClass: 'pokemon-frame-rare', holoLevel: 2, label: 'Rare', stars: '★★★' },
-  veryRare: { frameClass: 'pokemon-frame-legendary', holoLevel: 3, label: 'Legendary', stars: '★★★★' },
-  ultraRare: { frameClass: 'pokemon-frame-mythic', holoLevel: 4, label: 'Mythic', stars: '★H' },
+  common: { frameClass: 'collector-frame-common', holoLevel: 0, label: 'Common', stars: '★' },
+  uncommon: { frameClass: 'collector-frame-uncommon', holoLevel: 1, label: 'Uncommon', stars: '★★' },
+  rare: { frameClass: 'collector-frame-rare', holoLevel: 2, label: 'Rare', stars: '★★★' },
+  veryRare: { frameClass: 'collector-frame-legendary', holoLevel: 3, label: 'Legendary', stars: '★★★★' },
+  ultraRare: { frameClass: 'collector-frame-mythic', holoLevel: 4, label: 'Mythic', stars: '★H' },
 };
 
-export function PokemonCard({ cat, equippedCostumeId, className, showFlip = true, onClick, isOwned = true, profileBaseUrl }: PokemonCardProps) {
+export function CollectorCard({ cat, equippedCostumeId, className, showFlip = true, onClick, isOwned = true, profileBaseUrl }: CollectorCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [shinePos, setShinePos] = useState({ x: 50, y: 50 });
@@ -98,15 +98,15 @@ export function PokemonCard({ cat, equippedCostumeId, className, showFlip = true
 
   return (
     <div
-      className={cn('pokemon-card-scene', className)}
+      className={cn('collector-card-scene', className)}
       style={{ perspective: '1500px' }}
       onClick={onClick}
     >
       <div
         ref={cardRef}
         className={cn(
-          'pokemon-card-wrapper relative',
-          isFlipped && 'pokemon-card-flipped'
+          'collector-card-wrapper relative',
+          isFlipped && 'collector-card-flipped'
         )}
         style={{
           width: 320,
@@ -133,8 +133,8 @@ export function PokemonCard({ cat, equippedCostumeId, className, showFlip = true
           style={{ backfaceVisibility: 'hidden', pointerEvents: isFlipped ? 'none' : 'auto' }}
         >
           {/* Gold/Silver Frame */}
-          <div className="pokemon-card-frame absolute inset-0 rounded-2xl p-3">
-            <div className="pokemon-card-inner relative w-full h-full rounded-xl overflow-hidden flex flex-col"
+          <div className="collector-card-frame absolute inset-0 rounded-2xl p-3">
+            <div className="collector-card-inner relative w-full h-full rounded-xl overflow-hidden flex flex-col"
               style={{ background: 'linear-gradient(180deg, hsl(35 30% 93%) 0%, hsl(30 25% 88%) 100%)' }}
             >
               {/* Texture overlay */}
@@ -183,7 +183,7 @@ export function PokemonCard({ cat, equippedCostumeId, className, showFlip = true
                 </div>
                 {/* Cosmos stars for Legendary+ */}
                 {tierFrame.holoLevel >= 3 && (
-                  <div className="pokemon-cosmos-stars absolute inset-0 pointer-events-none" />
+                  <div className="collector-cosmos-stars absolute inset-0 pointer-events-none" />
                 )}
               </div>
 
@@ -352,9 +352,9 @@ export function PokemonCard({ cat, equippedCostumeId, className, showFlip = true
                 />
 
                 {/* Floating hearts */}
-                <div className="absolute top-4 left-4 text-sm pokemon-floating-heart" style={{ animationDelay: '0s' }}>💕</div>
-                <div className="absolute top-12 right-5 text-xs pokemon-floating-heart" style={{ animationDelay: '1.5s' }}>💕</div>
-                <div className="absolute bottom-20 left-6 text-xs pokemon-floating-heart" style={{ animationDelay: '0.8s' }}>💕</div>
+                <div className="absolute top-4 left-4 text-sm collector-floating-heart" style={{ animationDelay: '0s' }}>💕</div>
+                <div className="absolute top-12 right-5 text-xs collector-floating-heart" style={{ animationDelay: '1.5s' }}>💕</div>
+                <div className="absolute bottom-20 left-6 text-xs collector-floating-heart" style={{ animationDelay: '0.8s' }}>💕</div>
 
                 {/* Corner accents */}
                 <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 rounded-tl-md" style={{ borderColor: 'hsl(168 60% 50%)' }} />
@@ -367,8 +367,8 @@ export function PokemonCard({ cat, equippedCostumeId, className, showFlip = true
                   style={{ borderColor: 'hsl(168 50% 60%)', background: 'hsl(168 30% 96% / 0.9)' }}
                 >
                   <div className="flex items-center justify-between w-full text-base mb-1">
-                    <span className="pokemon-twinkle-star">✨</span>
-                    <span className="pokemon-twinkle-star" style={{ animationDelay: '0.5s' }}>⭐</span>
+                    <span className="collector-twinkle-star">✨</span>
+                    <span className="collector-twinkle-star" style={{ animationDelay: '0.5s' }}>⭐</span>
                   </div>
                   {/* Circular logo badge */}
                   <div className="relative w-16 h-16 rounded-full flex items-center justify-center my-1"
@@ -378,8 +378,8 @@ export function PokemonCard({ cat, equippedCostumeId, className, showFlip = true
                     <span className="absolute -bottom-1 -right-1 text-lg bg-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm">🐱</span>
                   </div>
                   <div className="flex items-center justify-between w-full text-base mt-1">
-                    <span className="pokemon-twinkle-star" style={{ animationDelay: '1s' }}>✨</span>
-                    <span className="pokemon-twinkle-star" style={{ animationDelay: '1.5s' }}>⭐</span>
+                    <span className="collector-twinkle-star" style={{ animationDelay: '1s' }}>✨</span>
+                    <span className="collector-twinkle-star" style={{ animationDelay: '1.5s' }}>⭐</span>
                   </div>
                 </div>
 

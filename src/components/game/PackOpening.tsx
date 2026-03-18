@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Cat } from '@/types/game';
-import { PokemonCard } from './PokemonCard';
+import { CollectorCard } from './CollectorCard';
 import { useSound } from '@/contexts/SoundContext';
 import { cn } from '@/lib/utils';
 import { getGradeTier } from '@/types/grading';
@@ -155,7 +155,7 @@ export function PackOpening({ availableCats, catCostumes = {}, packSize = 3, onP
                     transitionDelay: `${i * 100}ms`,
                   }}
                 >
-                  <PokemonCard cat={cat} equippedCostumeId={catCostumes[cat.id]} showFlip={isRevealed} />
+                  <CollectorCard cat={cat} equippedCostumeId={catCostumes[cat.id]} showFlip={isRevealed} />
                 </div>
               );
             })}

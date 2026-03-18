@@ -12,7 +12,7 @@ import { VirtualizedCatGrid } from '@/components/game/VirtualizedCatGrid';
 import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { CatDetailModal } from '@/components/game/CatDetailModal';
 import { BatchPortraitGenerator } from '@/components/game/BatchPortraitGenerator';
-import { PokemonCard } from '@/components/game/PokemonCard';
+import { CollectorCard } from '@/components/game/CollectorCard';
 import { CardComparison, DeckBuilder, TradeAnimation } from '@/components/game/CardFeatures';
 import { PackOpening } from '@/components/game/PackOpening';
 import { Button } from '@/components/ui/button';
@@ -423,7 +423,7 @@ export default function CatCollection() {
                 <div className="grid gap-10 justify-items-center" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
                   {filteredAndSortedCats.slice(0, 20).map((cat, i) => (
                     <div key={cat.id} className="animate-fade-in" style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'both' }}>
-                      <PokemonCard cat={cat} equippedCostumeId={state.catCostumes[cat.id]} showFlip isOwned={collectedIds.has(cat.id)} />
+                      <CollectorCard cat={cat} equippedCostumeId={state.catCostumes[cat.id]} showFlip isOwned={collectedIds.has(cat.id)} />
                     </div>
                   ))}
                 </div>
