@@ -189,7 +189,7 @@ export function useClearWinstonLogs() {
       let query = supabase.from('application_logs').delete();
 
       if (options?.level) {
-        query = query.eq('level', options.level as any);
+        query = query.eq('level', options.level);
       }
       if (options?.olderThan) {
         query = query.lt('timestamp', options.olderThan);
