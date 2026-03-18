@@ -1,51 +1,180 @@
+# Pokémon-Style Card Redesign Plan
 
+## Overview
+Transform cat cards into authentic Pokémon TCG-style cards with proper structure, holographic effects, breed-based type system, 3D tilt, and flip animations across all 5 tiers.
 
-# Fix User Saves - Admin Shows Users but No Game Save
+---
 
-## Problem Analysis
+## Phase 1: Breed Type System & Design Tokens
 
-Database inspection reveals two issues:
+### 1a. Create `src/config/breedTypes.ts`
+Map each breed to a Pokémon-style "type" with colors and gradients:
 
-1. **Some users' game_saves have been overwritten with empty/reset state**. For example, user `jess` has `player_stats.total_cats_owned = 71` but her `game_saves` shows `cats_count = 0, day = 1, money = 185`. The save was overwritten with initial state at some point despite the existing guards.
+| Breed | Type | Primary Color | Gradient |
+|-------|------|---------------|----------|
+| Persian | Psychic | `#8338ec` | purple → pink |
+| Bengal | Fire | `#ff6b35` | orange → red |
+| Tabby | Normal | `#a8a878` | tan → brown |
+| Ragdoll | Water | `#3a86ff` | blue → cyan |
+| Siamese | Ice | `#96d9d6` | light blue → white |
+| Maine Coon | Fighting | `#c22e28` | brown → red |
+| British Shorthair | Steel | `#b8b8d0` | silver → gray |
+| Stray | Dark | `#705848` | dark brown → black |
 
-2. **`player_stats` is only synced during manual cloud saves**, not during auto-saves. The `syncPlayerStats` call lives in `handleCloudSave` (manual button) but is absent from the auto-save flow in `useAutoSave`. So the admin user list (which reads from `player_stats`) shows stale or zero data for users who never manually saved.
+Each type includes: `icon`, `gradient`, `energyColor`, `imageGradient`.
 
-3. **Admin user detail modal uses `.single()` for `game_saves`** query (line 54 of `UserDetailModal.tsx`), which throws when no row exists. It catches `PGRST116` but should use `.maybeSingle()`.
+### 1b. Add CSS variables & keyframes to `src/index.css`
+- Card gold/silver frame colors
+- Holo animation keyframes: `holoShift`, `twinkle`, `rainbow`, `cosmosSwirl`
+- Card texture overlay (subtle noise SVG)
+- Shine sweep animation
+- 3D tilt utility classes
 
-## Root Causes
+---
 
-- **Auto-save doesn't sync `player_stats`** - the `onSaveComplete` callback in `useCloudHandlers.ts` does not call `syncPlayerStats`, so user stats in the admin view remain at 0 for most users.
-- **Admin user list only reads from `player_stats`** (via `useAdminUsers`), not from `game_saves.game_state`. If `player_stats` is empty/stale, admin sees no meaningful data.
-- **Corrupted saves** (day=1, 0 cats on users who had progress) suggest the empty-state guard was bypassed in earlier code versions. These need admin-level repair, not a code fix.
+## Phase 2: New PokemonCard Component
 
-## Plan
+### Create `src/components/game/PokemonCard.tsx`
+A new dedicated component for the Pokémon TCG layout.
 
-### 1. Sync `player_stats` on auto-save success
-**File: `src/hooks/handlers/useCloudHandlers.ts`**
-- In the `useAutoSave` options `onSaveComplete` callback (~line 125), call `leaderboard.syncPlayerStats(state, kittensBreed, ...)` so stats stay current after every auto-save, not just manual saves.
+**Card structure (320×448 aspect ratio):**
+```
+┌─────────────────────────────┐
+│  [FRAME: tier-colored]      │
+│  ┌───────────────────────┐  │
+│  │ [Evo Stage]    [HP]   │  │
+│  │ [NAME]      [Type 🔥] │  │
+│  │ ┌─────────────────┐   │  │
+│  │ │  CAT AVATAR/    │   │  │
+│  │ │  PORTRAIT        │   │  │
+│  │ │  (type gradient)  │   │  │
+│  │ └─────────────────┘   │  │
+│  │ [Description bar]     │  │
+│  │ ┌─────────────────┐   │  │
+│  │ │ [⚡] Move 1   30 │   │  │
+│  │ │ flavor text      │   │  │
+│  │ └─────────────────┘   │  │
+│  │ ┌─────────────────┐   │  │
+│  │ │ [⚡⚡] Move 2  60│   │  │
+│  │ │ flavor text      │   │  │
+│  │ └─────────────────┘   │  │
+│  │ Weakness | Resist | Retreat│
+│  │ ★★★★ | #018/100 | CCE │  │
+│  └───────────────────────┘  │
+│  [HOLO OVERLAY]             │
+│  [SHINE EFFECT]             │
+└─────────────────────────────┘
+```
 
-### 2. Enrich admin user list with `game_saves` data
-**File: `src/hooks/admin/useAdminData.ts`**
-- In `useAdminUsers`, also fetch from `game_saves` for each page of users (similar to the existing `player_stats` + `user_roles` parallel fetch).
-- Add fields: `last_played_at`, `cats_count` (from `jsonb_array_length`), `day`, `money` from `game_state`.
-- This ensures the admin list shows real game data even when `player_stats` hasn't been synced.
+**Key features:**
+- **Frame colors by tier:** Common=silver matte, Uncommon=silver gloss, Rare=gold, Legendary=gold cosmos, Mythic=animated rainbow
+- **HP display:** Top-right, large red number from `cat.health`
+- **Evolution stage:** stray=Basic, adopted=Stage 1, pure=Stage 2
+- **Type energy icons:** Circular breed-colored icons
+- **Move cards:**
+  - Move 1 = Personality ability (e.g., "Playful Swipe", "Independent Blaze")
+  - Move 2 = Best learned trick or breed special
+  - Damage = calculated from grade + stats
+- **Weakness/Resistance/Retreat:** Derived from breed type matchups
+- **Footer:** Rarity stars, card number, CCE set symbol
+- **Texture:** Subtle canvas/paper noise overlay
 
-### 3. Fix `.single()` to `.maybeSingle()` in UserDetailModal
-**File: `src/components/admin/UserDetailModal.tsx`**
-- Line 54: Change `.single()` to `.maybeSingle()` for the `game_saves` query.
-- Line 69: Same for `player_stats` query.
-- Remove the `PGRST116` error code checks (no longer needed with `.maybeSingle()`).
+### Holographic effects (tier-progressive):
+- **Common:** None (matte)
+- **Uncommon:** Subtle sheen sweep on hover
+- **Rare:** Twinkling star particles + diagonal holo
+- **Legendary:** Cosmos swirl + dynamic shine
+- **Mythic:** Animated rainbow border + full rainbow overlay
 
-### 4. Show game save status in admin user table
-**File: `src/pages/admin/AdminUsers.tsx`**
-- Add a "Last Played" or "Save Status" column showing data from `game_saves` (from step 2).
-- Show a badge like "No Save" for users without a game_saves row, helping admin identify users who haven't saved.
+### 3D Tilt (mouse-follow):
+- `perspective: 1500px` on container
+- `onMouseMove` → calculate rotateX/rotateY from cursor position
+- Dynamic radial-gradient shine follows cursor
+- Holo intensity increases with tilt angle
+- Disabled when card is flipped
+- Touch support via `onTouchMove`
 
-## Files Changed
-| File | Change |
+---
+
+## Phase 3: Card Flip (Back Side)
+
+### Back design in PokemonCard:
+```
+┌─────────────────────────────┐
+│  [FRAME: tier-colored]      │
+│  ┌───────────────────────┐  │
+│  │      CAT NAME         │  │
+│  │    [Breed subtitle]   │  │
+│  │  ┌──────┐ ┌──────┐   │  │
+│  │  │Hunger│ │ Rest │   │  │
+│  │  └──────┘ └──────┘   │  │
+│  │  ┌──────┐ ┌──────┐   │  │
+│  │  │ Feed │ │ Wins │   │  │
+│  │  └──────┘ └──────┘   │  │
+│  │  [Lore/description]   │  │
+│  │  Tricks: 🪑🐾🔄⬆️🎾  │  │
+│  │  Social: 💚5  😾2    │  │
+│  │  Value: $350          │  │
+│  │  [CCE Logo]           │  │
+│  └───────────────────────┘  │
+└─────────────────────────────┘
+```
+
+- Flip via 🔄 button or click
+- 0.6s cubic-bezier `rotateY(180deg)` transition
+- 3D tilt disabled while flipped
+
+---
+
+## Phase 4: Move Generation System
+
+### Create `src/lib/cardMoves.ts`
+Generate Pokémon-style moves from cat data:
+
+| Personality | Move Name | Base Damage |
+|-------------|-----------|-------------|
+| Playful | Playful Swipe | 20 |
+| Affectionate | Warm Embrace | 30 (heals) |
+| Independent | Lone Strike | 40 |
+| Curious | Investigate | 20 (draw) |
+| Lazy | Nap Attack | 10 (buff) |
+| Shy | Shadow Fade | 20 (dodge) |
+
+Move 2 = best trick or breed special. Damage scales with grade.
+
+---
+
+## Phase 5: Integration
+
+### Modify `UnifiedCatCard.tsx`:
+- `variant="trading"` → renders PokemonCard
+- Add `variant="pokemon"` as explicit alias
+- Keep `variant="card"` as standard game card
+
+### Update `CardShowcase.tsx`:
+- Add Pokémon card showcase section for all 5 tiers
+
+### Update `CatCollection.tsx`:
+- Use Pokémon card variant
+
+---
+
+## File Changes Summary
+
+| File | Action |
 |------|--------|
-| `src/hooks/handlers/useCloudHandlers.ts` | Sync player_stats on auto-save complete |
-| `src/hooks/admin/useAdminData.ts` | Fetch game_saves data alongside profiles |
-| `src/components/admin/UserDetailModal.tsx` | Fix `.single()` → `.maybeSingle()` |
-| `src/pages/admin/AdminUsers.tsx` | Add save status column |
+| `src/config/breedTypes.ts` | CREATE |
+| `src/lib/cardMoves.ts` | CREATE |
+| `src/components/game/PokemonCard.tsx` | CREATE |
+| `src/components/game/UnifiedCatCard.tsx` | MODIFY |
+| `src/config/graphics.ts` | MODIFY |
+| `src/index.css` | MODIFY |
+| `src/pages/CardShowcase.tsx` | MODIFY |
 
+## Implementation Order
+1. `breedTypes.ts` + `cardMoves.ts` (data layer)
+2. CSS animations in `index.css`
+3. `PokemonCard.tsx` (core component with front/back/tilt)
+4. Wire into `UnifiedCatCard.tsx`
+5. Update `CardShowcase.tsx`
+6. Test all 5 tiers + flip + 3D tilt

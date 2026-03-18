@@ -116,6 +116,12 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
       onSaveComplete: () => {
         ui.setCloudSyncing(false);
         ui.setLastCloudSave(new Date().toISOString());
+        // Sync player_stats on every auto-save so admin/leaderboard stays current
+        leaderboard.syncPlayerStats(
+          state, kittensBreed,
+          profile.profile?.display_name || undefined,
+          profile.profile?.avatar_emoji || undefined
+        ).catch((err) => log.error('Failed to sync player stats after auto-save:', err));
       },
       onSaveError: (error, retryCount) => {
         ui.setCloudSyncing(false);

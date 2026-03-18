@@ -197,7 +197,7 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
       // Fetch player stats and roles for each user
       const userIds = profiles?.map((p) => p.id) || [];
 
-      const [statsResult, rolesResult] = await Promise.all([
+      const [statsResult, rolesResult, savesResult] = await Promise.all([
         supabase
           .from('player_stats')
           .select(
@@ -205,15 +205,31 @@ export function useAdminUsers({ search = '', page = 1, pageSize = 10 }: UseAdmin
           )
           .in('user_id', userIds),
         supabase.from('user_roles').select('user_id, role').in('user_id', userIds),
+        supabase
+          .from('game_saves')
+          .select('user_id, last_played_at, game_state')
+          .in('user_id', userIds),
       ]);
 
       const statsMap = new Map(statsResult.data?.map((s) => [s.user_id, s]));
       const rolesMap = new Map(rolesResult.data?.map((r) => [r.user_id, r.role]));
+      const savesMap = new Map(
+        savesResult.data?.map((s) => {
+          const gs = s.game_state as Record<string, unknown> | null;
+          return [s.user_id, {
+            last_played_at: s.last_played_at,
+            cats_count: Array.isArray(gs?.cats) ? (gs.cats as unknown[]).length : 0,
+            day: (gs?.day as number) || 0,
+            money: (gs?.money as number) || 0,
+          }];
+        })
+      );
 
       const users = profiles?.map((profile) => ({
         ...profile,
         stats: statsMap.get(profile.id),
         role: rolesMap.get(profile.id) || 'user',
+        save: savesMap.get(profile.id) || null,
       }));
 
       // Get total count

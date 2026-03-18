@@ -518,6 +518,7 @@ export default function AdminUsers() {
                     <TableHead>Username</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Joined</TableHead>
+                    <TableHead>Last Played</TableHead>
                     <TableHead>Cats</TableHead>
                     <TableHead>Wins</TableHead>
                     <TableHead>Role</TableHead>
@@ -528,7 +529,7 @@ export default function AdminUsers() {
                   {isLoading ? (
                     Array.from({ length: 5 }).map((_, i) => (
                       <TableRow key={i}>
-                        {Array.from({ length: 9 }).map((_, j) => (
+                        {Array.from({ length: 10 }).map((_, j) => (
                           <TableCell key={j}>
                             <Skeleton className="h-6 w-20" />
                           </TableCell>
@@ -537,7 +538,7 @@ export default function AdminUsers() {
                     ))
                   ) : data?.users.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                         No users found
                       </TableCell>
                     </TableRow>
@@ -583,8 +584,21 @@ export default function AdminUsers() {
                           {user.created_at ? format(new Date(user.created_at), 'MMM d, yyyy') : '-'}
                         </TableCell>
                         <TableCell>
-                          {user.stats ? (
-                            user.stats.total_cats_owned
+                          {user.save ? (
+                            <span className="text-muted-foreground text-xs">
+                              {user.save.last_played_at
+                                ? format(new Date(user.save.last_played_at), 'MMM d, yyyy')
+                                : '—'}
+                            </span>
+                          ) : (
+                            <Badge variant="outline" className="text-xs">No Save</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {user.save ? (
+                            user.save.cats_count
+                          ) : user.stats ? (
+                            <span className="text-muted-foreground">{user.stats.total_cats_owned}</span>
                           ) : (
                             <span className="text-muted-foreground text-xs">—</span>
                           )}

@@ -51,8 +51,8 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
         .from('game_saves')
         .select('*')
         .eq('user_id', userId)
-        .single();
-      if (error && error.code !== 'PGRST116') throw error;
+        .maybeSingle();
+      if (error) throw error;
       return data;
     },
     enabled: !!userId,
@@ -66,8 +66,8 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
         .from('player_stats')
         .select('*')
         .eq('user_id', userId)
-        .single();
-      if (error && error.code !== 'PGRST116') throw error;
+        .maybeSingle();
+      if (error) throw error;
       return data;
     },
     enabled: !!userId,
