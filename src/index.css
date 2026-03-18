@@ -355,11 +355,11 @@
   }
 
   .message-success {
-    @apply bg-[hsl(var(--success))]/15 text-[hsl(145,50%,30%)];
+    @apply bg-[hsl(var(--success))]/15 text-[hsl(145,50%,30%)] dark:text-[hsl(145,60%,65%)];
   }
 
   .message-warning {
-    @apply bg-[hsl(var(--warning))]/20 text-[hsl(35,80%,25%)];
+    @apply bg-[hsl(var(--warning))]/20 text-[hsl(35,80%,25%)] dark:text-[hsl(40,85%,65%)];
   }
 
   .message-error {
