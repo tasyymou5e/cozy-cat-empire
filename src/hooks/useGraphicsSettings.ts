@@ -31,11 +31,14 @@ export interface GraphicsSettings {
   enableEmpireParticles: boolean;
   enableTimeOfDayEffects: boolean;
   enableSeasonalDecorations: boolean;
-  enableMicroDepthParallax: boolean; // Per-object depth variation
+  enableMicroDepthParallax: boolean;
   // Portrait settings
   portraitQuality: 'standard' | 'premium';
   autoPromptOutdated: boolean;
   showOutdatedIndicator: boolean;
+  // Micro-animations & portrait style
+  enableMicroAnimations: boolean;
+  defaultPortraitStyle: 'realistic' | 'kawaii';
 }
 
 const STORAGE_KEY = 'cat-farm-graphics-settings';
