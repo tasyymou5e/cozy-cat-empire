@@ -29,9 +29,12 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
   const { toast } = useToast();
   const isReloadingRef = useRef(false);
   const [showOrphanDialog, setShowOrphanDialog] = useState(false);
+  const shouldCheckOrphansRef = useRef(false);
+
+  const currentCatIds = useMemo(() => state.cats.map((c) => c.id), [state.cats]);
 
   const { orphanedCats, checkForOrphans, dismissOrphans, hasOrphans, isChecking } =
-    useOrphanDetection(auth.user?.id, state.cats.map((c) => c.id));
+    useOrphanDetection(auth.user?.id, currentCatIds);
 
   const { createEventSnapshot } = useEventSnapshots(auth.user?.id, state);
 
