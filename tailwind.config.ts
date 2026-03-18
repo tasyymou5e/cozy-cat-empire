@@ -592,7 +592,12 @@ export default {
 			// Empire roaming animation
 			'cat-walk': 'cat-walk 0.5s ease-in-out infinite',
 			// Reward float animation
-			'reward-float': 'reward-float 1.8s ease-out forwards'
+			'reward-float': 'reward-float 1.8s ease-out forwards',
+			// Portrait micro-animations
+			'kawaii-breathe': 'kawaii-breathe 2s ease-in-out infinite',
+			'kawaii-ear-twitch': 'kawaii-ear-twitch 0.3s ease-out',
+			'realistic-head-tilt': 'realistic-head-tilt 4s ease-in-out infinite',
+			'whisker-flicker': 'whisker-flicker 0.15s linear'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',
