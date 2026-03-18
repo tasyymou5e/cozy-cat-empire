@@ -64,6 +64,18 @@ export const AUDIO_FILE_PATHS = [
   '/sounds/cat-little-meow.wav',
   '/sounds/cat-begging-meow.wav',
   '/sounds/cat-pain-meow.wav',
+  // New sounds from Mixkit (royalty-free)
+  '/sounds/cat-growl.wav',
+  '/sounds/cat-angry-hiss.wav',
+  '/sounds/kitten-meow.wav',
+  '/sounds/cat-hungry-meow-2.wav',
+  '/sounds/cat-wild-growl.wav',
+  '/sounds/cat-angry-cartoon.wav',
+  '/sounds/cat-pain-meow-2.wav',
+  '/sounds/cat-wild-moan.wav',
+  '/sounds/cat-scary-roar.wav',
+  '/sounds/cat-begging-meow-2.wav',
+  '/sounds/lion-roar-wild.wav',
 ] as const;
 
 /**
