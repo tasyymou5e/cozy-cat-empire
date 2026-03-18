@@ -389,7 +389,7 @@ export function EmpireScene({
         cost={empireRender.cost}
         canAfford={empireRender.canAfford}
         isRendering={empireRender.isRendering}
-        onConfirm={() => empireRender.renderEmpire(timeOfDay, season)}
+        onConfirm={(customPrompt) => empireRender.renderEmpire(timeOfDay, season, customPrompt)}
       />
 
       {/* Resource indicators */}
