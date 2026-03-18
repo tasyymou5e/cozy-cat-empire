@@ -161,7 +161,7 @@ export function BatchPortraitGenerator({
         }
 
         if (data?.portraitUrl) {
-          const hash = computeAppearanceHash(cat, costumeId);
+          const hash = computeAppearanceHash(cat, costumeId, batchStyle);
           onPortraitGenerated(cat.id, data.portraitUrl, hash);
           setResults((prev) => [...prev, { catId: cat.id, catName: cat.name, success: true }]);
         }
