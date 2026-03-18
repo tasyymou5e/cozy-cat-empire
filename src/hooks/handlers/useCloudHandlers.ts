@@ -92,6 +92,14 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
     }
   }, [auth.user, ui.hasLoadedCloud, cloudSave, actions, ui, checkForOrphans]);
 
+  // Trigger orphan check after cloud load once state has updated with loaded cats
+  useEffect(() => {
+    if (shouldCheckOrphansRef.current && currentCatIds.length > 0 && ui.hasLoadedCloud) {
+      shouldCheckOrphansRef.current = false;
+      checkForOrphans();
+    }
+  }, [currentCatIds, ui.hasLoadedCloud, checkForOrphans]);
+
   useEffect(() => {
     if (hasOrphans && !isChecking) {
       setShowOrphanDialog(true);
