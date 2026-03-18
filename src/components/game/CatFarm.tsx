@@ -121,15 +121,14 @@ export function CatFarm() {
 
   // Mini-game reward handler
   const handleMiniGameReward = useCallback((reward: { coins: number; treats: number; happiness: number }) => {
-    if (reward.coins > 0) actions.setMoney(state.money + reward.coins);
-    if (reward.treats > 0) actions.setResources({ ...state.resources, treats: state.resources.treats + reward.treats });
+    actions.addReward?.(reward.coins, reward.treats > 0 ? { treats: reward.treats } : {});
     if (reward.happiness > 0 && state.cats.length > 0) {
       const randomCat = state.cats[Math.floor(Math.random() * state.cats.length)];
       actions.updateCat?.(randomCat.id, { happiness: Math.min(100, randomCat.happiness + reward.happiness) });
     }
     farmState.sound.playSound('coin');
     floatingRewards.showCoinReward(reward.coins);
-  }, [actions, state.money, state.resources, state.cats, farmState.sound, floatingRewards]);
+  }, [actions, state.cats, farmState.sound, floatingRewards]);
 
   // Welcome-back claim handler
   const handleClaimWelcomeBack = useCallback(() => {
