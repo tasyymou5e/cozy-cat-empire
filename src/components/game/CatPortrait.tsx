@@ -153,8 +153,9 @@ export function CatPortrait({
       if (data?.portraitUrl) {
         setLocalPortraitUrl(data.portraitUrl);
         setState('complete');
-        const hash = computeAppearanceHash(cat, equippedCostumeId);
+        const hash = computeAppearanceHash(cat, equippedCostumeId, selectedStyle);
         onPortraitGenerated?.(cat.id, data.portraitUrl, hash);
+        onStyleChange?.(cat.id, selectedStyle);
         // Refetch credits after successful generation
         refetchCredits();
       } else {
