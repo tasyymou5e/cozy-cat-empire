@@ -30,7 +30,7 @@ interface EmpireRenderDialogProps {
   cost: number;
   canAfford: boolean;
   isRendering: boolean;
-  onConfirm: () => void;
+  onConfirm: (customPrompt?: string) => void;
 }
 
 const TIER_NAMES: Record<HouseSize, string> = {
