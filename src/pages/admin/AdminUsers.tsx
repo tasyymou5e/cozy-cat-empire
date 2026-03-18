@@ -529,7 +529,7 @@ export default function AdminUsers() {
                   {isLoading ? (
                     Array.from({ length: 5 }).map((_, i) => (
                       <TableRow key={i}>
-                        {Array.from({ length: 9 }).map((_, j) => (
+                        {Array.from({ length: 10 }).map((_, j) => (
                           <TableCell key={j}>
                             <Skeleton className="h-6 w-20" />
                           </TableCell>
