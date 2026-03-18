@@ -61,6 +61,7 @@ export function PaperCatAvatar({
   showCostume = true,
   animated = false,
   className,
+  portraitStyle = 'kawaii',
 }: PaperCatAvatarProps) {
   const { settings } = useGraphicsSettings();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
