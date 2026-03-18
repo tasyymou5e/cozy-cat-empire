@@ -64,9 +64,9 @@ export const ACTIVITY_SOUNDS: Record<string, SoundType> = {
 export const RELATIONSHIP_SOUNDS = {
   friendshipFormed: 'friendship',
   friendshipStrengthened: 'heartBurst',
-  rivalryStarted: 'rivalry',
+  rivalryStarted: 'catGrowl',
   rivalryWorsened: 'sparkClash',
-  reconciliation: 'friendship',
+  reconciliation: 'catTrill',
 } as const satisfies Record<string, SoundType>;
 
 // ========== NOTIFICATION SOUNDS ==========
