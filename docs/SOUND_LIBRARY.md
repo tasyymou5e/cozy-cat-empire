@@ -62,6 +62,14 @@ public/sounds/
 | Legendary achievement | lion-roar.wav |
 | Button click | cat-meow-fx.mp3 |
 | Funny moment | funny-cat-meow.mp3 |
+| Cat training | cat-begging-meow.wav |
+| Relationship clash | cat-pain-meow.wav |
+| Cat chirp (synth) | Synthesized chirp tones |
+| Cat trill (synth) | Synthesized trill sequence |
+| Cat growl (synth) | Synthesized low growl |
+| Cat yawn (synth) | Synthesized yawn sweep |
+| Cat chattering (synth) | Rapid chattering sequence |
+| Cat startled (synth) | Sharp startled sound |
 
 ## Usage in Code
 
