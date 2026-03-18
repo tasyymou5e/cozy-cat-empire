@@ -751,7 +751,7 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error generating cat portrait:', error);
-    const MODEL = 'google/gemini-2.5-flash-image';
+    const MODEL = 'google/gemini-3.1-flash-image-preview';
     await logAIUsage(supabase, userId, FUNCTION_NAME, MODEL, 'error', Date.now() - startTime, catMetadata, error instanceof Error ? error.message : 'Unknown error');
     return new Response(JSON.stringify({ 
       error: error instanceof Error ? error.message : 'Unknown error occurred' 
