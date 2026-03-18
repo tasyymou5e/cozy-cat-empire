@@ -48,7 +48,8 @@ export function useEmpireRender({
 
   const renderEmpire = useCallback(async (
     timeOfDay: TimeOfDay,
-    season: RealSeason
+    season: RealSeason,
+    customPrompt?: string
   ): Promise<boolean> => {
     // Validate funds
     if (!canAfford) {
