@@ -603,7 +603,8 @@ export default {
 			'kawaii-breathe': 'kawaii-breathe 2s ease-in-out infinite',
 			'kawaii-ear-twitch': 'kawaii-ear-twitch 0.3s ease-out',
 			'realistic-head-tilt': 'realistic-head-tilt 4s ease-in-out infinite',
-			'whisker-flicker': 'whisker-flicker 0.15s linear'
+			'whisker-flicker': 'whisker-flicker 0.15s linear',
+			'cat-eye-blink': 'cat-eye-blink 0.2s ease-in-out forwards'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',

@@ -1,20 +1,18 @@
 /**
- * AnimatedCatPortrait - Lottie + CSS animation wrapper for cat portraits
+ * AnimatedCatPortrait - CSS animation wrapper for cat portraits
  *
  * Wraps any cat portrait/avatar with micro-interactions:
- * - Kawaii: breathing (scale), ear twitch, whisker flicker, Lottie blink
- * - Realistic: head tilt, whisker flicker, Lottie blink
- * - Hover zoom effect on both styles
+ * - Eyes-only blink via CSS overlay at eye level
+ * - Whisker flicker synced with blink
+ * - Ear twitch (kawaii only)
+ * - Hover zoom effect
  * - Cross-fade on mount
  */
 
-import React, { lazy, Suspense, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useMicroAnimations } from '@/hooks/useMicroAnimations';
 import type { PortraitStyle } from '@/config/portraitSettings';
-
-// Lazy-load Lottie for code splitting
-const Lottie = lazy(() => import('lottie-react'));
 
 interface AnimatedCatPortraitProps {
   children: React.ReactNode;
@@ -41,19 +39,6 @@ export function AnimatedCatPortrait({
     return () => cancelAnimationFrame(t);
   }, []);
 
-  // Lazy import of animation data
-  const [blinkData, setBlinkData] = useState<object | null>(null);
-  useEffect(() => {
-    if (!enableAnimations) return;
-    const file = style === 'kawaii' ? '/animations/kawaii-blink.json' : '/animations/realistic-blink.json';
-    fetch(file)
-      .then((r) => r.json())
-      .then(setBlinkData)
-      .catch(() => {
-        // Silently fail - blink overlay is optional
-      });
-  }, [style, enableAnimations]);
-
   return (
     <div
       className={cn(
@@ -77,18 +62,16 @@ export function AnimatedCatPortrait({
         <div className="absolute top-0 left-0 right-0 h-1/4 pointer-events-none animate-kawaii-ear-twitch origin-bottom" />
       )}
 
-      {/* Lottie blink overlay */}
-      {isBlinking && blinkData && enableAnimations && (
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
-          <Suspense fallback={null}>
-            <Lottie
-              animationData={blinkData}
-              loop={false}
-              autoplay
-              style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
-            />
-          </Suspense>
-        </div>
+      {/* CSS eye-blink overlay — thin strip at eye level */}
+      {isBlinking && enableAnimations && (
+        <div
+          className="absolute left-0 right-0 pointer-events-none z-10 animate-cat-eye-blink"
+          style={{
+            top: '30%',
+            height: '12%',
+            background: 'linear-gradient(to bottom, transparent 0%, hsl(var(--foreground) / 0.7) 30%, hsl(var(--foreground) / 0.85) 50%, hsl(var(--foreground) / 0.7) 70%, transparent 100%)',
+          }}
+        />
       )}
     </div>
   );
