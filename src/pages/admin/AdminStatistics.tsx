@@ -623,7 +623,7 @@ export default function AdminStatistics() {
                           <TableCell>
                             {index < 3 ? (
                               <span
-                                className={`text-lg ${index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-amber-600'}`}
+                                className={`text-lg ${index === 0 ? 'text-yellow-500' : index === 1 ? 'text-muted-foreground' : 'text-amber-600'}`}
                               >
                                 {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
                               </span>

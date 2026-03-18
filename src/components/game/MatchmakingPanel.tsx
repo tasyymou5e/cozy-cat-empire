@@ -90,7 +90,7 @@ export function MatchmakingPanel({
     if (compat >= 5)
       return { label: 'Good', className: 'bg-blue-100 text-blue-700 border-blue-200' };
     if (compat >= 0)
-      return { label: 'Neutral', className: 'bg-gray-100 text-gray-700 border-gray-200' };
+      return { label: 'Neutral', className: 'bg-muted/40 text-foreground/80 border-gray-200' };
     return { label: 'Risky', className: 'bg-orange-100 text-orange-700 border-orange-200' };
   };
 

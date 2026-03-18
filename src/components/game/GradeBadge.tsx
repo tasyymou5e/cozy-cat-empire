@@ -38,7 +38,7 @@ export function GradeBadge({ grade, showStars = true, size = 'md' }: GradeBadgeP
   };
 
   const tierStyles = {
-    common: 'bg-gray-100 text-gray-600 border-gray-200',
+    common: 'bg-muted/40 text-muted-foreground border-gray-200',
     uncommon: 'bg-blue-100 text-blue-700 border-blue-200',
     rare: 'bg-purple-100 text-purple-700 border-purple-200 animate-glow-pulse [--grade-color:hsl(270,70%,60%)]',
     veryRare:
@@ -48,7 +48,7 @@ export function GradeBadge({ grade, showStars = true, size = 'md' }: GradeBadgeP
   };
 
   const starColor = {
-    common: 'text-gray-400',
+    common: 'text-muted-foreground',
     uncommon: 'text-blue-400',
     rare: 'text-purple-400',
     veryRare: 'text-yellow-400',

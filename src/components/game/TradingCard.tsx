@@ -16,7 +16,7 @@ interface TradingCardProps {
 }
 
 const typeLabels: Record<string, { label: string; color: string }> = {
-  stray: { label: 'Stray', color: 'bg-gray-500' },
+  stray: { label: 'Stray', color: 'bg-muted/80' },
   adopted: { label: 'Adopted', color: 'bg-blue-500' },
   pure: { label: 'Purebred', color: 'bg-purple-500' },
 };
@@ -102,7 +102,7 @@ export function TradingCard({
       {/* Breed & Type */}
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-medium capitalize">{cat.breed.replace('-', ' ')}</span>
-        <Badge className={`${typeLabels[cat.type].color} text-white text-[10px] px-1.5 py-0`}>
+        <Badge className={`${typeLabels[cat.type].color} text-primary-foreground dark:text-foreground text-[10px] px-1.5 py-0`}>
           {typeLabels[cat.type].label}
         </Badge>
       </div>

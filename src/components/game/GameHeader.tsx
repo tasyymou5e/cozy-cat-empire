@@ -158,7 +158,7 @@ export function GameHeader({
                 {/* VIP Badge */}
                 {user && isVIP && vipTier && (
                   <Badge
-                    className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold text-xs cursor-pointer w-full justify-center"
+                    className="bg-gradient-to-r from-amber-400 to-yellow-500 text-foreground font-bold text-xs cursor-pointer w-full justify-center"
                     onClick={onShowDailyRewards}
                   >
                     {vipTier.emoji} {vipTier.name}
@@ -281,7 +281,7 @@ export function GameHeader({
         {/* VIP Badge */}
         {user && isVIP && vipTier && (
           <Badge
-            className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold text-xs cursor-pointer mr-1"
+            className="bg-gradient-to-r from-amber-400 to-yellow-500 text-foreground font-bold text-xs cursor-pointer mr-1"
             onClick={onShowDailyRewards}
           >
             {vipTier.emoji} {vipTier.name}

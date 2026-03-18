@@ -103,7 +103,7 @@ const tierGradeColors: Record<string, string> = {
   veryRare: 'text-yellow-300',
   rare: 'text-purple-300',
   uncommon: 'text-blue-300',
-  common: 'text-white',
+  common: 'text-primary-foreground dark:text-foreground',
 };
 
 /**

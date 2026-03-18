@@ -161,8 +161,8 @@ function CatReactionBubble({ catType, visible }: CatReactionBubbleProps) {
   
   return (
     <div className="absolute -top-10 left-1/2 -translate-x-1/2 animate-bounce-in z-10">
-      <div className="bg-white/95 dark:bg-gray-800/95 rounded-full px-3 py-1.5 shadow-lg border border-white/50 whitespace-nowrap">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+      <div className="bg-card/95 rounded-full px-3 py-1.5 shadow-lg border border-white/50 whitespace-nowrap">
+        <span className="text-sm font-medium text-foreground/80 ">
           {reaction.text} {reaction.emoji}
         </span>
       </div>

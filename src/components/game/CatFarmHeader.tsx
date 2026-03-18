@@ -207,7 +207,7 @@ export function CatFarmHeader({
         {/* VIP Badge */}
         {user && isVIP && vipTier && (
           <Badge
-            className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold text-xs animate-vip-glow cursor-pointer"
+            className="bg-gradient-to-r from-amber-400 to-yellow-500 text-foreground font-bold text-xs animate-vip-glow cursor-pointer"
             onClick={onShowDailyRewards}
           >
             {vipTier.emoji} {vipTier.name}

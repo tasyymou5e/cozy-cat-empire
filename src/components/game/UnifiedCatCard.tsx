@@ -108,7 +108,7 @@ const personalityColors: Record<string, string> = {
 };
 
 const typeLabels: Record<string, { label: string; color: string }> = {
-  stray: { label: 'Stray', color: 'bg-gray-500' },
+  stray: { label: 'Stray', color: 'bg-muted/80' },
   adopted: { label: 'Adopted', color: 'bg-blue-500' },
   pure: { label: 'Purebred', color: 'bg-purple-500' },
 };
@@ -322,7 +322,7 @@ export function UnifiedCatCard({
           <span
             className={cn(
               'px-2 py-0.5 text-[9px] font-extrabold tracking-widest rounded-full shadow-md uppercase',
-              tier === 'rare' && 'bg-purple-500/90 text-white',
+              tier === 'rare' && 'bg-purple-500/90 text-primary-foreground dark:text-foreground',
               tier === 'veryRare' && 'bg-gradient-to-r from-amber-500 to-yellow-400 text-amber-950',
               tier === 'ultraRare' && 'text-gradient-rainbow bg-white/90 dark:bg-black/80'
             )}
@@ -723,7 +723,7 @@ function TradingCardView({
 
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-medium capitalize">{cat.breed.replace('-', ' ')}</span>
-        <Badge className={cn(typeLabels[cat.type].color, 'text-white text-[10px] px-1.5 py-0')}>
+        <Badge className={cn(typeLabels[cat.type].color, 'text-primary-foreground dark:text-foreground text-[10px] px-1.5 py-0')}>
           {typeLabels[cat.type].label}
         </Badge>
       </div>

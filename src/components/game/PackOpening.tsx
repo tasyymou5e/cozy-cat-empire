@@ -94,7 +94,7 @@ export function PackOpening({ availableCats, catCostumes = {}, packSize = 3, onP
             {/* Pack design */}
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6">
               <div className="text-5xl">🐱</div>
-              <h3 className="text-lg font-extrabold text-white uppercase tracking-wider text-center">
+              <h3 className="text-lg font-extrabold text-primary-foreground dark:text-foreground uppercase tracking-wider text-center">
                 Cat Card Pack
               </h3>
               <p className="text-[10px] text-white/50 uppercase tracking-widest">{packSize} cards inside</p>

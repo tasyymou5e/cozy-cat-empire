@@ -104,12 +104,12 @@ export function CatShowPanel({
             <p className="text-xs text-muted-foreground">Day {day}</p>
           </div>
           {seasonalEvent && (
-            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-primary-foreground dark:text-foreground">
               {seasonalEvent.emoji} {seasonalEvent.name}
             </Badge>
           )}
           {specialEvent && (
-            <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white animate-pulse">
+            <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-primary-foreground dark:text-foreground animate-pulse">
               {specialEvent.emoji} {specialEvent.name}
             </Badge>
           )}

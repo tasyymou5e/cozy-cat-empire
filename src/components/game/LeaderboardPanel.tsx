@@ -36,7 +36,7 @@ const LeaderboardListItem = memo(function LeaderboardListItem({
         cat.rank === 1
           ? 'bg-yellow-100/50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700'
           : cat.rank === 2
-            ? 'bg-gray-100/50 dark:bg-gray-800/30 border border-gray-300 dark:border-gray-600'
+            ? 'bg-muted/30 border border-border'
             : cat.rank === 3
               ? 'bg-orange-100/50 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-700'
               : 'bg-secondary/30'

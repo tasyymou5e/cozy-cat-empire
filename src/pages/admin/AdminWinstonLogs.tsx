@@ -209,7 +209,7 @@ export default function AdminWinstonLogs() {
       http: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
       verbose: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
       debug: 'bg-green-500/20 text-green-400 border-green-500/30',
-      silly: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+      silly: 'bg-muted/20 text-muted-foreground border-muted/30',
     };
     return (
       <Badge variant="outline" className={colorMap[level] || ''}>

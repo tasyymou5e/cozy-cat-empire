@@ -112,7 +112,7 @@ export function CostumeShopPanel({
         <span className="text-2xl">{costume.emoji}</span>
         <div className="flex gap-1">
           {costume.vipExclusive && (
-            <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black text-[10px] px-1">
+            <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-foreground text-[10px] px-1">
               VIP
             </Badge>
           )}

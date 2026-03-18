@@ -84,7 +84,7 @@ export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory, onNavi
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <button
-            className="fixed bottom-[7.5rem] right-4 sm:bottom-6 sm:right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30 flex items-center justify-center text-white text-2xl hover:scale-110 transition-transform animate-pulse hover:animate-none"
+            className="fixed bottom-[7.5rem] right-4 sm:bottom-6 sm:right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30 flex items-center justify-center text-primary-foreground dark:text-foreground text-2xl hover:scale-110 transition-transform animate-pulse hover:animate-none"
             aria-label="AI Cat Advisor"
           >
             🤖
@@ -210,7 +210,7 @@ export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory, onNavi
                 <Button
                   onClick={() => selectedCat && ai.generateNames(selectedCat)}
                   disabled={!selectedCat || ai.isNamesLoading}
-                  className="w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white"
+                  className="w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-primary-foreground dark:text-foreground"
                 >
                   {ai.isNamesLoading ? '✨ Generating...' : '✨ Generate AI Names'}
                 </Button>
@@ -258,7 +258,7 @@ export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory, onNavi
                 <Button
                   onClick={() => selectedCat && ai.generateStory(selectedCat)}
                   disabled={!selectedCat || ai.isStoryLoading}
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-primary-foreground dark:text-foreground"
                 >
                   {ai.isStoryLoading ? '📖 Writing...' : '📖 Generate Backstory'}
                 </Button>
@@ -305,7 +305,7 @@ export function AICatAdvisor({ cats, state, onRenameCat, onSaveBackstory, onNavi
                 <Button
                   onClick={() => ai.generateTips(state)}
                   disabled={ai.isTipsLoading}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
+                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-primary-foreground dark:text-foreground"
                 >
                   {ai.isTipsLoading ? '💡 Analyzing...' : '💡 Analyze My Farm'}
                 </Button>

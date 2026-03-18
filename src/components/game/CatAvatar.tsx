@@ -221,7 +221,7 @@ export function CatAvatar({
           >
             {/* Pupil */}
             <div
-              className="absolute rounded-full bg-black"
+              className="absolute rounded-full bg-foreground dark:bg-background"
               style={{
                 width: eyeSize * 0.5,
                 height: eyeSize * 0.7,
@@ -273,7 +273,7 @@ export function CatAvatar({
           >
             {/* Pupil */}
             <div
-              className="absolute rounded-full bg-black"
+              className="absolute rounded-full bg-foreground dark:bg-background"
               style={{
                 width: eyeSize * 0.5,
                 height: eyeSize * 0.7,
@@ -471,7 +471,7 @@ function FacialFeatureOverlay({
     ),
     eyepatch: (
       <div
-        className="absolute top-[32%] right-[18%] bg-black rounded-full"
+        className="absolute top-[32%] right-[18%] bg-foreground dark:bg-background rounded-full"
         style={{ width: eyeSize * 2, height: eyeSize * 1.3 }}
       />
     ),

@@ -87,7 +87,7 @@ export function DailyRewardsPanel({
             <Gift className="h-6 w-6 text-primary" />
             Daily Login Reward
             {isVIP && vipTier && (
-              <Badge className="ml-auto bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold animate-vip-glow">
+              <Badge className="ml-auto bg-gradient-to-r from-amber-400 to-yellow-500 text-foreground font-bold animate-vip-glow">
                 {vipTier.emoji} {vipTier.name}
               </Badge>
             )}

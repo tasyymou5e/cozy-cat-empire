@@ -348,7 +348,7 @@ export default function Auth() {
           size="icon"
           onClick={handleRegenerate}
           disabled={isRegenerating || bgLoading}
-          className="fixed top-4 right-4 z-50 bg-white/50 backdrop-blur-sm hover:bg-white/70 shadow-md"
+          className="fixed top-4 right-4 z-50 bg-card/50 backdrop-blur-sm hover:bg-card/70 shadow-md"
           title={`Regenerate ${currentSeason} background (Admin only)`}
         >
           <RefreshCw className={cn("h-5 w-5", isRegenerating && "animate-spin")} />
@@ -365,7 +365,7 @@ export default function Auth() {
       <div className={`fixed inset-0 transition-opacity duration-700 ${backgroundUrl ? 'opacity-0' : 'opacity-100'}`}>
         <AnimatedBackground variant="auth" className="h-full"><div /></AnimatedBackground>
       </div>
-      <div className="fixed inset-0 bg-white/25 backdrop-blur-[1px]" />
+      <div className="fixed inset-0 bg-background/25 backdrop-blur-[1px]" />
       <SeasonalParticles season={currentSeason || getCurrentRealSeason()} density="medium" className="opacity-70" />
       <AnimatedFarmCats count={4} className="opacity-80" interactive soundEnabled />
       <FloatingDecorations variant="kawaii-cats" density="high" parallax className="opacity-60" />
