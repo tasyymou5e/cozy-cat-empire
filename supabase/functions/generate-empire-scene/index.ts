@@ -141,11 +141,54 @@ function buildCatDescription(cat: Cat, costumeId?: string, index?: number): stri
   return parts.join(", ");
 }
 
+// Random variation elements to prevent identical outputs
+const CAT_ACTIVITIES = [
+  "napping curled up", "grooming itself", "stretching lazily", "watching a butterfly",
+  "batting at a dangling toy", "kneading a soft blanket", "yawning widely",
+  "perched on a windowsill", "chasing its own tail", "sitting regally upright",
+  "rolling on its back playfully", "peeking around a corner curiously",
+  "snuggling against a pillow", "gazing out the window dreamily",
+  "playing with a ball of yarn", "hiding behind furniture with ears visible",
+];
+
+const COMPOSITION_VARIANTS = [
+  "slightly low-angle camera looking up, giving cats a majestic feel",
+  "eye-level composition with cats naturally scattered throughout",
+  "gentle bird's-eye tilt showing the full room layout",
+  "three-quarter angle revealing depth and cozy corners",
+  "centered symmetrical composition with cats framing the scene",
+  "dynamic diagonal composition with natural leading lines",
+];
+
+const MOOD_ACCENTS = [
+  "dust motes floating in light beams",
+  "a gentle breeze rippling curtains",
+  "a steaming mug of tea on a side table",
+  "soft bokeh light circles in the background",
+  "a knitted blanket draped casually over furniture",
+  "a small potted succulent on the windowsill",
+  "an open book with reading glasses nearby",
+  "a decorative ceramic bowl with treats",
+  "fairy lights twinkling softly",
+  "a watercolor painting on the wall",
+];
+
+function pickRandom<T>(arr: T[], count: number): T[] {
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, Math.min(count, arr.length));
+}
+
 function getSceneActivity(catCount: number): string {
   if (catCount === 0) return "The space is empty and inviting, waiting for its first cat resident";
-  if (catCount === 1) return "The cat is lounging peacefully in a comfortable spot";
-  if (catCount <= 3) return "The cats are relaxing together, one grooming while another watches curiously";
-  return "Cats are scattered naturally throughout the scene — some napping on furniture, some playing, some perched up high observing";
+
+  // Pick random activities for each cat
+  const activities = pickRandom(CAT_ACTIVITIES, Math.min(catCount, 6));
+  
+  if (catCount === 1) return `The cat is ${activities[0]}`;
+  if (catCount <= 3) {
+    return `The cats are each doing something different: one is ${activities[0]}, another is ${activities[1]}${activities[2] ? `, and one is ${activities[2]}` : ''}`;
+  }
+  return `Cats are scattered naturally throughout the scene — ${activities.map((a, i) => `one is ${a}`).join(", ")}. The rest are lounging contentedly in various spots`;
 }
 
 function buildEmpirePrompt(request: RenderRequest): string {
@@ -157,6 +200,9 @@ function buildEmpirePrompt(request: RenderRequest): string {
   }).join("\n");
 
   const activity = getSceneActivity(cats.length);
+  const composition = pickRandom(COMPOSITION_VARIANTS, 1)[0];
+  const moodAccents = pickRandom(MOOD_ACCENTS, 3).join(", ");
+  const seed = Math.floor(Math.random() * 99999);
 
   const prompt = `SCENE: ${TIER_DESCRIPTIONS[houseSize]}
 
@@ -164,14 +210,16 @@ LIGHTING: ${TIME_LIGHTING[timeOfDay]}
 
 SEASON: ${SEASON_ELEMENTS[season]}
 
+MOOD DETAILS: ${moodAccents}
+
 CATS (${cats.length} total):
 ${catDescriptions || "No cats — show an inviting empty space"}
 
 ACTIVITY: ${activity}
 
-COMPOSITION: Wide 16:9 panoramic view, slight low-angle camera, depth of field with sharp foreground cats and softly blurred background details, warm rim lighting on cat fur edges, cats naturally placed on furniture and floor throughout the scene.
+COMPOSITION: Wide 16:9 panoramic view, ${composition}, depth of field with sharp foreground cats and softly blurred background details, warm rim lighting on cat fur edges, cats naturally placed on furniture and floor throughout the scene.
 
-STYLE: Digital illustration, soft watercolor rendering with clean precise outlines, children's picture book aesthetic, Pixar-quality lighting and color grading, rich detailed textures, professional concept art quality, 4K resolution, masterpiece quality, high detail on fur textures with visible individual strands.
+STYLE: Digital illustration, soft watercolor rendering with clean precise outlines, children's picture book aesthetic, Pixar-quality lighting and color grading, rich detailed textures, professional concept art quality, 4K resolution, masterpiece quality, high detail on fur textures with visible individual strands. Variation seed: ${seed}.
 
 AVOID: Squiggly lines, rough sketches, wobbly linework, abstract patterns, text or letters anywhere in the image, deformed cat anatomy, extra limbs, extra tails, blurry faces, watermarks, signatures, borders, vignettes, cats in the background that were not specified, random floating objects.`;
 
