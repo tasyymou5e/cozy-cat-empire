@@ -138,6 +138,7 @@ export function BatchPortraitGenerator({
                   }
                 : undefined,
             },
+            style: batchStyle,
           },
         });
 
