@@ -5,7 +5,7 @@
  * tier glows, and other visual features.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useGraphicsSettings } from '@/hooks/useGraphicsSettings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -20,11 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Palette, Gauge, Sparkles, RotateCcw, Eye, Castle, ImageIcon } from 'lucide-react';
+import { Palette, Gauge, Sparkles, RotateCcw, Eye, Castle, ImageIcon, Settings2 } from 'lucide-react';
+import { PortraitStyleSettings } from './PortraitStyleSettings';
+import { PORTRAIT_STYLES, type PortraitStyle } from '@/config/portraitSettings';
 
 export function GraphicsSettingsPanel() {
   const { settings, updateSetting, resetToDefaults, isReducedMotion, effectiveAnimations } =
     useGraphicsSettings();
+  const [showPortraitSettings, setShowPortraitSettings] = useState(false);
 
   return (
     <Card className="border-accent/30">
@@ -295,6 +298,37 @@ export function GraphicsSettingsPanel() {
             <ImageIcon className="h-4 w-4" /> AI Portraits
           </h4>
 
+          {/* Portrait Style Settings Button */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-sm">Portrait Style & Animations</Label>
+              <p className="text-xs text-muted-foreground">
+                Default: {PORTRAIT_STYLES[settings.defaultPortraitStyle as PortraitStyle]?.label || 'Kawaii'}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => setShowPortraitSettings(true)}
+            >
+              <Settings2 className="h-4 w-4" />
+              Configure
+            </Button>
+          </div>
+
+          {/* Micro-Interactions */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-sm">Micro-Interactions</Label>
+              <p className="text-xs text-muted-foreground">Breathing, blinking, whisker animations</p>
+            </div>
+            <Switch
+              checked={settings.enableMicroAnimations}
+              onCheckedChange={(v) => updateSetting('enableMicroAnimations', v)}
+            />
+          </div>
+
           {/* Portrait Quality */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
@@ -339,6 +373,12 @@ export function GraphicsSettingsPanel() {
             />
           </div>
         </div>
+
+        {/* Portrait Style Settings Dialog */}
+        <PortraitStyleSettings
+          open={showPortraitSettings}
+          onOpenChange={setShowPortraitSettings}
+        />
 
         <Separator />
 

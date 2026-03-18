@@ -22,6 +22,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Sparkles,
   Loader2,
   CheckCircle2,
@@ -39,6 +46,8 @@ import {
 } from '@/lib/portraitUtils';
 import { usePortraitCredits } from '@/hooks/usePortraitCredits';
 import { PortraitPurchaseDialog } from './PortraitPurchaseDialog';
+import { PORTRAIT_STYLES, type PortraitStyle } from '@/config/portraitSettings';
+import { getGlobalPortraitStyle } from '@/config/portraitSettings';
 import { cn } from '@/lib/utils';
 
 interface BatchPortraitGeneratorProps {
@@ -63,6 +72,7 @@ export function BatchPortraitGenerator({
   currentMoney = 0,
   onMoneyChange,
 }: BatchPortraitGeneratorProps) {
+  const [batchStyle, setBatchStyle] = useState<PortraitStyle>(getGlobalPortraitStyle());
   const [showConfirm, setShowConfirm] = useState(false);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -128,6 +138,7 @@ export function BatchPortraitGenerator({
                   }
                 : undefined,
             },
+            style: batchStyle,
           },
         });
 
@@ -150,7 +161,7 @@ export function BatchPortraitGenerator({
         }
 
         if (data?.portraitUrl) {
-          const hash = computeAppearanceHash(cat, costumeId);
+          const hash = computeAppearanceHash(cat, costumeId, batchStyle);
           onPortraitGenerated(cat.id, data.portraitUrl, hash);
           setResults((prev) => [...prev, { catId: cat.id, catName: cat.name, success: true }]);
         }
@@ -211,7 +222,21 @@ export function BatchPortraitGenerator({
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* Style Selector */}
+        <Select value={batchStyle} onValueChange={(v: PortraitStyle) => setBatchStyle(v)}>
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(PORTRAIT_STYLES).map(([key, meta]) => (
+              <SelectItem key={key} value={key}>
+                {meta.icon} {meta.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <Button
           variant="outline"
           size="sm"

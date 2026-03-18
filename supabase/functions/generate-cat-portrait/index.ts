@@ -45,10 +45,10 @@ interface CatData {
 }
 
 // ============================================================================
-// STYLE PROMPTS - Consistent cartoon art style
+// STYLE PROMPTS - Consistent art styles
 // ============================================================================
 
-const STYLE_PROMPT = `
+const KAWAII_STYLE_PROMPT = `
 Style: Cute kawaii cartoon cat portrait in the style of Studio Ghibli meets modern mobile game art.
 - Soft rounded features with large expressive eyes
 - Sparkle reflections in the eyes (2-3 small white highlights)
@@ -63,6 +63,27 @@ Style: Cute kawaii cartoon cat portrait in the style of Studio Ghibli meets mode
 - High detail on fur texture with visible individual strands
 - 4K resolution, masterpiece quality
 `;
+
+const REALISTIC_STYLE_PROMPT = `
+Style: Photorealistic digital painting, semi-realistic cat portrait.
+- Natural proportions with lifelike features
+- Detailed fur rendering with individual strand visibility
+- Realistic eye reflections with natural highlights
+- Subtle natural blush, no exaggerated kawaii features
+- Soft studio lighting with shallow depth of field
+- Professional pet photography composition
+- Warm neutral background with soft bokeh effect
+- Head and upper body portrait, 3/4 view angle
+- Natural expressive face, no cartoon exaggeration
+- Hyper-detailed fur texture with realistic shading
+- 4K resolution, masterpiece quality, photorealistic
+`;
+
+type PortraitStyleType = 'realistic' | 'kawaii';
+
+function getStylePrompt(style: PortraitStyleType): string {
+  return style === 'realistic' ? REALISTIC_STYLE_PROMPT : KAWAII_STYLE_PROMPT;
+}
 
 // ============================================================================
 // FUR COLOR DESCRIPTIONS
@@ -302,7 +323,7 @@ const HAIR_LENGTH_DESCRIPTIONS: Record<string, string> = {
 // PROMPT BUILDER
 // ============================================================================
 
-function buildPrompt(cat: CatData): string {
+function buildPrompt(cat: CatData, style: PortraitStyleType = 'kawaii'): string {
   const { breed, personality, appearance, costume } = cat;
   
   // Get appearance details with fallbacks
@@ -319,7 +340,7 @@ function buildPrompt(cat: CatData): string {
   const parts: string[] = [];
   
   // 1. Style foundation
-  parts.push(STYLE_PROMPT);
+  parts.push(getStylePrompt(style));
   
   // 2. Breed description
   parts.push(`
@@ -483,8 +504,8 @@ Deno.serve(async (req) => {
 
   try {
     // Parse request body first to get quality preference
-    const requestBody = await req.json() as { cat: CatData; highQuality?: boolean };
-    const { cat, highQuality = false } = requestBody;
+    const requestBody = await req.json() as { cat: CatData; highQuality?: boolean; style?: PortraitStyleType };
+    const { cat, highQuality = false, style = 'kawaii' } = requestBody;
     
     // Select model based on quality preference
     const MODEL = highQuality 
@@ -573,10 +594,11 @@ Deno.serve(async (req) => {
       has_costume: !!cat.costume,
       costume_id: cat.costume?.id,
       high_quality: highQuality,
+      portrait_style: style,
     };
-    console.log(`Generating ${highQuality ? 'HIGH QUALITY' : 'standard'} portrait for cat: ${cat.name} (${cat.id})`);
+    console.log(`Generating ${highQuality ? 'HIGH QUALITY' : 'standard'} ${style} portrait for cat: ${cat.name} (${cat.id})`);
     
-    const prompt = buildPrompt(cat);
+    const prompt = buildPrompt(cat, style);
     console.log('Generated prompt:', prompt.substring(0, 500) + '...');
 
     // Call Lovable AI to generate image
