@@ -166,6 +166,7 @@ export function CatFarmDialogs({
         open={showOrphanDialog}
         onClose={onDismissOrphans}
         onRecover={onRecoverOrphans}
+        availableSpace={availableSpace}
       />
 
       {/* Welcome Back Dialog */}
