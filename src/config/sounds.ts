@@ -62,6 +62,8 @@ export const AUDIO_FILE_PATHS = [
   '/sounds/cat-meow-fx.mp3',
   '/sounds/lion-roar.wav',
   '/sounds/cat-little-meow.wav',
+  '/sounds/cat-begging-meow.wav',
+  '/sounds/cat-pain-meow.wav',
 ] as const;
 
 /**

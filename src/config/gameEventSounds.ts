@@ -36,7 +36,7 @@ export const GAME_ACTION_SOUNDS: Partial<Record<GameAction, SoundType>> = {
 // ========== CAT ACTIVITY SOUNDS ==========
 /**
  * Maps activity popup keys to sound types.
- * Used by CatActivityPopups component.
+ * Uses new sound variety for more distinct audio feedback.
  */
 export const ACTIVITY_SOUNDS: Record<string, SoundType> = {
   eating: 'catEating',
@@ -51,7 +51,10 @@ export const ACTIVITY_SOUNDS: Record<string, SoundType> = {
   mischief: 'catMischief',
   zoomies: 'catZoomies',
   sunbathing: 'catSunbathing',
-  birdwatching: 'catBirdwatching',
+  birdwatching: 'catChattering',
+  chirping: 'catChirp',
+  yawning: 'catYawn',
+  startled: 'catStartled',
 };
 
 // ========== RELATIONSHIP EVENT SOUNDS ==========
