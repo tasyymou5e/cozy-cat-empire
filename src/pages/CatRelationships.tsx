@@ -500,7 +500,7 @@ export default function CatRelationships() {
                               group.type === 'friendly'
                                 ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800'
                                 : group.type === 'outcasts'
-                                  ? 'bg-muted/30 border-gray-200 dark:bg-gray-950/20 dark:border-gray-800'
+                                  ? 'bg-muted/30 border-border'
                                   : 'bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800'
                             }`}
                           >
