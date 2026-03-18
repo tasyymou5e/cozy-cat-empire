@@ -1,10 +1,25 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+// ============================================================================
+// CORS
+// ============================================================================
+
+const ALLOWED_ORIGINS: (string | RegExp)[] = [
+  'https://cozy-cat-empire.lovable.app',
+  /^https:\/\/.*\.lovable\.app$/,
+  /^http:\/\/localhost(:\d+)?$/,
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('Origin') || '';
+  const allowed = ALLOWED_ORIGINS.some(o =>
+    typeof o === 'string' ? o === origin : o.test(origin)
+  );
+  return {
+    'Access-Control-Allow-Origin': allowed ? origin : 'https://cozy-cat-empire.lovable.app',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
 
 interface LinterIssue {
   id: string;
@@ -28,12 +43,12 @@ interface LinterResults {
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Validate env at startup (hoisted for readability but checked each request for safety)
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
@@ -47,7 +62,6 @@ Deno.serve(async (req) => {
   try {
     const startTime = Date.now();
 
-    // Get auth header and verify admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
@@ -56,7 +70,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify the user is an admin
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -69,7 +82,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if user is admin
     const { data: isAdmin } = await userClient.rpc("has_role", {
       _user_id: user.id,
       _role: "admin",
@@ -82,30 +94,24 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Use service role for security checks
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
-
     const issues: LinterIssue[] = [];
 
-    // 1. Check for tables without RLS enabled
     const { data: tablesWithoutRLS } = await adminClient.rpc("get_tables_without_rls");
-    
     if (tablesWithoutRLS && tablesWithoutRLS.length > 0) {
       issues.push({
         id: "no-rls-enabled",
         level: "error",
         category: "RLS",
         title: "Tables Without RLS Enabled",
-        description: `${tablesWithoutRLS.length} table(s) do not have Row Level Security enabled, allowing unrestricted access.`,
+        description: `${tablesWithoutRLS.length} table(s) do not have Row Level Security enabled.`,
         tables: tablesWithoutRLS.map((t: { tablename: string }) => t.tablename),
-        recommendation: "Enable RLS on all tables containing user data with: ALTER TABLE tablename ENABLE ROW LEVEL SECURITY;",
+        recommendation: "Enable RLS on all tables containing user data.",
         docLink: "https://supabase.com/docs/guides/auth/row-level-security",
       });
     }
 
-    // 2. Check for overly permissive policies (USING true)
     const { data: permissivePolicies } = await adminClient.rpc("get_permissive_policies");
-
     if (permissivePolicies && permissivePolicies.length > 0) {
       const groupedByType: Record<string, string[]> = {};
       permissivePolicies.forEach((p: { tablename: string; policyname: string; cmd: string }) => {
@@ -124,7 +130,7 @@ Deno.serve(async (req) => {
           title: `Permissive ${cmd} Policies (USING true)`,
           description: `${tables.length} table(s) have ${cmd} policies that allow all authenticated users or anyone.`,
           tables,
-          recommendation: cmd === "SELECT" 
+          recommendation: cmd === "SELECT"
             ? "Verify public SELECT access is intentional for these tables."
             : "Add proper authentication checks to restrict access.",
           docLink: "https://supabase.com/docs/guides/auth/row-level-security",
@@ -132,9 +138,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 3. Check for tables with policies but missing admin access
     const { data: tablesWithoutAdminSelect } = await adminClient.rpc("get_tables_without_admin_access");
-
     if (tablesWithoutAdminSelect && tablesWithoutAdminSelect.length > 0) {
       issues.push({
         id: "missing-admin-select",
@@ -143,41 +147,21 @@ Deno.serve(async (req) => {
         title: "Tables Missing Admin SELECT Access",
         description: `${tablesWithoutAdminSelect.length} table(s) have RLS but no explicit admin SELECT policy.`,
         tables: tablesWithoutAdminSelect.map((t: { tablename: string }) => t.tablename),
-        recommendation: "Add admin SELECT policies for moderation: CREATE POLICY \"Admins can view all\" ON table FOR SELECT USING (has_role(auth.uid(), 'admin'));",
+        recommendation: "Add admin SELECT policies for moderation.",
       });
     }
 
-    // 4. Check auth configuration
     const { data: authConfig } = await adminClient.rpc("get_auth_config_status");
-
     if (authConfig) {
       if (authConfig.leaked_password_protection === false) {
-        issues.push({
-          id: "leaked-password-disabled",
-          level: "warn",
-          category: "AUTH",
-          title: "Leaked Password Protection Disabled",
-          description: "Users can sign up with passwords that have been exposed in data breaches.",
-          recommendation: "Enable leaked password protection in Auth settings for improved security.",
-          docLink: "https://supabase.com/docs/guides/auth/auth-password-security",
-        });
+        issues.push({ id: "leaked-password-disabled", level: "warn", category: "AUTH", title: "Leaked Password Protection Disabled", description: "Users can sign up with passwords that have been exposed in data breaches.", recommendation: "Enable leaked password protection.", docLink: "https://supabase.com/docs/guides/auth/auth-password-security" });
       }
-
       if (authConfig.enable_signup === false) {
-        issues.push({
-          id: "signup-disabled",
-          level: "info",
-          category: "AUTH",
-          title: "New User Signups Disabled",
-          description: "New users cannot create accounts. This may be intentional.",
-          recommendation: "Enable signups if you want new users to register.",
-        });
+        issues.push({ id: "signup-disabled", level: "info", category: "AUTH", title: "New User Signups Disabled", description: "New users cannot create accounts.", recommendation: "Enable signups if you want new users to register." });
       }
     }
 
-    // 5. Check for public INSERT/UPDATE/DELETE policies (dangerous)
     const { data: dangerousPolicies } = await adminClient.rpc("get_dangerous_public_policies");
-
     if (dangerousPolicies && dangerousPolicies.length > 0) {
       const tables = [...new Set(dangerousPolicies.map((p: { tablename: string }) => p.tablename))];
       issues.push({
@@ -187,7 +171,7 @@ Deno.serve(async (req) => {
         title: "Public Write Policies Detected",
         description: `${tables.length} table(s) allow INSERT, UPDATE, or DELETE without authentication.`,
         tables: tables as string[],
-        recommendation: "Add authentication checks to write policies. Only error_logs and auth_attempts_log should allow public inserts.",
+        recommendation: "Add authentication checks to write policies.",
         docLink: "https://supabase.com/docs/guides/auth/row-level-security",
       });
     }

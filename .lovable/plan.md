@@ -1,83 +1,180 @@
+# Pokémon-Style Card Redesign Plan
 
+## Overview
+Transform cat cards into authentic Pokémon TCG-style cards with proper structure, holographic effects, breed-based type system, 3D tilt, and flip animations across all 5 tiers.
 
-# Security Hardening Plan
+---
 
-Based on the audit, here are the actionable fixes prioritized by impact.
+## Phase 1: Breed Type System & Design Tokens
 
-## 1. Restrict CORS to production domains (all 16 edge functions)
+### 1a. Create `src/config/breedTypes.ts`
+Map each breed to a Pokémon-style "type" with colors and gradients:
 
-Replace `'Access-Control-Allow-Origin': '*'` with a helper that checks the request `Origin` header against an allowlist:
-- `https://cozy-cat-empire.lovable.app`
-- `https://id-preview--e8e83e8c-0c77-43d8-8d1e-9f913ade2ac9.lovable.app`
-- `http://localhost:*` patterns for dev
+| Breed | Type | Primary Color | Gradient |
+|-------|------|---------------|----------|
+| Persian | Psychic | `#8338ec` | purple → pink |
+| Bengal | Fire | `#ff6b35` | orange → red |
+| Tabby | Normal | `#a8a878` | tan → brown |
+| Ragdoll | Water | `#3a86ff` | blue → cyan |
+| Siamese | Ice | `#96d9d6` | light blue → white |
+| Maine Coon | Fighting | `#c22e28` | brown → red |
+| British Shorthair | Steel | `#b8b8d0` | silver → gray |
+| Stray | Dark | `#705848` | dark brown → black |
 
-Create a shared CORS utility approach (inlined in each function since edge functions can't share imports across folders). Each function's `corsHeaders` becomes dynamic based on the incoming `Origin`.
+Each type includes: `icon`, `gradient`, `energyColor`, `imageGradient`.
 
-**Files**: All 16 `supabase/functions/*/index.ts`
+### 1b. Add CSS variables & keyframes to `src/index.css`
+- Card gold/silver frame colors
+- Holo animation keyframes: `holoShift`, `twinkle`, `rainbow`, `cosmosSwirl`
+- Card texture overlay (subtle noise SVG)
+- Shine sweep animation
+- 3D tilt utility classes
 
-## 2. Database-backed rate limiting for edge functions
+---
 
-Replace in-memory `Map`/object rate limit stores with queries against the existing `admin_rate_limits` table pattern. Create a new `edge_function_rate_limits` table:
+## Phase 2: New PokemonCard Component
 
-```sql
-CREATE TABLE public.edge_function_rate_limits (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  identifier text NOT NULL,        -- user_id or IP
-  function_name text NOT NULL,
-  request_count integer DEFAULT 1,
-  window_start timestamptz DEFAULT now(),
-  UNIQUE(identifier, function_name)
-);
-ALTER TABLE public.edge_function_rate_limits ENABLE ROW LEVEL SECURITY;
--- Only service role can read/write (edge functions use service role client)
+### Create `src/components/game/PokemonCard.tsx`
+A new dedicated component for the Pokémon TCG layout.
+
+**Card structure (320×448 aspect ratio):**
+```
+┌─────────────────────────────┐
+│  [FRAME: tier-colored]      │
+│  ┌───────────────────────┐  │
+│  │ [Evo Stage]    [HP]   │  │
+│  │ [NAME]      [Type 🔥] │  │
+│  │ ┌─────────────────┐   │  │
+│  │ │  CAT AVATAR/    │   │  │
+│  │ │  PORTRAIT        │   │  │
+│  │ │  (type gradient)  │   │  │
+│  │ └─────────────────┘   │  │
+│  │ [Description bar]     │  │
+│  │ ┌─────────────────┐   │  │
+│  │ │ [⚡] Move 1   30 │   │  │
+│  │ │ flavor text      │   │  │
+│  │ └─────────────────┘   │  │
+│  │ ┌─────────────────┐   │  │
+│  │ │ [⚡⚡] Move 2  60│   │  │
+│  │ │ flavor text      │   │  │
+│  │ └─────────────────┘   │  │
+│  │ Weakness | Resist | Retreat│
+│  │ ★★★★ | #018/100 | CCE │  │
+│  └───────────────────────┘  │
+│  [HOLO OVERLAY]             │
+│  [SHINE EFFECT]             │
+└─────────────────────────────┘
 ```
 
-Update these functions to use DB-backed limits:
-- `send-push-notification` (currently in-memory per-user)
-- `process-leaderboard-rewards` (currently in-memory global)
-- `generate-cat-portrait` (currently in-memory per-user)
+**Key features:**
+- **Frame colors by tier:** Common=silver matte, Uncommon=silver gloss, Rare=gold, Legendary=gold cosmos, Mythic=animated rainbow
+- **HP display:** Top-right, large red number from `cat.health`
+- **Evolution stage:** stray=Basic, adopted=Stage 1, pure=Stage 2
+- **Type energy icons:** Circular breed-colored icons
+- **Move cards:**
+  - Move 1 = Personality ability (e.g., "Playful Swipe", "Independent Blaze")
+  - Move 2 = Best learned trick or breed special
+  - Damage = calculated from grade + stats
+- **Weakness/Resistance/Retreat:** Derived from breed type matchups
+- **Footer:** Rarity stars, card number, CCE set symbol
+- **Texture:** Subtle canvas/paper noise overlay
 
-## 3. Add rate limiting to `cat-ai-assistant`
+### Holographic effects (tier-progressive):
+- **Common:** None (matte)
+- **Uncommon:** Subtle sheen sweep on hover
+- **Rare:** Twinkling star particles + diagonal holo
+- **Legendary:** Cosmos swirl + dynamic shine
+- **Mythic:** Animated rainbow border + full rainbow overlay
 
-Currently has no rate limit at all. Add DB-backed rate limiting (e.g., 30 requests/user/hour) using the same table from step 2.
+### 3D Tilt (mouse-follow):
+- `perspective: 1500px` on container
+- `onMouseMove` → calculate rotateX/rotateY from cursor position
+- Dynamic radial-gradient shine follows cursor
+- Holo intensity increases with tilt angle
+- Disabled when card is flipped
+- Touch support via `onTouchMove`
 
-**File**: `supabase/functions/cat-ai-assistant/index.ts`
+---
 
-## 4. Add input validation to `process-leaderboard-rewards`
+## Phase 3: Card Flip (Back Side)
 
-Add Zod schema validation for the request body (currently accepts any JSON without validation).
-
-**File**: `supabase/functions/process-leaderboard-rewards/index.ts`
-
-## Technical Details
-
-### CORS helper (inlined in each function)
-```typescript
-const ALLOWED_ORIGINS = [
-  'https://cozy-cat-empire.lovable.app',
-  /^https:\/\/.*\.lovable\.app$/,
-];
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('Origin') || '';
-  const allowed = ALLOWED_ORIGINS.some(o =>
-    typeof o === 'string' ? o === origin : o.test(origin)
-  );
-  return {
-    'Access-Control-Allow-Origin': allowed ? origin : ALLOWED_ORIGINS[0],
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, ...',
-  };
-}
+### Back design in PokemonCard:
+```
+┌─────────────────────────────┐
+│  [FRAME: tier-colored]      │
+│  ┌───────────────────────┐  │
+│  │      CAT NAME         │  │
+│  │    [Breed subtitle]   │  │
+│  │  ┌──────┐ ┌──────┐   │  │
+│  │  │Hunger│ │ Rest │   │  │
+│  │  └──────┘ └──────┘   │  │
+│  │  ┌──────┐ ┌──────┐   │  │
+│  │  │ Feed │ │ Wins │   │  │
+│  │  └──────┘ └──────┘   │  │
+│  │  [Lore/description]   │  │
+│  │  Tricks: 🪑🐾🔄⬆️🎾  │  │
+│  │  Social: 💚5  😾2    │  │
+│  │  Value: $350          │  │
+│  │  [CCE Logo]           │  │
+│  └───────────────────────┘  │
+└─────────────────────────────┘
 ```
 
-### Rate limit table + query pattern
-Edge functions use service role client to upsert into `edge_function_rate_limits`, checking `request_count` against the configured max within the time window. On window expiry, the row resets.
+- Flip via 🔄 button or click
+- 0.6s cubic-bezier `rotateY(180deg)` transition
+- 3D tilt disabled while flipped
 
-### Summary of changes
-| # | Task | Files | Effort |
-|---|------|-------|--------|
-| 1 | CORS restriction | 16 edge functions | Medium |
-| 2 | DB-backed rate limits | 3 edge functions + 1 migration | Medium |
-| 3 | AI assistant rate limit | 1 edge function | Low |
-| 4 | Leaderboard input validation | 1 edge function | Low |
+---
 
+## Phase 4: Move Generation System
+
+### Create `src/lib/cardMoves.ts`
+Generate Pokémon-style moves from cat data:
+
+| Personality | Move Name | Base Damage |
+|-------------|-----------|-------------|
+| Playful | Playful Swipe | 20 |
+| Affectionate | Warm Embrace | 30 (heals) |
+| Independent | Lone Strike | 40 |
+| Curious | Investigate | 20 (draw) |
+| Lazy | Nap Attack | 10 (buff) |
+| Shy | Shadow Fade | 20 (dodge) |
+
+Move 2 = best trick or breed special. Damage scales with grade.
+
+---
+
+## Phase 5: Integration
+
+### Modify `UnifiedCatCard.tsx`:
+- `variant="trading"` → renders PokemonCard
+- Add `variant="pokemon"` as explicit alias
+- Keep `variant="card"` as standard game card
+
+### Update `CardShowcase.tsx`:
+- Add Pokémon card showcase section for all 5 tiers
+
+### Update `CatCollection.tsx`:
+- Use Pokémon card variant
+
+---
+
+## File Changes Summary
+
+| File | Action |
+|------|--------|
+| `src/config/breedTypes.ts` | CREATE |
+| `src/lib/cardMoves.ts` | CREATE |
+| `src/components/game/PokemonCard.tsx` | CREATE |
+| `src/components/game/UnifiedCatCard.tsx` | MODIFY |
+| `src/config/graphics.ts` | MODIFY |
+| `src/index.css` | MODIFY |
+| `src/pages/CardShowcase.tsx` | MODIFY |
+
+## Implementation Order
+1. `breedTypes.ts` + `cardMoves.ts` (data layer)
+2. CSS animations in `index.css`
+3. `PokemonCard.tsx` (core component with front/back/tilt)
+4. Wire into `UnifiedCatCard.tsx`
+5. Update `CardShowcase.tsx`
+6. Test all 5 tiers + flip + 3D tilt
