@@ -50,6 +50,10 @@ import { PORTRAIT_STYLES, type PortraitStyle } from '@/config/portraitSettings';
 import { getGlobalPortraitStyle } from '@/config/portraitSettings';
 import { cn } from '@/lib/utils';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('BatchPortraitGenerator');
+
 interface BatchPortraitGeneratorProps {
   cats: Cat[];
   catCostumes: Record<string, string>;
@@ -166,7 +170,7 @@ export function BatchPortraitGenerator({
           setResults((prev) => [...prev, { catId: cat.id, catName: cat.name, success: true }]);
         }
       } catch (err) {
-        console.error(`Failed to generate portrait for ${cat.name}:`, err);
+        logger.error(`Failed to generate portrait for ${cat.name}:`, err);
         setResults((prev) => [
           ...prev,
           {

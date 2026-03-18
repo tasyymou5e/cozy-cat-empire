@@ -15,6 +15,10 @@ import { Check, Sparkles, Shuffle, Loader2, AtSign, AlertCircle } from 'lucide-r
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('ProfileSetupDialog');
+
 const AVATAR_OPTIONS = ['😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🐱'];
 
 interface ProfileSetupDialogProps {
@@ -88,7 +92,7 @@ export function ProfileSetupDialog({ userId }: ProfileSetupDialogProps) {
         setNameAvailable(true);
       }
     } catch (err) {
-      console.error('Failed to validate display name:', err);
+      logger.error('Failed to validate display name:', err);
       // Fallback to local check
       const { data } = await supabase
         .from('profiles')
@@ -146,7 +150,7 @@ export function ProfileSetupDialog({ userId }: ProfileSetupDialogProps) {
         setUsernameAvailable(true);
       }
     } catch (err) {
-      console.error('Failed to validate username:', err);
+      logger.error('Failed to validate username:', err);
       // Fallback
       const { data } = await supabase
         .from('profiles')
@@ -295,7 +299,7 @@ export function ProfileSetupDialog({ userId }: ProfileSetupDialogProps) {
         }
       }
     } catch (err) {
-      console.error('Validation error:', err);
+      logger.error('Validation error:', err);
     }
 
     const result = await updateProfile(sanitizedName, avatarEmoji, sanitizedUsername || undefined);

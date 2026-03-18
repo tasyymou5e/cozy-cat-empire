@@ -41,6 +41,10 @@ import {
 import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { useTheme } from 'next-themes';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('CatRelationships');
+
 export default function CatRelationships() {
   const { playSound, isEnabled, setEnabled } = useSound();
   const { theme, setTheme } = useTheme();
@@ -86,7 +90,7 @@ export default function CatRelationships() {
             saveData.relationships
           );
         } catch (e) {
-          console.error('Failed to load local save:', e);
+          logger.error('Failed to load local save:', e);
         }
       }
       if (isMounted) {

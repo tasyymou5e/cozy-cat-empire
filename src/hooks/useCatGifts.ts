@@ -13,6 +13,10 @@ import { Cat } from '@/types/game';
 import { toast } from '@/hooks/use-toast';
 import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useCatGifts');
+
 /**
  * Cat gift data structure
  *
@@ -204,7 +208,7 @@ export function useCatGifts(userId: string | undefined) {
         setSentGifts([]);
       }
     } catch (error) {
-      console.error('Error fetching gifts:', error);
+      logger.error('Error fetching gifts:', error);
     } finally {
       setLoading(false);
     }
@@ -235,7 +239,7 @@ export function useCatGifts(userId: string | undefined) {
         async (payload) => {
           // Phase 2: Validate user context hasn't changed
           if (subscribedUserId !== userId) {
-            console.log('[GiftSync] Ignoring stale gift for different user');
+            logger.info('[GiftSync] Ignoring stale gift for different user');
             return;
           }
           // Fetch sender name for the new gift popup
@@ -268,7 +272,7 @@ export function useCatGifts(userId: string | undefined) {
         () => {
           // Phase 2: Validate user context hasn't changed
           if (subscribedUserId !== userId) {
-            console.log('[GiftSync] Ignoring stale update for different user');
+            logger.info('[GiftSync] Ignoring stale update for different user');
             return;
           }
           fetchGifts();
@@ -392,7 +396,7 @@ export function useCatGifts(userId: string | undefined) {
       fetchGifts();
       return gift.cat_data;
     } catch (error) {
-      console.error('Error accepting gift:', error);
+      logger.error('Error accepting gift:', error);
       toast({
         title: 'Error',
         description: 'Failed to accept gift',
@@ -427,7 +431,7 @@ export function useCatGifts(userId: string | undefined) {
       fetchGifts();
       return true;
     } catch (error) {
-      console.error('Error declining gift:', error);
+      logger.error('Error declining gift:', error);
       return false;
     }
   };

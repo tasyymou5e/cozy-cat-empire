@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { GameState } from '@/types/game';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useGlobalLeaderboard');
+
 export interface RankChange {
   direction: 'up' | 'down' | 'same' | 'new';
   amount: number;
@@ -226,7 +230,7 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
           }
         }
       } catch (err) {
-        console.error('Failed to fetch leaderboard:', err);
+        logger.error('Failed to fetch leaderboard:', err);
       } finally {
         setLoading(false);
         setLoadingMore(false);
@@ -349,7 +353,7 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
 
         if (error) throw error;
       } catch (err) {
-        console.error('Failed to sync player stats:', err);
+        logger.error('Failed to sync player stats:', err);
       }
     },
     [userId]

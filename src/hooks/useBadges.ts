@@ -20,6 +20,10 @@ import {
   MAX_DISPLAYED_BADGES,
 } from '@/types/badges';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useBadges');
+
 export interface UseBadgesReturn {
   /** All badges with unlock status */
   badges: Badge[];
@@ -101,7 +105,7 @@ export function useBadges(userId?: string): UseBadgesReturn {
           setDisplayedBadgeIdsState(profile.display_badges);
         }
       } catch (err) {
-        console.error('Error fetching badges:', err);
+        logger.error('Error fetching badges:', err);
       } finally {
         setLoading(false);
       }
@@ -160,7 +164,7 @@ export function useBadges(userId?: string): UseBadgesReturn {
 
         return true;
       } catch (err) {
-        console.error('Error unlocking badge:', err);
+        logger.error('Error unlocking badge:', err);
         return false;
       }
     },
@@ -186,7 +190,7 @@ export function useBadges(userId?: string): UseBadgesReturn {
         setDisplayedBadgeIdsState(limitedIds);
         return true;
       } catch (err) {
-        console.error('Error setting displayed badges:', err);
+        logger.error('Error setting displayed badges:', err);
         return false;
       }
     },
@@ -213,7 +217,7 @@ export function useBadges(userId?: string): UseBadgesReturn {
         setCurrentFrameId(frameId);
         return true;
       } catch (err) {
-        console.error('Error setting profile frame:', err);
+        logger.error('Error setting profile frame:', err);
         return false;
       }
     },

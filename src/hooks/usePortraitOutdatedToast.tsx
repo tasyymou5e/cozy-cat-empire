@@ -3,6 +3,10 @@ import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { Cat } from '@/types/game';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('usePortraitOutdatedToast');
+
 /**
  * Hook that shows a toast notification when a cat's portrait becomes outdated
  * after appearance or costume changes. Includes a quick action to navigate
@@ -24,7 +28,7 @@ export function usePortraitOutdatedToast() {
         ),
       });
     } catch (error) {
-      console.warn('Toast notification failed:', error);
+      logger.warn('Toast notification failed:', error);
     }
   };
 

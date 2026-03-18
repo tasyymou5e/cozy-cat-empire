@@ -3,6 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { SoundType } from '@/contexts/SoundContext';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useChallengeAchievements');
+
 /**
  * Challenge completion statistics
  */
@@ -71,7 +75,7 @@ export function useChallengeAchievements(
         loading: false,
       });
     } catch (error) {
-      console.error('Error fetching challenge stats:', error);
+      logger.error('Error fetching challenge stats:', error);
       setStats({ totalCompleted: 0, currentStreak: 0, longestStreak: 0, loading: false });
     }
   }, [userId]);
@@ -154,7 +158,7 @@ export function useChallengeAchievements(
       // Refresh stats
       fetchStats();
     } catch (error) {
-      console.error('Error incrementing challenge stats:', error);
+      logger.error('Error incrementing challenge stats:', error);
     }
   }, [userId, fetchStats, playSound, vibrateAchievement]);
 

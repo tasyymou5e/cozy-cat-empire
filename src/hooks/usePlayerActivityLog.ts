@@ -2,6 +2,10 @@ import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('usePlayerActivityLog');
+
 export interface LogActivityParams {
   activityType:
     | 'login'
@@ -34,7 +38,7 @@ export async function logPlayerActivity(userId: string, params: LogActivityParam
     ]);
   } catch (error) {
     // Fail silently - don't interrupt game flow
-    console.error('Failed to log activity:', error);
+    logger.error('Failed to log activity:', error);
   }
 }
 

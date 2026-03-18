@@ -16,6 +16,10 @@ import {
   getEventForDay,
 } from '@/types/weeklyEvents';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useWeeklyEvents');
+
 export interface UseWeeklyEventsReturn {
   /** Get today's active event */
   getTodayEvent: () => WeeklyEvent;
@@ -42,7 +46,7 @@ export interface UseWeeklyEventsReturn {
  *
  * // Display today's event
  * const event = getTodayEvent();
- * console.log(`${event.emoji} ${event.name}: ${event.description}`);
+ * logger.info(`${event.emoji} ${event.name}: ${event.description}`);
  *
  * // Apply show prize multiplier
  * const baseReward = 100;
@@ -51,7 +55,7 @@ export interface UseWeeklyEventsReturn {
  *
  * // Check if breeding bonus is active
  * if (isBonusActive('breeding')) {
- *   console.log('Breeding Thursday bonus active!');
+ *   logger.info('Breeding Thursday bonus active!');
  * }
  * ```
  */

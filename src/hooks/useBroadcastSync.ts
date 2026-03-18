@@ -10,6 +10,10 @@
 
 import { useEffect, useCallback, useRef } from 'react';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useBroadcastSync');
+
 interface BroadcastMessage<T = unknown> {
   type: string;
   payload: T;
@@ -56,7 +60,7 @@ export function useBroadcastSync<T = unknown>(
   useEffect(() => {
     // BroadcastChannel may not be available in all browsers
     if (typeof BroadcastChannel === 'undefined') {
-      console.warn('BroadcastChannel not supported in this browser');
+      logger.warn('BroadcastChannel not supported in this browser');
       return;
     }
 

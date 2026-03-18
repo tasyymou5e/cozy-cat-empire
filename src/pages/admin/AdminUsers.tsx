@@ -63,6 +63,10 @@ import {
 import { format } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('AdminUsers');
+
 const truncateEmail = (email: string): string => {
   const [localPart, domain] = email.split('@');
   if (!domain) return email;
@@ -228,7 +232,7 @@ export default function AdminUsers() {
         });
         if (!response.error) successCount++;
       } catch (error) {
-        console.error(`Failed to delete user ${userId}:`, error);
+        logger.error(`Failed to delete user ${userId}:`, error);
       }
     }
 
@@ -309,7 +313,7 @@ export default function AdminUsers() {
       setRoleDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
     } catch (error) {
-      console.error('Failed to update role:', error);
+      logger.error('Failed to update role:', error);
       toast({
         title: 'Error',
         description: 'Failed to update user role',
@@ -369,7 +373,7 @@ export default function AdminUsers() {
       setUserToDelete(null);
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
     } catch (error: any) {
-      console.error('Failed to delete user:', error);
+      logger.error('Failed to delete user:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to delete user',
@@ -429,7 +433,7 @@ export default function AdminUsers() {
       setUserToSuspend(null);
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
     } catch (error: any) {
-      console.error('Failed to suspend user:', error);
+      logger.error('Failed to suspend user:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to suspend user',
@@ -466,7 +470,7 @@ export default function AdminUsers() {
 
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
     } catch (error: any) {
-      console.error('Failed to unsuspend user:', error);
+      logger.error('Failed to unsuspend user:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to unsuspend user',

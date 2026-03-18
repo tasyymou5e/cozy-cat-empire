@@ -22,6 +22,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertTriangle, Cat, ImageIcon, Loader2 } from 'lucide-react';
 import type { OrphanedCat } from '@/hooks/useOrphanDetection';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('OrphanRecoveryDialog');
+
 interface OrphanRecoveryDialogProps {
   orphanedCats: OrphanedCat[];
   open: boolean;
@@ -61,7 +65,7 @@ export function OrphanRecoveryDialog({
       await onRecover(catsToRecover);
       onClose();
     } catch (err) {
-      console.error('Failed to recover cats:', err);
+      logger.error('Failed to recover cats:', err);
     } finally {
       setIsRecovering(false);
     }

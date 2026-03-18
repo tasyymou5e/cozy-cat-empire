@@ -1,5 +1,9 @@
 import { useEffect, useCallback } from 'react';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useVersionCheck');
+
 /**
  * Build version from environment or fallback to build time
  * This should be set during the build process
@@ -30,7 +34,7 @@ export function useVersionCheck(checkInterval = 5 * 60 * 1000) {
         const serverVersion = version || buildTime;
 
         if (serverVersion && serverVersion !== BUILD_VERSION) {
-          console.log('[VersionCheck] New version detected:', {
+          logger.info('[VersionCheck] New version detected:', {
             current: BUILD_VERSION,
             server: serverVersion,
           });

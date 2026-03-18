@@ -9,6 +9,10 @@ import {
   calculateLegacyBonus,
 } from '@/types/legacy';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useLegacy');
+
 interface UseLegacyReturn {
   retiredCats: LegacyCat[];
   totalLegacyBonus: number;
@@ -48,7 +52,7 @@ export function useLegacy(userId?: string): UseLegacyReturn {
           .order('created_at', { ascending: false });
 
         if (error) {
-          console.error('Error loading retired cats:', error);
+          logger.error('Error loading retired cats:', error);
           return;
         }
 
@@ -78,7 +82,7 @@ export function useLegacy(userId?: string): UseLegacyReturn {
           }
         }
       } catch (e) {
-        console.error('Failed to load retired cats from cloud:', e);
+        logger.error('Failed to load retired cats from cloud:', e);
       } finally {
         setLoading(false);
       }
@@ -161,12 +165,12 @@ export function useLegacy(userId?: string): UseLegacyReturn {
             .single();
 
           if (error) {
-            console.error('Error saving retired cat to cloud:', error);
+            logger.error('Error saving retired cat to cloud:', error);
           } else if (data) {
             legacyCat.id = data.id;
           }
         } catch (e) {
-          console.error('Failed to save retired cat to cloud:', e);
+          logger.error('Failed to save retired cat to cloud:', e);
         }
       }
 

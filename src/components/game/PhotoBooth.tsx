@@ -32,6 +32,10 @@ import {
 import { usePhotoGallery } from '@/hooks/usePhotoGallery';
 import { useAuth } from '@/contexts/AuthContext';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('PhotoBooth');
+
 /**
  * Props for the PhotoBooth component
  */
@@ -246,7 +250,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
         });
       }
     } catch (error) {
-      console.error('Photo save error:', error);
+      logger.error('Photo save error:', error);
       toast({
         title: 'Error',
         description: 'Failed to capture photo. Please try again.',

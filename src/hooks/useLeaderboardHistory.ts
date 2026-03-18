@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { LeaderboardCategory } from './useGlobalLeaderboard';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useLeaderboardHistory');
+
 export interface RankHistoryEntry {
   id: string;
   category: string;
@@ -122,7 +126,7 @@ export function useLeaderboardHistory(userId: string | undefined, category?: Lea
         setRankProgression(Array.from(progressionMap.values()));
       }
     } catch (error) {
-      console.error('Error fetching leaderboard history:', error);
+      logger.error('Error fetching leaderboard history:', error);
     } finally {
       setLoading(false);
     }
@@ -159,7 +163,7 @@ export function useLeaderboardHistory(userId: string | undefined, category?: Lea
         // Refresh history
         fetchHistory();
       } catch (error) {
-        console.error('Error recording rank:', error);
+        logger.error('Error recording rank:', error);
       }
     },
     [userId, fetchHistory]

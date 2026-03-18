@@ -54,6 +54,10 @@ import {
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('CatCustomization');
+
 /**
  * CatCustomization - Cat appearance editor page
  *
@@ -116,7 +120,7 @@ export default function CatCustomization() {
             saveData.relationships
           );
         } catch (e) {
-          console.error('Failed to load local save:', e);
+          logger.error('Failed to load local save:', e);
         }
       }
       if (isMounted) {
@@ -184,7 +188,7 @@ export default function CatCustomization() {
 
     // Guard: Only save to cloud if data has been loaded
     if (!hasLoadedCloud && user) {
-      console.warn('[CatCustomization] Skipping cloud save - not loaded yet');
+      logger.warn('[CatCustomization] Skipping cloud save - not loaded yet');
       setIsSaving(false);
       return;
     }

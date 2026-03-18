@@ -22,6 +22,10 @@ import {
 } from '@/types/relationships';
 import { generateId } from '@/lib/utils';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useRelationships');
+
 /**
  * Save data structure for relationship persistence
  *
@@ -165,7 +169,7 @@ export function useRelationships() {
    * ```ts
    * const rel = getRelationship(cat1.id, cat2.id);
    * if (rel && rel.level === 'bestFriend') {
-   *   console.log('These cats are best friends!');
+   *   logger.info('These cats are best friends!');
    * }
    * ```
    */

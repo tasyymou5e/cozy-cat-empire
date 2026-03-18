@@ -17,6 +17,10 @@ import {
   isSeasonalCostumeAvailable,
 } from '@/types/seasonalContent';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useSeasonalContent');
+
 export interface UseSeasonalContentReturn {
   /** Currently active season (null if between seasons) */
   currentSeason: Season | null;
@@ -44,9 +48,9 @@ export interface UseSeasonalContentReturn {
  * const { currentSeason, availableCostumes, daysRemaining } = useSeasonalContent();
  *
  * if (currentSeason) {
- *   console.log(`${currentSeason.emoji} ${currentSeason.name} - ${daysRemaining} days left!`);
+ *   logger.info(`${currentSeason.emoji} ${currentSeason.name} - ${daysRemaining} days left!`);
  *   availableCostumes.forEach(costume => {
- *     console.log(`- ${costume.name}: $${costume.price}`);
+ *     logger.info(`- ${costume.name}: $${costume.price}`);
  *   });
  * }
  * ```

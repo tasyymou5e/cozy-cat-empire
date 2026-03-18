@@ -3,6 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('ExportButton');
+
 interface ExportButtonProps {
   data: Record<string, unknown>[];
   filename: string;
@@ -62,7 +66,7 @@ export function ExportButton({ data, filename, columns }: ExportButtonProps) {
       toast.success(`Exported ${data.length} rows to CSV`);
     } catch (error) {
       toast.error('Failed to export data');
-      console.error('Export error:', error);
+      logger.error('Export error:', error);
     } finally {
       setExporting(false);
     }

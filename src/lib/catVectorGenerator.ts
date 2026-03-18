@@ -12,6 +12,10 @@ import { CatAppearance, FurColor, EyeColor, FurPattern } from '@/types/catAppear
 import { BreedDefinition, getBreedShape } from './breedShapes';
 import { getGradeTier } from '@/types/grading';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('catVectorGenerator');
+
 // Color mappings for fur
 const FUR_COLORS: Record<FurColor, string> = {
   orange: '#E88B3C',
@@ -649,7 +653,7 @@ export function generateCatAvatar(
 
     return { svg, dataUrl };
   } catch (error) {
-    console.error('Paper.js generation failed:', error);
+    logger.error('Paper.js generation failed:', error);
     return null;
   }
 }

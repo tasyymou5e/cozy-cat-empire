@@ -9,6 +9,10 @@
 
 import { logErrorToDatabase } from '@/hooks/useErrorLogger';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('errorHandling');
+
 /**
  * Standard result type for async operations
  */
@@ -70,7 +74,7 @@ export function handleAsyncError(
   const errorStack = error instanceof Error ? error.stack : undefined;
 
   // Log to console in development
-  console.error(`[${context.source}] ${context.operation} failed:`, error);
+  logger.error(`[${context.source}] ${context.operation} failed:`, error);
 
   // Log to database (non-blocking)
   logErrorToDatabase({

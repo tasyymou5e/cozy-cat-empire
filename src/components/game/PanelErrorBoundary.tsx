@@ -4,6 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { logErrorToDatabase } from '@/hooks/useErrorLogger';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('PanelErrorBoundary');
+
 interface Props {
   children: ReactNode;
   panelName: string;
@@ -53,7 +57,7 @@ export class PanelErrorBoundary extends Component<Props, State> {
       },
     });
 
-    console.error(`[PanelErrorBoundary] Error in ${this.props.panelName}:`, error, errorInfo);
+    logger.error(`[PanelErrorBoundary] Error in ${this.props.panelName}:`, error, errorInfo);
   }
 
   handleRetry = () => {

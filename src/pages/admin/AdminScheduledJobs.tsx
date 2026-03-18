@@ -41,6 +41,10 @@ import {
   Legend,
 } from 'recharts';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('AdminScheduledJobs');
+
 // Cron expression to human-readable format
 function parseCronSchedule(schedule: string): string {
   const parts = schedule.split(' ');
@@ -141,7 +145,7 @@ export default function AdminScheduledJobs() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_cron_jobs' as never);
       if (error) {
-        console.error('Failed to fetch cron jobs:', error);
+        logger.error('Failed to fetch cron jobs:', error);
         return [] as CronJob[];
       }
       return (data || []) as CronJob[];
@@ -154,7 +158,7 @@ export default function AdminScheduledJobs() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_cron_job_history' as never, { limit_count: 50 } as never);
       if (error) {
-        console.error('Failed to fetch job history:', error);
+        logger.error('Failed to fetch job history:', error);
         return [] as CronJobRun[];
       }
       return (data || []) as CronJobRun[];
@@ -167,7 +171,7 @@ export default function AdminScheduledJobs() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_cron_job_trends' as never, { days_back: 14 } as never);
       if (error) {
-        console.error('Failed to fetch job trends:', error);
+        logger.error('Failed to fetch job trends:', error);
         return [] as JobTrend[];
       }
       return (data || []) as JobTrend[];

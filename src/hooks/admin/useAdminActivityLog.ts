@@ -12,6 +12,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Json } from '@/integrations/supabase/types';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useAdminActivityLog');
+
 /**
  * Parameters for logging an admin activity
  *
@@ -134,10 +138,10 @@ export function useAdminActivityLog() {
       ]);
 
       if (error) {
-        console.error('Failed to log admin activity:', error);
+        logger.error('Failed to log admin activity:', error);
       }
     } catch (err) {
-      console.error('Error logging admin activity:', err);
+      logger.error('Error logging admin activity:', err);
     }
   };
 
@@ -209,9 +213,9 @@ export async function logAuthAttempt(params: LogAuthAttemptParams): Promise<void
     ]);
 
     if (error) {
-      console.error('Failed to log auth attempt:', error);
+      logger.error('Failed to log auth attempt:', error);
     }
   } catch (err) {
-    console.error('Error logging auth attempt:', err);
+    logger.error('Error logging auth attempt:', err);
   }
 }

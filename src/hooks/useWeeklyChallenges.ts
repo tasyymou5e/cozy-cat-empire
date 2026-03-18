@@ -29,6 +29,10 @@ import type {
 } from '@/types/challenges';
 import type { SoundType } from '@/contexts/SoundContext';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useWeeklyChallenges');
+
 /**
  * Haptic feedback functions for challenge events
  */
@@ -183,7 +187,7 @@ export function useWeeklyChallenges(
 
       setChallenges(challengesWithProgress);
     } catch (error) {
-      console.error('Error fetching challenges:', error);
+      logger.error('Error fetching challenges:', error);
     } finally {
       setLoading(false);
     }
@@ -281,7 +285,7 @@ export function useWeeklyChallenges(
               .eq('id', existingProgress.id);
 
             if (error) {
-              console.error('Error updating progress:', error);
+              logger.error('Error updating progress:', error);
               continue;
             }
             progressMade = true;
@@ -296,7 +300,7 @@ export function useWeeklyChallenges(
             });
 
             if (error) {
-              console.error('Error creating progress:', error);
+              logger.error('Error creating progress:', error);
               continue;
             }
             progressMade = true;
@@ -365,7 +369,7 @@ export function useWeeklyChallenges(
         .eq('id', challenge.progress.id);
 
       if (error) {
-        console.error('Error claiming reward:', error);
+        logger.error('Error claiming reward:', error);
         toast({
           title: 'Error',
           description: 'Failed to claim reward. Please try again.',

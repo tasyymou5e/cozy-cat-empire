@@ -17,6 +17,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCloudSave } from '@/hooks/useCloudSave';
 import { PhotoBooth } from '@/components/game/PhotoBooth';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('CatPhotoBooth');
+
 /**
  * CatPhotoBooth - Photo booth page for taking cat photos
  *
@@ -57,7 +61,7 @@ const CatPhotoBooth: React.FC = () => {
           actions.loadGame();
         }
       } catch (error) {
-        console.error('Failed to load game state:', error);
+        logger.error('Failed to load game state:', error);
         // Fallback to local storage on error
         actions.loadGame();
       } finally {

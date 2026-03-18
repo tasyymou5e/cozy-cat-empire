@@ -11,6 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 import type { LinterResults } from '@/types/admin';
 import { useSecurityHistory } from './useSecurityHistory';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useSecurityLinter');
+
 const LINTER_CACHE_KEY = 'security-linter-results';
 
 export function useSecurityLinter() {
@@ -86,7 +90,7 @@ export function useSecurityLinter() {
       try {
         await saveScan(data);
       } catch (e) {
-        console.error('Failed to save scan to history:', e);
+        logger.error('Failed to save scan to history:', e);
       }
       
       // Invalidate cached query to update UI
