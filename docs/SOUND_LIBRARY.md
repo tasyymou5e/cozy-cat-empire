@@ -106,6 +106,10 @@ audio.play();
 | Format | Count | Notes |
 |--------|-------|-------|
 | MP3 | 6 | Compressed, smaller file size |
-| WAV | 9 | Uncompressed, higher quality |
+| WAV | 20 | Uncompressed, higher quality |
 
-## Total Files: 15
+## Total Files: 26
+
+## Licensing
+- Original 15 sounds: Various free sources
+- 11 new sounds: [Mixkit](https://mixkit.co) royalty-free license
