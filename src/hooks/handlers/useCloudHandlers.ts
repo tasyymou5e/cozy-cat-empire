@@ -4,7 +4,7 @@
  * @module hooks/handlers/useCloudHandlers
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave, AutoSaveStats } from '@/hooks/useAutoSave';
 import { useOrphanDetection, createRecoveryCat, type OrphanedCat } from '@/hooks/useOrphanDetection';
