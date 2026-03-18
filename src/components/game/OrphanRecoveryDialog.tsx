@@ -35,6 +35,7 @@ export function OrphanRecoveryDialog({
   open,
   onClose,
   onRecover,
+  availableSpace = Infinity,
 }: OrphanRecoveryDialogProps) {
   const [selectedCatIds, setSelectedCatIds] = useState<Set<string>>(
     new Set(orphanedCats.map((c) => c.catId))
