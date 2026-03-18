@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Cat } from '@/types/game';
 import { getBreedType } from '@/config/breedTypes';
 import { CatVisual } from './CatVisual';
-import { PokemonCard } from './PokemonCard';
+import { CollectorCard } from './CollectorCard';
 import { cn } from '@/lib/utils';
 import { ArrowLeftRight, Crown, Minus, Plus, Trophy, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -75,7 +75,7 @@ export function CardComparison({ cats, catCostumes = {}, onClose }: CardComparis
           return (
             <div key={cat.id} className="flex flex-col items-center">
               <div className="transform scale-[0.35] origin-top -mb-[160px]">
-                <PokemonCard cat={cat} equippedCostumeId={catCostumes[cat.id]} showFlip={false} isOwned />
+                <CollectorCard cat={cat} equippedCostumeId={catCostumes[cat.id]} showFlip={false} isOwned />
               </div>
               <h4 className="font-bold text-sm truncate mt-2">{cat.name}</h4>
             </div>
@@ -395,7 +395,7 @@ export function TradeAnimation({ sendCat, receiveCat, sendCostumeId, receiveCost
         style={{ transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
       >
         <div className="transform scale-[0.28] origin-top-left">
-          <PokemonCard
+          <CollectorCard
             cat={phase === 'slide-in' || phase === 'done' ? receiveCat : sendCat}
             equippedCostumeId={phase === 'slide-in' || phase === 'done' ? receiveCostumeId : sendCostumeId}
             showFlip={false}
@@ -416,7 +416,7 @@ export function TradeAnimation({ sendCat, receiveCat, sendCostumeId, receiveCost
         style={{ transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
       >
         <div className="transform scale-[0.28] origin-top-right">
-          <PokemonCard
+          <CollectorCard
             cat={phase === 'slide-in' || phase === 'done' ? sendCat : receiveCat}
             equippedCostumeId={phase === 'slide-in' || phase === 'done' ? sendCostumeId : receiveCostumeId}
             showFlip={false}

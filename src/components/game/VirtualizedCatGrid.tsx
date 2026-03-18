@@ -4,7 +4,7 @@ import { Cat } from '@/types/game';
 import { CatRelationship } from '@/types/relationships';
 import { CatReaction } from '@/contexts/CatReactionContext';
 import { UnifiedCatCard } from './UnifiedCatCard';
-import { PokemonCard } from './PokemonCard';
+import { CollectorCard } from './CollectorCard';
 
 interface VirtualizedCatGridProps {
   cats: Cat[];
@@ -58,8 +58,8 @@ const LegacyListContainer = React.forwardRef<HTMLDivElement, React.HTMLAttribute
 );
 LegacyListContainer.displayName = 'LegacyListContainer';
 
-// Memoized PokemonCard wrapper for trading variant
-const PokemonCardItem = memo(function PokemonCardItem({
+// Memoized CollectorCard wrapper for trading variant
+const CollectorCardItem = memo(function CollectorCardItem({
   cat,
   equippedCostumeId,
   onClick,
@@ -71,7 +71,7 @@ const PokemonCardItem = memo(function PokemonCardItem({
   showFlip?: boolean;
 }) {
   return (
-    <PokemonCard
+    <CollectorCard
       cat={cat}
       equippedCostumeId={equippedCostumeId}
       showFlip={showFlip}
@@ -142,7 +142,7 @@ const CatCardItem = memo(function CatCardItem({
 /**
  * VirtualizedCatGrid - Renders a grid of cat cards
  * 
- * When variant is "trading", uses PokemonCard (Cat Empire Cards style).
+ * When variant is "trading", uses CollectorCard (Cat Empire Cards style).
  * Otherwise uses UnifiedCatCard.
  */
 export const VirtualizedCatGrid = memo(function VirtualizedCatGrid({
@@ -167,7 +167,7 @@ export const VirtualizedCatGrid = memo(function VirtualizedCatGrid({
 }: VirtualizedCatGridProps) {
   const isTrading = variant === 'trading';
 
-  // For trading variant, render PokemonCards
+  // For trading variant, render CollectorCards
   if (isTrading) {
     if (cats.length < virtualizationThreshold) {
       return (
@@ -176,7 +176,7 @@ export const VirtualizedCatGrid = memo(function VirtualizedCatGrid({
           style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}
         >
           {cats.map((cat) => (
-            <PokemonCardItem
+            <CollectorCardItem
               key={cat.id}
               cat={cat}
               equippedCostumeId={catCostumes[cat.id]}
@@ -198,7 +198,7 @@ export const VirtualizedCatGrid = memo(function VirtualizedCatGrid({
           const cat = cats[index];
           if (!cat) return null;
           return (
-            <PokemonCardItem
+            <CollectorCardItem
               key={cat.id}
               cat={cat}
               equippedCostumeId={catCostumes[cat.id]}
