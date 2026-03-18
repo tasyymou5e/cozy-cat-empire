@@ -264,6 +264,7 @@ const RenderRequestSchema = z.object({
   })).default([]),
   catCostumes: z.record(z.string()).default({}),
   gameDay: z.number().int().min(1),
+  customPrompt: z.string().max(200).optional(),
 });
 
 serve(async (req) => {
