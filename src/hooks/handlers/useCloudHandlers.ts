@@ -80,7 +80,7 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
           log.info(`Load success: ${data.game_state.cats?.length ?? 0} cats, day ${data.game_state.day}`);
           actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
           ui.setLastCloudSave(data.last_played_at);
-          setTimeout(() => { checkForOrphans(); }, 1000);
+          shouldCheckOrphansRef.current = true;
         } else {
           log.info('No cloud save found - starting fresh');
         }
