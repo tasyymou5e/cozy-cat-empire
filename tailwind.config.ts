@@ -537,6 +537,12 @@ export default {
 			'whisker-flicker': {
 				'0%, 100%': { transform: 'translateX(0)' },
 				'50%': { transform: 'translateX(1px)' }
+			},
+			'cat-eye-blink': {
+				'0%': { opacity: '0' },
+				'30%': { opacity: '0.85' },
+				'50%': { opacity: '0.85' },
+				'100%': { opacity: '0' }
 			}
 		},
   		animation: {
@@ -597,7 +603,8 @@ export default {
 			'kawaii-breathe': 'kawaii-breathe 2s ease-in-out infinite',
 			'kawaii-ear-twitch': 'kawaii-ear-twitch 0.3s ease-out',
 			'realistic-head-tilt': 'realistic-head-tilt 4s ease-in-out infinite',
-			'whisker-flicker': 'whisker-flicker 0.15s linear'
+			'whisker-flicker': 'whisker-flicker 0.15s linear',
+			'cat-eye-blink': 'cat-eye-blink 0.2s ease-in-out forwards'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',
