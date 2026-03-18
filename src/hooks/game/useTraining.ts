@@ -77,8 +77,11 @@ export function useTraining(deps: GameHookDependencies): TrainingActions {
 
   const trainCat = useCallback(
     (catId: string, trickId: TrickId) => {
+      console.log('[trainCat] Called with:', { catId, trickId });
       setState((prev) => {
+        console.log('[trainCat] setState prev resources:', prev.resources, 'day:', prev.day);
         if (prev.resources.treats < 1 || prev.resources.toys < 1) {
+          console.log('[trainCat] Not enough resources - treats:', prev.resources.treats, 'toys:', prev.resources.toys);
           showMessage('Need 1 treat and 1 toy to train! 🎾', 'warning');
           playSound?.('error');
           return prev;
