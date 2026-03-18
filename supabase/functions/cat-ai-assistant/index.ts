@@ -1,11 +1,24 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const ALLOWED_ORIGINS: (string | RegExp)[] = [
+  'https://cozy-cat-empire.lovable.app',
+  /^https:\/\/.*\.lovable\.app$/,
+  /^http:\/\/localhost(:\d+)?$/,
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('Origin') || '';
+  const allowed = ALLOWED_ORIGINS.some(o =>
+    typeof o === 'string' ? o === origin : o.test(origin)
+  );
+  return {
+    'Access-Control-Allow-Origin': allowed ? origin : 'https://cozy-cat-empire.lovable.app',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
+
+let _currentCorsHeaders: Record<string, string>;
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const FETCH_TIMEOUT_MS = 30_000;
