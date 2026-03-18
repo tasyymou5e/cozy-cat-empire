@@ -1187,6 +1187,18 @@
   animation: cat-breathe 4s ease-in-out infinite;
 }
 
+/* Cat portrait hover zoom effect */
+.cat-portrait-hover {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.2s ease-out;
+  cursor: pointer;
+}
+
+.cat-portrait-hover:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
 /* Tail swish animation */
 @keyframes tail-swish {
   0%, 100% {

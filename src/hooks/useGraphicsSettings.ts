@@ -39,6 +39,7 @@ export interface GraphicsSettings {
   // Micro-animations & portrait style
   enableMicroAnimations: boolean;
   defaultPortraitStyle: 'realistic' | 'kawaii';
+  preferPaperAvatar: boolean;
 }
 
 const STORAGE_KEY = 'cat-farm-graphics-settings';
@@ -97,6 +98,7 @@ function getDefaultSettings(): GraphicsSettings {
     // Micro-animations & portrait style
     enableMicroAnimations: GRAPHICS_CONFIG.enableMicroAnimations,
     defaultPortraitStyle: GRAPHICS_CONFIG.defaultPortraitStyle,
+    preferPaperAvatar: GRAPHICS_CONFIG.preferPaperAvatar,
   };
 }
 
