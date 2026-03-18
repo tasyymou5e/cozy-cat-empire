@@ -61,7 +61,15 @@ export type SoundType =
   | 'catSunbathing'
   | 'catBirdwatching'
   | 'giftReceived'
-  | 'tradeReceived';
+  | 'tradeReceived'
+  | 'catChirp'
+  | 'catTrill'
+  | 'catGrowl'
+  | 'catYawn'
+  | 'kittenMeow'
+  | 'catContentPurr'
+  | 'catChattering'
+  | 'catStartled';
 
 /**
  * Music mood types for ambient background music
