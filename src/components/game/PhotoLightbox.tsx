@@ -127,7 +127,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-2 right-2 z-10 text-white hover:bg-white/20"
+          className="absolute top-2 right-2 z-10 text-primary-foreground dark:text-foreground hover:bg-white/20"
           onClick={onClose}
         >
           <X className="w-5 h-5" />
@@ -140,7 +140,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-2 text-white hover:bg-white/20"
+              className="absolute left-2 text-primary-foreground dark:text-foreground hover:bg-white/20"
               onClick={goToPrev}
             >
               <ChevronLeft className="w-8 h-8" />
@@ -157,7 +157,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-2 text-white hover:bg-white/20"
+              className="absolute right-2 text-primary-foreground dark:text-foreground hover:bg-white/20"
               onClick={goToNext}
             >
               <ChevronRight className="w-8 h-8" />

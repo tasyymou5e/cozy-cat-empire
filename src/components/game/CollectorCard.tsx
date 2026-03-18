@@ -266,7 +266,7 @@ export function CollectorCard({ cat, equippedCostumeId, className, showFlip = tr
                   {tierFrame.stars}
                 </span>
                 <span>Lv.{cat.age} · {cardNum}</span>
-                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-extrabold text-white shadow-sm"
+                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-extrabold text-primary-foreground dark:text-foreground shadow-sm"
                   style={{ background: 'linear-gradient(135deg, hsl(40 75% 55%), hsl(35 60% 45%))' }}
                 >
                   C
@@ -303,7 +303,7 @@ export function CollectorCard({ cat, equippedCostumeId, className, showFlip = tr
           {showFlip && (
             <button
               onClick={handleFlip}
-              className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-sm hover:bg-black/60 transition-colors backdrop-blur-sm"
+              className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-black/40 text-primary-foreground dark:text-foreground flex items-center justify-center text-sm hover:bg-black/60 transition-colors backdrop-blur-sm"
             >
               🔄
             </button>
@@ -375,7 +375,7 @@ export function CollectorCard({ cat, equippedCostumeId, className, showFlip = tr
                     style={{ background: 'linear-gradient(135deg, hsl(168 70% 42%), hsl(172 65% 50%))', boxShadow: '0 4px 12px hsl(168 60% 40% / 0.3)' }}
                   >
                     <span className="text-2xl">🏠</span>
-                    <span className="absolute -bottom-1 -right-1 text-lg bg-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm">🐱</span>
+                    <span className="absolute -bottom-1 -right-1 text-lg bg-card rounded-full w-7 h-7 flex items-center justify-center shadow-sm">🐱</span>
                   </div>
                   <div className="flex items-center justify-between w-full text-base mt-1">
                     <span className="collector-twinkle-star" style={{ animationDelay: '1s' }}>✨</span>
@@ -402,7 +402,7 @@ export function CollectorCard({ cat, equippedCostumeId, className, showFlip = tr
                 </p>
 
                 {/* QR Code */}
-                <div className="bg-white p-1.5 rounded-lg shadow-sm mt-2 relative z-10">
+                <div className="bg-card p-1.5 rounded-lg shadow-sm mt-2 relative z-10">
                   <QRCodeSVG value={qrUrl} size={48} level="L" />
                 </div>
 
@@ -418,7 +418,7 @@ export function CollectorCard({ cat, equippedCostumeId, className, showFlip = tr
                 {showFlip && (
                   <button
                     onClick={handleFlip}
-                    className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-sm hover:bg-black/60 transition-colors backdrop-blur-sm"
+                    className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-black/40 text-primary-foreground dark:text-foreground flex items-center justify-center text-sm hover:bg-black/60 transition-colors backdrop-blur-sm"
                   >
                     🔄
                   </button>

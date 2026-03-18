@@ -170,7 +170,7 @@ export default function AdminAuth() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 text-white font-semibold"
+              className="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 text-primary-foreground dark:text-foreground font-semibold"
             >
               {isSubmitting ? 'Authenticating...' : 'Access Portal'}
             </Button>

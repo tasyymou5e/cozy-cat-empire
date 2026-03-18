@@ -75,7 +75,7 @@ export function ClubLeaderboard() {
 
   const getRankBadge = (rank: number) => {
     if (rank === 0) return <Badge className="bg-yellow-500/80 text-yellow-950">🥇 #1</Badge>;
-    if (rank === 1) return <Badge className="bg-gray-400/80 text-gray-900">🥈 #2</Badge>;
+    if (rank === 1) return <Badge className="bg-gray-400/80 text-foreground">🥈 #2</Badge>;
     if (rank === 2) return <Badge className="bg-amber-600/80 text-amber-50">🥉 #3</Badge>;
     return <Badge variant="outline">#{rank + 1}</Badge>;
   };

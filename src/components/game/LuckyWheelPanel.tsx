@@ -214,7 +214,7 @@ export function LuckyWheelPanel({
           <div className="mt-4 p-3 bg-muted/50 rounded-lg">
             <p className="text-xs font-medium mb-2">Prize Odds:</p>
             <div className="flex flex-wrap gap-1">
-              <Badge variant="outline" className="text-xs bg-gray-100">
+              <Badge variant="outline" className="text-xs bg-muted/40">
                 Common 60%
               </Badge>
               <Badge variant="outline" className="text-xs bg-green-100">

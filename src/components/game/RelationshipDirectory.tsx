@@ -122,7 +122,7 @@ export const RelationshipDirectory = memo(function RelationshipDirectory({
   const getScoreBarColor = (score: number) => {
     if (score >= 60) return 'bg-pink-500';
     if (score >= 20) return 'bg-green-500';
-    if (score >= -20) return 'bg-gray-400';
+    if (score >= -20) return 'bg-muted/70';
     if (score >= -60) return 'bg-orange-500';
     return 'bg-red-500';
   };

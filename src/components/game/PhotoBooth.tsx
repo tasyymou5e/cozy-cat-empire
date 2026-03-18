@@ -323,7 +323,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ cat, equippedCostumeId }
           ))}
 
           {/* Cat name watermark */}
-          <div className="absolute bottom-2 right-2 text-white text-sm font-bold drop-shadow-lg opacity-80">
+          <div className="absolute bottom-2 right-2 text-primary-foreground dark:text-foreground text-sm font-bold drop-shadow-lg opacity-80">
             {cat.name}
           </div>
         </div>

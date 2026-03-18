@@ -222,7 +222,7 @@ export function CatPortrait({
     veryRare: 'text-yellow-300',
     rare: 'text-purple-300',
     uncommon: 'text-blue-300',
-    common: 'text-white',
+    common: 'text-primary-foreground dark:text-foreground',
   };
 
   return (
@@ -265,7 +265,7 @@ export function CatPortrait({
         {/* Outdated Badge */}
         {isOutdated && state === 'complete' && (
           <div className="absolute top-2 left-2 z-20">
-            <Badge className="bg-orange-500 text-white text-xs gap-1 shadow-lg">
+            <Badge className="bg-orange-500 text-primary-foreground dark:text-foreground text-xs gap-1 shadow-lg">
               <AlertTriangle className="h-3 w-3" />
               Outdated
             </Badge>

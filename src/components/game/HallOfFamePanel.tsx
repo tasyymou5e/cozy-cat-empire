@@ -56,7 +56,7 @@ function LegacyCatCard({
       <div className="flex items-start gap-3">
         <div className="relative">
           <CatAvatar cat={legacy.cat} equippedCostumeId={catCostumes[legacy.cat.id]} size="md" />
-          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-white text-xs">
+          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-primary-foreground dark:text-foreground text-xs">
             <Crown className="h-3 w-3" />
           </div>
         </div>

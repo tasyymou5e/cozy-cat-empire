@@ -71,7 +71,7 @@ const CATEGORY_CONFIG: Record<string, { label: string; color: string }> = {
   challenges: { label: 'Challenges & Objectives', color: 'bg-purple-500/10 text-purple-600' },
   progression: { label: 'Player Progression', color: 'bg-amber-500/10 text-amber-600' },
   leaderboards: { label: 'Leaderboards & Rewards', color: 'bg-rose-500/10 text-rose-600' },
-  logging: { label: 'Logging & Analytics', color: 'bg-slate-500/10 text-slate-600' },
+  logging: { label: 'Logging & Analytics', color: 'bg-slate-500/10 text-muted-foreground' },
   content: { label: 'Content Management', color: 'bg-cyan-500/10 text-cyan-600' },
 };
 
@@ -192,7 +192,7 @@ export default function AdminSettings() {
   const getActivityTypeBadge = (type: string) => {
     const colors: Record<string, string> = {
       login: 'bg-green-500/10 text-green-600',
-      logout: 'bg-slate-500/10 text-slate-600',
+      logout: 'bg-slate-500/10 text-muted-foreground',
       trade_created: 'bg-blue-500/10 text-blue-600',
       trade_completed: 'bg-blue-600/10 text-blue-700',
       gift_sent: 'bg-pink-500/10 text-pink-600',

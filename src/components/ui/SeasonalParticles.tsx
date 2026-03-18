@@ -25,7 +25,7 @@ const Snowflake = ({ size, opacity }: { size: number; opacity: number }) => (
     viewBox="0 0 24 24"
     fill="none"
     style={{ opacity }}
-    className="text-white drop-shadow-sm"
+    className="text-primary-foreground dark:text-foreground drop-shadow-sm"
   >
     <path
       d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"

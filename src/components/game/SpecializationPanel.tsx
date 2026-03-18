@@ -88,7 +88,7 @@ function SpecializedCatCard({
           <CatAvatar cat={cat} equippedCostumeId={catCostumes[cat.id]} size="md" />
           <div
             className={cn(
-              'absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs',
+              'absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-primary-foreground dark:text-foreground text-xs',
               spec.type === 'show_star' && 'bg-amber-500',
               spec.type === 'social_butterfly' && 'bg-pink-500',
               spec.type === 'dynasty_builder' && 'bg-purple-500'

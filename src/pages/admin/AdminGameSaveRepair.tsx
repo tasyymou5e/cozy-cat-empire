@@ -75,8 +75,8 @@ type FilterTab = 'all' | CorruptionType;
 
 const SEVERITY_COLORS: Record<string, string> = {
   critical: 'bg-destructive text-destructive-foreground',
-  high: 'bg-orange-500 text-white',
-  medium: 'bg-yellow-500 text-black',
+  high: 'bg-orange-500 text-primary-foreground dark:text-foreground',
+  medium: 'bg-yellow-500 text-foreground',
   low: 'bg-muted text-muted-foreground',
 };
 

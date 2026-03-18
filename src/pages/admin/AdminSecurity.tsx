@@ -455,7 +455,7 @@ const CATEGORY_INFO = {
   game: { label: 'Game Data', icon: Gamepad2, color: 'bg-purple-500' },
   progress: { label: 'Progress', icon: Trophy, color: 'bg-yellow-500' },
   admin: { label: 'Admin', icon: UserCog, color: 'bg-red-500' },
-  logging: { label: 'Logging', icon: Bell, color: 'bg-gray-500' },
+  logging: { label: 'Logging', icon: Bell, color: 'bg-muted/80' },
 };
 
 const SECURITY_WARNINGS = [

@@ -254,7 +254,7 @@ export function DeckBuilder({ availableCats, catCostumes = {}, maxDeckSize = 6, 
                   <p className="text-[9px] font-bold truncate w-full">{cat.name}</p>
                   <p className="text-[8px] text-muted-foreground">G{cat.grade}</p>
                   <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="w-4 h-4 rounded-full bg-destructive text-white flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full bg-destructive text-primary-foreground dark:text-foreground flex items-center justify-center">
                       <Minus className="h-3 w-3" />
                     </div>
                   </div>
