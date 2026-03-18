@@ -6,20 +6,31 @@ This document catalogs all audio files available in `public/sounds/` for use thr
 ## Directory Structure
 ```
 public/sounds/
+├── cat-angry-cartoon.wav       (NEW - Mixkit)
+├── cat-angry-hiss.wav          (NEW - Mixkit)
 ├── cat-angry-meow.wav
 ├── cat-attention-meow.wav
+├── cat-begging-meow-2.wav      (NEW - Mixkit)
 ├── cat-begging-meow.wav
+├── cat-growl.wav                (NEW - Mixkit)
+├── cat-hungry-meow-2.wav       (NEW - Mixkit)
 ├── cat-hungry-meow.wav
 ├── cat-little-meow.wav
 ├── cat-meow-fx.mp3
 ├── cat-meow.mp3
+├── cat-pain-meow-2.wav         (NEW - Mixkit)
 ├── cat-pain-meow.wav
 ├── cat-purr.wav
 ├── cat-purring-and-meow.mp3
+├── cat-scary-roar.wav          (NEW - Mixkit)
 ├── cat-sweet-meow.wav
+├── cat-wild-growl.wav           (NEW - Mixkit)
+├── cat-wild-moan.wav            (NEW - Mixkit)
 ├── cute-cat-meow-2.mp3
 ├── cute-cat-meow.mp3
 ├── funny-cat-meow.mp3
+├── kitten-meow.wav              (NEW - Mixkit)
+├── lion-roar-wild.wav           (NEW - Mixkit)
 └── lion-roar.wav
 ```
 
@@ -95,6 +106,10 @@ audio.play();
 | Format | Count | Notes |
 |--------|-------|-------|
 | MP3 | 6 | Compressed, smaller file size |
-| WAV | 9 | Uncompressed, higher quality |
+| WAV | 20 | Uncompressed, higher quality |
 
-## Total Files: 15
+## Total Files: 26
+
+## Licensing
+- Original 15 sounds: Various free sources
+- 11 new sounds: [Mixkit](https://mixkit.co) royalty-free license
