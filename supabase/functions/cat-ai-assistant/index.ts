@@ -108,6 +108,8 @@ Keep responses concise, fun, and actionable. Use emoji sparingly. If asked about
 // ============================================================================
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  _currentCorsHeaders = corsHeaders;
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

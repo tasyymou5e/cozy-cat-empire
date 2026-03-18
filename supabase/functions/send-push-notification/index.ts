@@ -63,6 +63,8 @@ const PushPayloadSchema = z.object({
 });
 
 Deno.serve(async (req) => {
+  _corsReq = req;
+  const corsHeaders = getCorsHeaders(req);
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });

@@ -466,6 +466,8 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !LOVABLE_API_KEY_ENV) {
 const FETCH_TIMEOUT_MS = 60_000;
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  _portraitCorsHeaders = corsHeaders;
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
