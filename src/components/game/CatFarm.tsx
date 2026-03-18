@@ -31,6 +31,8 @@ import { MobileGameDrawer } from './MobileGameDrawer';
 import { AICatAdvisor } from './AICatAdvisor';
 import { DailyWizardDialog } from './DailyWizardDialog';
 import { useDailyWizard } from '@/hooks/useDailyWizard';
+import { useMiniGameTrigger } from '@/hooks/useMiniGameTrigger';
+import { MiniGamePrompt } from './minigames';
 
 // UI primitives
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
@@ -115,6 +117,18 @@ export function CatFarm() {
   } = handlers;
 
   const dailyWizard = useDailyWizard(state, relationshipSystem.relationships);
+  const miniGame = useMiniGameTrigger();
+
+  // Mini-game reward handler
+  const handleMiniGameReward = useCallback((reward: { coins: number; treats: number; happiness: number }) => {
+    actions.addReward?.(reward.coins, reward.treats > 0 ? { treats: reward.treats } : {});
+    if (reward.happiness > 0 && state.cats.length > 0) {
+      const randomCat = state.cats[Math.floor(Math.random() * state.cats.length)];
+      actions.updateCat?.(randomCat.id, { happiness: Math.min(100, randomCat.happiness + reward.happiness) });
+    }
+    farmState.sound.playSound('coin');
+    floatingRewards.showCoinReward(reward.coins);
+  }, [actions, state.cats, farmState.sound, floatingRewards]);
 
   // Welcome-back claim handler
   const handleClaimWelcomeBack = useCallback(() => {
@@ -189,6 +203,13 @@ export function CatFarm() {
         />
 
         <FloatingRewardPopups popups={floatingRewards.popups} />
+
+        <MiniGamePrompt
+          gameType={miniGame.currentGame}
+          isOpen={miniGame.isOpen}
+          onClose={miniGame.closeGame}
+          onReward={handleMiniGameReward}
+        />
 
         <GameHeader
           day={state.day}
@@ -552,6 +573,13 @@ export function CatFarm() {
             />
 
             <FloatingRewardPopups popups={floatingRewards.popups} />
+
+            <MiniGamePrompt
+              gameType={miniGame.currentGame}
+              isOpen={miniGame.isOpen}
+              onClose={miniGame.closeGame}
+              onReward={handleMiniGameReward}
+            />
 
             <GameHeader
               day={state.day}
