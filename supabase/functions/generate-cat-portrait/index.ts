@@ -594,8 +594,9 @@ Deno.serve(async (req) => {
       has_costume: !!cat.costume,
       costume_id: cat.costume?.id,
       high_quality: highQuality,
+      portrait_style: style,
     };
-    console.log(`Generating ${highQuality ? 'HIGH QUALITY' : 'standard'} portrait for cat: ${cat.name} (${cat.id})`);
+    console.log(`Generating ${highQuality ? 'HIGH QUALITY' : 'standard'} ${style} portrait for cat: ${cat.name} (${cat.id})`);
     
     const prompt = buildPrompt(cat);
     console.log('Generated prompt:', prompt.substring(0, 500) + '...');
