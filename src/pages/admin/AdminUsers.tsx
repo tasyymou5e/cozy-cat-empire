@@ -518,6 +518,7 @@ export default function AdminUsers() {
                     <TableHead>Username</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Joined</TableHead>
+                    <TableHead>Last Played</TableHead>
                     <TableHead>Cats</TableHead>
                     <TableHead>Wins</TableHead>
                     <TableHead>Role</TableHead>
