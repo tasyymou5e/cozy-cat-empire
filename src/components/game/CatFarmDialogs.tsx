@@ -77,6 +77,7 @@ interface CatFarmDialogsProps {
   showOrphanDialog: boolean;
   onRecoverOrphans: (cats: OrphanedCat[]) => Promise<void>;
   onDismissOrphans: () => void;
+  availableSpace?: number;
 
   // Welcome Back
   showWelcomeBack?: boolean;
