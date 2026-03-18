@@ -45,10 +45,10 @@ interface CatData {
 }
 
 // ============================================================================
-// STYLE PROMPTS - Consistent cartoon art style
+// STYLE PROMPTS - Consistent art styles
 // ============================================================================
 
-const STYLE_PROMPT = `
+const KAWAII_STYLE_PROMPT = `
 Style: Cute kawaii cartoon cat portrait in the style of Studio Ghibli meets modern mobile game art.
 - Soft rounded features with large expressive eyes
 - Sparkle reflections in the eyes (2-3 small white highlights)
@@ -63,6 +63,27 @@ Style: Cute kawaii cartoon cat portrait in the style of Studio Ghibli meets mode
 - High detail on fur texture with visible individual strands
 - 4K resolution, masterpiece quality
 `;
+
+const REALISTIC_STYLE_PROMPT = `
+Style: Photorealistic digital painting, semi-realistic cat portrait.
+- Natural proportions with lifelike features
+- Detailed fur rendering with individual strand visibility
+- Realistic eye reflections with natural highlights
+- Subtle natural blush, no exaggerated kawaii features
+- Soft studio lighting with shallow depth of field
+- Professional pet photography composition
+- Warm neutral background with soft bokeh effect
+- Head and upper body portrait, 3/4 view angle
+- Natural expressive face, no cartoon exaggeration
+- Hyper-detailed fur texture with realistic shading
+- 4K resolution, masterpiece quality, photorealistic
+`;
+
+type PortraitStyleType = 'realistic' | 'kawaii';
+
+function getStylePrompt(style: PortraitStyleType): string {
+  return style === 'realistic' ? REALISTIC_STYLE_PROMPT : KAWAII_STYLE_PROMPT;
+}
 
 // ============================================================================
 // FUR COLOR DESCRIPTIONS
