@@ -132,6 +132,7 @@ export function CatPortrait({
                 }
               : undefined,
           },
+          style: selectedStyle,
         },
       });
 
