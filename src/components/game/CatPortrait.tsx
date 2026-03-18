@@ -75,6 +75,7 @@ export function CatPortrait({
   onPortraitGenerated,
   currentMoney = 0,
   onMoneyChange,
+  onStyleChange,
 }: CatPortraitProps) {
   const [state, setState] = useState<PortraitState>(cat.portraitUrl ? 'complete' : 'idle');
   const [error, setError] = useState<string | null>(null);
