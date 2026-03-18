@@ -128,7 +128,7 @@ export function PaperCatAvatar({
 
     // Generate new avatar
     try {
-      const url = generateFn(cat, equippedCostumeId, size);
+      const url = generateFn(cat, equippedCostumeId, size, portraitStyle);
       if (url) {
         setAvatarUrl(url);
         if (GRAPHICS_CONFIG.cacheGeneratedAvatars) {
