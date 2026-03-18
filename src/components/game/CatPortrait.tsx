@@ -14,6 +14,8 @@ import {
   Trophy,
   Coins,
   ShoppingCart,
+  Camera,
+  Palette,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -26,6 +28,9 @@ import {
 } from '@/lib/portraitUtils';
 import { usePortraitCredits } from '@/hooks/usePortraitCredits';
 import { PortraitPurchaseDialog } from './PortraitPurchaseDialog';
+import { usePortraitStyle } from '@/hooks/usePortraitStyle';
+import { PORTRAIT_STYLES, type PortraitStyle } from '@/config/portraitSettings';
+import { useGraphicsSettings } from '@/hooks/useGraphicsSettings';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,6 +63,8 @@ interface CatPortraitProps {
   onPortraitGenerated?: (catId: string, portraitUrl: string, hash: string) => void;
   currentMoney?: number;
   onMoneyChange?: (newMoney: number) => void;
+  /** Callback when cat's portrait style changes */
+  onStyleChange?: (catId: string, style: PortraitStyle) => void;
 }
 
 type PortraitState = 'idle' | 'generating' | 'complete' | 'error';
