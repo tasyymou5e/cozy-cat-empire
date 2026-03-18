@@ -5,7 +5,7 @@
  * tier glows, and other visual features.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useGraphicsSettings } from '@/hooks/useGraphicsSettings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -20,7 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Palette, Gauge, Sparkles, RotateCcw, Eye, Castle, ImageIcon } from 'lucide-react';
+import { Palette, Gauge, Sparkles, RotateCcw, Eye, Castle, ImageIcon, Settings2 } from 'lucide-react';
+import { PortraitStyleSettings } from './PortraitStyleSettings';
+import { PORTRAIT_STYLES, type PortraitStyle } from '@/config/portraitSettings';
 
 export function GraphicsSettingsPanel() {
   const { settings, updateSetting, resetToDefaults, isReducedMotion, effectiveAnimations } =
