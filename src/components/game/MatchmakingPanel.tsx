@@ -52,7 +52,6 @@ export function MatchmakingPanel({
               (r.catId1 === cat2.id && r.catId2 === cat1.id)
           ) || null;
 
-        // Generate reason based on personalities
         let reason = '';
         if (compatibility >= 15) {
           reason = `${cat1.personality} and ${cat2.personality} personalities are highly compatible!`;
@@ -74,19 +73,15 @@ export function MatchmakingPanel({
       }
     }
 
-    // Sort by: 1) No existing strong relationship, 2) High compatibility
     return matches
-      .filter((m) => !m.currentRelationship || m.currentRelationship.score < 60) // Not already best friends
+      .filter((m) => !m.currentRelationship || m.currentRelationship.score < 60)
       .sort((a, b) => {
-        // Prioritize pairs without relationships or with low relationships
         const aHasRel = a.currentRelationship ? 1 : 0;
         const bHasRel = b.currentRelationship ? 1 : 0;
         if (aHasRel !== bHasRel) return aHasRel - bHasRel;
-
-        // Then sort by compatibility
         return b.compatibility - a.compatibility;
       })
-      .slice(0, 5); // Top 5 suggestions
+      .slice(0, 5);
   }, [cats, relationships]);
 
   const getCompatibilityBadge = (compat: number) => {
@@ -111,58 +106,66 @@ export function MatchmakingPanel({
         </p>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-64">
+        <ScrollArea className="h-[20rem]">
           {suggestions.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
               Need at least 2 cats for matchmaking suggestions.
             </p>
           ) : (
-            <div className="space-y-3">
-              {suggestions.map((match, idx) => {
+            <div className="space-y-3 pr-2">
+              {suggestions.map((match) => {
                 const badge = getCompatibilityBadge(match.compatibility);
                 return (
                   <div
                     key={`${match.cat1.id}-${match.cat2.id}`}
-                    className="p-3 rounded-lg border border-border bg-secondary/20 hover:bg-secondary/40 transition-colors"
+                    className="p-3 rounded-lg border border-border bg-secondary/20 hover:bg-secondary/40 transition-colors overflow-hidden"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
+                    {/* Cat pair + badge row */}
+                    <div className="flex flex-col gap-2 mb-2">
+                      <div className="flex items-center gap-1.5 flex-wrap min-w-0">
                         <CatVisual
                           cat={match.cat1}
                           size="xs"
                           equippedCostumeId={catCostumes?.[match.cat1.id]}
                         />
-                        <span className="font-medium text-sm">{match.cat1.name}</span>
-                        <span className="text-pink-500">💕</span>
-                        <span className="font-medium text-sm">{match.cat2.name}</span>
+                        <span className="font-medium text-sm truncate max-w-[5rem]" title={match.cat1.name}>
+                          {match.cat1.name}
+                        </span>
+                        <span className="text-pink-500 shrink-0">💕</span>
+                        <span className="font-medium text-sm truncate max-w-[5rem]" title={match.cat2.name}>
+                          {match.cat2.name}
+                        </span>
                         <CatVisual
                           cat={match.cat2}
                           size="xs"
                           equippedCostumeId={catCostumes?.[match.cat2.id]}
                         />
                       </div>
-                      <Badge variant="outline" className={`text-xs ${badge.className}`}>
+                      <Badge variant="outline" className={`text-xs w-fit shrink-0 ${badge.className}`}>
                         {badge.label}
                       </Badge>
                     </div>
 
-                    <p className="text-xs text-muted-foreground mb-2">{match.reason}</p>
+                    {/* Reason */}
+                    <p className="text-xs text-muted-foreground mb-2 break-words leading-relaxed">
+                      {match.reason}
+                    </p>
 
-                    <div className="flex items-center justify-between">
-                      {match.currentRelationship && (
+                    {/* Relationship status + action */}
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      {match.currentRelationship ? (
                         <span className="text-xs text-muted-foreground">
                           Current: {getRelationshipEmoji(match.currentRelationship.level)}{' '}
                           {match.currentRelationship.level}
                         </span>
-                      )}
-                      {!match.currentRelationship && (
+                      ) : (
                         <span className="text-xs text-muted-foreground">No relationship yet</span>
                       )}
 
                       <button
                         onClick={() => onSocialize(match.cat1.id, match.cat2.id)}
                         disabled={treats < 2}
-                        className="text-xs px-2 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="text-xs px-2 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                       >
                         🤝 Socialize
                       </button>

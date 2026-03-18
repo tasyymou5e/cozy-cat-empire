@@ -157,7 +157,15 @@ async function staleWhileRevalidate(request) {
   const fetchPromise = fetch(request)
     .then((response) => {
       if (response.ok) {
-        caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, response.clone()));
+        // Clone synchronously before any async work to avoid "body already used"
+        const cloned = response.clone();
+        caches.open(RUNTIME_CACHE).then((cache) => {
+          try {
+            cache.put(request, cloned);
+          } catch (e) {
+            // Silently ignore cache write failures
+          }
+        }).catch(() => {});
       }
       return response;
     })
