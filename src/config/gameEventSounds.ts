@@ -115,10 +115,10 @@ export const UI_SOUNDS = {
  * Sounds for cat mood changes.
  */
 export const MOOD_SOUNDS = {
-  becameHappy: 'moodHappy',
+  becameHappy: 'catChirp',
   becameSad: 'moodSad',
-  becameAngry: 'hiss',
-  becameContent: 'purr',
+  becameAngry: 'catGrowl',
+  becameContent: 'catContentPurr',
 } as const satisfies Record<string, SoundType>;
 
 // ========== EMPIRE VIEW SOUNDS ==========
