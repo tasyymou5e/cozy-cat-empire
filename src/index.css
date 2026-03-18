@@ -1199,6 +1199,36 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
+/* Whisker Flicker - subtle movement synced with blink */
+@keyframes whisker-flicker {
+  0%, 100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+  25% { transform: translateX(-1px) rotate(-2deg); opacity: 0.8; }
+  50% { transform: translateX(0.5px) rotate(1deg); opacity: 0.9; }
+  75% { transform: translateX(-0.5px) rotate(-1deg); opacity: 0.85; }
+}
+.animate-whisker-flicker { animation: whisker-flicker 0.15s ease-out; }
+
+/* Ear Twitch - quick rotation for kawaii style */
+@keyframes kawaii-ear-twitch {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(8deg); }
+}
+.animate-kawaii-ear-twitch { animation: kawaii-ear-twitch 0.3s ease-out; transform-origin: bottom center; }
+
+/* CSS Eye Blink - overlay blink fallback */
+@keyframes cat-eye-blink {
+  0%, 45%, 55%, 100% { transform: scaleY(0); opacity: 0; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+.animate-cat-eye-blink { animation: cat-eye-blink 0.15s ease-in-out; transform-origin: center top; }
+
+/* Head Tilt - subtle rotation for realistic style */
+@keyframes realistic-head-tilt {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+.animate-realistic-head-tilt { animation: realistic-head-tilt 4s ease-in-out infinite; }
+
 /* Tail swish animation */
 @keyframes tail-swish {
   0%, 100% {
