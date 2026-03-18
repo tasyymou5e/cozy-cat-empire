@@ -584,8 +584,21 @@ export default function AdminUsers() {
                           {user.created_at ? format(new Date(user.created_at), 'MMM d, yyyy') : '-'}
                         </TableCell>
                         <TableCell>
-                          {user.stats ? (
-                            user.stats.total_cats_owned
+                          {user.save ? (
+                            <span className="text-muted-foreground text-xs">
+                              {user.save.last_played_at
+                                ? format(new Date(user.save.last_played_at), 'MMM d, yyyy')
+                                : '—'}
+                            </span>
+                          ) : (
+                            <Badge variant="outline" className="text-xs">No Save</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {user.save ? (
+                            user.save.cats_count
+                          ) : user.stats ? (
+                            <span className="text-muted-foreground">{user.stats.total_cats_owned}</span>
                           ) : (
                             <span className="text-muted-foreground text-xs">—</span>
                           )}
