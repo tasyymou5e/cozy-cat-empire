@@ -126,11 +126,11 @@ export const MOOD_SOUNDS = {
  * Sounds for Empire view interactions.
  */
 export const EMPIRE_SOUNDS = {
-  petCat: 'purr',
+  petCat: 'catContentPurr',
   feedCat: 'catEating',
-  playWithCat: 'catPlaying',
+  playWithCat: 'catChirp',
   catMeow: 'meow',
-  propInteraction: 'meow',
+  propInteraction: 'catTrill',
 } as const satisfies Record<string, SoundType>;
 
 // ========== HELPER FUNCTIONS ==========
