@@ -33,6 +33,7 @@ interface RenderRequest {
   cats: Cat[];
   catCostumes: Record<string, string>;
   gameDay: number;
+  customPrompt?: string;
 }
 
 // Dwelling tier descriptions for prompt building
