@@ -510,7 +510,7 @@ Deno.serve(async (req) => {
     // Select model based on quality preference
     const MODEL = highQuality 
       ? 'google/gemini-3-pro-image-preview' 
-      : 'google/gemini-2.5-flash-image';
+      : 'google/gemini-3.1-flash-image-preview';
 
     // Try to get user ID from auth header
     const authHeader = req.headers.get('Authorization');
