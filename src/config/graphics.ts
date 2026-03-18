@@ -101,6 +101,18 @@ export const GRAPHICS_CONFIG = {
    * Enable animated effects on costumes (sparkles, glows, flowing capes, etc.)
    */
   enableCostumeAnimations: true,
+
+  /**
+   * Enable Lottie + CSS micro-interactions on portraits (blink, breathe, ear twitch)
+   */
+  enableMicroAnimations: true,
+
+  /**
+   * Default portrait art style
+   * - 'kawaii': Cute cartoon style (Studio Ghibli)
+   * - 'realistic': Semi-realistic digital painting
+   */
+  defaultPortraitStyle: 'kawaii' as 'realistic' | 'kawaii',
 } as const;
 
 /**
