@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import {
   Users,
+  UserPlus,
   Gamepad2,
   Save,
   AlertTriangle,
