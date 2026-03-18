@@ -36,6 +36,10 @@ import {
   passwordUpdateSchema,
 } from '@/components/auth';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('Auth');
+
 export default function Auth() {
   const navigate = useNavigate();
   const { user, signIn, signUp, loading } = useAuth();
@@ -126,7 +130,7 @@ export default function Auth() {
 
         throw new Error('Invalid or expired password reset link');
       } catch (err: any) {
-        console.error('Recovery error:', err);
+        logger.error('Recovery error:', err);
         setError('Password reset link is invalid or expired. Please request a new one.');
         setIsRecoveryFlow(false);
       } finally {

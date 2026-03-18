@@ -23,6 +23,10 @@ import {
   type SynthSoundConfig,
 } from '@/config/sounds';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('SoundContext');
+
 /**
  * Available sound effect types
  */
@@ -487,14 +491,14 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         try {
           osc.stop();
         } catch (error) {
-          console.debug('Oscillator cleanup:', error);
+          logger.debug('Oscillator cleanup:', error);
         }
       });
       if (lfo) {
         try {
           lfo.stop();
         } catch (error) {
-          console.debug('LFO cleanup:', error);
+          logger.debug('LFO cleanup:', error);
         }
       }
       musicNodesRef.current = null;
@@ -594,14 +598,14 @@ export function SoundProvider({ children }: { children: ReactNode }) {
           try {
             osc.stop();
           } catch (error) {
-            console.debug('Oscillator cleanup on unmount:', error);
+            logger.debug('Oscillator cleanup on unmount:', error);
           }
         });
         if (musicNodesRef.current.lfo) {
           try {
             musicNodesRef.current.lfo.stop();
           } catch (error) {
-            console.debug('LFO cleanup on unmount:', error);
+            logger.debug('LFO cleanup on unmount:', error);
           }
         }
       }

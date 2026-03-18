@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { LeaderboardCategory } from './useGlobalLeaderboard';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('usePlayerStats');
+
 export interface PlayerStats {
   id: string;
   user_id: string;
@@ -125,7 +129,7 @@ export function usePlayerStats(userId: string | undefined) {
         });
       }
     } catch (error) {
-      console.error('Error fetching player stats:', error);
+      logger.error('Error fetching player stats:', error);
     } finally {
       setLoading(false);
     }

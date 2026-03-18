@@ -19,6 +19,10 @@ import { useGraphicsSettings } from '@/hooks/useGraphicsSettings';
 import { COSTUME_VECTORS } from '@/lib/costumeVectors';
 import { COSTUMES } from '@/types/costumes';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('PaperCatAvatar');
+
 // Type for the dynamically imported function
 type GenerateCatAvatarUrlFn = (
   cat: Cat,
@@ -95,7 +99,7 @@ export function PaperCatAvatar({
         }
       })
       .catch((error) => {
-        console.error('Failed to load catVectorGenerator:', error);
+        logger.error('Failed to load catVectorGenerator:', error);
         if (isMounted) {
           setHasError(true);
           setIsModuleLoaded(true);
@@ -138,7 +142,7 @@ export function PaperCatAvatar({
         setHasError(true);
       }
     } catch (error) {
-      console.error('PaperCatAvatar generation failed:', error);
+      logger.error('PaperCatAvatar generation failed:', error);
       setHasError(true);
     }
 

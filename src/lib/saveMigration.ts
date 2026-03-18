@@ -11,6 +11,10 @@ import { GameState, Cat, Resources, Achievement, ACHIEVEMENT_DEFS } from '@/type
 import { TrickId } from '@/types/grading';
 import { isValidGameState } from '@/types/guards';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('saveMigration');
+
 // ============================================================================
 // Version Constants
 // ============================================================================
@@ -228,7 +232,7 @@ function migrateV2ToV3(state: Record<string, unknown>): Record<string, unknown> 
  */
 function repairCat(cat: unknown, index: number): Cat | null {
   if (typeof cat !== 'object' || cat === null) {
-    console.warn(`Cat at index ${index} is invalid, skipping`);
+    logger.warn(`Cat at index ${index} is invalid, skipping`);
     return null;
   }
 
@@ -399,9 +403,9 @@ function repairGameState(state: Record<string, unknown>, warnings: string[]): Ga
  *   const result = migrateSaveData(JSON.parse(saved));
  *   if (result.success) {
  *     loadGame(result.data);
- *     if (result.warnings.length) console.warn('Migration warnings:', result.warnings);
+ *     if (result.warnings.length) logger.warn('Migration warnings:', result.warnings);
  *   } else {
- *     console.error('Migration failed:', result.error);
+ *     logger.error('Migration failed:', result.error);
  *   }
  * }
  * ```

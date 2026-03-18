@@ -36,6 +36,10 @@ import {
   getBreedEmoji,
 } from '@/lib/adminGiftUtils';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('AdminGiftCatDialog');
+
 interface AdminGiftCatDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -129,7 +133,7 @@ export function AdminGiftCatDialog({
       onOpenChange(false);
       onGiftSent?.();
     } catch (error) {
-      console.error('Failed to send gift:', error);
+      logger.error('Failed to send gift:', error);
       toast({
         title: 'Failed to send gift',
         description: error instanceof Error ? error.message : 'Unknown error occurred',

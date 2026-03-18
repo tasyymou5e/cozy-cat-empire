@@ -40,7 +40,7 @@ export function useWinstonLogs(filters: LogFilters = {}) {
         .order('timestamp', { ascending: false })
         .range((page - 1) * pageSize, page * pageSize - 1);
 
-      if (level) query = query.eq('level', level as any);
+      if (level) query = query.eq('level', level);
       if (label) query = query.eq('label', label);
       if (source) query = query.eq('source', source);
       if (search) query = query.ilike('message', `%${search}%`);
@@ -73,7 +73,7 @@ export function useWinstonLogStats() {
         const { count } = await supabase
           .from('application_logs')
           .select('*', { count: 'exact', head: true })
-          .eq('level', lvl as any);
+          .eq('level', lvl);
         counts[lvl] = count || 0;
       }
 
@@ -135,7 +135,7 @@ export function useWinstonLogTrends() {
           const { count } = await supabase
             .from('application_logs')
             .select('*', { count: 'exact', head: true })
-            .eq('level', lvl as any)
+            .eq('level', lvl)
             .gte('timestamp', start)
             .lt('timestamp', end);
           counts[lvl] = count || 0;
@@ -185,11 +185,11 @@ export function useClearWinstonLogs() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (options?: { level?: string; olderThan?: string }) => {
+    mutationFn: async (options?: { level?: WinstonLogLevel; olderThan?: string }) => {
       let query = supabase.from('application_logs').delete();
 
       if (options?.level) {
-        query = query.eq('level', options.level as any);
+        query = query.eq('level', options.level);
       }
       if (options?.olderThan) {
         query = query.lt('timestamp', options.olderThan);

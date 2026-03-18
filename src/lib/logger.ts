@@ -72,7 +72,7 @@ export function createLogger(namespace: string): Logger {
 
   const makeMethod = (level: LogLevel) => (...args: unknown[]) => {
     const { message, meta } = argsToMeta(args);
-    winston[level](message, meta as any);
+    winston[level](message, meta as import('@/lib/winston-logger').LogMeta | undefined);
   };
 
   return {

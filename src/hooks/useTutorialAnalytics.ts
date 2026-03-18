@@ -3,6 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Json } from '@/integrations/supabase/types';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useTutorialAnalytics');
+
 type TutorialEventType = 
   | 'step_viewed'
   | 'step_skipped'
@@ -61,7 +65,7 @@ export function useTutorialAnalytics() {
       });
     } catch (error) {
       // Fail silently - don't interrupt tutorial flow
-      console.error('Failed to track tutorial event:', error);
+      logger.error('Failed to track tutorial event:', error);
     }
   }, [user?.id]);
 

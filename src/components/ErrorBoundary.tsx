@@ -4,6 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { logErrorToDatabase } from '@/hooks/useErrorLogger';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('ErrorBoundary');
+
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
@@ -49,7 +53,7 @@ export class ErrorBoundary extends Component<Props, State> {
     });
 
     // Also log to console
-    console.error('[ErrorBoundary] Caught error:', error, errorInfo);
+    logger.error('[ErrorBoundary] Caught error:', error, errorInfo);
   }
 
   handleReload = () => {
@@ -87,9 +91,9 @@ export class ErrorBoundary extends Component<Props, State> {
       try {
         const keys = await caches.keys();
         await Promise.all(keys.map((key) => caches.delete(key)));
-        console.log('[ErrorBoundary] Caches cleared');
+        logger.info('[ErrorBoundary] Caches cleared');
       } catch (e) {
-        console.warn('[ErrorBoundary] Failed to clear caches:', e);
+        logger.warn('[ErrorBoundary] Failed to clear caches:', e);
       }
     }
 
@@ -101,7 +105,7 @@ export class ErrorBoundary extends Component<Props, State> {
           await registration.update();
         }
       } catch (e) {
-        console.warn('[ErrorBoundary] Failed to update service worker:', e);
+        logger.warn('[ErrorBoundary] Failed to update service worker:', e);
       }
     }
 
@@ -114,7 +118,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // If this is a chunk load error, clear caches and reload
     if (this.isChunkLoadError(error)) {
-      console.log('[ErrorBoundary] Chunk load error detected, clearing caches and reloading');
+      logger.info('[ErrorBoundary] Chunk load error detected, clearing caches and reloading');
       this.clearCachesAndReload();
       return;
     }

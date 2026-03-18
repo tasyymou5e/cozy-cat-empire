@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useLeaderboardRewards');
+
 export interface LeaderboardReward {
   id: string;
   user_id: string;
@@ -55,7 +59,7 @@ export function useLeaderboardRewards(userId: string | undefined) {
       setRewards(typedData);
       setUnclaimedCount(typedData.filter((r) => !r.claimed).length);
     } catch (error) {
-      console.error('Error fetching rewards:', error);
+      logger.error('Error fetching rewards:', error);
     } finally {
       setLoading(false);
     }
@@ -84,7 +88,7 @@ export function useLeaderboardRewards(userId: string | undefined) {
 
         return { success: true };
       } catch (error) {
-        console.error('Error claiming reward:', error);
+        logger.error('Error claiming reward:', error);
         return { success: false };
       }
     },
@@ -118,7 +122,7 @@ export function useLeaderboardRewards(userId: string | undefined) {
 
       return { success: true, totalCoins };
     } catch (error) {
-      console.error('Error claiming all rewards:', error);
+      logger.error('Error claiming all rewards:', error);
       return { success: false, totalCoins: 0 };
     }
   }, [userId, rewards]);

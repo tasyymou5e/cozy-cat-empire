@@ -28,6 +28,10 @@ import {
   getRandomBreed,
 } from './types';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useCatManagement');
+
 /**
  * Actions available for cat management
  */
@@ -128,7 +132,7 @@ export interface CatManagementActions {
  *
  * // Rename a cat
  * if (renameCat('cat-123', 'Whiskers')) {
- *   console.log('Renamed successfully!');
+ *   logger.info('Renamed successfully!');
  * }
  *
  * // Sell a cat

@@ -29,6 +29,10 @@ import {
   Loader2,
 } from 'lucide-react';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('Empire');
+
 export default function Empire() {
   const { playSound, isEnabled, setEnabled } = useSound();
   const { theme, setTheme } = useTheme();
@@ -76,7 +80,7 @@ export default function Empire() {
             saveData.relationships
           );
         } catch (e) {
-          console.error('Failed to load local save:', e);
+          logger.error('Failed to load local save:', e);
         }
       }
       if (isMounted) {
@@ -102,7 +106,7 @@ export default function Empire() {
   // Auto-repair missing portraits and save
   useEffect(() => {
     if (missingPortraits.length > 0) {
-      console.log(`[Empire] Auto-repairing ${missingPortraits.length} missing portrait URLs`);
+      logger.info(`[Empire] Auto-repairing ${missingPortraits.length} missing portrait URLs`);
       autoRepairPortraits();
     }
   }, [missingPortraits, autoRepairPortraits]);
@@ -123,7 +127,7 @@ export default function Empire() {
   const saveGame = useCallback(async () => {
     // Guard: Only save if cloud data has been loaded
     if (!hasLoadedCloud) {
-      console.warn('[Empire] Skipping save - cloud data not loaded');
+      logger.warn('[Empire] Skipping save - cloud data not loaded');
       return;
     }
     if (user) {

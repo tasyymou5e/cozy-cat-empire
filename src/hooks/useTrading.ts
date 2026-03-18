@@ -14,6 +14,10 @@ import { Cat, Resources } from '@/types/game';
 import { toast } from '@/hooks/use-toast';
 import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useTrading');
+
 /**
  * Trade offer data structure
  *
@@ -258,7 +262,7 @@ export function useTrading(userId: string | undefined) {
         setOutgoingTrades([]);
       }
     } catch (error) {
-      console.error('Error fetching trades:', error);
+      logger.error('Error fetching trades:', error);
     } finally {
       setLoading(false);
     }
@@ -289,7 +293,7 @@ export function useTrading(userId: string | undefined) {
         async (payload) => {
           // Phase 2: Validate user context hasn't changed
           if (subscribedUserId !== userId) {
-            console.log('[TradeSync] Ignoring stale trade for different user');
+            logger.info('[TradeSync] Ignoring stale trade for different user');
             return;
           }
           if (payload.eventType === 'INSERT') {
@@ -454,7 +458,7 @@ export function useTrading(userId: string | undefined) {
       fetchTrades();
       return trade;
     } catch (error) {
-      console.error('Error accepting trade:', error);
+      logger.error('Error accepting trade:', error);
       toast({
         title: 'Error',
         description: 'Failed to accept trade',
@@ -489,7 +493,7 @@ export function useTrading(userId: string | undefined) {
       fetchTrades();
       return true;
     } catch (error) {
-      console.error('Error declining trade:', error);
+      logger.error('Error declining trade:', error);
       return false;
     }
   };
@@ -519,7 +523,7 @@ export function useTrading(userId: string | undefined) {
       fetchTrades();
       return true;
     } catch (error) {
-      console.error('Error cancelling trade:', error);
+      logger.error('Error cancelling trade:', error);
       return false;
     }
   };

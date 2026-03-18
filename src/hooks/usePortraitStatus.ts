@@ -9,6 +9,10 @@ import { useMemo, useCallback } from 'react';
 import { Cat } from '@/types/game';
 import { isPortraitOutdated, computeAppearanceHash } from '@/lib/portraitUtils';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('usePortraitStatus');
+
 export interface UsePortraitStatusReturn {
   /** Cats with outdated portraits (appearance changed since portrait generation) */
   outdatedCats: Cat[];
@@ -40,7 +44,7 @@ export interface UsePortraitStatusReturn {
  * const { outdatedCats, catsNeedingPortrait } = usePortraitStatus(cats, catCostumes);
  *
  * if (outdatedCats.length > 0) {
- *   console.log(`${outdatedCats.length} cats have outdated portraits`);
+ *   logger.info(`${outdatedCats.length} cats have outdated portraits`);
  * }
  * ```
  */

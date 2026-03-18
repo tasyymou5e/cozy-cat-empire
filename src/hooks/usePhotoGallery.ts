@@ -3,6 +3,10 @@ import { GalleryPhoto, GALLERY_STORAGE_KEY, MAX_GALLERY_PHOTOS } from '@/types/g
 import { useCloudGallery } from './useCloudGallery';
 import { supabase } from '@/integrations/supabase/client';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('usePhotoGallery');
+
 /**
  * Hook for managing the photo gallery with local and cloud storage
  *
@@ -55,7 +59,7 @@ export function usePhotoGallery(userId?: string | null) {
           syncStatus: p.syncStatus || 'local',
         }));
       } catch (e) {
-        console.error('Failed to load gallery:', e);
+        logger.error('Failed to load gallery:', e);
       }
     }
     return [];
@@ -149,7 +153,7 @@ export function usePhotoGallery(userId?: string | null) {
       persistPhotos(mergedPhotos);
       setLastSyncTime(new Date().toISOString());
     } catch (error) {
-      console.error('Sync failed:', error);
+      logger.error('Sync failed:', error);
     } finally {
       setIsSyncing(false);
     }

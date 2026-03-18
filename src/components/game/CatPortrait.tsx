@@ -42,6 +42,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('CatPortrait');
+
 function TierIcon({ tier, className }: { tier: string; className?: string }) {
   switch (tier) {
     case 'ultraRare':
@@ -162,7 +166,7 @@ export function CatPortrait({
         throw new Error('No portrait URL received');
       }
     } catch (err) {
-      console.error('Portrait generation error:', err);
+      logger.error('Portrait generation error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate portrait';
 
       // Check for insufficient credits in error message

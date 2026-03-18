@@ -46,7 +46,7 @@ export const LOG_LEVEL_EMOJI: Record<WinstonLogLevel, string> = {
   silly: '⚪',
 };
 
-interface LogMeta {
+export interface LogMeta {
   [key: string]: string | number | boolean | null | undefined | LogMeta | LogMeta[];
 }
 
@@ -115,10 +115,10 @@ async function flushLogs() {
 
   try {
     const rows = batch.map((entry) => ({
-      level: entry.level as string,
+      level: entry.level,
       message: entry.message.slice(0, 5000),
       label: entry.label || null,
-      metadata: (entry.metadata || {}) as Record<string, unknown>,
+      metadata: (entry.metadata || {}) as import('@/integrations/supabase/types').Json,
       source: entry.source || 'client',
       function_name: entry.functionName || null,
       duration_ms: entry.durationMs || null,
@@ -126,7 +126,7 @@ async function flushLogs() {
       stack_trace: entry.stackTrace?.slice(0, 10000) || null,
     }));
 
-    const { error } = await supabase.from('application_logs').insert(rows as any);
+    const { error } = await supabase.from('application_logs').insert(rows);
     if (error) {
       // Don't recurse — just console.warn
       console.warn('[WinstonLogger] Failed to flush logs to DB:', error.message);

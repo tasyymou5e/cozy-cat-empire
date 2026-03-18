@@ -8,6 +8,10 @@
 import { Cat } from '@/types/game';
 import { CatAppearance } from '@/types/catAppearance';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('avatarCache');
+
 const CACHE_PREFIX = 'cat-avatar-cache-';
 const CACHE_INDEX_KEY = 'cat-avatar-cache-index';
 const MAX_CACHE_ENTRIES = 100;
@@ -88,7 +92,7 @@ function getCacheIndex(): CacheIndex {
       }
     }
   } catch (e) {
-    console.warn('[AvatarCache] Failed to load index:', e);
+    logger.warn('[AvatarCache] Failed to load index:', e);
   }
   return { entries: [], version: CACHE_VERSION };
 }
@@ -100,7 +104,7 @@ function saveCacheIndex(index: CacheIndex): void {
   try {
     localStorage.setItem(CACHE_INDEX_KEY, JSON.stringify(index));
   } catch (e) {
-    console.warn('[AvatarCache] Failed to save index:', e);
+    logger.warn('[AvatarCache] Failed to save index:', e);
   }
 }
 
@@ -125,7 +129,7 @@ export function getCachedAvatar(hash: string): string | null {
       }
     }
   } catch (e) {
-    console.warn('[AvatarCache] Failed to get cached avatar:', e);
+    logger.warn('[AvatarCache] Failed to get cached avatar:', e);
   }
   return null;
 }
@@ -165,7 +169,7 @@ export function setCachedAvatar(hash: string, svgData: string): void {
     }
     saveCacheIndex(index);
   } catch (e) {
-    console.warn('[AvatarCache] Failed to cache avatar:', e);
+    logger.warn('[AvatarCache] Failed to cache avatar:', e);
   }
 }
 
@@ -180,7 +184,7 @@ export function clearAvatarCache(): void {
     }
     localStorage.removeItem(CACHE_INDEX_KEY);
   } catch (e) {
-    console.warn('[AvatarCache] Failed to clear cache:', e);
+    logger.warn('[AvatarCache] Failed to clear cache:', e);
   }
 }
 
@@ -204,7 +208,7 @@ export function pruneAvatarCache(maxEntries: number = MAX_CACHE_ENTRIES): number
     saveCacheIndex(index);
     return pruned;
   } catch (e) {
-    console.warn('[AvatarCache] Failed to prune cache:', e);
+    logger.warn('[AvatarCache] Failed to prune cache:', e);
     return 0;
   }
 }

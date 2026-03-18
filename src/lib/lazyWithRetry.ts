@@ -1,5 +1,9 @@
 import { lazy, ComponentType, LazyExoticComponent } from 'react';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('lazyWithRetry');
+
 /**
  * Wraps React.lazy() with retry logic and cache-busting for dynamic imports.
  * Handles "Failed to fetch dynamically imported module" errors that occur
@@ -26,7 +30,7 @@ export function lazyWithRetry<T extends ComponentType<unknown>>(
 
         // Check if this is a chunk loading error
         if (isChunkLoadError(error)) {
-          console.warn(
+          logger.warn(
             `[lazyWithRetry] Chunk load failed, attempt ${attempt + 1}/${retries}:`,
             (error as Error).message
           );
@@ -41,7 +45,7 @@ export function lazyWithRetry<T extends ComponentType<unknown>>(
 
           // Force page reload on last attempt (gets fresh chunk manifest)
           if (attempt === retries - 1) {
-            console.warn('[lazyWithRetry] Final attempt failed, triggering reload');
+            logger.warn('[lazyWithRetry] Final attempt failed, triggering reload');
             // Clear caches before reload
             await clearServiceWorkerCache();
             window.location.reload();
@@ -86,9 +90,9 @@ async function clearServiceWorkerCache(): Promise<void> {
     try {
       const keys = await caches.keys();
       await Promise.all(keys.map((key) => caches.delete(key)));
-      console.log('[lazyWithRetry] Service worker caches cleared');
+      logger.info('[lazyWithRetry] Service worker caches cleared');
     } catch (e) {
-      console.warn('[lazyWithRetry] Failed to clear caches:', e);
+      logger.warn('[lazyWithRetry] Failed to clear caches:', e);
     }
   }
 
@@ -99,9 +103,9 @@ async function clearServiceWorkerCache(): Promise<void> {
       for (const registration of registrations) {
         await registration.update();
       }
-      console.log('[lazyWithRetry] Service worker updated');
+      logger.info('[lazyWithRetry] Service worker updated');
     } catch (e) {
-      console.warn('[lazyWithRetry] Failed to update service worker:', e);
+      logger.warn('[lazyWithRetry] Failed to update service worker:', e);
     }
   }
 }
@@ -112,7 +116,7 @@ async function clearServiceWorkerCache(): Promise<void> {
  */
 export function handleChunkLoadError(error: Error): boolean {
   if (isChunkLoadError(error)) {
-    console.warn('[handleChunkLoadError] Chunk load error detected, clearing cache and reloading');
+    logger.warn('[handleChunkLoadError] Chunk load error detected, clearing cache and reloading');
     clearServiceWorkerCache().then(() => {
       window.location.reload();
     });

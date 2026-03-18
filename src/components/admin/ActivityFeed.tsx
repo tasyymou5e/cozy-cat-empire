@@ -31,6 +31,10 @@ import {
   UserPlus,
 } from 'lucide-react';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('ActivityFeed');
+
 interface ActivityProfile {
   display_name: string | null;
   avatar_emoji: string | null;
@@ -128,7 +132,7 @@ export function ActivityFeed() {
         .limit(20);
 
       if (actError) {
-        console.error('[ActivityFeed] Activity fetch error:', actError);
+        logger.error('[ActivityFeed] Activity fetch error:', actError);
         throw actError;
       }
 
@@ -144,7 +148,7 @@ export function ActivityFeed() {
         .in('id', userIds);
 
       if (profError) {
-        console.error('[ActivityFeed] Profile fetch error:', profError);
+        logger.error('[ActivityFeed] Profile fetch error:', profError);
         // Continue without profiles rather than failing
       }
 

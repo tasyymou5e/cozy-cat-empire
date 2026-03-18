@@ -14,6 +14,10 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trophy, Users, TrendingUp } from 'lucide-react';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('ClubLeaderboard');
+
 interface ClubRanking {
   id: string;
   name: string;
@@ -60,7 +64,7 @@ export function ClubLeaderboard() {
 
         setRankings(rankingsWithMembers);
       } catch (err) {
-        console.error('Failed to fetch club rankings:', err);
+        logger.error('Failed to fetch club rankings:', err);
       } finally {
         setLoading(false);
       }

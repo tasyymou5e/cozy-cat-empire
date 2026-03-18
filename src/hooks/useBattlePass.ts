@@ -12,6 +12,10 @@ import {
   getTierRewards,
 } from '@/types/battlePass';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useBattlePass');
+
 const STORAGE_KEY = 'cat-farm-battle-pass';
 
 function loadLocalBattlePass(): PlayerBattlePass {
@@ -25,7 +29,7 @@ function loadLocalBattlePass(): PlayerBattlePass {
       return parsed;
     }
   } catch (e) {
-    console.error('Failed to load battle pass:', e);
+    logger.error('Failed to load battle pass:', e);
   }
   return createNewBattlePass();
 }
@@ -59,7 +63,7 @@ export function useBattlePass(userId?: string) {
           .single();
 
         if (error && error.code !== 'PGRST116') {
-          console.error('Error loading battle pass:', error);
+          logger.error('Error loading battle pass:', error);
           return;
         }
 
@@ -86,7 +90,7 @@ export function useBattlePass(userId?: string) {
           setBattlePass(localPass);
         }
       } catch (e) {
-        console.error('Failed to load battle pass from cloud:', e);
+        logger.error('Failed to load battle pass from cloud:', e);
       } finally {
         setLoading(false);
       }

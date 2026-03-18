@@ -18,6 +18,10 @@ import { useCallback } from 'react';
 import { GameState, Resources } from '@/types/game';
 import { GameHookDependencies } from './types';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useResources');
+
 /**
  * Actions available for resource management
  */
@@ -253,7 +257,7 @@ export function useResources(deps: GameHookDependencies): ResourceActions {
     (coins: number, resources?: Partial<Resources>) => {
       // Safeguard: Never allow negative coin rewards
       if (coins < 0) {
-        console.warn('[addReward] Attempted to add negative coins:', coins);
+        logger.warn('[addReward] Attempted to add negative coins:', coins);
         return;
       }
 

@@ -8,6 +8,10 @@ import {
   getTodayDateString,
 } from '@/types/dailyObjectives';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useDailyObjectives');
+
 interface UseDailyObjectivesReturn {
   objectives: DailyObjective[];
   allCompleted: boolean;
@@ -55,7 +59,7 @@ export function useDailyObjectives(userId?: string): UseDailyObjectivesReturn {
           .single();
 
         if (error && error.code !== 'PGRST116') {
-          console.error('Error loading daily objectives:', error);
+          logger.error('Error loading daily objectives:', error);
           return;
         }
 
@@ -101,7 +105,7 @@ export function useDailyObjectives(userId?: string): UseDailyObjectivesReturn {
           setState(localState);
         }
       } catch (e) {
-        console.error('Failed to load daily objectives from cloud:', e);
+        logger.error('Failed to load daily objectives from cloud:', e);
       } finally {
         setLoading(false);
       }

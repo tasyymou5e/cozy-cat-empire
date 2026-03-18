@@ -9,6 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Check, Loader2, Shuffle, AlertCircle, AtSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('ProfileEditor');
+
 const AVATAR_OPTIONS = ['😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🐱'];
 
 interface ProfileEditorProps {
@@ -125,7 +129,7 @@ export function ProfileEditor({
           setNameSuggestions([]);
         }
       } catch (err) {
-        console.error('Failed to check name availability:', err);
+        logger.error('Failed to check name availability:', err);
         // Fallback to local check
         const { data: localData } = await supabase
           .from('profiles')
@@ -202,7 +206,7 @@ export function ProfileEditor({
           setUsernameSuggestions([]);
         }
       } catch (err) {
-        console.error('Failed to check username availability:', err);
+        logger.error('Failed to check username availability:', err);
         // Fallback
         const { data: localData } = await supabase
           .from('profiles')
@@ -337,7 +341,7 @@ export function ProfileEditor({
           avatar_emoji: avatarEmoji,
         });
         if (insertError) {
-          console.warn('[ProfileEditor] Failed to create player_stats:', insertError.message);
+          logger.warn('[ProfileEditor] Failed to create player_stats:', insertError.message);
         }
       } else {
         const { error: statsError } = await supabase
@@ -348,7 +352,7 @@ export function ProfileEditor({
           })
           .eq('user_id', userId);
         if (statsError) {
-          console.warn('[ProfileEditor] Failed to sync to player_stats:', statsError.message);
+          logger.warn('[ProfileEditor] Failed to sync to player_stats:', statsError.message);
         }
       }
 
@@ -374,7 +378,7 @@ export function ProfileEditor({
 
       onSave?.();
     } catch (err) {
-      console.error('Failed to update profile:', err);
+      logger.error('Failed to update profile:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
       toast({
         title: 'Error',

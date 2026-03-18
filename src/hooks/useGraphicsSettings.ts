@@ -8,6 +8,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GRAPHICS_CONFIG } from '@/config/graphics';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('useGraphicsSettings');
+
 /**
  * Graphics settings that can be changed at runtime
  */
@@ -61,7 +65,7 @@ function getInitialSettings(): GraphicsSettings {
       }
     }
   } catch (e) {
-    console.warn('[GraphicsSettings] Failed to load settings:', e);
+    logger.warn('[GraphicsSettings] Failed to load settings:', e);
   }
   return getDefaultSettings();
 }
@@ -115,7 +119,7 @@ function saveSettings(settings: GraphicsSettings): void {
       })
     );
   } catch (e) {
-    console.warn('[GraphicsSettings] Failed to save settings:', e);
+    logger.warn('[GraphicsSettings] Failed to save settings:', e);
   }
 }
 

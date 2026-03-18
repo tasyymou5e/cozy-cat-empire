@@ -63,6 +63,10 @@ import {
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('CatCollection');
+
 type SortOption = 'name' | 'grade' | 'value' | 'age' | 'health' | 'showWins';
 type FilterBreed = CatBreed | 'all';
 type FilterTier = 'all' | 'common' | 'uncommon' | 'rare' | 'veryRare' | 'ultraRare';
@@ -119,7 +123,7 @@ export default function CatCollection() {
             saveData.relationships
           );
         } catch (e) {
-          console.error('Failed to load local save:', e);
+          logger.error('Failed to load local save:', e);
         }
       }
       if (isMounted) {

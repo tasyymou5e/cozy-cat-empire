@@ -32,6 +32,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Wrench, AlertTriangle, UserCog, RefreshCw, Sparkles, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('AdminProfileRepair');
+
 interface UserNeedingRepair {
   id: string;
   email: string | null;
@@ -199,7 +203,7 @@ export default function AdminProfileRepair() {
           successCount++;
         }
       } catch (err) {
-        console.error(`Failed to update user ${userId}:`, err);
+        logger.error(`Failed to update user ${userId}:`, err);
       }
     }
 
