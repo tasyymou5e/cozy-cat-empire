@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import {
   Users,
+  UserPlus,
   Gamepad2,
   Save,
   AlertTriangle,
@@ -236,13 +237,20 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
           <StatCard
             title="Total Users"
             value={stats?.userCount ?? 0}
             icon={Users}
             loading={isLoading}
             color="text-blue-500"
+          />
+          <StatCard
+            title="New Signups (24h)"
+            value={stats?.newSignups24h ?? 0}
+            icon={UserPlus}
+            loading={isLoading}
+            color="text-cyan-500"
           />
           <StatCard
             title="Game Saves"
