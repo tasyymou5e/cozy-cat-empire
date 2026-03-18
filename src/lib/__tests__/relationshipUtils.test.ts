@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { getCatRelationships, getOtherCatId, countFriends, countEnemies } from '../relationshipUtils';
+import type { CatRelationship } from '@/types/relationships';
 
 describe('relationshipUtils', () => {
-  const mockRelationships = [
-    { cat1Id: 'a', cat2Id: 'b', score: 60, lastInteraction: 1, interactionCount: 5 },
-    { cat1Id: 'a', cat2Id: 'c', score: -40, lastInteraction: 1, interactionCount: 3 },
+  const mockRelationships: CatRelationship[] = [
+    { catId1: 'a', catId2: 'b', score: 60, level: 'friends', lastInteraction: 1, interactionCount: 5 },
+    { catId1: 'a', catId2: 'c', score: -40, level: 'rivals', lastInteraction: 1, interactionCount: 3 },
   ];
 
   it('getCatRelationships should filter by catId', () => {
