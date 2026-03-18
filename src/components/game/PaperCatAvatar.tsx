@@ -34,6 +34,8 @@ export interface PaperCatAvatarProps {
   showCostume?: boolean;
   animated?: boolean;
   className?: string;
+  /** Portrait art style for vector rendering */
+  portraitStyle?: 'realistic' | 'kawaii';
 }
 
 const sizeClasses: Record<string, string> = {
