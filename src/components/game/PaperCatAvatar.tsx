@@ -23,7 +23,8 @@ import { COSTUMES } from '@/types/costumes';
 type GenerateCatAvatarUrlFn = (
   cat: Cat,
   costumeId?: string,
-  size?: string
+  size?: string,
+  portraitStyle?: 'kawaii' | 'realistic'
 ) => string | null;
 
 export interface PaperCatAvatarProps {
@@ -33,6 +34,8 @@ export interface PaperCatAvatarProps {
   showCostume?: boolean;
   animated?: boolean;
   className?: string;
+  /** Portrait art style for vector rendering */
+  portraitStyle?: 'realistic' | 'kawaii';
 }
 
 const sizeClasses: Record<string, string> = {
@@ -58,6 +61,7 @@ export function PaperCatAvatar({
   showCostume = true,
   animated = false,
   className,
+  portraitStyle = 'kawaii',
 }: PaperCatAvatarProps) {
   const { settings } = useGraphicsSettings();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -68,10 +72,10 @@ export function PaperCatAvatar({
   const [generateFn, setGenerateFn] = useState<GenerateCatAvatarUrlFn | null>(null);
   const [isModuleLoaded, setIsModuleLoaded] = useState(false);
 
-  // Generate hash for caching
+  // Generate hash for caching (includes style)
   const avatarHash = useMemo(() => {
-    return generateFullAvatarHash(cat, equippedCostumeId, size);
-  }, [cat, equippedCostumeId, size]);
+    return generateFullAvatarHash(cat, equippedCostumeId, `${size}-${portraitStyle}`);
+  }, [cat, equippedCostumeId, size, portraitStyle]);
 
   // Dynamically import the Paper.js generator module
   useEffect(() => {
@@ -124,7 +128,7 @@ export function PaperCatAvatar({
 
     // Generate new avatar
     try {
-      const url = generateFn(cat, equippedCostumeId, size);
+      const url = generateFn(cat, equippedCostumeId, size, portraitStyle);
       if (url) {
         setAvatarUrl(url);
         if (GRAPHICS_CONFIG.cacheGeneratedAvatars) {
@@ -139,7 +143,7 @@ export function PaperCatAvatar({
     }
 
     setIsLoading(false);
-  }, [generateFn, isModuleLoaded, cat, equippedCostumeId, size, avatarHash]);
+  }, [generateFn, isModuleLoaded, cat, equippedCostumeId, size, avatarHash, portraitStyle]);
 
   // Show loading skeleton while module is being fetched
   if (!isModuleLoaded) {

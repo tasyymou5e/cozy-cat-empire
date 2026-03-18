@@ -1,184 +1,180 @@
-
-
-# Cat Image Style Selection with Lottie Micro-Interactions
+# Pokémon-Style Card Redesign Plan
 
 ## Overview
-
-Add user-selectable portrait styles (realistic/kawaii) with Lottie-powered blinks, CSS micro-interactions (breathing, ear twitch, whisker flicker), per-cat style storage, global defaults, and a one-click upgrade option for existing portraits.
-
----
-
-## Phase 1: Foundation (~140 lines)
-
-### 1.1 Update `src/types/game.ts`
-- Add `portraitStyle?: 'realistic' | 'kawaii'` field to the `Cat` interface (after `appearanceHash`)
-
-### 1.2 Create `src/config/portraitSettings.ts`
-- Define `PortraitStyle` type (`'realistic' | 'kawaii'`)
-- Default style constant (`'kawaii'`)
-- localStorage persistence helpers for global default style preference
-- Style display metadata (labels, descriptions, icons)
-
-### 1.3 Update `src/config/graphics.ts`
-- Add `enableMicroAnimations: true` to `GRAPHICS_CONFIG`
-- Add `defaultPortraitStyle: 'kawaii'` to `GRAPHICS_CONFIG`
-
-### 1.4 Update `src/hooks/useGraphicsSettings.ts`
-- Add `enableMicroAnimations: boolean` and `defaultPortraitStyle: 'realistic' | 'kawaii'` to `GraphicsSettings` interface
-- Wire up defaults from `GRAPHICS_CONFIG`
-
-### 1.5 Create `src/hooks/usePortraitStyle.ts`
-- Hook returning current style for a cat (per-cat override or global default)
-- Functions: `getStyleForCat(cat)`, `setGlobalDefault(style)`, `setCatStyle(catId, style)`
-- Reads from cat's `portraitStyle` field, falls back to global setting
+Transform cat cards into authentic Pokémon TCG-style cards with proper structure, holographic effects, breed-based type system, 3D tilt, and flip animations across all 5 tiers.
 
 ---
 
-## Phase 2: Animation System (~250 lines)
+## Phase 1: Breed Type System & Design Tokens
 
-### 2.1 Install dependency
-- `npm install lottie-react`
+### 1a. Create `src/config/breedTypes.ts`
+Map each breed to a Pokémon-style "type" with colors and gradients:
 
-### 2.2 Create Lottie animation assets
-- `public/animations/kawaii-blink.json` — Download and customize "The blinking cat" by Mishal Alnazawi from LottieFiles (~6KB)
-- `public/animations/realistic-blink.json` — Custom realistic cat blink animation (~4KB)
+| Breed | Type | Primary Color | Gradient |
+|-------|------|---------------|----------|
+| Persian | Psychic | `#8338ec` | purple → pink |
+| Bengal | Fire | `#ff6b35` | orange → red |
+| Tabby | Normal | `#a8a878` | tan → brown |
+| Ragdoll | Water | `#3a86ff` | blue → cyan |
+| Siamese | Ice | `#96d9d6` | light blue → white |
+| Maine Coon | Fighting | `#c22e28` | brown → red |
+| British Shorthair | Steel | `#b8b8d0` | silver → gray |
+| Stray | Dark | `#705848` | dark brown → black |
 
-### 2.3 Create `src/hooks/useMicroAnimations.ts`
-- Accepts `style: 'kawaii' | 'realistic'` and `enabled: boolean`
-- Randomized per-cat timing using `useState(() => Math.random() * range)`
-  - Blink: every 4-8s (random)
-  - Ear twitch (kawaii only): every 3-5s (random)
-- `isBlinking` state toggled on timer
-- `whiskerFlicker` synced to blink trigger
-- Respects `prefers-reduced-motion` media query — disables all animations if detected
-- Returns: `{ isBlinking, whiskerFlicker, earTwitchActive, animationClasses }`
+Each type includes: `icon`, `gradient`, `energyColor`, `imageGradient`.
 
-### 2.4 Create `src/components/game/AnimatedCatPortrait.tsx`
-- Wrapper component accepting children (the portrait image/avatar)
-- Applies CSS animation classes based on style:
-  - **Kawaii**: breathing (scale pulse 2s), ear twitch (rotate 0.3s), whisker flicker
-  - **Realistic**: head tilt (3deg rotate 4s), whisker flicker
-- Lottie blink overlay using `lottie-react` (lazy-loaded)
-- Hover zoom effect: `scale(1.1)` with `cubic-bezier(0.34, 1.56, 0.64, 1)`
-- Cross-fade on load via opacity transition
-- Toggle prop `enableAnimations` to disable everything
+### 1b. Add CSS variables & keyframes to `src/index.css`
+- Card gold/silver frame colors
+- Holo animation keyframes: `holoShift`, `twinkle`, `rainbow`, `cosmosSwirl`
+- Card texture overlay (subtle noise SVG)
+- Shine sweep animation
+- 3D tilt utility classes
 
-### 2.5 Add CSS keyframes to Tailwind config
-```css
-kawaii-breathe: scale(1) -> scale(1.05) -> scale(1), 2s ease-in-out
-kawaii-ear-twitch: rotate(0deg) -> rotate(8deg) -> rotate(0deg), 0.3s ease-out
-realistic-head-tilt: rotate(-3deg) -> rotate(3deg) -> rotate(-3deg), 4s ease-in-out
-whisker-flicker: translateX(0) -> translateX(1px) -> translateX(0), 0.15s linear
+---
+
+## Phase 2: New PokemonCard Component
+
+### Create `src/components/game/PokemonCard.tsx`
+A new dedicated component for the Pokémon TCG layout.
+
+**Card structure (320×448 aspect ratio):**
+```
+┌─────────────────────────────┐
+│  [FRAME: tier-colored]      │
+│  ┌───────────────────────┐  │
+│  │ [Evo Stage]    [HP]   │  │
+│  │ [NAME]      [Type 🔥] │  │
+│  │ ┌─────────────────┐   │  │
+│  │ │  CAT AVATAR/    │   │  │
+│  │ │  PORTRAIT        │   │  │
+│  │ │  (type gradient)  │   │  │
+│  │ └─────────────────┘   │  │
+│  │ [Description bar]     │  │
+│  │ ┌─────────────────┐   │  │
+│  │ │ [⚡] Move 1   30 │   │  │
+│  │ │ flavor text      │   │  │
+│  │ └─────────────────┘   │  │
+│  │ ┌─────────────────┐   │  │
+│  │ │ [⚡⚡] Move 2  60│   │  │
+│  │ │ flavor text      │   │  │
+│  │ └─────────────────┘   │  │
+│  │ Weakness | Resist | Retreat│
+│  │ ★★★★ | #018/100 | CCE │  │
+│  └───────────────────────┘  │
+│  [HOLO OVERLAY]             │
+│  [SHINE EFFECT]             │
+└─────────────────────────────┘
 ```
 
----
+**Key features:**
+- **Frame colors by tier:** Common=silver matte, Uncommon=silver gloss, Rare=gold, Legendary=gold cosmos, Mythic=animated rainbow
+- **HP display:** Top-right, large red number from `cat.health`
+- **Evolution stage:** stray=Basic, adopted=Stage 1, pure=Stage 2
+- **Type energy icons:** Circular breed-colored icons
+- **Move cards:**
+  - Move 1 = Personality ability (e.g., "Playful Swipe", "Independent Blaze")
+  - Move 2 = Best learned trick or breed special
+  - Damage = calculated from grade + stats
+- **Weakness/Resistance/Retreat:** Derived from breed type matchups
+- **Footer:** Rarity stars, card number, CCE set symbol
+- **Texture:** Subtle canvas/paper noise overlay
 
-## Phase 3: Vector System Updates (~200 lines)
+### Holographic effects (tier-progressive):
+- **Common:** None (matte)
+- **Uncommon:** Subtle sheen sweep on hover
+- **Rare:** Twinkling star particles + diagonal holo
+- **Legendary:** Cosmos swirl + dynamic shine
+- **Mythic:** Animated rainbow border + full rainbow overlay
 
-### 3.1 Update `src/lib/portraitUtils.ts`
-- Include `portraitStyle` in `computeAppearanceHash()` so style changes invalidate cached portraits
-
-### 3.2 Update `src/lib/catVectorGenerator.ts`
-- Accept optional `style` parameter in `generateCatAvatarUrl()`
-- **Kawaii style**: Larger eyes (1.3x), rounder face, bigger blush marks, simpler fur detail
-- **Realistic style**: Proportional eyes, angular face shapes, detailed fur texture, subtle shading
-
-### 3.3 Update `src/components/game/PaperCatAvatar.tsx`
-- Accept `style?: 'realistic' | 'kawaii'` prop
-- Pass to `generateCatAvatarUrl()`
-- Include style in cache hash
-
-### 3.4 Update `src/components/game/CatVisual.tsx`
-- Read style from cat data or global default
-- Pass style to `PaperCatAvatar`
-- Wrap in `AnimatedCatPortrait` when animations enabled
-
----
-
-## Phase 4: UI Components (~310 lines)
-
-### 4.1 Update `src/components/game/CatPortrait.tsx`
-- Add style selector buttons: `[📷 Realistic]` `[🎨 Kawaii]`
-- Add "Apply Animated Preview" toggle switch
-- Pass selected style to portrait generation call
-- Show current style badge on portrait
-
-### 4.2 Create `src/components/game/PortraitStyleSettings.tsx`
-- Dialog component accessible from GraphicsSettingsPanel
-- Global default style selector (Realistic / Kawaii)
-- Fallback avatar preference (AI Portrait / PaperCatAvatar)
-- Enable micro-interactions toggle
-- **One-Click Upgrade section**: Shows count of cats with non-default style, button to batch-regenerate all to the selected style
-- Credit cost estimate before upgrade
-
-### 4.3 Update `src/components/game/BatchPortraitGenerator.tsx`
-- Add global style dropdown (Realistic / Kawaii) above generate button
-- Pass selected style to each portrait generation call
-- Show style in generation results
-
-### 4.4 Update `src/components/game/GraphicsSettingsPanel.tsx`
-- Add "Portrait Style" section with link to PortraitStyleSettings dialog
-- Add micro-interactions toggle
+### 3D Tilt (mouse-follow):
+- `perspective: 1500px` on container
+- `onMouseMove` → calculate rotateX/rotateY from cursor position
+- Dynamic radial-gradient shine follows cursor
+- Holo intensity increases with tilt angle
+- Disabled when card is flipped
+- Touch support via `onTouchMove`
 
 ---
 
-## Phase 5: Backend (~80 lines)
+## Phase 3: Card Flip (Back Side)
 
-### 5.1 Update `supabase/functions/generate-cat-portrait/index.ts`
-- Accept `style` field in request body (`'realistic' | 'kawaii'`, default `'kawaii'`)
-- Add `REALISTIC_STYLE_PROMPT` alongside existing `STYLE_PROMPT` (rename to `KAWAII_STYLE_PROMPT`)
-- Realistic prompt: "Photorealistic digital painting, semi-realistic cat portrait, detailed fur rendering, natural proportions, soft studio lighting, shallow depth of field, professional pet photography style"
-- Select prompt based on style parameter
+### Back design in PokemonCard:
+```
+┌─────────────────────────────┐
+│  [FRAME: tier-colored]      │
+│  ┌───────────────────────┐  │
+│  │      CAT NAME         │  │
+│  │    [Breed subtitle]   │  │
+│  │  ┌──────┐ ┌──────┐   │  │
+│  │  │Hunger│ │ Rest │   │  │
+│  │  └──────┘ └──────┘   │  │
+│  │  ┌──────┐ ┌──────┐   │  │
+│  │  │ Feed │ │ Wins │   │  │
+│  │  └──────┘ └──────┘   │  │
+│  │  [Lore/description]   │  │
+│  │  Tricks: 🪑🐾🔄⬆️🎾  │  │
+│  │  Social: 💚5  😾2    │  │
+│  │  Value: $350          │  │
+│  │  [CCE Logo]           │  │
+│  └───────────────────────┘  │
+└─────────────────────────────┘
+```
 
----
-
-## Phase 6: Polish
-
-- Cross-fade transitions on portrait load (300ms opacity)
-- Hover zoom effects on all portrait containers
-- Test `prefers-reduced-motion` disables all animations
-- Performance: animations use CSS transforms only (GPU-accelerated), no layout thrash
-
----
-
-## Animation Spec Summary
-
-| Animation | Style | Type | Duration | Trigger |
-|-----------|-------|------|----------|---------|
-| Breathing | Kawaii | CSS scale | 2s loop | Continuous |
-| Ear Twitch | Kawaii | CSS rotate | 0.3s | Random 3-5s |
-| Blink | Both | Lottie | 0.15-0.2s | Random 4-8s |
-| Whisker Flicker | Both | CSS | 0.15s | Synced with blink |
-| Head Tilt | Realistic | CSS rotate | 4s loop | Continuous |
-| Hover Zoom | Both | CSS | 0.2s | Mouse enter |
+- Flip via 🔄 button or click
+- 0.6s cubic-bezier `rotateY(180deg)` transition
+- 3D tilt disabled while flipped
 
 ---
 
-## Files Summary
+## Phase 4: Move Generation System
 
-| Action | File | Est. Lines |
-|--------|------|-----------|
-| New | `src/config/portraitSettings.ts` | ~60 |
-| New | `src/hooks/usePortraitStyle.ts` | ~120 |
-| New | `src/hooks/useMicroAnimations.ts` | ~150 |
-| New | `src/components/game/AnimatedCatPortrait.tsx` | ~100 |
-| New | `src/components/game/PortraitStyleSettings.tsx` | ~150 |
-| New | `public/animations/kawaii-blink.json` | asset |
-| New | `public/animations/realistic-blink.json` | asset |
-| Edit | `src/types/game.ts` | ~5 |
-| Edit | `src/config/graphics.ts` | ~10 |
-| Edit | `src/hooks/useGraphicsSettings.ts` | ~15 |
-| Edit | `src/lib/portraitUtils.ts` | ~10 |
-| Edit | `src/lib/catVectorGenerator.ts` | ~200 |
-| Edit | `src/components/game/PaperCatAvatar.tsx` | ~30 |
-| Edit | `src/components/game/CatVisual.tsx` | ~30 |
-| Edit | `src/components/game/CatPortrait.tsx` | ~80 |
-| Edit | `src/components/game/BatchPortraitGenerator.tsx` | ~40 |
-| Edit | `src/components/game/GraphicsSettingsPanel.tsx` | ~30 |
-| Edit | `supabase/functions/generate-cat-portrait/index.ts` | ~80 |
-| Edit | `tailwind.config.ts` | ~20 |
+### Create `src/lib/cardMoves.ts`
+Generate Pokémon-style moves from cat data:
 
-**Total: ~1,150 lines across 19 files**
+| Personality | Move Name | Base Damage |
+|-------------|-----------|-------------|
+| Playful | Playful Swipe | 20 |
+| Affectionate | Warm Embrace | 30 (heals) |
+| Independent | Lone Strike | 40 |
+| Curious | Investigate | 20 (draw) |
+| Lazy | Nap Attack | 10 (buff) |
+| Shy | Shadow Fade | 20 (dodge) |
 
-**New dependency: `lottie-react`**
+Move 2 = best trick or breed special. Damage scales with grade.
 
+---
+
+## Phase 5: Integration
+
+### Modify `UnifiedCatCard.tsx`:
+- `variant="trading"` → renders PokemonCard
+- Add `variant="pokemon"` as explicit alias
+- Keep `variant="card"` as standard game card
+
+### Update `CardShowcase.tsx`:
+- Add Pokémon card showcase section for all 5 tiers
+
+### Update `CatCollection.tsx`:
+- Use Pokémon card variant
+
+---
+
+## File Changes Summary
+
+| File | Action |
+|------|--------|
+| `src/config/breedTypes.ts` | CREATE |
+| `src/lib/cardMoves.ts` | CREATE |
+| `src/components/game/PokemonCard.tsx` | CREATE |
+| `src/components/game/UnifiedCatCard.tsx` | MODIFY |
+| `src/config/graphics.ts` | MODIFY |
+| `src/index.css` | MODIFY |
+| `src/pages/CardShowcase.tsx` | MODIFY |
+
+## Implementation Order
+1. `breedTypes.ts` + `cardMoves.ts` (data layer)
+2. CSS animations in `index.css`
+3. `PokemonCard.tsx` (core component with front/back/tilt)
+4. Wire into `UnifiedCatCard.tsx`
+5. Update `CardShowcase.tsx`
+6. Test all 5 tiers + flip + 3D tilt

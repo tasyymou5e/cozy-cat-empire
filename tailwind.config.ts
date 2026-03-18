@@ -520,6 +520,23 @@ export default {
 					transform: 'translateY(-80px) scale(0.8)',
 					opacity: '0'
 				}
+			},
+			// Portrait micro-animations
+			'kawaii-breathe': {
+				'0%, 100%': { transform: 'scale(1)' },
+				'50%': { transform: 'scale(1.05)' }
+			},
+			'kawaii-ear-twitch': {
+				'0%, 100%': { transform: 'rotate(0deg)' },
+				'50%': { transform: 'rotate(8deg)' }
+			},
+			'realistic-head-tilt': {
+				'0%, 100%': { transform: 'rotate(-3deg)' },
+				'50%': { transform: 'rotate(3deg)' }
+			},
+			'whisker-flicker': {
+				'0%, 100%': { transform: 'translateX(0)' },
+				'50%': { transform: 'translateX(1px)' }
 			}
 		},
   		animation: {
@@ -575,7 +592,12 @@ export default {
 			// Empire roaming animation
 			'cat-walk': 'cat-walk 0.5s ease-in-out infinite',
 			// Reward float animation
-			'reward-float': 'reward-float 1.8s ease-out forwards'
+			'reward-float': 'reward-float 1.8s ease-out forwards',
+			// Portrait micro-animations
+			'kawaii-breathe': 'kawaii-breathe 2s ease-in-out infinite',
+			'kawaii-ear-twitch': 'kawaii-ear-twitch 0.3s ease-out',
+			'realistic-head-tilt': 'realistic-head-tilt 4s ease-in-out infinite',
+			'whisker-flicker': 'whisker-flicker 0.15s linear'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',

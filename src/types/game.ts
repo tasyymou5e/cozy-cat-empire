@@ -122,6 +122,8 @@ export interface Cat {
   portraitGeneratedAt?: number;
   /** Hash of appearance/costume when portrait was generated */
   appearanceHash?: string;
+  /** Portrait art style preference for this cat */
+  portraitStyle?: 'realistic' | 'kawaii';
   /** Specialization data if cat is specialized */
   specialization?: CatSpecializationData;
   /** Prestige level (0-3 stars) for permanent bonuses */

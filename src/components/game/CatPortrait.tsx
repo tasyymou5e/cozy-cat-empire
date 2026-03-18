@@ -14,6 +14,8 @@ import {
   Trophy,
   Coins,
   ShoppingCart,
+  Camera,
+  Palette,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -26,6 +28,9 @@ import {
 } from '@/lib/portraitUtils';
 import { usePortraitCredits } from '@/hooks/usePortraitCredits';
 import { PortraitPurchaseDialog } from './PortraitPurchaseDialog';
+import { usePortraitStyle } from '@/hooks/usePortraitStyle';
+import { PORTRAIT_STYLES, type PortraitStyle } from '@/config/portraitSettings';
+import { useGraphicsSettings } from '@/hooks/useGraphicsSettings';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,6 +63,8 @@ interface CatPortraitProps {
   onPortraitGenerated?: (catId: string, portraitUrl: string, hash: string) => void;
   currentMoney?: number;
   onMoneyChange?: (newMoney: number) => void;
+  /** Callback when cat's portrait style changes */
+  onStyleChange?: (catId: string, style: PortraitStyle) => void;
 }
 
 type PortraitState = 'idle' | 'generating' | 'complete' | 'error';
@@ -68,12 +75,16 @@ export function CatPortrait({
   onPortraitGenerated,
   currentMoney = 0,
   onMoneyChange,
+  onStyleChange,
 }: CatPortraitProps) {
   const [state, setState] = useState<PortraitState>(cat.portraitUrl ? 'complete' : 'idle');
   const [error, setError] = useState<string | null>(null);
   const [localPortraitUrl, setLocalPortraitUrl] = useState<string | undefined>(cat.portraitUrl);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
+  const { getStyleForCat } = usePortraitStyle();
+  const { settings, updateSetting } = useGraphicsSettings();
+  const [selectedStyle, setSelectedStyle] = useState<PortraitStyle>(getStyleForCat(cat));
 
   const {
     credits,
@@ -121,6 +132,7 @@ export function CatPortrait({
                 }
               : undefined,
           },
+          style: selectedStyle,
         },
       });
 
@@ -141,8 +153,9 @@ export function CatPortrait({
       if (data?.portraitUrl) {
         setLocalPortraitUrl(data.portraitUrl);
         setState('complete');
-        const hash = computeAppearanceHash(cat, equippedCostumeId);
+        const hash = computeAppearanceHash(cat, equippedCostumeId, selectedStyle);
         onPortraitGenerated?.(cat.id, data.portraitUrl, hash);
+        onStyleChange?.(cat.id, selectedStyle);
         // Refetch credits after successful generation
         refetchCredits();
       } else {
