@@ -36,7 +36,7 @@ export const GAME_ACTION_SOUNDS: Partial<Record<GameAction, SoundType>> = {
 // ========== CAT ACTIVITY SOUNDS ==========
 /**
  * Maps activity popup keys to sound types.
- * Used by CatActivityPopups component.
+ * Uses new sound variety for more distinct audio feedback.
  */
 export const ACTIVITY_SOUNDS: Record<string, SoundType> = {
   eating: 'catEating',
@@ -51,7 +51,10 @@ export const ACTIVITY_SOUNDS: Record<string, SoundType> = {
   mischief: 'catMischief',
   zoomies: 'catZoomies',
   sunbathing: 'catSunbathing',
-  birdwatching: 'catBirdwatching',
+  birdwatching: 'catChattering',
+  chirping: 'catChirp',
+  yawning: 'catYawn',
+  startled: 'catStartled',
 };
 
 // ========== RELATIONSHIP EVENT SOUNDS ==========
@@ -61,9 +64,9 @@ export const ACTIVITY_SOUNDS: Record<string, SoundType> = {
 export const RELATIONSHIP_SOUNDS = {
   friendshipFormed: 'friendship',
   friendshipStrengthened: 'heartBurst',
-  rivalryStarted: 'rivalry',
+  rivalryStarted: 'catGrowl',
   rivalryWorsened: 'sparkClash',
-  reconciliation: 'friendship',
+  reconciliation: 'catTrill',
 } as const satisfies Record<string, SoundType>;
 
 // ========== NOTIFICATION SOUNDS ==========
@@ -112,10 +115,10 @@ export const UI_SOUNDS = {
  * Sounds for cat mood changes.
  */
 export const MOOD_SOUNDS = {
-  becameHappy: 'moodHappy',
+  becameHappy: 'catChirp',
   becameSad: 'moodSad',
-  becameAngry: 'hiss',
-  becameContent: 'purr',
+  becameAngry: 'catGrowl',
+  becameContent: 'catContentPurr',
 } as const satisfies Record<string, SoundType>;
 
 // ========== EMPIRE VIEW SOUNDS ==========
@@ -123,11 +126,11 @@ export const MOOD_SOUNDS = {
  * Sounds for Empire view interactions.
  */
 export const EMPIRE_SOUNDS = {
-  petCat: 'purr',
+  petCat: 'catContentPurr',
   feedCat: 'catEating',
-  playWithCat: 'catPlaying',
+  playWithCat: 'catChirp',
   catMeow: 'meow',
-  propInteraction: 'meow',
+  propInteraction: 'catTrill',
 } as const satisfies Record<string, SoundType>;
 
 // ========== HELPER FUNCTIONS ==========
