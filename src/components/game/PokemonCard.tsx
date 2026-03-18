@@ -41,7 +41,7 @@ export function PokemonCard({ cat, equippedCostumeId, className, showFlip = true
   const tierFrame = TIER_FRAME[tier];
   const retreatCost = getRetreatCost(cat);
   const cardNum = getCardNumber(cat);
-  const qrUrl = profileBaseUrl ? `${profileBaseUrl}/cat/${cat.id}` : `https://www.cozycatempire.com/cat/${cat.id}`;
+  const qrUrl = profileBaseUrl ? `${profileBaseUrl}/collection` : `https://cozy-cat-empire.lovable.app/collection`;
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isFlipped || !cardRef.current) return;
