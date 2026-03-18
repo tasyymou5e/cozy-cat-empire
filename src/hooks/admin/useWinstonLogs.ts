@@ -73,7 +73,7 @@ export function useWinstonLogStats() {
         const { count } = await supabase
           .from('application_logs')
           .select('*', { count: 'exact', head: true })
-          .eq('level', lvl as any);
+          .eq('level', lvl);
         counts[lvl] = count || 0;
       }
 
