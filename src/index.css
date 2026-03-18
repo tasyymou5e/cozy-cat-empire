@@ -1215,12 +1215,12 @@
 }
 .animate-kawaii-ear-twitch { animation: kawaii-ear-twitch 0.3s ease-out; transform-origin: bottom center; }
 
-/* CSS Eye Blink - overlay blink fallback */
+/* CSS Eye Blink - quick opacity flash simulating a blink */
 @keyframes cat-eye-blink {
-  0%, 45%, 55%, 100% { transform: scaleY(0); opacity: 0; }
-  50% { transform: scaleY(1); opacity: 1; }
+  0%, 100% { opacity: 0; }
+  40%, 60% { opacity: 1; }
 }
-.animate-cat-eye-blink { animation: cat-eye-blink 0.15s ease-in-out; transform-origin: center top; }
+.animate-cat-eye-blink { animation: cat-eye-blink 0.2s ease-in-out; }
 
 /* Head Tilt - subtle rotation for realistic style */
 @keyframes realistic-head-tilt {
