@@ -4,7 +4,7 @@
  * @module hooks/handlers/useCloudHandlers
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave, AutoSaveStats } from '@/hooks/useAutoSave';
 import { useOrphanDetection, createRecoveryCat, type OrphanedCat } from '@/hooks/useOrphanDetection';
@@ -29,9 +29,12 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
   const { toast } = useToast();
   const isReloadingRef = useRef(false);
   const [showOrphanDialog, setShowOrphanDialog] = useState(false);
+  const shouldCheckOrphansRef = useRef(false);
+
+  const currentCatIds = useMemo(() => state.cats.map((c) => c.id), [state.cats]);
 
   const { orphanedCats, checkForOrphans, dismissOrphans, hasOrphans, isChecking } =
-    useOrphanDetection(auth.user?.id, state.cats.map((c) => c.id));
+    useOrphanDetection(auth.user?.id, currentCatIds);
 
   const { createEventSnapshot } = useEventSnapshots(auth.user?.id, state);
 
@@ -77,7 +80,7 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
           log.info(`Load success: ${data.game_state.cats?.length ?? 0} cats, day ${data.game_state.day}`);
           actions.loadFromData?.(data.game_state, data.kittens_bred, data.relationships);
           ui.setLastCloudSave(data.last_played_at);
-          setTimeout(() => { checkForOrphans(); }, 1000);
+          shouldCheckOrphansRef.current = true;
         } else {
           log.info('No cloud save found - starting fresh');
         }
@@ -88,6 +91,14 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
       });
     }
   }, [auth.user, ui.hasLoadedCloud, cloudSave, actions, ui, checkForOrphans]);
+
+  // Trigger orphan check after cloud load once state has updated with loaded cats
+  useEffect(() => {
+    if (shouldCheckOrphansRef.current && currentCatIds.length > 0 && ui.hasLoadedCloud) {
+      shouldCheckOrphansRef.current = false;
+      checkForOrphans();
+    }
+  }, [currentCatIds, ui.hasLoadedCloud, checkForOrphans]);
 
   useEffect(() => {
     if (hasOrphans && !isChecking) {
@@ -163,18 +174,34 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
 
   const handleRecoverOrphans = useCallback(async (orphansToRecover: OrphanedCat[]) => {
     log.info(`Recovering ${orphansToRecover.length} orphaned cats`);
-    for (const orphan of orphansToRecover) {
-      const recoveredCat = createRecoveryCat(orphan);
-      actions.addReceivedCat?.(recoveredCat);
+    const availableSpace = state.space - state.cats.length;
+    const catsToRecover = orphansToRecover.slice(0, availableSpace);
+    
+    if (catsToRecover.length === 0) {
+      toast({
+        title: 'No Space Available',
+        description: 'Upgrade your housing to make room for recovered cats.',
+        variant: 'destructive',
+      });
+      return;
     }
+
+    for (const orphan of catsToRecover) {
+      const recoveredCat = createRecoveryCat(orphan);
+      actions.addRecoveredCat?.(recoveredCat);
+    }
+
+    const skipped = orphansToRecover.length - catsToRecover.length;
     toast({
       title: 'Cats Recovered! 🎉',
-      description: `Successfully recovered ${orphansToRecover.length} lost cat${orphansToRecover.length !== 1 ? 's' : ''}.`,
+      description: skipped > 0
+        ? `Recovered ${catsToRecover.length} cat${catsToRecover.length !== 1 ? 's' : ''}. ${skipped} couldn't fit — upgrade your housing!`
+        : `Successfully recovered ${catsToRecover.length} lost cat${catsToRecover.length !== 1 ? 's' : ''}.`,
     });
     playSound?.('success');
     setShowOrphanDialog(false);
     dismissOrphans();
-  }, [actions, toast, playSound, dismissOrphans]);
+  }, [actions, toast, playSound, dismissOrphans, state.space, state.cats.length]);
 
   const handleDismissOrphans = useCallback(() => {
     setShowOrphanDialog(false);

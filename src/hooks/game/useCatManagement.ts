@@ -71,6 +71,12 @@ export interface CatManagementActions {
   addReceivedCat: (cat: Cat) => void;
 
   /**
+   * Add a recovered cat preserving its original ID (for orphan recovery)
+   * @param cat - Cat object with original ID intact
+   */
+  addRecoveredCat: (cat: Cat) => void;
+
+  /**
    * Update a cat's visual appearance
    * @param catId - ID of the cat
    * @param appearance - New appearance configuration
@@ -341,6 +347,33 @@ export function useCatManagement(deps: GameHookDependencies): CatManagementActio
     [setState, showMessage, playSound]
   );
 
+  /** Add a recovered cat preserving its original ID (for orphan recovery) */
+  const addRecoveredCat = useCallback(
+    (cat: Cat) => {
+      setState((prev) => {
+        if (prev.cats.length >= prev.space) {
+          showMessage('No space for this cat!', 'error');
+          return prev;
+        }
+
+        // Check if a cat with this ID already exists
+        if (prev.cats.some((c) => c.id === cat.id)) {
+          showMessage(`${cat.name} is already in your collection!`, 'warning');
+          return prev;
+        }
+
+        showMessage(`${cat.name} has been recovered! 🎉`, 'success');
+        playSound?.('success');
+
+        return {
+          ...prev,
+          cats: [...prev.cats, cat],
+        };
+      });
+    },
+    [setState, showMessage, playSound]
+  );
+
   const updateCatAppearance = useCallback(
     (catId: string, appearance: CatAppearance) => {
       setState((prev) => ({
@@ -441,6 +474,7 @@ export function useCatManagement(deps: GameHookDependencies): CatManagementActio
     renameCat,
     comfortCat,
     addReceivedCat,
+    addRecoveredCat,
     updateCatAppearance,
     updateCatPortrait,
     setSpecialization,
