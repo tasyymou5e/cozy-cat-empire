@@ -504,8 +504,8 @@ Deno.serve(async (req) => {
 
   try {
     // Parse request body first to get quality preference
-    const requestBody = await req.json() as { cat: CatData; highQuality?: boolean };
-    const { cat, highQuality = false } = requestBody;
+    const requestBody = await req.json() as { cat: CatData; highQuality?: boolean; style?: PortraitStyleType };
+    const { cat, highQuality = false, style = 'kawaii' } = requestBody;
     
     // Select model based on quality preference
     const MODEL = highQuality 
