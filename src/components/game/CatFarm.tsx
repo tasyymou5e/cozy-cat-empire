@@ -574,6 +574,13 @@ export function CatFarm() {
 
             <FloatingRewardPopups popups={floatingRewards.popups} />
 
+            <MiniGamePrompt
+              gameType={miniGame.currentGame}
+              isOpen={miniGame.isOpen}
+              onClose={miniGame.closeGame}
+              onReward={handleMiniGameReward}
+            />
+
             <GameHeader
               day={state.day}
               money={state.money}
