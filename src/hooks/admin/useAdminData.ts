@@ -128,6 +128,8 @@ export function useAdminStats(refetchInterval?: number) {
         errorCount24h: errorsResult.count || 0,
         /** Number of active players in the last 24 hours */
         activePlayersCount: activePlayersResult.count || 0,
+        /** Number of new signups in the last 24 hours */
+        newSignups24h: newSignupsResult.count || 0,
         ...aggregateStats,
       };
     },
