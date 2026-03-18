@@ -228,7 +228,7 @@ export function EmpireRenderDialog({
             Cancel
           </Button>
           <Button
-            onClick={onConfirm}
+            onClick={() => onConfirm(customPrompt.trim() || undefined)}
             disabled={!canAfford || isRendering}
             className="gap-2"
           >
