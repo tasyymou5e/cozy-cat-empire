@@ -71,6 +71,8 @@ export function EmpireRenderDialog({
   isRendering,
   onConfirm,
 }: EmpireRenderDialogProps) {
+  const [customPrompt, setCustomPrompt] = useState('');
+
   const catsWithPortraits = useMemo(() => 
     cats.filter(c => c.portraitUrl),
     [cats]
