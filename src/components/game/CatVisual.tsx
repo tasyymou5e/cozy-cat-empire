@@ -155,10 +155,13 @@ export function CatVisual({
   onPortraitError,
 }: CatVisualProps) {
   const [portraitFailed, setPortraitFailed] = React.useState(false);
+  const { settings } = useGraphicsSettings();
 
   const tier = getGradeTier(cat.grade);
   const stars = getGradeStars(cat.grade);
   const hasPortrait = preferPortrait && cat.portraitUrl && !portraitFailed;
+  const effectiveStyle = getEffectivePortraitStyle(cat.portraitStyle, settings.defaultPortraitStyle);
+  const microAnimEnabled = settings.enableMicroAnimations && settings.enableAnimations;
 
   // For portrait mode with showGrade, use larger size display
   const isPortraitMode = size === 'portrait' && hasPortrait;
@@ -173,7 +176,7 @@ export function CatVisual({
     setPortraitFailed(false);
   }, [cat.portraitUrl]);
 
-  return (
+  const renderContent = () => (
     <div
       className={cn(
         'relative rounded-xl overflow-hidden',
@@ -253,6 +256,7 @@ export function CatVisual({
             size={avatarSizeMap[size]}
             showCostume
             animated={animated || tier === 'ultraRare' || tier === 'veryRare'}
+            portraitStyle={effectiveStyle}
           />
         </Suspense>
       ) : (
@@ -274,6 +278,21 @@ export function CatVisual({
       )}
     </div>
   );
+
+  // Wrap with AnimatedCatPortrait when micro-animations are enabled
+  if (microAnimEnabled) {
+    return (
+      <AnimatedCatPortrait
+        style={effectiveStyle}
+        enableAnimations={microAnimEnabled}
+        className={className}
+      >
+        {renderContent()}
+      </AnimatedCatPortrait>
+    );
+  }
+
+  return renderContent();
 }
 
 export default CatVisual;
