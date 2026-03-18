@@ -98,6 +98,7 @@ function getDefaultSettings(): GraphicsSettings {
     // Micro-animations & portrait style
     enableMicroAnimations: GRAPHICS_CONFIG.enableMicroAnimations,
     defaultPortraitStyle: GRAPHICS_CONFIG.defaultPortraitStyle,
+    preferPaperAvatar: GRAPHICS_CONFIG.preferPaperAvatar,
   };
 }
 

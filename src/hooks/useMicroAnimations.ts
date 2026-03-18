@@ -85,8 +85,8 @@ export function useMicroAnimations({
     return () => clearInterval(interval);
   }, [isActive, style]);
 
-  // Continuous animation class - disabled to prevent whole-image pulsing
-  const continuousClass = '';
+  // Continuous animation class - style-specific
+  const continuousClass = style === 'realistic' ? 'animate-realistic-head-tilt' : 'animate-cat-breathe';
 
   return {
     isBlinking,

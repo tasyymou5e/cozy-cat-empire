@@ -112,7 +112,13 @@ export const GRAPHICS_CONFIG = {
    * - 'kawaii': Cute cartoon style (Studio Ghibli)
    * - 'realistic': Semi-realistic digital painting
    */
-  defaultPortraitStyle: 'kawaii' as 'realistic' | 'kawaii',
+  defaultPortraitStyle: 'realistic' as 'realistic' | 'kawaii',
+
+  /**
+   * Prefer PaperCatAvatar over AI portraits for performance/battery saving.
+   * When true, shows vector avatar even if AI portrait exists.
+   */
+  preferPaperAvatar: false,
 } as const;
 
 /**
