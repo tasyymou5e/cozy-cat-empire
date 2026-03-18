@@ -1,56 +1,180 @@
+# Pokémon-Style Card Redesign Plan
 
-Goal: fix 3 user-reported issues in one pass:
-1) Matchmaking card content clipping/not scaling
-2) Action-response popups not fading and stacking
-3) Service worker `Response.clone()` runtime error on matchmaking page
+## Overview
+Transform cat cards into authentic Pokémon TCG-style cards with proper structure, holographic effects, breed-based type system, 3D tilt, and flip animations across all 5 tiers.
 
-Root-cause findings from current code:
-- `src/components/game/MatchmakingPanel.tsx` uses rigid single-row flex blocks (`items-center justify-between`) with no `min-w-0`, no truncation/wrap strategy, and fixed small typography in a narrow sidebar (`.action-sidebar` is `lg:w-80`), so long names/reasons get clipped.
-- Action messages are driven by `useGameMessages`; queue can build quickly and errors are configured as manual-dismiss (`autoDismiss: 0`), which matches “does not fade away / keeps stacking”.
-- `public/sw.js` line ~160 (`staleWhileRevalidate`) clones the response inside a fire-and-forget async branch (`caches.open(...).then(...)`). If the app consumes body first (e.g., JSON/Lottie fetch), clone can throw “body already used” and becomes an unhandled promise rejection.
+---
 
-Implementation plan:
+## Phase 1: Breed Type System & Design Tokens
 
-1) Matchmaking layout hardening (responsive + no clipping)
-- File: `src/components/game/MatchmakingPanel.tsx`
-- Convert each suggestion row to responsive structure:
-  - Top row becomes `flex-col sm:flex-row` with badge wrapping under on small widths.
-  - Cat pair sub-row uses `min-w-0`, `flex-wrap`, and truncation (`truncate`, `max-w-*`) on names.
-  - Reason text uses `break-words`/`leading-relaxed` and optional line clamp.
-  - Bottom action row becomes `flex-col sm:flex-row` with proper spacing.
-- Keep scroll area but make height responsive (`h-[18rem] sm:h-64`) so content scales better.
+### 1a. Create `src/config/breedTypes.ts`
+Map each breed to a Pokémon-style "type" with colors and gradients:
 
-2) Fix message popup stacking/fade behavior
-- File: `src/hooks/useGameMessages.ts`
-- Change default error timeout from manual-only to finite auto-dismiss (e.g., 6–8s) so action responses clear without manual close.
-- Strengthen dedupe:
-  - Skip enqueue if same text+type is current or already in queue within dedupe window.
-  - Increase dedupe window and add queue cap (drop oldest/lowest-priority when full).
-- Preserve priority behavior (critical can still interrupt).
+| Breed | Type | Primary Color | Gradient |
+|-------|------|---------------|----------|
+| Persian | Psychic | `#8338ec` | purple → pink |
+| Bengal | Fire | `#ff6b35` | orange → red |
+| Tabby | Normal | `#a8a878` | tan → brown |
+| Ragdoll | Water | `#3a86ff` | blue → cyan |
+| Siamese | Ice | `#96d9d6` | light blue → white |
+| Maine Coon | Fighting | `#c22e28` | brown → red |
+| British Shorthair | Steel | `#b8b8d0` | silver → gray |
+| Stray | Dark | `#705848` | dark brown → black |
 
-- File: `src/components/game/MessageBar.tsx` (small stabilization)
-  - Ensure transition state handles rapid message swaps cleanly (no stuck “in/out” class state).
-  - Keep queue counter accurate while transitions occur.
+Each type includes: `icon`, `gradient`, `energyColor`, `imageGradient`.
 
-3) Service worker clone error fix
-- File: `public/sw.js`
-- Refactor `staleWhileRevalidate` to clone immediately (synchronously in the response handler) before any async cache operations.
-- Wrap cache write in guarded `try/catch` (or returned promise chain) so cache failures never produce unhandled rejections.
-- Add safe caching guards (`response.ok`, skip problematic cases like body already used / range responses).
-- Optionally bump `CACHE_VERSION` (e.g., `v3`) so clients rotate to the fixed worker/cache set cleanly.
+### 1b. Add CSS variables & keyframes to `src/index.css`
+- Card gold/silver frame colors
+- Holo animation keyframes: `holoShift`, `twinkle`, `rainbow`, `cosmosSwirl`
+- Card texture overlay (subtle noise SVG)
+- Shine sweep animation
+- 3D tilt utility classes
 
-4) Regression/verification checklist
-- Matchmaking panel:
-  - Test narrow/mobile and desktop widths with long cat names.
-  - Confirm no clipped text and buttons remain accessible.
-- Message popups:
-  - Trigger repeated action responses quickly; verify they auto-fade and queue does not grow unbounded.
-- SW error:
-  - Reload app, open matchmaking flow, monitor console for `Response body is already used` (should be gone).
-  - Confirm no offline/cache regressions for normal navigation and static assets.
+---
 
-Files to update:
-- `src/components/game/MatchmakingPanel.tsx`
-- `src/hooks/useGameMessages.ts`
-- `src/components/game/MessageBar.tsx`
-- `public/sw.js`
+## Phase 2: New PokemonCard Component
+
+### Create `src/components/game/PokemonCard.tsx`
+A new dedicated component for the Pokémon TCG layout.
+
+**Card structure (320×448 aspect ratio):**
+```
+┌─────────────────────────────┐
+│  [FRAME: tier-colored]      │
+│  ┌───────────────────────┐  │
+│  │ [Evo Stage]    [HP]   │  │
+│  │ [NAME]      [Type 🔥] │  │
+│  │ ┌─────────────────┐   │  │
+│  │ │  CAT AVATAR/    │   │  │
+│  │ │  PORTRAIT        │   │  │
+│  │ │  (type gradient)  │   │  │
+│  │ └─────────────────┘   │  │
+│  │ [Description bar]     │  │
+│  │ ┌─────────────────┐   │  │
+│  │ │ [⚡] Move 1   30 │   │  │
+│  │ │ flavor text      │   │  │
+│  │ └─────────────────┘   │  │
+│  │ ┌─────────────────┐   │  │
+│  │ │ [⚡⚡] Move 2  60│   │  │
+│  │ │ flavor text      │   │  │
+│  │ └─────────────────┘   │  │
+│  │ Weakness | Resist | Retreat│
+│  │ ★★★★ | #018/100 | CCE │  │
+│  └───────────────────────┘  │
+│  [HOLO OVERLAY]             │
+│  [SHINE EFFECT]             │
+└─────────────────────────────┘
+```
+
+**Key features:**
+- **Frame colors by tier:** Common=silver matte, Uncommon=silver gloss, Rare=gold, Legendary=gold cosmos, Mythic=animated rainbow
+- **HP display:** Top-right, large red number from `cat.health`
+- **Evolution stage:** stray=Basic, adopted=Stage 1, pure=Stage 2
+- **Type energy icons:** Circular breed-colored icons
+- **Move cards:**
+  - Move 1 = Personality ability (e.g., "Playful Swipe", "Independent Blaze")
+  - Move 2 = Best learned trick or breed special
+  - Damage = calculated from grade + stats
+- **Weakness/Resistance/Retreat:** Derived from breed type matchups
+- **Footer:** Rarity stars, card number, CCE set symbol
+- **Texture:** Subtle canvas/paper noise overlay
+
+### Holographic effects (tier-progressive):
+- **Common:** None (matte)
+- **Uncommon:** Subtle sheen sweep on hover
+- **Rare:** Twinkling star particles + diagonal holo
+- **Legendary:** Cosmos swirl + dynamic shine
+- **Mythic:** Animated rainbow border + full rainbow overlay
+
+### 3D Tilt (mouse-follow):
+- `perspective: 1500px` on container
+- `onMouseMove` → calculate rotateX/rotateY from cursor position
+- Dynamic radial-gradient shine follows cursor
+- Holo intensity increases with tilt angle
+- Disabled when card is flipped
+- Touch support via `onTouchMove`
+
+---
+
+## Phase 3: Card Flip (Back Side)
+
+### Back design in PokemonCard:
+```
+┌─────────────────────────────┐
+│  [FRAME: tier-colored]      │
+│  ┌───────────────────────┐  │
+│  │      CAT NAME         │  │
+│  │    [Breed subtitle]   │  │
+│  │  ┌──────┐ ┌──────┐   │  │
+│  │  │Hunger│ │ Rest │   │  │
+│  │  └──────┘ └──────┘   │  │
+│  │  ┌──────┐ ┌──────┐   │  │
+│  │  │ Feed │ │ Wins │   │  │
+│  │  └──────┘ └──────┘   │  │
+│  │  [Lore/description]   │  │
+│  │  Tricks: 🪑🐾🔄⬆️🎾  │  │
+│  │  Social: 💚5  😾2    │  │
+│  │  Value: $350          │  │
+│  │  [CCE Logo]           │  │
+│  └───────────────────────┘  │
+└─────────────────────────────┘
+```
+
+- Flip via 🔄 button or click
+- 0.6s cubic-bezier `rotateY(180deg)` transition
+- 3D tilt disabled while flipped
+
+---
+
+## Phase 4: Move Generation System
+
+### Create `src/lib/cardMoves.ts`
+Generate Pokémon-style moves from cat data:
+
+| Personality | Move Name | Base Damage |
+|-------------|-----------|-------------|
+| Playful | Playful Swipe | 20 |
+| Affectionate | Warm Embrace | 30 (heals) |
+| Independent | Lone Strike | 40 |
+| Curious | Investigate | 20 (draw) |
+| Lazy | Nap Attack | 10 (buff) |
+| Shy | Shadow Fade | 20 (dodge) |
+
+Move 2 = best trick or breed special. Damage scales with grade.
+
+---
+
+## Phase 5: Integration
+
+### Modify `UnifiedCatCard.tsx`:
+- `variant="trading"` → renders PokemonCard
+- Add `variant="pokemon"` as explicit alias
+- Keep `variant="card"` as standard game card
+
+### Update `CardShowcase.tsx`:
+- Add Pokémon card showcase section for all 5 tiers
+
+### Update `CatCollection.tsx`:
+- Use Pokémon card variant
+
+---
+
+## File Changes Summary
+
+| File | Action |
+|------|--------|
+| `src/config/breedTypes.ts` | CREATE |
+| `src/lib/cardMoves.ts` | CREATE |
+| `src/components/game/PokemonCard.tsx` | CREATE |
+| `src/components/game/UnifiedCatCard.tsx` | MODIFY |
+| `src/config/graphics.ts` | MODIFY |
+| `src/index.css` | MODIFY |
+| `src/pages/CardShowcase.tsx` | MODIFY |
+
+## Implementation Order
+1. `breedTypes.ts` + `cardMoves.ts` (data layer)
+2. CSS animations in `index.css`
+3. `PokemonCard.tsx` (core component with front/back/tilt)
+4. Wire into `UnifiedCatCard.tsx`
+5. Update `CardShowcase.tsx`
+6. Test all 5 tiers + flip + 3D tilt

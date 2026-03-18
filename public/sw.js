@@ -1,7 +1,7 @@
 // Service Worker for Push Notifications and Asset Caching
 // Version 2 - Updated caching strategy for code-split chunks
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `runtime-${CACHE_VERSION}`;
 
@@ -157,7 +157,15 @@ async function staleWhileRevalidate(request) {
   const fetchPromise = fetch(request)
     .then((response) => {
       if (response.ok) {
-        caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, response.clone()));
+        // Clone synchronously before any async work to avoid "body already used"
+        const cloned = response.clone();
+        caches.open(RUNTIME_CACHE).then((cache) => {
+          try {
+            cache.put(request, cloned);
+          } catch (e) {
+            // Silently ignore cache write failures
+          }
+        }).catch(() => {});
       }
       return response;
     })
