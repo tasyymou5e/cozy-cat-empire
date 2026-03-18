@@ -143,7 +143,7 @@ export function PaperCatAvatar({
     }
 
     setIsLoading(false);
-  }, [generateFn, isModuleLoaded, cat, equippedCostumeId, size, avatarHash]);
+  }, [generateFn, isModuleLoaded, cat, equippedCostumeId, size, avatarHash, portraitStyle]);
 
   // Show loading skeleton while module is being fetched
   if (!isModuleLoaded) {
