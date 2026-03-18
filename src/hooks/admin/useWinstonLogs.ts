@@ -185,7 +185,7 @@ export function useClearWinstonLogs() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (options?: { level?: string; olderThan?: string }) => {
+    mutationFn: async (options?: { level?: WinstonLogLevel; olderThan?: string }) => {
       let query = supabase.from('application_logs').delete();
 
       if (options?.level) {
