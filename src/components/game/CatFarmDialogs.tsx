@@ -113,6 +113,7 @@ export function CatFarmDialogs({
   showOrphanDialog,
   onRecoverOrphans,
   onDismissOrphans,
+  availableSpace,
   showWelcomeBack,
   welcomeBackBonus,
   onClaimWelcomeBack,
