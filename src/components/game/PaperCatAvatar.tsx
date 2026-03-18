@@ -72,10 +72,10 @@ export function PaperCatAvatar({
   const [generateFn, setGenerateFn] = useState<GenerateCatAvatarUrlFn | null>(null);
   const [isModuleLoaded, setIsModuleLoaded] = useState(false);
 
-  // Generate hash for caching
+  // Generate hash for caching (includes style)
   const avatarHash = useMemo(() => {
-    return generateFullAvatarHash(cat, equippedCostumeId, size);
-  }, [cat, equippedCostumeId, size]);
+    return generateFullAvatarHash(cat, equippedCostumeId, `${size}-${portraitStyle}`);
+  }, [cat, equippedCostumeId, size, portraitStyle]);
 
   // Dynamically import the Paper.js generator module
   useEffect(() => {
