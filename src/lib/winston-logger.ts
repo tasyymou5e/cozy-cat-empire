@@ -118,7 +118,7 @@ async function flushLogs() {
       level: entry.level,
       message: entry.message.slice(0, 5000),
       label: entry.label || null,
-      metadata: (entry.metadata || {}) as Record<string, unknown>,
+      metadata: (entry.metadata || {}) as import('@/integrations/supabase/types').Json,
       source: entry.source || 'client',
       function_name: entry.functionName || null,
       duration_ms: entry.durationMs || null,
