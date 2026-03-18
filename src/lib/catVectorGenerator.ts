@@ -537,7 +537,8 @@ function darkenColor(hex: string, percent: number): string {
 export function generateCatAvatar(
   cat: Cat,
   costumeId: string | undefined,
-  size: string = 'md'
+  size: string = 'md',
+  portraitStyle: 'kawaii' | 'realistic' = 'kawaii'
 ): { svg: string; dataUrl: string } | null {
   try {
     const scope = initializePaper();
@@ -565,9 +566,16 @@ export function generateCatAvatar(
 
     const furColor = FUR_COLORS[appearance.furColor] || FUR_COLORS.orange;
 
+    // Style-specific adjustments
+    const isKawaii = portraitStyle === 'kawaii';
+    const eyeScale = isKawaii ? 1.3 : 1.0;
+    const headRadiusMultiplier = isKawaii ? 1.05 : 1.0; // Rounder face for kawaii
+
+    const effectiveRadius = radius * headRadiusMultiplier;
+
     // Generate all parts (back to front order)
-    const ears = generateEars(scope, breedShape, furColor, centerX, centerY, radius);
-    const head = generateHead(scope, breedShape, furColor, centerX, centerY, radius);
+    const ears = generateEars(scope, breedShape, furColor, centerX, centerY, effectiveRadius);
+    const head = generateHead(scope, breedShape, furColor, centerX, centerY, effectiveRadius);
     const pattern = generatePattern(
       scope,
       appearance.pattern,
@@ -575,23 +583,60 @@ export function generateCatAvatar(
       head.bounds,
       furColor
     );
-    const eyes = generateEyes(scope, appearance, breedShape, centerX, centerY, radius);
-    const nose = generateNose(scope, breedShape, centerX, centerY, radius);
-    const mouth = generateMouth(scope, centerX, centerY, radius);
+    const eyes = generateEyes(scope, appearance, breedShape, centerX, centerY, effectiveRadius);
+    const nose = generateNose(scope, breedShape, centerX, centerY, effectiveRadius);
+    const mouth = generateMouth(scope, centerX, centerY, effectiveRadius);
     const whiskers = generateWhiskers(
       scope,
       centerX,
       centerY,
-      radius,
+      effectiveRadius,
       appearance.facialFeature === 'whiskers_long'
     );
+
+    // Scale eyes for kawaii style
+    if (isKawaii && eyeScale !== 1.0) {
+      eyes.scale(eyeScale);
+    }
+
+    // Add blush marks for kawaii style
+    if (isKawaii) {
+      const blushLeft = new scope.Path.Circle({
+        center: [centerX - effectiveRadius * 0.5, centerY + effectiveRadius * 0.25],
+        radius: effectiveRadius * 0.12,
+        fillColor: new scope.Color(1, 0.7, 0.75, 0.4),
+      });
+      const blushRight = new scope.Path.Circle({
+        center: [centerX + effectiveRadius * 0.5, centerY + effectiveRadius * 0.25],
+        radius: effectiveRadius * 0.12,
+        fillColor: new scope.Color(1, 0.7, 0.75, 0.4),
+      });
+    }
+
+    // Add subtle shading for realistic style
+    if (!isKawaii) {
+      // Shadow under head
+      const shadow = new scope.Path.Ellipse({
+        center: [centerX, centerY + effectiveRadius * 0.9],
+        size: [effectiveRadius * 1.4, effectiveRadius * 0.3],
+        fillColor: new scope.Color(0, 0, 0, 0.08),
+      });
+      shadow.sendToBack();
+
+      // Light highlight on forehead
+      const highlight = new scope.Path.Circle({
+        center: [centerX - effectiveRadius * 0.15, centerY - effectiveRadius * 0.35],
+        radius: effectiveRadius * 0.18,
+        fillColor: new scope.Color(1, 1, 1, 0.1),
+      });
+    }
 
     // Add tier-specific glow for rare cats
     const tier = getGradeTier(cat.grade);
     if (tier === 'ultraRare' || tier === 'veryRare') {
       const glow = new scope.Path.Circle({
         center: [centerX, centerY],
-        radius: radius * 1.1,
+        radius: effectiveRadius * 1.1,
         strokeColor: tier === 'ultraRare' ? '#EC4899' : '#FBBF24',
         strokeWidth: 2,
       });
@@ -615,9 +660,10 @@ export function generateCatAvatar(
 export function generateCatAvatarUrl(
   cat: Cat,
   costumeId?: string,
-  size: string = 'md'
+  size: string = 'md',
+  portraitStyle: 'kawaii' | 'realistic' = 'kawaii'
 ): string | null {
-  const result = generateCatAvatar(cat, costumeId, size);
+  const result = generateCatAvatar(cat, costumeId, size, portraitStyle);
   return result?.dataUrl || null;
 }
 

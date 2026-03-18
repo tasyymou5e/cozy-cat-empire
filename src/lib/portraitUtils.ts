@@ -1,4 +1,5 @@
 import { Cat } from '@/types/game';
+import type { PortraitStyle } from '@/config/portraitSettings';
 
 /**
  * Compute a hash representing the visual state of a cat.
@@ -9,13 +10,15 @@ import { Cat } from '@/types/game';
  * - Appearance (fur color, pattern, eye color, hair length, facial features)
  * - Costume ID (if equipped, must be in portrait)
  * - Personality (affects expression in portrait)
+ * - Portrait style (kawaii vs realistic)
  */
-export function computeAppearanceHash(cat: Cat, costumeId?: string): string {
+export function computeAppearanceHash(cat: Cat, costumeId?: string, style?: PortraitStyle): string {
   const data = {
     breed: cat.breed,
     appearance: cat.appearance || null,
     costumeId: costumeId || null,
-    personality: cat.personality, // Include personality for expression matching
+    personality: cat.personality,
+    style: style || cat.portraitStyle || null,
   };
 
   // Create a simple hash from the JSON representation
