@@ -598,7 +598,7 @@ Deno.serve(async (req) => {
     };
     console.log(`Generating ${highQuality ? 'HIGH QUALITY' : 'standard'} ${style} portrait for cat: ${cat.name} (${cat.id})`);
     
-    const prompt = buildPrompt(cat);
+    const prompt = buildPrompt(cat, style);
     console.log('Generated prompt:', prompt.substring(0, 500) + '...');
 
     // Call Lovable AI to generate image

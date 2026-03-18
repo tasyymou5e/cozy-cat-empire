@@ -347,6 +347,96 @@ export function CatPortrait({
         )}
       </div>
 
+      {/* Style Selector */}
+      <div className="flex items-center gap-2">
+        {Object.entries(PORTRAIT_STYLES).map(([key, meta]) => (
+          <Button
+            key={key}
+            variant={selectedStyle === key ? 'default' : 'outline'}
+            size="sm"
+            className={cn(
+              'gap-1.5 text-xs',
+              selectedStyle === key && 'shadow-md'
+            )}
+            onClick={() => {
+              setSelectedStyle(key as PortraitStyle);
+              onStyleChange?.(cat.id, key as PortraitStyle);
+            }}
+          >
+            <span>{meta.icon}</span>
+            {meta.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Action Buttons */}
+      {state === 'idle' && !portraitUrl && (
+        <div className="flex flex-col items-center gap-1">
+          {hasCredits ? (
+            <Button
+              onClick={handleGenerateClick}
+              variant="outline"
+              size="sm"
+              className="gap-2 bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20"
+            >
+              <Sparkles className="w-4 h-4" />
+              Generate Portrait
+            </Button>
+          ) : (
+            <Button
+              onClick={() => setShowPurchaseDialog(true)}
+              variant="outline"
+              size="sm"
+              className="gap-2 bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 text-amber-700 dark:text-amber-300"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Buy {packageConfig.portraits} Portraits
+              <Badge variant="secondary" className="ml-1 gap-1 text-xs">
+                <Coins className="w-3 h-3" />${packageConfig.cost.toLocaleString()}
+              </Badge>
+            </Button>
+          )}
+        </div>
+      )}
+
+      {state === 'error' && (
+        <Button onClick={handleGenerateClick} variant="outline" size="sm" className="gap-2">
+          <RefreshCw className="w-4 h-4" />
+          Try Again
+        </Button>
+      )}
+
+      {state === 'complete' && portraitUrl && (
+        <div className="flex flex-col items-center gap-1">
+          {isOutdated ? (
+            <>
+              <Button
+                onClick={handleGenerateClick}
+                variant="secondary"
+                size="sm"
+                className="gap-2 bg-orange-100 hover:bg-orange-200 text-orange-700 dark:bg-orange-900/20 dark:hover:bg-orange-900/40 dark:text-orange-300"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Update Portrait
+              </Button>
+              <p className="text-xs text-muted-foreground text-center max-w-[180px]">
+                Appearance changed since portrait was created
+              </p>
+            </>
+          ) : (
+            <Button
+              onClick={handleGenerateClick}
+              variant="ghost"
+              size="sm"
+              className="gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Regenerate
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Action Buttons */}
       {state === 'idle' && !portraitUrl && (
         <div className="flex flex-col items-center gap-1">

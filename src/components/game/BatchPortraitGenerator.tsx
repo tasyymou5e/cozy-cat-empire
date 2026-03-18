@@ -222,7 +222,21 @@ export function BatchPortraitGenerator({
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* Style Selector */}
+        <Select value={batchStyle} onValueChange={(v: PortraitStyle) => setBatchStyle(v)}>
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(PORTRAIT_STYLES).map(([key, meta]) => (
+              <SelectItem key={key} value={key}>
+                {meta.icon} {meta.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <Button
           variant="outline"
           size="sm"
