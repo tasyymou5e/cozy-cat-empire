@@ -23,7 +23,8 @@ import { COSTUMES } from '@/types/costumes';
 type GenerateCatAvatarUrlFn = (
   cat: Cat,
   costumeId?: string,
-  size?: string
+  size?: string,
+  portraitStyle?: 'kawaii' | 'realistic'
 ) => string | null;
 
 export interface PaperCatAvatarProps {
