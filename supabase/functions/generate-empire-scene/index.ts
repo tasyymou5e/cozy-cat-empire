@@ -33,6 +33,7 @@ interface RenderRequest {
   cats: Cat[];
   catCostumes: Record<string, string>;
   gameDay: number;
+  customPrompt?: string;
 }
 
 // Dwelling tier descriptions for prompt building
@@ -192,7 +193,7 @@ function getSceneActivity(catCount: number): string {
 }
 
 function buildEmpirePrompt(request: RenderRequest): string {
-  const { houseSize, timeOfDay, season, cats, catCostumes } = request;
+  const { houseSize, timeOfDay, season, cats, catCostumes, customPrompt } = request;
   
   const catDescriptions = cats.map((cat, index) => {
     const costume = catCostumes[cat.id];
@@ -204,7 +205,12 @@ function buildEmpirePrompt(request: RenderRequest): string {
   const moodAccents = pickRandom(MOOD_ACCENTS, 3).join(", ");
   const seed = Math.floor(Math.random() * 99999);
 
-  const prompt = `SCENE: ${TIER_DESCRIPTIONS[houseSize]}
+  // Use custom prompt as scene override if provided
+  const sceneDescription = customPrompt 
+    ? `${customPrompt}. Incorporate elements of: ${TIER_DESCRIPTIONS[houseSize]}`
+    : TIER_DESCRIPTIONS[houseSize];
+
+  const prompt = `SCENE: ${sceneDescription}
 
 LIGHTING: ${TIME_LIGHTING[timeOfDay]}
 
@@ -258,6 +264,7 @@ const RenderRequestSchema = z.object({
   })).default([]),
   catCostumes: z.record(z.string()).default({}),
   gameDay: z.number().int().min(1),
+  customPrompt: z.string().max(200).optional(),
 });
 
 serve(async (req) => {

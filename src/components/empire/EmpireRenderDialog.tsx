@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkles, Loader2, AlertCircle, Check, Crown } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Sparkles, Loader2, AlertCircle, Check, Crown, Paintbrush } from 'lucide-react';
 import { Cat, HouseSize } from '@/types/game';
 import { TimeOfDay } from '@/types/empire';
 import { RealSeason } from '@/lib/seasonUtils';
@@ -29,7 +30,7 @@ interface EmpireRenderDialogProps {
   cost: number;
   canAfford: boolean;
   isRendering: boolean;
-  onConfirm: () => void;
+  onConfirm: (customPrompt?: string) => void;
 }
 
 const TIER_NAMES: Record<HouseSize, string> = {
@@ -70,6 +71,8 @@ export function EmpireRenderDialog({
   isRendering,
   onConfirm,
 }: EmpireRenderDialogProps) {
+  const [customPrompt, setCustomPrompt] = useState('');
+
   const catsWithPortraits = useMemo(() => 
     cats.filter(c => c.portraitUrl),
     [cats]
@@ -179,6 +182,23 @@ export function EmpireRenderDialog({
             </div>
           )}
 
+          {/* Custom prompt */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Paintbrush className="h-4 w-4 text-muted-foreground" />
+              <h4 className="font-medium text-sm">Custom Background (optional)</h4>
+            </div>
+            <Textarea
+              placeholder="e.g. A magical forest with glowing mushrooms, a cozy Japanese tea house, underwater coral reef..."
+              value={customPrompt}
+              onChange={(e) => setCustomPrompt(e.target.value)}
+              className="min-h-[60px] text-sm resize-none"
+              maxLength={200}
+              disabled={isRendering}
+            />
+            <p className="text-xs text-muted-foreground text-right">{customPrompt.length}/200</p>
+          </div>
+
           {/* Benefits info */}
           <div className="bg-primary/5 rounded-lg p-3 space-y-1.5">
             <p className="text-xs font-medium">What you get:</p>
@@ -208,7 +228,7 @@ export function EmpireRenderDialog({
             Cancel
           </Button>
           <Button
-            onClick={onConfirm}
+            onClick={() => onConfirm(customPrompt.trim() || undefined)}
             disabled={!canAfford || isRendering}
             className="gap-2"
           >
