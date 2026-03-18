@@ -71,6 +71,12 @@ export interface CatManagementActions {
   addReceivedCat: (cat: Cat) => void;
 
   /**
+   * Add a recovered cat preserving its original ID (for orphan recovery)
+   * @param cat - Cat object with original ID intact
+   */
+  addRecoveredCat: (cat: Cat) => void;
+
+  /**
    * Update a cat's visual appearance
    * @param catId - ID of the cat
    * @param appearance - New appearance configuration

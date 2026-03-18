@@ -273,6 +273,7 @@ export function useGameState(
       renameCat: catManagementActions.renameCat,
       comfortCat: catManagementActions.comfortCat,
       addReceivedCat: catManagementActions.addReceivedCat,
+      addRecoveredCat: catManagementActions.addRecoveredCat,
       updateCatAppearance: catManagementActions.updateCatAppearance,
       updateCatPortrait: catManagementActions.updateCatPortrait,
       setSpecialization: catManagementActions.setSpecialization,
