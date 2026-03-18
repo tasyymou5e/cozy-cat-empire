@@ -242,21 +242,21 @@ export function CollectorCard({ cat, equippedCostumeId, className, showFlip = tr
                 </div>
               </div>
 
-              {/* Weakness / Resistance / Retreat */}
+              {/* Flaw / Guard / Speed */}
               <div className="flex justify-between items-center px-3 py-1 border-t-2 mx-3 text-[9px]"
                 style={{ borderColor: 'hsl(40 60% 70%)' }}
               >
                 <div className="text-center">
-                  <div className="font-bold uppercase text-[7px] text-muted-foreground">weakness</div>
+                  <div className="font-bold uppercase text-[7px] text-muted-foreground">flaw</div>
                   <div>{breedType.weaknessIcon}+30</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-bold uppercase text-[7px] text-muted-foreground">resistance</div>
+                  <div className="font-bold uppercase text-[7px] text-muted-foreground">guard</div>
                   <div>{breedType.resistanceIcon}-20</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-bold uppercase text-[7px] text-muted-foreground">retreat</div>
-                  <div>{'⭐'.repeat(retreatCost)}</div>
+                  <div className="font-bold uppercase text-[7px] text-muted-foreground">speed</div>
+                  <div>{'🐾'.repeat(retreatCost)}</div>
                 </div>
               </div>
 
