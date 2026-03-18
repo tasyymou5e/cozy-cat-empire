@@ -96,6 +96,7 @@ export function useEmpireRender({
             cats: catData,
             catCostumes,
             gameDay,
+            customPrompt,
           }),
         }
       );
