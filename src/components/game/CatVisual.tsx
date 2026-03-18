@@ -1,11 +1,14 @@
 import React, { Suspense, lazy } from 'react';
 import { Cat } from '@/types/game';
 import { CatAvatar } from './CatAvatar';
+import { AnimatedCatPortrait } from './AnimatedCatPortrait';
 import { getGradeTier, getGradeStars } from '@/types/grading';
 import { Star, Crown, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GRAPHICS_CONFIG } from '@/config/graphics';
 import { COSTUMES } from '@/types/costumes';
+import { getEffectivePortraitStyle } from '@/config/portraitSettings';
+import { useGraphicsSettings } from '@/hooks/useGraphicsSettings';
 
 // Lazy load PaperCatAvatar for code splitting
 const PaperCatAvatar = lazy(() => import('./PaperCatAvatar'));
