@@ -22,6 +22,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Sparkles,
   Loader2,
   CheckCircle2,
@@ -39,6 +46,8 @@ import {
 } from '@/lib/portraitUtils';
 import { usePortraitCredits } from '@/hooks/usePortraitCredits';
 import { PortraitPurchaseDialog } from './PortraitPurchaseDialog';
+import { PORTRAIT_STYLES, type PortraitStyle } from '@/config/portraitSettings';
+import { getGlobalPortraitStyle } from '@/config/portraitSettings';
 import { cn } from '@/lib/utils';
 
 interface BatchPortraitGeneratorProps {
