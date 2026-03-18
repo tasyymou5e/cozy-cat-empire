@@ -205,7 +205,12 @@ function buildEmpirePrompt(request: RenderRequest): string {
   const moodAccents = pickRandom(MOOD_ACCENTS, 3).join(", ");
   const seed = Math.floor(Math.random() * 99999);
 
-  const prompt = `SCENE: ${TIER_DESCRIPTIONS[houseSize]}
+  // Use custom prompt as scene override if provided
+  const sceneDescription = customPrompt 
+    ? `${customPrompt}. Incorporate elements of: ${TIER_DESCRIPTIONS[houseSize]}`
+    : TIER_DESCRIPTIONS[houseSize];
+
+  const prompt = `SCENE: ${sceneDescription}
 
 LIGHTING: ${TIME_LIGHTING[timeOfDay]}
 
