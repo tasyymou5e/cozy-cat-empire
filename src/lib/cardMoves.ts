@@ -12,29 +12,29 @@ export interface CardMove {
 const PERSONALITY_MOVES: Record<CatPersonality, { name: string; desc: string; baseDmg: number }> = {
   playful: { name: 'Playful Swipe', desc: 'A quick, mischievous paw strike that catches opponents off guard.', baseDmg: 20 },
   affectionate: { name: 'Warm Embrace', desc: 'Heals 20 HP. If at full HP, this attack does 20 more damage.', baseDmg: 30 },
-  independent: { name: 'Lone Strike', desc: 'This Pokémon\'s pride prevents confusion. Flip a coin—if heads, the target is Burned.', baseDmg: 40 },
+  independent: { name: 'Lone Strike', desc: 'This cat\'s fierce independence prevents confusion. May leave the target singed.', baseDmg: 40 },
   curious: { name: 'Investigate', desc: 'Draw 1 card. If opponent has an Ability, this attack does 20 more damage.', baseDmg: 20 },
-  lazy: { name: 'Nap Attack', desc: 'This Pokémon falls asleep. Heal 30 HP and gain +10 resistance next turn.', baseDmg: 10 },
-  shy: { name: 'Shadow Fade', desc: 'Prevent all damage done to this Pokémon during your opponent\'s next turn.', baseDmg: 20 },
+  lazy: { name: 'Nap Attack', desc: 'This cat falls asleep mid-battle. Heal 30 HP and gain +10 resistance next turn.', baseDmg: 10 },
+  shy: { name: 'Shadow Fade', desc: 'Prevent all damage done to this cat during your opponent\'s next turn.', baseDmg: 20 },
 };
 
 const TRICK_MOVES: Record<TrickId, { name: string; desc: string; baseDmg: number }> = {
   sit: { name: 'Disciplined Stance', desc: 'Reduces damage from the next attack by 20.', baseDmg: 20 },
-  paw: { name: 'Power Paw', desc: 'Flip 2 coins. This attack does 30 damage for each heads.', baseDmg: 30 },
-  rollOver: { name: 'Rolling Fury', desc: 'This attack does 20 damage to each of your opponent\'s Benched Pokémon.', baseDmg: 50 },
-  jump: { name: 'Aerial Leap', desc: 'If this Pokémon has no damage, this attack does 40 more damage.', baseDmg: 60 },
+  paw: { name: 'Power Paw', desc: 'Swipes twice with razor-sharp claws. Deals 30 damage per successful hit.', baseDmg: 30 },
+  rollOver: { name: 'Rolling Fury', desc: 'This attack does 20 damage to each of your opponent\'s benched cats.', baseDmg: 50 },
+  jump: { name: 'Aerial Leap', desc: 'If this cat has no damage, this attack does 40 more damage.', baseDmg: 60 },
   fetch: { name: 'Supreme Fetch', desc: 'Search your deck for any card and put it into your hand.', baseDmg: 80 },
 };
 
 const BREED_SPECIALS: Record<CatBreed, { name: string; desc: string; baseDmg: number }> = {
   persian: { name: 'Psychic Purr', desc: 'Your opponent reveals their hand. Discard 1 card.', baseDmg: 50 },
-  bengal: { name: 'Royal Roar', desc: 'Discard 2 Energy. The defending Pokémon is now Paralyzed.', baseDmg: 80 },
+  bengal: { name: 'Royal Roar', desc: 'Discard 2 Energy. The defending cat is now Stunned.', baseDmg: 80 },
   tabby: { name: 'Street Smarts', desc: 'If you have fewer Prize cards, this attack does 30 more damage.', baseDmg: 40 },
-  ragdoll: { name: 'Starlight Cuddle', desc: 'Heal 20 HP from this Pokémon. If at full HP, this does 50 more damage.', baseDmg: 100 },
-  siamese: { name: 'Frost Whisper', desc: 'The defending Pokémon is now Frozen. Flip a coin—if tails, discard an Energy.', baseDmg: 60 },
+  ragdoll: { name: 'Starlight Cuddle', desc: 'Heal 20 HP from this cat. If at full HP, this does 50 more damage.', baseDmg: 100 },
+  siamese: { name: 'Frost Whisper', desc: 'The defending cat is now Frozen. On a miss, discard an Energy.', baseDmg: 60 },
   'maine-coon': { name: 'Titan Tackle', desc: 'This attack also does 20 damage to itself.', baseDmg: 90 },
-  'british-shorthair': { name: 'Iron Guard', desc: 'This Pokémon takes 30 less damage during your opponent\'s next turn.', baseDmg: 50 },
-  stray: { name: 'Alley Rush', desc: 'Flip 3 coins. For each heads, this attack does 20 more damage.', baseDmg: 30 },
+  'british-shorthair': { name: 'Iron Guard', desc: 'This cat takes 30 less damage during your opponent\'s next turn.', baseDmg: 50 },
+  stray: { name: 'Alley Rush', desc: 'Launches a flurry of swipes. Each hit does 20 more damage.', baseDmg: 30 },
 };
 
 export function generateMoves(cat: Cat): [CardMove, CardMove] {
