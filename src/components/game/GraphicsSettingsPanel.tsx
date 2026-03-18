@@ -27,6 +27,7 @@ import { PORTRAIT_STYLES, type PortraitStyle } from '@/config/portraitSettings';
 export function GraphicsSettingsPanel() {
   const { settings, updateSetting, resetToDefaults, isReducedMotion, effectiveAnimations } =
     useGraphicsSettings();
+  const [showPortraitSettings, setShowPortraitSettings] = useState(false);
 
   return (
     <Card className="border-accent/30">
