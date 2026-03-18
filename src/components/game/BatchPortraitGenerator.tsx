@@ -72,6 +72,7 @@ export function BatchPortraitGenerator({
   currentMoney = 0,
   onMoneyChange,
 }: BatchPortraitGeneratorProps) {
+  const [batchStyle, setBatchStyle] = useState<PortraitStyle>(getGlobalPortraitStyle());
   const [showConfirm, setShowConfirm] = useState(false);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
