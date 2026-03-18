@@ -62,16 +62,9 @@ export function AnimatedCatPortrait({
         <div className="absolute top-0 left-0 right-0 h-1/4 pointer-events-none animate-kawaii-ear-twitch origin-bottom" />
       )}
 
-      {/* CSS eye-blink overlay — thin strip at eye level */}
+      {/* CSS eye-blink — brief opacity dip on the whole portrait */}
       {isBlinking && enableAnimations && (
-        <div
-          className="absolute left-0 right-0 pointer-events-none z-10 animate-cat-eye-blink"
-          style={{
-            top: '30%',
-            height: '12%',
-            background: 'linear-gradient(to bottom, transparent 0%, hsl(var(--foreground) / 0.7) 30%, hsl(var(--foreground) / 0.85) 50%, hsl(var(--foreground) / 0.7) 70%, transparent 100%)',
-          }}
-        />
+        <div className="absolute inset-0 pointer-events-none z-10 animate-cat-eye-blink bg-black/30" />
       )}
     </div>
   );
