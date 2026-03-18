@@ -323,7 +323,7 @@ const HAIR_LENGTH_DESCRIPTIONS: Record<string, string> = {
 // PROMPT BUILDER
 // ============================================================================
 
-function buildPrompt(cat: CatData): string {
+function buildPrompt(cat: CatData, style: PortraitStyleType = 'kawaii'): string {
   const { breed, personality, appearance, costume } = cat;
   
   // Get appearance details with fallbacks
@@ -340,7 +340,7 @@ function buildPrompt(cat: CatData): string {
   const parts: string[] = [];
   
   // 1. Style foundation
-  parts.push(STYLE_PROMPT);
+  parts.push(getStylePrompt(style));
   
   // 2. Breed description
   parts.push(`
