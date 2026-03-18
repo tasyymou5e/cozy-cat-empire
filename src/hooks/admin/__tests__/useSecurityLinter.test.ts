@@ -27,13 +27,13 @@ describe('useSecurityLinter', () => {
     });
   });
 
-  it('should expose runScan function', () => {
+  it('should expose runLinter function', () => {
     const { result } = renderHook(() => useSecurityLinter());
-    expect(typeof result.current.runScan).toBe('function');
+    expect(typeof result.current.runLinter).toBe('function');
   });
 
   it('should initialize with not scanning', () => {
     const { result } = renderHook(() => useSecurityLinter());
-    expect(result.current.scanning).toBe(false);
+    expect(result.current.isScanning).toBe(false);
   });
 });

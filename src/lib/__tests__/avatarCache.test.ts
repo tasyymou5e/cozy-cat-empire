@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('@/lib/logger', () => ({
   createLogger: () => ({
@@ -6,20 +6,32 @@ vi.mock('@/lib/logger', () => ({
   }),
 }));
 
-import { avatarCache } from '../avatarCache';
+import { getCachedAvatar, setCachedAvatar, clearAvatarCache, generateAppearanceHash } from '../avatarCache';
 
 describe('avatarCache', () => {
-  it('should be defined', () => {
-    expect(avatarCache).toBeDefined();
+  it('should return null for uncached key', () => {
+    const result = getCachedAvatar('nonexistent-hash');
+    expect(result).toBeNull();
   });
 
-  it('should expose get and set methods', () => {
-    expect(typeof avatarCache.get).toBe('function');
-    expect(typeof avatarCache.set).toBe('function');
+  it('should store and retrieve cached avatars', () => {
+    setCachedAvatar('test-hash', '<svg>test</svg>');
+    const result = getCachedAvatar('test-hash');
+    expect(result).toBe('<svg>test</svg>');
   });
 
-  it('should return undefined for uncached key', () => {
-    const result = avatarCache.get('nonexistent');
-    expect(result).toBeUndefined();
+  it('should clear cache', () => {
+    setCachedAvatar('test-hash-2', '<svg>test2</svg>');
+    clearAvatarCache();
+    expect(getCachedAvatar('test-hash-2')).toBeNull();
+  });
+
+  it('generateAppearanceHash should return a string', () => {
+    const cat = {
+      id: 'c1', breed: 'tabby',
+      appearance: { furColor: 'orange', pattern: 'tabby', eyeColor: 'green', hairLength: 'short', facialFeatures: [] },
+    } as any;
+    const hash = generateAppearanceHash(cat);
+    expect(typeof hash).toBe('string');
   });
 });

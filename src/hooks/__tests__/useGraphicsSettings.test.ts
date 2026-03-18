@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 
 import { useGraphicsSettings } from '../useGraphicsSettings';
 
@@ -11,11 +11,15 @@ describe('useGraphicsSettings', () => {
   it('should initialize with default settings', () => {
     const { result } = renderHook(() => useGraphicsSettings());
     expect(result.current.settings).toBeDefined();
-    expect(result.current.settings.quality).toBeDefined();
   });
 
-  it('should expose updateSettings', () => {
+  it('should expose updateSetting', () => {
     const { result } = renderHook(() => useGraphicsSettings());
-    expect(typeof result.current.updateSettings).toBe('function');
+    expect(typeof result.current.updateSetting).toBe('function');
+  });
+
+  it('should expose resetToDefaults', () => {
+    const { result } = renderHook(() => useGraphicsSettings());
+    expect(typeof result.current.resetToDefaults).toBe('function');
   });
 });

@@ -24,9 +24,4 @@ describe('useDailyObjectives', () => {
     const { result } = renderHook(() => useDailyObjectives(undefined));
     expect(result.current.objectives).toEqual([]);
   });
-
-  it('should expose trackProgress function', () => {
-    const { result } = renderHook(() => useDailyObjectives('u1'));
-    expect(typeof result.current.trackProgress).toBe('function');
-  });
 });

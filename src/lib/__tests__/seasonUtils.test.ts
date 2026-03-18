@@ -1,15 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { getCurrentSeason, getSeasonEmoji } from '../seasonUtils';
+import { getCurrentRealSeason, SEASONAL_PROMPTS } from '../seasonUtils';
 
 describe('seasonUtils', () => {
-  it('getCurrentSeason should return a valid season', () => {
-    const season = getCurrentSeason();
-    expect(['spring', 'summer', 'fall', 'winter']).toContain(season);
+  it('getCurrentRealSeason should return a valid season', () => {
+    const season = getCurrentRealSeason();
+    expect(['spring', 'summer', 'autumn', 'winter']).toContain(season);
   });
 
-  it('getSeasonEmoji should return an emoji string', () => {
-    const emoji = getSeasonEmoji('spring');
-    expect(typeof emoji).toBe('string');
-    expect(emoji.length).toBeGreaterThan(0);
+  it('SEASONAL_PROMPTS should have entries for all seasons', () => {
+    expect(SEASONAL_PROMPTS).toHaveProperty('spring');
+    expect(SEASONAL_PROMPTS).toHaveProperty('summer');
+    expect(SEASONAL_PROMPTS).toHaveProperty('autumn');
+    expect(SEASONAL_PROMPTS).toHaveProperty('winter');
   });
 });

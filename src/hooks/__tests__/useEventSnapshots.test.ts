@@ -6,7 +6,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: { from: (...args: unknown[]) => mockFrom(...args) },
 }));
 
-import { useEventSnapshots } from '../useEventSnapshots';
+import { useEventSnapshots, type SnapshotEventType } from '../useEventSnapshots';
 
 describe('useEventSnapshots', () => {
   beforeEach(() => {
@@ -31,7 +31,7 @@ describe('useEventSnapshots', () => {
     const mockState = { cats: [], money: 100, day: 1 } as any;
     const { result } = renderHook(() => useEventSnapshots(undefined, mockState));
     await act(async () => {
-      await result.current.createEventSnapshot('breeding');
+      await result.current.createEventSnapshot('breed' as SnapshotEventType);
     });
     expect(mockFrom).not.toHaveBeenCalled();
   });

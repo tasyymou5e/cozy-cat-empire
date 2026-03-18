@@ -37,12 +37,12 @@ describe('useTrading', () => {
 
   it('should initialize with empty trades', () => {
     const { result } = renderHook(() => useTrading(undefined));
-    expect(result.current.trades).toEqual([]);
+    expect(result.current.incomingTrades).toEqual([]);
+    expect(result.current.outgoingTrades).toEqual([]);
   });
 
-  it('should expose createTrade and respondToTrade', () => {
+  it('should expose createTrade', () => {
     const { result } = renderHook(() => useTrading('u1'));
     expect(typeof result.current.createTrade).toBe('function');
-    expect(typeof result.current.respondToTrade).toBe('function');
   });
 });

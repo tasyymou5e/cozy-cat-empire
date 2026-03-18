@@ -45,9 +45,9 @@ describe('useFriends', () => {
     expect(result.current.pendingRequests).toEqual([]);
   });
 
-  it('should expose sendRequest and acceptRequest', () => {
+  it('should expose sendFriendRequest and acceptRequest', () => {
     const { result } = renderHook(() => useFriends('u1'));
-    expect(typeof result.current.sendRequest).toBe('function');
+    expect(typeof result.current.sendFriendRequest).toBe('function');
     expect(typeof result.current.acceptRequest).toBe('function');
   });
 });

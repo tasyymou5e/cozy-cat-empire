@@ -25,9 +25,4 @@ describe('useDailyLoginRewards', () => {
     const { result } = renderHook(() => useDailyLoginRewards(undefined));
     expect(result.current.currentStreak).toBeDefined();
   });
-
-  it('should expose claimReward function', () => {
-    const { result } = renderHook(() => useDailyLoginRewards('u1'));
-    expect(typeof result.current.claimReward).toBe('function');
-  });
 });

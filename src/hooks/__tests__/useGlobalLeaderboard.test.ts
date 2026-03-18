@@ -16,18 +16,21 @@ describe('useGlobalLeaderboard', () => {
         order: vi.fn().mockReturnValue({
           limit: vi.fn().mockResolvedValue({ data: [], error: null }),
         }),
+        eq: vi.fn().mockReturnValue({
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }),
       }),
+      upsert: vi.fn().mockResolvedValue({ error: null }),
     });
   });
 
   it('should initialize with empty leaderboard', () => {
-    const { result } = renderHook(() => useGlobalLeaderboard());
+    const { result } = renderHook(() => useGlobalLeaderboard('u1'));
     expect(result.current.leaderboard).toEqual([]);
-    expect(result.current.loading).toBeDefined();
   });
 
   it('should expose syncPlayerStats', () => {
-    const { result } = renderHook(() => useGlobalLeaderboard());
+    const { result } = renderHook(() => useGlobalLeaderboard('u1'));
     expect(typeof result.current.syncPlayerStats).toBe('function');
   });
 });

@@ -22,10 +22,17 @@ describe('useBroadcastSync', () => {
     });
   });
 
-  it('should expose broadcastUpdate function', () => {
+  it('should expose broadcast function', () => {
     const { result } = renderHook(() =>
       useBroadcastSync('u1', vi.fn())
     );
-    expect(typeof result.current.broadcastUpdate).toBe('function');
+    expect(typeof result.current.broadcast).toBe('function');
+  });
+
+  it('should expose tabId', () => {
+    const { result } = renderHook(() =>
+      useBroadcastSync('u1', vi.fn())
+    );
+    expect(typeof result.current.tabId).toBe('string');
   });
 });

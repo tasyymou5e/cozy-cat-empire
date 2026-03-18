@@ -20,13 +20,14 @@ describe('useChallengeAchievements', () => {
     });
   });
 
-  it('should initialize with default stats', () => {
+  it('should initialize with default values', () => {
     const { result } = renderHook(() => useChallengeAchievements(undefined));
-    expect(result.current.stats).toBeDefined();
+    expect(result.current.totalChallengesCompleted).toBeDefined();
+    expect(result.current.currentStreak).toBeDefined();
   });
 
-  it('should expose checkAndUpdateStreak', () => {
+  it('should expose incrementCompleted', () => {
     const { result } = renderHook(() => useChallengeAchievements('u1'));
-    expect(typeof result.current.checkAndUpdateStreak).toBe('function');
+    expect(typeof result.current.incrementCompleted).toBe('function');
   });
 });

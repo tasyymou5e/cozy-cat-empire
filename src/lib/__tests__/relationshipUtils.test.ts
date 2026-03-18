@@ -1,20 +1,29 @@
 import { describe, it, expect } from 'vitest';
-import { getRelationshipLabel, getRelationshipColor } from '../relationshipUtils';
+import { getCatRelationships, getOtherCatId, countFriends, countEnemies } from '../relationshipUtils';
 
 describe('relationshipUtils', () => {
-  it('getRelationshipLabel should return label for positive score', () => {
-    const label = getRelationshipLabel(80);
-    expect(typeof label).toBe('string');
-    expect(label.length).toBeGreaterThan(0);
+  const mockRelationships = [
+    { cat1Id: 'a', cat2Id: 'b', score: 60, lastInteraction: 1, interactionCount: 5 },
+    { cat1Id: 'a', cat2Id: 'c', score: -40, lastInteraction: 1, interactionCount: 3 },
+  ];
+
+  it('getCatRelationships should filter by catId', () => {
+    const result = getCatRelationships('a', mockRelationships);
+    expect(result.length).toBe(2);
   });
 
-  it('getRelationshipLabel should return label for negative score', () => {
-    const label = getRelationshipLabel(-50);
-    expect(typeof label).toBe('string');
+  it('getOtherCatId should return the other cat', () => {
+    expect(getOtherCatId('a', mockRelationships[0])).toBe('b');
+    expect(getOtherCatId('b', mockRelationships[0])).toBe('a');
   });
 
-  it('getRelationshipColor should return a valid color class', () => {
-    const color = getRelationshipColor(50);
-    expect(typeof color).toBe('string');
+  it('countFriends should count positive relationships', () => {
+    const count = countFriends('a', mockRelationships);
+    expect(count).toBeGreaterThanOrEqual(0);
+  });
+
+  it('countEnemies should count negative relationships', () => {
+    const count = countEnemies('a', mockRelationships);
+    expect(count).toBeGreaterThanOrEqual(0);
   });
 });

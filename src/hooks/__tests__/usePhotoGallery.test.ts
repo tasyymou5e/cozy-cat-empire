@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 
 vi.mock('@/integrations/supabase/client', () => ({
@@ -21,9 +21,9 @@ describe('usePhotoGallery', () => {
     expect(result.current.photos).toEqual([]);
   });
 
-  it('should expose addPhoto and deletePhoto', () => {
+  it('should expose savePhoto and deletePhoto', () => {
     const { result } = renderHook(() => usePhotoGallery('u1'));
-    expect(typeof result.current.addPhoto).toBe('function');
+    expect(typeof result.current.savePhoto).toBe('function');
     expect(typeof result.current.deletePhoto).toBe('function');
   });
 

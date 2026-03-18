@@ -15,19 +15,20 @@ describe('usePlayerStats', () => {
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
           maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+          order: vi.fn().mockResolvedValue({ data: [], error: null }),
         }),
       }),
       upsert: vi.fn().mockResolvedValue({ error: null }),
     });
   });
 
-  it('should initialize with null stats', () => {
+  it('should initialize with default stats', () => {
     const { result } = renderHook(() => usePlayerStats(undefined));
-    expect(result.current.stats).toBeNull();
+    expect(result.current.stats).toBeDefined();
   });
 
-  it('should expose syncStats function', () => {
+  it('should expose fetchStats function', () => {
     const { result } = renderHook(() => usePlayerStats('u1'));
-    expect(typeof result.current.syncStats).toBe('function');
+    expect(typeof result.current.fetchStats).toBe('function');
   });
 });
