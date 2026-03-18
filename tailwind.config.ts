@@ -537,6 +537,12 @@ export default {
 			'whisker-flicker': {
 				'0%, 100%': { transform: 'translateX(0)' },
 				'50%': { transform: 'translateX(1px)' }
+			},
+			'cat-eye-blink': {
+				'0%': { opacity: '0' },
+				'30%': { opacity: '0.85' },
+				'50%': { opacity: '0.85' },
+				'100%': { opacity: '0' }
 			}
 		},
   		animation: {
