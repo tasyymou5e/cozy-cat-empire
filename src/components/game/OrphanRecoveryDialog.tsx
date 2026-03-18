@@ -147,13 +147,26 @@ export function OrphanRecoveryDialog({
           </div>
         </ScrollArea>
 
+        {availableSpace < selectedCatIds.size && availableSpace > 0 && (
+          <p className="text-xs text-amber-500 flex items-center gap-1">
+            <AlertTriangle className="h-3 w-3" />
+            Only {availableSpace} space{availableSpace !== 1 ? 's' : ''} available — only the first {availableSpace} will be recovered.
+          </p>
+        )}
+        {availableSpace === 0 && (
+          <p className="text-xs text-destructive flex items-center gap-1">
+            <AlertTriangle className="h-3 w-3" />
+            Your farm is full! Upgrade your housing to recover cats.
+          </p>
+        )}
+
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={onClose} disabled={isRecovering}>
             Dismiss
           </Button>
           <Button
             onClick={handleRecover}
-            disabled={selectedCatIds.size === 0 || isRecovering}
+            disabled={selectedCatIds.size === 0 || isRecovering || availableSpace === 0}
           >
             {isRecovering ? (
               <>
@@ -161,7 +174,7 @@ export function OrphanRecoveryDialog({
                 Recovering...
               </>
             ) : (
-              `Recover ${selectedCatIds.size} Cat${selectedCatIds.size !== 1 ? 's' : ''}`
+              `Recover ${Math.min(selectedCatIds.size, availableSpace)} Cat${Math.min(selectedCatIds.size, availableSpace) !== 1 ? 's' : ''}`
             )}
           </Button>
         </DialogFooter>

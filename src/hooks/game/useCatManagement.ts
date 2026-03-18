@@ -468,6 +468,7 @@ export function useCatManagement(deps: GameHookDependencies): CatManagementActio
     renameCat,
     comfortCat,
     addReceivedCat,
+    addRecoveredCat,
     updateCatAppearance,
     updateCatPortrait,
     setSpecialization,

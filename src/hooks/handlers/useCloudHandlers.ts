@@ -174,18 +174,34 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
 
   const handleRecoverOrphans = useCallback(async (orphansToRecover: OrphanedCat[]) => {
     log.info(`Recovering ${orphansToRecover.length} orphaned cats`);
-    for (const orphan of orphansToRecover) {
-      const recoveredCat = createRecoveryCat(orphan);
-      actions.addReceivedCat?.(recoveredCat);
+    const availableSpace = state.space - state.cats.length;
+    const catsToRecover = orphansToRecover.slice(0, availableSpace);
+    
+    if (catsToRecover.length === 0) {
+      toast({
+        title: 'No Space Available',
+        description: 'Upgrade your housing to make room for recovered cats.',
+        variant: 'destructive',
+      });
+      return;
     }
+
+    for (const orphan of catsToRecover) {
+      const recoveredCat = createRecoveryCat(orphan);
+      actions.addRecoveredCat?.(recoveredCat);
+    }
+
+    const skipped = orphansToRecover.length - catsToRecover.length;
     toast({
       title: 'Cats Recovered! 🎉',
-      description: `Successfully recovered ${orphansToRecover.length} lost cat${orphansToRecover.length !== 1 ? 's' : ''}.`,
+      description: skipped > 0
+        ? `Recovered ${catsToRecover.length} cat${catsToRecover.length !== 1 ? 's' : ''}. ${skipped} couldn't fit — upgrade your housing!`
+        : `Successfully recovered ${catsToRecover.length} lost cat${catsToRecover.length !== 1 ? 's' : ''}.`,
     });
     playSound?.('success');
     setShowOrphanDialog(false);
     dismissOrphans();
-  }, [actions, toast, playSound, dismissOrphans]);
+  }, [actions, toast, playSound, dismissOrphans, state.space, state.cats.length]);
 
   const handleDismissOrphans = useCallback(() => {
     setShowOrphanDialog(false);
