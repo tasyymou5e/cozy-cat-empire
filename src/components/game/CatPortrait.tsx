@@ -82,6 +82,9 @@ export function CatPortrait({
   const [localPortraitUrl, setLocalPortraitUrl] = useState<string | undefined>(cat.portraitUrl);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
+  const { getStyleForCat } = usePortraitStyle();
+  const { settings, updateSetting } = useGraphicsSettings();
+  const [selectedStyle, setSelectedStyle] = useState<PortraitStyle>(getStyleForCat(cat));
 
   const {
     credits,
