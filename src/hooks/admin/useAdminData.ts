@@ -86,7 +86,7 @@ export function useAdminStats(refetchInterval?: number) {
     queryFn: async () => {
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-      const [profilesResult, gameSavesResult, errorsResult, playerStatsResult, activePlayersResult] =
+      const [profilesResult, gameSavesResult, errorsResult, playerStatsResult, activePlayersResult, newSignupsResult] =
         await Promise.all([
           supabase.from('profiles').select('id', { count: 'exact', head: true }),
           supabase.from('game_saves').select('id', { count: 'exact', head: true }),
@@ -102,6 +102,11 @@ export function useAdminStats(refetchInterval?: number) {
             .from('game_saves')
             .select('id', { count: 'exact', head: true })
             .gte('last_played_at', twentyFourHoursAgo),
+          // New signups in the last 24 hours
+          supabase
+            .from('profiles')
+            .select('id', { count: 'exact', head: true })
+            .gte('created_at', twentyFourHoursAgo),
         ]);
 
       const aggregateStats = playerStatsResult.data?.reduce(
