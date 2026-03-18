@@ -112,39 +112,39 @@ export const SOUND_SOURCES: Record<SoundType, SoundSource> = {
 
   // ========== RELATIONSHIP SOUNDS ==========
   friendship: { type: 'file', path: '/sounds/cat-sweet-meow.wav', volume: 0.55 },
-  rivalry: { type: 'file', path: '/sounds/cat-angry-meow.wav', volume: 0.5 },
+  rivalry: { type: 'file', path: '/sounds/cat-growl.wav', volume: 0.45 },
   heartBurst: { type: 'file', path: '/sounds/cute-cat-meow-2.mp3', volume: 0.5 },
-  sparkClash: { type: 'file', path: '/sounds/cat-pain-meow.wav', volume: 0.45 },
+  sparkClash: { type: 'file', path: '/sounds/cat-angry-hiss.wav', volume: 0.4 },
 
   // ========== MOOD SOUNDS ==========
   moodHappy: { type: 'file', path: '/sounds/cute-cat-meow.mp3', volume: 0.55 },
-  moodSad: { type: 'file', path: '/sounds/cat-hungry-meow.wav', volume: 0.45 },
+  moodSad: { type: 'file', path: '/sounds/cat-hungry-meow-2.wav', volume: 0.45 },
 
-  // ========== CAT ACTIVITY SOUNDS (better variety) ==========
+  // ========== CAT ACTIVITY SOUNDS (max variety using all files) ==========
   catEating: { type: 'file', path: '/sounds/cat-purr.wav', volume: 0.4 },
-  catPlaying: { type: 'file', path: '/sounds/cute-cat-meow.mp3', volume: 0.5 },
+  catPlaying: { type: 'file', path: '/sounds/kitten-meow.wav', volume: 0.5 },
   catSleeping: { type: 'file', path: '/sounds/cat-purring-and-meow.mp3', volume: 0.3 },
   catGrooming: { type: 'file', path: '/sounds/cat-little-meow.wav', volume: 0.4 },
   catExploring: { type: 'file', path: '/sounds/cat-attention-meow.wav', volume: 0.45 },
-  catHunting: { type: 'file', path: '/sounds/cat-meow-fx.mp3', volume: 0.45 },
-  catStretching: { type: 'file', path: '/sounds/cat-sweet-meow.wav', volume: 0.35 },
+  catHunting: { type: 'file', path: '/sounds/cat-wild-growl.wav', volume: 0.45 },
+  catStretching: { type: 'file', path: '/sounds/cat-wild-moan.wav', volume: 0.3 },
   catCuddling: { type: 'file', path: '/sounds/cute-cat-meow-2.mp3', volume: 0.45 },
   catTraining: { type: 'file', path: '/sounds/cat-begging-meow.wav', volume: 0.5 },
   catMischief: { type: 'file', path: '/sounds/funny-cat-meow.mp3', volume: 0.5 },
-  catZoomies: { type: 'file', path: '/sounds/cat-meow-fx.mp3', volume: 0.55 },
+  catZoomies: { type: 'file', path: '/sounds/cat-angry-cartoon.wav', volume: 0.45 },
   catSunbathing: { type: 'file', path: '/sounds/cat-sweet-meow.wav', volume: 0.35 },
-  catBirdwatching: { type: 'file', path: '/sounds/cat-attention-meow.wav', volume: 0.45 },
+  catBirdwatching: { type: 'file', path: '/sounds/cat-begging-meow-2.wav', volume: 0.45 },
 
   // ========== NOTIFICATION SOUNDS ==========
   giftReceived: { type: 'file', path: '/sounds/cute-cat-meow.mp3', volume: 0.55 },
   tradeReceived: { type: 'file', path: '/sounds/cat-attention-meow.wav', volume: 0.5 },
-  dailyEvent: { type: 'file', path: '/sounds/cat-meow.mp3', volume: 0.5 },
+  dailyEvent: { type: 'file', path: '/sounds/cat-hungry-meow.wav', volume: 0.5 },
 
   // ========== ACHIEVEMENT SOUNDS ==========
   achievement: { type: 'file', path: '/sounds/cat-purring-and-meow.mp3', volume: 0.6 },
-  levelUp: { type: 'file', path: '/sounds/lion-roar.wav', volume: 0.55 },
+  levelUp: { type: 'file', path: '/sounds/lion-roar-wild.wav', volume: 0.55 },
   challengeProgress: { type: 'file', path: '/sounds/cat-meow-fx.mp3', volume: 0.45 },
-  challengeComplete: { type: 'file', path: '/sounds/cat-purring-and-meow.mp3', volume: 0.6 },
+  challengeComplete: { type: 'file', path: '/sounds/cat-scary-roar.wav', volume: 0.5 },
 
   // ========== UI SOUNDS (Synthesized for instant response) ==========
   click: {
