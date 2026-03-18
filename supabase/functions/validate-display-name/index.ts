@@ -1,21 +1,36 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// ============================================================================
+// CORS
+// ============================================================================
 
-// Validate env at startup
+const ALLOWED_ORIGINS: (string | RegExp)[] = [
+  'https://cozy-cat-empire.lovable.app',
+  /^https:\/\/.*\.lovable\.app$/,
+  /^http:\/\/localhost(:\d+)?$/,
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('Origin') || '';
+  const allowed = ALLOWED_ORIGINS.some(o =>
+    typeof o === 'string' ? o === origin : o.test(origin)
+  );
+  return {
+    'Access-Control-Allow-Origin': allowed ? origin : 'https://cozy-cat-empire.lovable.app',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
+
+// ============================================================================
+// Env & Schemas
+// ============================================================================
+
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("Missing required env vars: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY");
 }
-
-// ============================================================================
-// Input schemas
-// ============================================================================
 
 const ValidateDisplayNameSchema = z.object({
   displayName: z.string().min(1, "Display name is required").max(100),
@@ -87,10 +102,6 @@ function checkProfanity(text: string): { clean: boolean; violations: string[] } 
   return { clean: violations.length === 0, violations: [...new Set(violations)] };
 }
 
-// ============================================================================
-// Validation helpers
-// ============================================================================
-
 const DISPLAY_NAME_REGEX = /^[a-zA-Z0-9\s_-]+$/;
 const USERNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 const MIN_LENGTH = 3;
@@ -158,6 +169,8 @@ function generateUsernameSuggestions(baseName: string): string[] {
 // ============================================================================
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -175,7 +188,6 @@ Deno.serve(async (req) => {
     const { displayName, username, action, excludeUserId } = parsed.data;
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
-    // ============ VALIDATE USERNAME ============
     if (action === 'validate_username' && username) {
       const sanitized = username.trim().toLowerCase();
       
@@ -226,7 +238,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ============ VALIDATE DISPLAY NAME ============
     const sanitized = sanitizeDisplayName(displayName);
     
     const formatCheck = validateDisplayNameFormat(sanitized);
@@ -277,6 +288,7 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Validation error:', error);
+    const corsHeaders = getCorsHeaders(req);
     return new Response(
       JSON.stringify({ valid: false, error: 'Internal server error' } as ValidationResult),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }

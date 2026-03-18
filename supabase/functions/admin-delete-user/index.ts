@@ -1,21 +1,89 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// ============================================================================
+// CORS
+// ============================================================================
 
-// Rate limit: 10 deletions per admin per hour
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+const ALLOWED_ORIGINS: (string | RegExp)[] = [
+  'https://cozy-cat-empire.lovable.app',
+  /^https:\/\/.*\.lovable\.app$/,
+  /^http:\/\/localhost(:\d+)?$/,
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('Origin') || '';
+  const allowed = ALLOWED_ORIGINS.some(o =>
+    typeof o === 'string' ? o === origin : o.test(origin)
+  );
+  return {
+    'Access-Control-Allow-Origin': allowed ? origin : 'https://cozy-cat-empire.lovable.app',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
+
+// ============================================================================
+// DB-backed rate limiting
+// ============================================================================
+
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const RATE_LIMIT_MAX_REQUESTS = 10;
-const rateLimitStore = new Map<string, { count: number; windowStart: number }>();
+
+async function checkDbRateLimit(
+  supabase: ReturnType<typeof createClient>,
+  identifier: string,
+  functionName: string,
+  windowMs: number,
+  maxRequests: number,
+): Promise<{ allowed: boolean; remaining: number }> {
+  const now = new Date();
+  const windowStart = new Date(now.getTime() - windowMs);
+
+  // Try to get existing record
+  const { data: existing } = await supabase
+    .from('edge_function_rate_limits')
+    .select('id, request_count, window_start')
+    .eq('identifier', identifier)
+    .eq('function_name', functionName)
+    .maybeSingle();
+
+  if (!existing) {
+    // No record — create one
+    await supabase.from('edge_function_rate_limits').insert({
+      identifier, function_name: functionName, request_count: 1, window_start: now.toISOString(),
+    });
+    return { allowed: true, remaining: maxRequests - 1 };
+  }
+
+  const existingWindowStart = new Date(existing.window_start);
+
+  if (existingWindowStart < windowStart) {
+    // Window expired — reset
+    await supabase.from('edge_function_rate_limits')
+      .update({ request_count: 1, window_start: now.toISOString() })
+      .eq('id', existing.id);
+    return { allowed: true, remaining: maxRequests - 1 };
+  }
+
+  if (existing.request_count >= maxRequests) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  // Increment
+  await supabase.from('edge_function_rate_limits')
+    .update({ request_count: existing.request_count + 1 })
+    .eq('id', existing.id);
+  return { allowed: true, remaining: maxRequests - (existing.request_count + 1) };
+}
+
+// ============================================================================
+// Schema & Env
+// ============================================================================
 
 const RequestSchema = z.object({
   userId: z.string().uuid("userId must be a valid UUID"),
 });
 
-// Validate env at startup
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
@@ -23,24 +91,13 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
   throw new Error("Missing required env vars");
 }
 
-function checkRateLimit(userId: string): { allowed: boolean; remaining: number } {
-  const now = Date.now();
-  const userLimit = rateLimitStore.get(userId);
-  
-  if (!userLimit || (now - userLimit.windowStart) > RATE_LIMIT_WINDOW_MS) {
-    rateLimitStore.set(userId, { count: 1, windowStart: now });
-    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 };
-  }
-  
-  if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
-    return { allowed: false, remaining: 0 };
-  }
-  
-  userLimit.count++;
-  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - userLimit.count };
-}
+// ============================================================================
+// Main handler
+// ============================================================================
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -82,7 +139,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    const rateLimit = checkRateLimit(caller.id);
+    // DB-backed rate limit
+    const rateLimit = await checkDbRateLimit(supabaseAdmin, caller.id, 'admin-delete-user', RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX_REQUESTS);
     if (!rateLimit.allowed) {
       return new Response(
         JSON.stringify({ error: 'Rate limit exceeded. Please try again later.', remaining: rateLimit.remaining }),
@@ -90,7 +148,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validate request body
     const body = await req.json();
     const parsed = RequestSchema.safeParse(body);
     if (!parsed.success) {
