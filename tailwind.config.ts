@@ -520,6 +520,23 @@ export default {
 					transform: 'translateY(-80px) scale(0.8)',
 					opacity: '0'
 				}
+			},
+			// Portrait micro-animations
+			'kawaii-breathe': {
+				'0%, 100%': { transform: 'scale(1)' },
+				'50%': { transform: 'scale(1.05)' }
+			},
+			'kawaii-ear-twitch': {
+				'0%, 100%': { transform: 'rotate(0deg)' },
+				'50%': { transform: 'rotate(8deg)' }
+			},
+			'realistic-head-tilt': {
+				'0%, 100%': { transform: 'rotate(-3deg)' },
+				'50%': { transform: 'rotate(3deg)' }
+			},
+			'whisker-flicker': {
+				'0%, 100%': { transform: 'translateX(0)' },
+				'50%': { transform: 'translateX(1px)' }
 			}
 		},
   		animation: {
