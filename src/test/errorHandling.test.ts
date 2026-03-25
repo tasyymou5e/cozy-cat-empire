@@ -9,7 +9,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Unmock the modules we need real implementations of
 vi.unmock('@/hooks/useErrorLogger');
-vi.unmock('@/lib/logger');
+
+// Mock the logger to produce predictable output
+vi.mock('@/lib/logger', () => ({
+  createLogger: (namespace: string) => ({
+    debug: (...args: unknown[]) => console.debug(`[${namespace}]`, ...args),
+    info: (...args: unknown[]) => console.info(`[${namespace}]`, ...args),
+    warn: (...args: unknown[]) => console.warn(`[${namespace}]`, ...args),
+    error: (...args: unknown[]) => console.error(`[${namespace}]`, ...args),
+  }),
+}));
 
 describe('Error Handling Integration', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;

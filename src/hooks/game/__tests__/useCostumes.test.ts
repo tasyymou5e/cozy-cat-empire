@@ -240,7 +240,7 @@ describe('useCostumes', () => {
 
     it('should find all seasonal costumes via getCostumeById', async () => {
       // Test that the lookup function finds costumes from all seasons
-      const { getCostumeById } = await import('@/types/costumes');
+      const { getCostumeById } = await import('@/lib/costumeRegistry');
 
       // Winter costumes
       expect(getCostumeById('snowflake_collar')).toBeDefined();
