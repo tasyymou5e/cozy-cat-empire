@@ -11,10 +11,10 @@ vi.mock('@/hooks/use-toast', () => ({
 }));
 
 describe('useRelationshipReminders', () => {
-  it('should return zero attention count with no decaying relationships', async () => {
+  it('should return zero attention count with no relationships', async () => {
     const { useRelationshipReminders } = await import('../useRelationshipReminders');
     const { result } = renderHook(() => useRelationshipReminders([], [], 1, true));
     expect(result.current.needsAttention).toEqual([]);
-    expect(result.current.attentionCount).toBe(0);
+    expect(result.current.needsAttentionCount).toBe(0);
   });
 });

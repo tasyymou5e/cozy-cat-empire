@@ -3,22 +3,22 @@ import { renderHook, act } from '@testing-library/react';
 import { useGameMessages } from '../useGameMessages';
 
 describe('useGameMessages', () => {
-  it('should start with empty messages', () => {
+  it('should start with no current message', () => {
     const { result } = renderHook(() => useGameMessages());
-    expect(result.current.messages).toEqual([]);
+    expect(result.current.currentMessage).toBeNull();
   });
 
-  it('should add a message', () => {
+  it('should show a message', () => {
     const { result } = renderHook(() => useGameMessages());
     act(() => result.current.showMessage('Hello', 'info'));
-    expect(result.current.messages.length).toBe(1);
-    expect(result.current.messages[0].text).toBe('Hello');
+    expect(result.current.currentMessage).not.toBeNull();
+    expect(result.current.currentMessage?.text).toBe('Hello');
   });
 
-  it('should clear messages', () => {
+  it('should dismiss message', () => {
     const { result } = renderHook(() => useGameMessages());
     act(() => result.current.showMessage('Hello', 'info'));
-    act(() => result.current.clearMessages());
-    expect(result.current.messages).toEqual([]);
+    act(() => result.current.dismissMessage());
+    expect(result.current.currentMessage).toBeNull();
   });
 });

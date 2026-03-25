@@ -21,8 +21,7 @@ vi.mock('./useBroadcastSync', () => ({
 
 describe('useLuckyWheel', () => {
   it('should initialize with spin availability', async () => {
-    const mod = await import('../useLuckyWheel');
-    const useLuckyWheel = mod.default || mod.useLuckyWheel;
+    const { useLuckyWheel } = await import('../useLuckyWheel');
     const { result } = renderHook(() => useLuckyWheel());
     expect(result.current.isSpinning).toBe(false);
     expect(typeof result.current.spin).toBe('function');

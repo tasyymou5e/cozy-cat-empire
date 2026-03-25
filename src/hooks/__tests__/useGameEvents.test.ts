@@ -13,7 +13,7 @@ vi.mock('@/config/gameEventSounds', () => ({
 }));
 
 describe('useGameEvents', () => {
-  it('should return dispatch function', async () => {
+  it('should return dispatchAction function', async () => {
     const { useGameEvents } = await import('../useGameEvents');
     const config = {
       actions: {
@@ -23,11 +23,11 @@ describe('useGameEvents', () => {
         doGroupActivity: vi.fn(), catShow: vi.fn(),
       },
       trackObjective: vi.fn(),
-      trackBattlePassXP: vi.fn(),
-      trackCoopProgress: vi.fn(),
+      addBattlePassXP: vi.fn(),
+      updateCoopProgress: vi.fn(),
       playSound: vi.fn(),
     };
     const { result } = renderHook(() => useGameEvents(config));
-    expect(typeof result.current.dispatch).toBe('function');
+    expect(typeof result.current.dispatchAction).toBe('function');
   });
 });

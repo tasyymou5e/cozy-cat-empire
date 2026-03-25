@@ -21,7 +21,7 @@ vi.mock('@/types/costumes', () => ({
 
 describe('useCollectionProgress', () => {
   it('should initialize with zero progress', async () => {
-    const { default: useCollectionProgress } = await import('../useCollectionProgress');
+    const { useCollectionProgress } = await import('../useCollectionProgress');
     const { result } = renderHook(() => useCollectionProgress([], []));
     expect(result.current.breedProgress.collected).toBe(0);
   });

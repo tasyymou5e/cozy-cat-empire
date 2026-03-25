@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook } from '@testing-library/react';
 
 vi.mock('@/types/relationships', () => ({
   getRelationshipLevel: () => 'neutral',
@@ -16,6 +16,6 @@ describe('useDailyWizard', () => {
     const state = { cats: [], money: 100, resources: { food: 5, medicine: 0, toys: 0, treats: 0 }, day: 1 } as any;
     const { result } = renderHook(() => useDailyWizard(state, []));
     expect(result.current.steps.length).toBeGreaterThanOrEqual(0);
-    expect(typeof result.current.dismissWizard).toBe('function');
+    expect(typeof result.current.dismissForToday).toBe('function');
   });
 });

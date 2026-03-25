@@ -8,10 +8,10 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 describe('usePortraitStatus', () => {
-  it('should initialize with empty statuses', async () => {
+  it('should return portrait categorization', async () => {
     const { usePortraitStatus } = await import('../usePortraitStatus');
     const { result } = renderHook(() => usePortraitStatus([]));
-    expect(result.current.statuses.size).toBe(0);
-    expect(result.current.isLoading).toBe(false);
+    expect(result.current.outdatedCats).toEqual([]);
+    expect(result.current.outdatedCount).toBe(0);
   });
 });

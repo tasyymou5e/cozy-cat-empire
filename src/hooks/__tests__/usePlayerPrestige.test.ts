@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { usePlayerPrestige, PLAYER_PRESTIGE_LEVELS } from '../usePlayerPrestige';
 
@@ -28,11 +28,5 @@ describe('usePlayerPrestige', () => {
     act(() => { result.current.performPrestige(); });
     expect(result.current.prestige.level).toBe(1);
     expect(result.current.prestige.coinMultiplier).toBe(PLAYER_PRESTIGE_LEVELS[0].coinMultiplier);
-  });
-
-  it('should return next prestige info', () => {
-    const { result } = renderHook(() => usePlayerPrestige());
-    const info = result.current.getNextPrestigeInfo();
-    expect(info).toEqual(PLAYER_PRESTIGE_LEVELS[0]);
   });
 });

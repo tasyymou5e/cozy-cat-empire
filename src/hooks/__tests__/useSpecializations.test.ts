@@ -11,14 +11,14 @@ vi.mock('@/types/specializations', () => ({
 describe('useSpecializations', () => {
   it('should provide specialization check functions', async () => {
     const { useSpecializations } = await import('../useSpecializations');
-    const { result } = renderHook(() => useSpecializations([]));
+    const { result } = renderHook(() => useSpecializations());
     expect(typeof result.current.canSpecialize).toBe('function');
     expect(typeof result.current.getActiveBonuses).toBe('function');
   });
 
   it('should return zero bonuses with no specialized cats', async () => {
     const { useSpecializations } = await import('../useSpecializations');
-    const { result } = renderHook(() => useSpecializations([]));
+    const { result } = renderHook(() => useSpecializations());
     const bonuses = result.current.getActiveBonuses([]);
     expect(bonuses.showScoreBonus).toBe(0);
   });

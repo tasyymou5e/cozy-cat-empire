@@ -17,7 +17,7 @@ vi.mock('@/hooks/use-toast', () => ({
 describe('useTabUnlocks', () => {
   it('should check tab unlock status', async () => {
     const { useTabUnlocks } = await import('../useTabUnlocks');
-    const progress = { day: 1, catCount: 0, totalShowWins: 0, totalKittensBred: 0, hasLoggedIn: false };
+    const progress = { catsOwned: 0, day: 1, totalMoneyEarned: 0, totalShowWins: 0, kittensBred: 0, isAuthenticated: false };
     const { result } = renderHook(() => useTabUnlocks(progress));
     expect(result.current.isUnlocked('actions')).toBe(true);
   });

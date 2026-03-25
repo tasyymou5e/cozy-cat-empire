@@ -17,8 +17,7 @@ vi.mock('@/types/milestones', () => ({
 describe('useMilestones', () => {
   it('should initialize with empty unlocked milestones', async () => {
     const { useMilestones } = await import('../useMilestones');
-    const stats = { totalMoneyEarned: 0, totalShowWins: 0, totalCatsOwned: 0, totalKittensBred: 0, day: 1 };
-    const { result } = renderHook(() => useMilestones(stats));
+    const { result } = renderHook(() => useMilestones());
     expect(result.current.unlockedMilestones).toEqual([]);
   });
 });
