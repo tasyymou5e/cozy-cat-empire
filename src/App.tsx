@@ -60,7 +60,7 @@ const AdminSaveRecovery = lazyWithRetry(() => import('./pages/admin/AdminSaveRec
 const AdminDocs = lazyWithRetry(() => import('./pages/admin/AdminDocs'));
 const AdminWinstonLogs = lazyWithRetry(() => import('./pages/admin/AdminWinstonLogs'));
 const AdminTracking = lazyWithRetry(() => import('./pages/admin/AdminTracking'));
-
+const AdminTestDashboard = lazyWithRetry(() => import('./pages/admin/AdminTestDashboard'));
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -248,6 +248,14 @@ const App = () => {
                             element={
                               <AdminRoute>
                                 <AdminTracking />
+                              </AdminRoute>
+                            }
+                          />
+                          <Route
+                            path="/catking/tests"
+                            element={
+                              <AdminRoute>
+                                <AdminTestDashboard />
                               </AdminRoute>
                             }
                           />

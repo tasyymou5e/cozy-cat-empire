@@ -1743,6 +1743,45 @@ export type Database = {
         }
         Relationships: []
       }
+      test_reports: {
+        Row: {
+          created_at: string | null
+          duration_ms: number | null
+          environment: string | null
+          failed: number
+          id: string
+          passed: number
+          results: Json
+          run_by: string
+          skipped: number
+          total_tests: number
+        }
+        Insert: {
+          created_at?: string | null
+          duration_ms?: number | null
+          environment?: string | null
+          failed?: number
+          id?: string
+          passed?: number
+          results?: Json
+          run_by: string
+          skipped?: number
+          total_tests?: number
+        }
+        Update: {
+          created_at?: string | null
+          duration_ms?: number | null
+          environment?: string | null
+          failed?: number
+          id?: string
+          passed?: number
+          results?: Json
+          run_by?: string
+          skipped?: number
+          total_tests?: number
+        }
+        Relationships: []
+      }
       trade_offers: {
         Row: {
           created_at: string | null
