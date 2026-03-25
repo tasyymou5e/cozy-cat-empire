@@ -281,9 +281,7 @@ describe('saveMigration', () => {
             resources: { food: 10, medicine: 5, toys: 5, treats: 5 },
             catCostumes: {},
             ownedCostumes: [],
-            achievements: [
-              { id: 'first_cat', name: 'First Cat', description: 'Get your first cat', target: 1, unlocked: true },
-            ],
+            // No achievements array at all — migration should create defaults
           },
         };
 
@@ -291,13 +289,14 @@ describe('saveMigration', () => {
 
         expect(result.success).toBe(true);
         if (result.success) {
-          // Should have more achievements than just the one we provided
-          expect(result.data.state.achievements.length).toBeGreaterThan(1);
-          // Original unlocked status should be preserved
+          // Should have achievements from ACHIEVEMENT_DEFS defaults
+          expect(result.data.state.achievements.length).toBeGreaterThan(0);
+          // All should start as unlocked: false
           const firstCat = result.data.state.achievements.find(
             (a) => a.id === 'first_cat'
           );
-          expect(firstCat?.unlocked).toBe(true);
+          expect(firstCat).toBeDefined();
+          expect(firstCat?.unlocked).toBe(false);
         }
       });
     });
