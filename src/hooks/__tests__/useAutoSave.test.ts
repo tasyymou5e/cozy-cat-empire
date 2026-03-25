@@ -329,19 +329,19 @@ describe('useAutoSave', () => {
         })
       );
 
+      // Initial save
       await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(60000);
       });
 
+      // First retry
       await act(async () => {
-        vi.advanceTimersByTime(5000);
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(5000);
       });
 
+      // Second retry
       await act(async () => {
-        vi.advanceTimersByTime(5000);
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(5000);
       });
 
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
@@ -360,17 +360,14 @@ describe('useAutoSave', () => {
       );
 
       await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(60000);
       });
 
       await act(async () => {
-        vi.advanceTimersByTime(5000);
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(5000);
       });
       await act(async () => {
-        vi.advanceTimersByTime(5000);
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(5000);
       });
 
       expect(logErrorToDatabase).toHaveBeenCalledWith(
@@ -396,17 +393,14 @@ describe('useAutoSave', () => {
       );
 
       await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(60000);
       });
 
       await act(async () => {
-        vi.advanceTimersByTime(5000);
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(5000);
       });
       await act(async () => {
-        vi.advanceTimersByTime(5000);
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(5000);
       });
 
       expect(onSaveError).toHaveBeenCalledWith(
@@ -430,17 +424,14 @@ describe('useAutoSave', () => {
       );
 
       await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(60000);
       });
 
       await act(async () => {
-        vi.advanceTimersByTime(5000);
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(5000);
       });
       await act(async () => {
-        vi.advanceTimersByTime(5000);
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(5000);
       });
 
       // Give state time to update
