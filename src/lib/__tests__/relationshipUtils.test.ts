@@ -4,8 +4,8 @@ import type { CatRelationship } from '@/types/relationships';
 
 describe('relationshipUtils', () => {
   const mockRelationships: CatRelationship[] = [
-    { catId1: 'a', catId2: 'b', score: 60, level: 'friend', lastInteraction: 1, interactionCount: 5 },
-    { catId1: 'a', catId2: 'c', score: -40, level: 'rival', lastInteraction: 1, interactionCount: 3 },
+    { catId1: 'a', catId2: 'b', score: 60, level: 'friend', lastInteraction: 1 },
+    { catId1: 'a', catId2: 'c', score: -40, level: 'rival', lastInteraction: 1 },
   ];
 
   it('getCatRelationships should filter by catId', () => {
