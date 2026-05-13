@@ -98,7 +98,7 @@ describe('logAuthAttempt → log_auth_attempt_secure', () => {
   it('does not throw when the RPC throws a network error', async () => {
     mockRpc.mockRejectedValue(new Error('network down'));
     await expect(
-      logAuthAttempt({ email: 'a@b.co', attemptType: 'login', success: false }),
+      logAuthAttempt({ email: 'a@b.co', attemptType: 'admin_login', success: false }),
     ).resolves.toBeUndefined();
     expect(mockLoggerError).toHaveBeenCalled();
   });
