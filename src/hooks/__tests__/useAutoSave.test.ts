@@ -382,12 +382,10 @@ describe('useAutoSave', () => {
       );
 
       await advanceAndDrain(60000);
-      // Drain the full retry chain (initial 60s tick + chained 5s setTimeouts).
-      await advanceAndDrain(5000);
-      await advanceAndDrain(5000);
 
-      // cloudSave was called, verifying the mechanism works
-      expect(mockCloudSave).toHaveBeenCalled();
+      expect(mockCloudSave).toHaveBeenCalledTimes(3);
+      expect(result.current.stats.errorCount).toBe(1);
+      expect(result.current.stats.isRetrying).toBe(false);
     });
   });
 
