@@ -47,6 +47,9 @@ import { logErrorToDatabase } from '@/hooks/useErrorLogger';
 beforeEach(() => {
   mockRpc.mockReset();
   mockLoggerError.mockReset();
+  // Defeat the module-level rate limiter in useErrorLogger by jumping the
+  // clock past the 60s window between every test.
+  vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 1_000_000 + Math.random() * 1000);
 });
 
 describe('logAuthAttempt → log_auth_attempt_secure', () => {
