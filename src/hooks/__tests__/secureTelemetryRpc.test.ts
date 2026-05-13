@@ -123,12 +123,12 @@ describe('logErrorToDatabase → log_client_error_secure', () => {
   // payload handling, which is what this RPC tightening is about.
 
   it.each([
-    ['empty error_type',     { error_type: '',              error_message: 'x' }, 'Invalid error_type'],
-    ['malformed error_type', { error_type: 'BadType!',      error_message: 'x' }, 'Invalid error_type'],
-    ['empty error_message',  { error_type: 'network_error', error_message: '   ' }, 'error_message required'],
-    ['oversize error_message', { error_type: 'network_error', error_message: 'x'.repeat(5001) }, 'error_message too long'],
-    ['array metadata',       { error_type: 'network_error', error_message: 'x', metadata: [1, 2, 3] as unknown as Record<string, unknown> }, 'metadata must be an object'],
-    ['oversize metadata',    { error_type: 'network_error', error_message: 'x', metadata: { blob: 'y'.repeat(9000) } }, 'metadata too large'],
+    ['empty error_type',     { error_type: '',              error_message: 'x' }, CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE],
+    ['malformed error_type', { error_type: 'BadType!',      error_message: 'x' }, CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE],
+    ['empty error_message',  { error_type: 'network_error', error_message: '   ' }, CLIENT_ERROR_ERRORS.ERROR_MESSAGE_REQUIRED],
+    ['oversize error_message', { error_type: 'network_error', error_message: 'x'.repeat(5001) }, CLIENT_ERROR_ERRORS.ERROR_MESSAGE_TOO_LONG],
+    ['array metadata',       { error_type: 'network_error', error_message: 'x', metadata: [1, 2, 3] as unknown as Record<string, unknown> }, CLIENT_ERROR_ERRORS.METADATA_MUST_BE_OBJECT],
+    ['oversize metadata',    { error_type: 'network_error', error_message: 'x', metadata: { blob: 'y'.repeat(9000) } }, CLIENT_ERROR_ERRORS.METADATA_TOO_LARGE],
   ])('swallows server validation error: %s', async (_label, payload, message) => {
     const rpcError = { message };
     mockRpc.mockResolvedValue({ error: rpcError });
