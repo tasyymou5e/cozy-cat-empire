@@ -305,6 +305,12 @@ USING (has_role(auth.uid(), 'admin'::app_role));
 ```
 
 **SECURITY DEFINER RPC — `log_client_error_secure`:**
+
+> The canonical error messages used in the `RAISE EXCEPTION` statements below are
+> defined as shared constants in **`src/constants/telemetryErrors.ts`**.
+> If you change a message in the SQL, you must update the TS constants and
+> all test assertions that import them.
+
 ```sql
 CREATE OR REPLACE FUNCTION public.log_client_error_secure(
   _error_type         text,
@@ -320,9 +326,44 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path TO 'public'
 AS $$
+DECLARE
+  _meta jsonb := coalesce(_metadata, '{}'::jsonb);
+  _clean_type text := btrim(coalesce(_error_type, ''));
+  _clean_msg text := btrim(coalesce(_error_message, ''));
 BEGIN
-  IF coalesce(_error_type, '') = '' OR coalesce(_error_message, '') = '' THEN
-    RAISE EXCEPTION 'error_type and error_message required';
+  -- error_type: required, must match [a-z][a-z0-9_]{2,49}
+  IF _clean_type !~ '^[a-z][a-z0-9_]{2,49}$' THEN
+    RAISE EXCEPTION 'Invalid error_type';
+  END IF;
+
+  -- error_message: required, length-bounded
+  IF char_length(_clean_msg) = 0 THEN
+    RAISE EXCEPTION 'error_message required';
+  END IF;
+  IF char_length(_clean_msg) > 5000 THEN
+    RAISE EXCEPTION 'error_message too long';
+  END IF;
+
+  -- length caps on optional fields
+  IF char_length(coalesce(_error_stack, '')) > 10000 THEN
+    RAISE EXCEPTION 'error_stack too long';
+  END IF;
+  IF char_length(coalesce(_component_name, '')) > 200 THEN
+    RAISE EXCEPTION 'component_name too long';
+  END IF;
+  IF char_length(coalesce(_route, '')) > 500 THEN
+    RAISE EXCEPTION 'route too long';
+  END IF;
+  IF char_length(coalesce(_user_agent, '')) > 500 THEN
+    RAISE EXCEPTION 'user_agent too long';
+  END IF;
+
+  -- metadata: must be an object, capped at 8 KB
+  IF jsonb_typeof(_meta) <> 'object' THEN
+    RAISE EXCEPTION 'metadata must be an object';
+  END IF;
+  IF octet_length(_meta::text) > 8192 THEN
+    RAISE EXCEPTION 'metadata too large';
   END IF;
 
   INSERT INTO public.error_logs (
@@ -331,13 +372,13 @@ BEGIN
   )
   VALUES (
     auth.uid(),
-    LEFT(_error_type, 100),
-    LEFT(_error_message, 5000),
+    _clean_type,
+    _clean_msg,
     LEFT(coalesce(_error_stack, ''), 10000),
     LEFT(coalesce(_component_name, ''), 200),
     LEFT(coalesce(_route, ''), 500),
     LEFT(coalesce(_user_agent, ''), 500),
-    coalesce(_metadata, '{}'::jsonb)
+    _meta
   );
 END;
 $$;
