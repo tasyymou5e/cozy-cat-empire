@@ -291,26 +291,51 @@ export default function AdminTelemetry() {
                     <TableHead>Outcome</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>User ID</TableHead>
+                    <TableHead>Category</TableHead>
                     <TableHead>Error</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {loading ? (
-                    Array.from({ length: 6 }).map((_, i) => (
-                      <TableRow key={i}>
-                        {Array.from({ length: 6 }).map((_, j) => (
-                          <TableCell key={j}><Skeleton className="h-5 w-24" /></TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : rows.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                        No records match the current filters.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    rows.map((r) => (
+                  {(() => {
+                    // Pre-compute friendly mapping once per row, then apply
+                    // the client-side friendly-text search (covers both
+                    // friendly copy and raw server message).
+                    const enriched = rows.map((r) => ({
+                      r,
+                      mapped: mapTelemetryError(r.error_message),
+                    }));
+                    const filtered = friendlyDebounced
+                      ? enriched.filter(({ r, mapped }) => {
+                          const haystack = [
+                            mapped.friendly,
+                            mapped.categoryLabel,
+                            r.error_message ?? '',
+                          ]
+                            .join(' ')
+                            .toLowerCase();
+                          return haystack.includes(friendlyDebounced);
+                        })
+                      : enriched;
+
+                    if (loading) {
+                      return Array.from({ length: 6 }).map((_, i) => (
+                        <TableRow key={i}>
+                          {Array.from({ length: 7 }).map((_, j) => (
+                            <TableCell key={j}><Skeleton className="h-5 w-24" /></TableCell>
+                          ))}
+                        </TableRow>
+                      ));
+                    }
+                    if (filtered.length === 0) {
+                      return (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                            No records match the current filters.
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }
+                    return filtered.map(({ r, mapped }) => (
                       <TableRow key={r.id}>
                         <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                           {format(new Date(r.created_at), 'yyyy-MM-dd HH:mm:ss')}
@@ -325,30 +350,40 @@ export default function AdminTelemetry() {
                         <TableCell className="font-mono text-xs">
                           {r.user_id ? r.user_id.slice(0, 8) + '…' : <span className="text-muted-foreground">—</span>}
                         </TableCell>
+                        <TableCell>
+                          {r.error_message ? (
+                            mapped.known ? (
+                              <Badge variant="outline" className="cursor-default" title={mapped.raw ?? ''}>
+                                {mapped.categoryLabel}
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary">Unknown</Badge>
+                            )
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-xs max-w-xs">
                           {r.error_message ? (
-                            (() => {
-                              const mapped = mapTelemetryError(r.error_message);
-                              return mapped.known ? (
-                                <span
-                                  className="block truncate"
-                                  title={`Server: ${mapped.raw}`}
-                                >
-                                  {mapped.friendly}
-                                </span>
-                              ) : (
-                                <span className="block truncate" title={r.error_message}>
-                                  {r.error_message}
-                                </span>
-                              );
-                            })()
+                            mapped.known ? (
+                              <span
+                                className="block truncate"
+                                title={`Server: ${mapped.raw}`}
+                              >
+                                {mapped.friendly}
+                              </span>
+                            ) : (
+                              <span className="block truncate" title={r.error_message}>
+                                {r.error_message}
+                              </span>
+                            )
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
+                    ));
+                  })()}
                 </TableBody>
               </Table>
             </div>
