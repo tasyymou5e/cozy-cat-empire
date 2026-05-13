@@ -168,7 +168,7 @@ export default function AdminTelemetry() {
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, attemptType, successFilter, emailDebounced, category, days]);
-  useEffect(() => { loadTrend(); /* eslint-disable-next-line */ }, [days]);
+  useEffect(() => { loadTrend(); loadCategoryTrend(); /* eslint-disable-next-line */ }, [days]);
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
