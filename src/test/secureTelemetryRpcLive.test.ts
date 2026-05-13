@@ -5,16 +5,20 @@
  * and `log_client_error_secure` with malformed payloads and asserts the
  * EXACT `message` strings returned by the SECURITY DEFINER functions.
  *
- * These assertions are the canonical contract: the messages here MUST
- * match the `RAISE EXCEPTION` strings inside the SQL functions. If the
- * SQL changes a message, this test fails — and any client/UI text that
- * surfaces the message should be updated in lockstep.
+ * These assertions import the canonical constants from
+ * `src/constants/telemetryErrors.ts`. If the SQL changes a message, this
+ * test fails — and any client/UI text that surfaces the message should be
+ * updated in lockstep.
  *
  * Skipped automatically when the environment can't reach the network
  * (e.g. offline CI), so this file never blocks the rest of the suite.
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
+import {
+  AUTH_ATTEMPT_ERRORS,
+  CLIENT_ERROR_ERRORS,
+} from '@/constants/telemetryErrors';
 
 const SUPABASE_URL = 'https://bkkluziuyystiqkcpbnd.supabase.co';
 const ANON_KEY =
