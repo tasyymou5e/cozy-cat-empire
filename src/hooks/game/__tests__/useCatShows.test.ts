@@ -22,7 +22,7 @@ describe('useCatShows', () => {
         id: 'cat-1',
         health: 90,
         happiness: 80,
-        grade: 5,
+        grade: 8,
       });
       mockDeps = createMockDependencies({
         cats: [cat],
@@ -146,7 +146,7 @@ describe('useCatShows', () => {
           id: `cat-${i}`,
           health: 90,
           happiness: 80,
-          grade: 5,
+          grade: 8,
           breed: 'persian',
         })
       );
