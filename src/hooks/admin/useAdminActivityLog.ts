@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Json } from '@/integrations/supabase/types';
 
 import { createLogger } from '@/lib/logger';
+import { mapTelemetryError } from '@/lib/telemetryErrorMessages';
 
 const logger = createLogger('useAdminActivityLog');
 
@@ -214,7 +215,14 @@ export async function logAuthAttempt(params: LogAuthAttemptParams): Promise<void
     });
 
     if (error) {
-      logger.error('Failed to log auth attempt:', error);
+      // Preserve the exact server message in the log payload while also
+      // surfacing a friendly mapped string for human consumption.
+      const mapped = mapTelemetryError(error);
+      logger.error('Failed to log auth attempt:', error, {
+        raw_server_message: mapped.raw,
+        friendly: mapped.friendly,
+        known: mapped.known,
+      });
     }
   } catch (err) {
     logger.error('Error logging auth attempt:', err);

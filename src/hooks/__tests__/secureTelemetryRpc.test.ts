@@ -105,6 +105,7 @@ describe('logAuthAttempt → log_auth_attempt_secure', () => {
     expect(mockLoggerError).toHaveBeenCalledWith(
       'Failed to log auth attempt:',
       rpcError,
+      expect.objectContaining({ raw_server_message: rpcError.message }),
     );
   });
 

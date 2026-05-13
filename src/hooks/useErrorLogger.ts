@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { createLogger } from '@/lib/logger';
+import { mapTelemetryError } from '@/lib/telemetryErrorMessages';
 
 const log = createLogger('ErrorLogger');
 
@@ -63,7 +64,14 @@ export function useErrorLogger() {
           _user_agent: navigator.userAgent,
           _metadata: metadata as never,
         });
-        if (error) log.error('Failed to save error log:', error);
+        if (error) {
+          const mapped = mapTelemetryError(error);
+          log.error('Failed to save error log:', error, {
+            raw_server_message: mapped.raw,
+            friendly: mapped.friendly,
+            known: mapped.known,
+          });
+        }
       } catch (e) {
         log.error('Logging failed:', e);
       }
