@@ -87,7 +87,7 @@ async function fireNextTimer(): Promise<void> {
 }
 
 
-const STABLE_RELATIONSHIPS = { relationships: [], events: [] } as const;
+const STABLE_RELATIONSHIPS = { relationships: [], events: [] };
 
 describe('useAutoSave', () => {
   let mockCloudSave: Mock;
