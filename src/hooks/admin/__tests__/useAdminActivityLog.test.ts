@@ -17,7 +17,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 // Capture logger.error so we can assert error handling without using console
-const mockLoggerError = vi.fn();
+const { mockLoggerError } = vi.hoisted(() => ({ mockLoggerError: vi.fn() }));
 vi.mock('@/lib/logger', () => ({
   createLogger: () => ({
     debug: vi.fn(),
