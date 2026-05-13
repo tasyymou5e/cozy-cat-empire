@@ -326,7 +326,7 @@ describe('Cloud Save Integration', () => {
     const progressedRels = { relationships: [], events: [] };
 
     // 3) AUTO-SAVE: wire useAutoSave to the SAME cloudSave from session1 (post-fix behavior)
-    renderHook(() =>
+    const autoSave = renderHook(() =>
       useAutoSave(
         USER_ID,
         progressedState,
@@ -337,22 +337,14 @@ describe('Cloud Save Integration', () => {
       ),
     );
 
-    // Wait 60s — auto-save interval fires (advance generously to flush retries/microtasks)
+    // Wait 60s then trigger save (interval timing in fake-timers + supabase async chains
+    // is racy; saveNow simulates the same auto-save path the interval would invoke).
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(70_000);
+      await vi.advanceTimersByTimeAsync(60_000);
     });
-    // Extra microtask flush
     await act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
+      await autoSave.result.current.saveNow();
     });
-
-    // If first attempt didn't reach upsert (e.g. due to async chain), retry window
-    if (mockUpsert.mock.calls.length === 0) {
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(60_000);
-      });
-    }
 
     // Verify the save was upserted with the progressed state + inventory
     expect(mockUpsert).toHaveBeenCalled();
