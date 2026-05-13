@@ -22,15 +22,13 @@ function renderIndicator(status: Partial<AutoSaveStatus>) {
   );
 }
 
-function getButton() {
-  return screen.getByRole('button');
-}
+const getButton = () => screen.getByRole('button');
 
 describe('AutoSaveIndicator status transitions', () => {
   it('shows Saving… when an initial save is in progress', () => {
     renderIndicator({ isSyncing: true });
-    expect(screen.getByText('Saving…')).toBeInTheDocument();
-    expect(getButton()).toHaveAttribute('data-status', 'saving');
+    expect(screen.queryByText('Saving…')).not.toBeNull();
+    expect(getButton().getAttribute('data-status')).toBe('saving');
   });
 
   it('shows distinct Retrying… state when a retry is in flight', () => {
@@ -40,22 +38,21 @@ describe('AutoSaveIndicator status transitions', () => {
       lastError: 'network',
       errorCount: 1,
     });
-    expect(screen.getByText('Retrying…')).toBeInTheDocument();
+    expect(screen.queryByText('Retrying…')).not.toBeNull();
+    expect(screen.queryByText('Saving…')).toBeNull();
     const btn = getButton();
-    expect(btn).toHaveAttribute('data-status', 'retrying');
-    // Retrying must be visually distinct from initial saving state
-    expect(btn.className).not.toContain('text-primary');
+    expect(btn.getAttribute('data-status')).toBe('retrying');
+    // Retrying must look distinct from the initial saving state
+    expect(btn.className.includes('text-primary')).toBe(false);
   });
 
   it('shows Saved after a successful save completes', () => {
     renderIndicator({
-      isSyncing: false,
-      isRetrying: false,
       lastSaveTime: new Date().toISOString(),
       saveCount: 1,
     });
-    expect(screen.getByText('Saved')).toBeInTheDocument();
-    expect(getButton()).toHaveAttribute('data-status', 'saved');
+    expect(screen.queryByText('Saved')).not.toBeNull();
+    expect(getButton().getAttribute('data-status')).toBe('saved');
   });
 
   it('shows Save failed when the last attempt errored with no prior save', () => {
@@ -63,7 +60,7 @@ describe('AutoSaveIndicator status transitions', () => {
       lastError: 'boom',
       errorCount: 1,
     });
-    expect(screen.getByText('Save failed')).toBeInTheDocument();
-    expect(getButton()).toHaveAttribute('data-status', 'error');
+    expect(screen.queryByText('Save failed')).not.toBeNull();
+    expect(getButton().getAttribute('data-status')).toBe('error');
   });
 });
