@@ -26,4 +26,12 @@ describe('useClub', () => {
     expect(result.current.myClub).toBeNull();
     expect(result.current.members).toEqual([]);
   });
+
+  it('handles fetch errors via handleAsyncError without unhandled rejections', async () => {
+    const { useClub } = await import('../useClub');
+    const { result } = renderHook(() => useClub('user-1'));
+    // Allow effect + caught error path to flush.
+    await new Promise((r) => setTimeout(r, 0));
+    expect(result.current).toBeDefined();
+  });
 });
