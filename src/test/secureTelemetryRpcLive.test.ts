@@ -61,17 +61,14 @@ beforeAll(async () => {
   }
 });
 
-const liveIt: typeof it = ((...args: Parameters<typeof it>) => {
-  const [name, fn, timeout] = args;
-  return it(
-    name,
-    async (ctx) => {
-      if (!online) ctx.skip();
-      return (fn as (c: typeof ctx) => unknown)?.(ctx);
-    },
-    timeout,
-  );
-}) as typeof it;
+function liveEach<T extends readonly unknown[]>(cases: ReadonlyArray<T>) {
+  return (name: string, fn: (...args: T) => Promise<void> | void) => {
+    it.each(cases as unknown as T[])(name, async (...args) => {
+      if (!online) return;
+      await fn(...(args as unknown as T));
+    });
+  };
+}
 
 describe('live: log_auth_attempt_secure exact server messages', () => {
   const cases: Array<[string, Record<string, unknown>, string]> = [
