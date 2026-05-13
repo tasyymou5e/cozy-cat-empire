@@ -23,7 +23,7 @@ describe('breedingMatchmaking', () => {
 
   it('should calculate match between two cats', () => {
     const result = calculateBreedingMatch(makeCat('c1'), makeCat('c2'), []);
-    expect(result).toHaveProperty('score');
+    expect(result).toHaveProperty('overallScore');
     expect(result).toHaveProperty('tier');
   });
 });
