@@ -22,6 +22,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {
+  AUTH_ATTEMPT_ERRORS,
+  CLIENT_ERROR_ERRORS,
+} from '@/constants/telemetryErrors';
 
 const mockRpc = vi.fn();
 
@@ -81,11 +85,11 @@ describe('logAuthAttempt → log_auth_attempt_secure', () => {
   });
 
   it.each([
-    ['invalid attempt_type', { message: 'Invalid attempt_type' }],
-    ['malformed email',      { message: 'Invalid email' }],
-    ['array metadata',       { message: 'metadata must be an object' }],
-    ['oversize metadata',    { message: 'metadata too large' }],
-    ['oversize error msg',   { message: 'error_message too long' }],
+    ['invalid attempt_type', { message: AUTH_ATTEMPT_ERRORS.INVALID_ATTEMPT_TYPE }],
+    ['malformed email',      { message: AUTH_ATTEMPT_ERRORS.INVALID_EMAIL }],
+    ['array metadata',       { message: AUTH_ATTEMPT_ERRORS.METADATA_MUST_BE_OBJECT }],
+    ['oversize metadata',    { message: AUTH_ATTEMPT_ERRORS.METADATA_TOO_LARGE }],
+    ['oversize error msg',   { message: AUTH_ATTEMPT_ERRORS.ERROR_MESSAGE_TOO_LONG }],
   ])('swallows server validation error: %s', async (_label, rpcError) => {
     mockRpc.mockResolvedValue({ error: rpcError });
 
@@ -119,12 +123,12 @@ describe('logErrorToDatabase → log_client_error_secure', () => {
   // payload handling, which is what this RPC tightening is about.
 
   it.each([
-    ['empty error_type',     { error_type: '',              error_message: 'x' }, 'Invalid error_type'],
-    ['malformed error_type', { error_type: 'BadType!',      error_message: 'x' }, 'Invalid error_type'],
-    ['empty error_message',  { error_type: 'network_error', error_message: '   ' }, 'error_message required'],
-    ['oversize error_message', { error_type: 'network_error', error_message: 'x'.repeat(5001) }, 'error_message too long'],
-    ['array metadata',       { error_type: 'network_error', error_message: 'x', metadata: [1, 2, 3] as unknown as Record<string, unknown> }, 'metadata must be an object'],
-    ['oversize metadata',    { error_type: 'network_error', error_message: 'x', metadata: { blob: 'y'.repeat(9000) } }, 'metadata too large'],
+    ['empty error_type',     { error_type: '',              error_message: 'x' }, CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE],
+    ['malformed error_type', { error_type: 'BadType!',      error_message: 'x' }, CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE],
+    ['empty error_message',  { error_type: 'network_error', error_message: '   ' }, CLIENT_ERROR_ERRORS.ERROR_MESSAGE_REQUIRED],
+    ['oversize error_message', { error_type: 'network_error', error_message: 'x'.repeat(5001) }, CLIENT_ERROR_ERRORS.ERROR_MESSAGE_TOO_LONG],
+    ['array metadata',       { error_type: 'network_error', error_message: 'x', metadata: [1, 2, 3] as unknown as Record<string, unknown> }, CLIENT_ERROR_ERRORS.METADATA_MUST_BE_OBJECT],
+    ['oversize metadata',    { error_type: 'network_error', error_message: 'x', metadata: { blob: 'y'.repeat(9000) } }, CLIENT_ERROR_ERRORS.METADATA_TOO_LARGE],
   ])('swallows server validation error: %s', async (_label, payload, message) => {
     const rpcError = { message };
     mockRpc.mockResolvedValue({ error: rpcError });

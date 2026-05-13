@@ -5,16 +5,20 @@
  * and `log_client_error_secure` with malformed payloads and asserts the
  * EXACT `message` strings returned by the SECURITY DEFINER functions.
  *
- * These assertions are the canonical contract: the messages here MUST
- * match the `RAISE EXCEPTION` strings inside the SQL functions. If the
- * SQL changes a message, this test fails — and any client/UI text that
- * surfaces the message should be updated in lockstep.
+ * These assertions import the canonical constants from
+ * `src/constants/telemetryErrors.ts`. If the SQL changes a message, this
+ * test fails — and any client/UI text that surfaces the message should be
+ * updated in lockstep.
  *
  * Skipped automatically when the environment can't reach the network
  * (e.g. offline CI), so this file never blocks the rest of the suite.
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
+import {
+  AUTH_ATTEMPT_ERRORS,
+  CLIENT_ERROR_ERRORS,
+} from '@/constants/telemetryErrors';
 
 const SUPABASE_URL = 'https://bkkluziuyystiqkcpbnd.supabase.co';
 const ANON_KEY =
@@ -75,27 +79,27 @@ describe('live: log_auth_attempt_secure exact server messages', () => {
     [
       'invalid attempt_type',
       { _email: 'a@b.co', _attempt_type: 'totally_not_allowed', _success: true },
-      'Invalid attempt_type',
+      AUTH_ATTEMPT_ERRORS.INVALID_ATTEMPT_TYPE,
     ],
     [
       'empty email',
       { _email: '   ', _attempt_type: 'login', _success: true },
-      'Invalid email',
+      AUTH_ATTEMPT_ERRORS.INVALID_EMAIL,
     ],
     [
       'email missing @',
       { _email: 'noatsign', _attempt_type: 'login', _success: true },
-      'Invalid email',
+      AUTH_ATTEMPT_ERRORS.INVALID_EMAIL,
     ],
     [
       'email too short',
       { _email: 'a', _attempt_type: 'login', _success: true },
-      'Invalid email',
+      AUTH_ATTEMPT_ERRORS.INVALID_EMAIL,
     ],
     [
       'success is null',
       { _email: 'a@b.co', _attempt_type: 'login', _success: null },
-      'success required',
+      AUTH_ATTEMPT_ERRORS.SUCCESS_REQUIRED,
     ],
     [
       'error_message too long',
@@ -105,7 +109,7 @@ describe('live: log_auth_attempt_secure exact server messages', () => {
         _success: false,
         _error_message: 'x'.repeat(1001),
       },
-      'error_message too long',
+      AUTH_ATTEMPT_ERRORS.ERROR_MESSAGE_TOO_LONG,
     ],
     [
       'metadata not an object (array)',
@@ -115,7 +119,7 @@ describe('live: log_auth_attempt_secure exact server messages', () => {
         _success: true,
         _metadata: [1, 2, 3],
       },
-      'metadata must be an object',
+      AUTH_ATTEMPT_ERRORS.METADATA_MUST_BE_OBJECT,
     ],
     [
       'metadata too large',
@@ -125,7 +129,7 @@ describe('live: log_auth_attempt_secure exact server messages', () => {
         _success: true,
         _metadata: { blob: 'y'.repeat(5000) },
       },
-      'metadata too large',
+      AUTH_ATTEMPT_ERRORS.METADATA_TOO_LARGE,
     ],
   ];
 
@@ -141,37 +145,37 @@ describe('live: log_client_error_secure exact server messages', () => {
     [
       'empty error_type',
       { _error_type: '', _error_message: 'x' },
-      'Invalid error_type',
+      CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE,
     ],
     [
       'uppercase error_type',
       { _error_type: 'BadType', _error_message: 'x' },
-      'Invalid error_type',
+      CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE,
     ],
     [
       'error_type with punctuation',
       { _error_type: 'bad-type!', _error_message: 'x' },
-      'Invalid error_type',
+      CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE,
     ],
     [
       'error_type starts with digit',
       { _error_type: '1bad', _error_message: 'x' },
-      'Invalid error_type',
+      CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE,
     ],
     [
       'error_type too short',
       { _error_type: 'ab', _error_message: 'x' },
-      'Invalid error_type',
+      CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE,
     ],
     [
       'whitespace error_message',
       { _error_type: 'network_error', _error_message: '   ' },
-      'error_message required',
+      CLIENT_ERROR_ERRORS.ERROR_MESSAGE_REQUIRED,
     ],
     [
       'error_message too long',
       { _error_type: 'network_error', _error_message: 'x'.repeat(5001) },
-      'error_message too long',
+      CLIENT_ERROR_ERRORS.ERROR_MESSAGE_TOO_LONG,
     ],
     [
       'error_stack too long',
@@ -180,7 +184,7 @@ describe('live: log_client_error_secure exact server messages', () => {
         _error_message: 'x',
         _error_stack: 'y'.repeat(10001),
       },
-      'error_stack too long',
+      CLIENT_ERROR_ERRORS.ERROR_STACK_TOO_LONG,
     ],
     [
       'component_name too long',
@@ -189,7 +193,7 @@ describe('live: log_client_error_secure exact server messages', () => {
         _error_message: 'x',
         _component_name: 'c'.repeat(201),
       },
-      'component_name too long',
+      CLIENT_ERROR_ERRORS.COMPONENT_NAME_TOO_LONG,
     ],
     [
       'route too long',
@@ -198,7 +202,7 @@ describe('live: log_client_error_secure exact server messages', () => {
         _error_message: 'x',
         _route: '/'.padEnd(501, 'r'),
       },
-      'route too long',
+      CLIENT_ERROR_ERRORS.ROUTE_TOO_LONG,
     ],
     [
       'user_agent too long',
@@ -207,7 +211,7 @@ describe('live: log_client_error_secure exact server messages', () => {
         _error_message: 'x',
         _user_agent: 'u'.repeat(501),
       },
-      'user_agent too long',
+      CLIENT_ERROR_ERRORS.USER_AGENT_TOO_LONG,
     ],
     [
       'metadata not an object',
@@ -216,7 +220,7 @@ describe('live: log_client_error_secure exact server messages', () => {
         _error_message: 'x',
         _metadata: [1, 2, 3],
       },
-      'metadata must be an object',
+      CLIENT_ERROR_ERRORS.METADATA_MUST_BE_OBJECT,
     ],
     [
       'metadata too large',
@@ -225,7 +229,7 @@ describe('live: log_client_error_secure exact server messages', () => {
         _error_message: 'x',
         _metadata: { blob: 'y'.repeat(9000) },
       },
-      'metadata too large',
+      CLIENT_ERROR_ERRORS.METADATA_TOO_LARGE,
     ],
   ];
 
