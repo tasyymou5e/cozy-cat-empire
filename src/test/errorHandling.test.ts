@@ -42,7 +42,7 @@ describe('Error Handling Integration', () => {
       const insertMock = vi.fn().mockResolvedValue({ error: null });
       vi.doMock('@/integrations/supabase/client', () => ({
         supabase: {
-          from: () => ({ insert: insertMock }),
+          rpc: insertMock,
         },
       }));
 
@@ -63,7 +63,7 @@ describe('Error Handling Integration', () => {
 
       vi.doMock('@/integrations/supabase/client', () => ({
         supabase: {
-          from: () => ({ insert: vi.fn().mockResolvedValue({ error: null }) }),
+          rpc: vi.fn().mockResolvedValue({ error: null }),
         },
       }));
 
@@ -104,11 +104,17 @@ describe('Error Handling Integration', () => {
 
       vi.doMock('@/integrations/supabase/client', () => ({
         supabase: {
-          from: () => ({
-            insert: vi.fn((entries) => {
-              Object.assign(capturedLogEntry, entries[0]);
-              return Promise.resolve({ error: null });
-            }),
+          rpc: vi.fn((_name, params) => {
+            Object.assign(capturedLogEntry, {
+              error_type: params._error_type,
+              error_message: params._error_message,
+              error_stack: params._error_stack,
+              component_name: params._component_name,
+              route: params._route,
+              user_agent: params._user_agent,
+              metadata: params._metadata,
+            });
+            return Promise.resolve({ error: null });
           }),
         },
       }));
@@ -136,11 +142,17 @@ describe('Error Handling Integration', () => {
 
       vi.doMock('@/integrations/supabase/client', () => ({
         supabase: {
-          from: () => ({
-            insert: vi.fn((entries) => {
-              Object.assign(capturedLogEntry, entries[0]);
-              return Promise.resolve({ error: null });
-            }),
+          rpc: vi.fn((_name, params) => {
+            Object.assign(capturedLogEntry, {
+              error_type: params._error_type,
+              error_message: params._error_message,
+              error_stack: params._error_stack,
+              component_name: params._component_name,
+              route: params._route,
+              user_agent: params._user_agent,
+              metadata: params._metadata,
+            });
+            return Promise.resolve({ error: null });
           }),
         },
       }));
@@ -175,11 +187,9 @@ describe('Error Handling Integration', () => {
 
         vi.doMock('@/integrations/supabase/client', () => ({
           supabase: {
-            from: () => ({
-              insert: vi.fn((entries) => {
-                capturedErrorType = entries[0].error_type;
-                return Promise.resolve({ error: null });
-              }),
+            rpc: vi.fn((_name, params) => {
+              capturedErrorType = params._error_type;
+              return Promise.resolve({ error: null });
             }),
           },
         }));
@@ -204,11 +214,9 @@ describe('Error Handling Integration', () => {
 
       vi.doMock('@/integrations/supabase/client', () => ({
         supabase: {
-          from: () => ({
-            insert: vi.fn((entries) => {
-              capturedMetadata = entries[0].metadata as Record<string, unknown>;
-              return Promise.resolve({ error: null });
-            }),
+          rpc: vi.fn((_name, params) => {
+            capturedMetadata = params._metadata as Record<string, unknown>;
+            return Promise.resolve({ error: null });
           }),
         },
       }));
@@ -231,11 +239,9 @@ describe('Error Handling Integration', () => {
 
       vi.doMock('@/integrations/supabase/client', () => ({
         supabase: {
-          from: () => ({
-            insert: vi.fn((entries) => {
-              capturedMetadata = entries[0].metadata as Record<string, unknown>;
-              return Promise.resolve({ error: null });
-            }),
+          rpc: vi.fn((_name, params) => {
+            capturedMetadata = params._metadata as Record<string, unknown>;
+            return Promise.resolve({ error: null });
           }),
         },
       }));
@@ -262,9 +268,7 @@ describe('Error Handling Integration', () => {
 
       vi.doMock('@/integrations/supabase/client', () => ({
         supabase: {
-          from: () => ({
-            insert: vi.fn().mockRejectedValue(new Error('Database error')),
-          }),
+          rpc: vi.fn().mockRejectedValue(new Error('Database error')),
         },
       }));
 
@@ -283,9 +287,7 @@ describe('Error Handling Integration', () => {
 
       vi.doMock('@/integrations/supabase/client', () => ({
         supabase: {
-          from: () => ({
-            insert: vi.fn().mockRejectedValue(new Error('Database error')),
-          }),
+          rpc: vi.fn().mockRejectedValue(new Error('Database error')),
         },
       }));
 
