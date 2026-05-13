@@ -129,7 +129,7 @@ describe('live: log_auth_attempt_secure exact server messages', () => {
     ],
   ];
 
-  liveIt.each(cases)('%s → %s', async (_label, payload, expected) => {
+  liveEach(cases)('%s → %s', async (_label, payload, expected) => {
     const { body } = await callRpc('log_auth_attempt_secure', payload);
     expect(body?.message).toBe(expected);
     expect(body?.code).toBe('P0001');
@@ -229,7 +229,7 @@ describe('live: log_client_error_secure exact server messages', () => {
     ],
   ];
 
-  liveIt.each(cases)('%s → %s', async (_label, payload, expected) => {
+  liveEach(cases)('%s → %s', async (_label, payload, expected) => {
     const { body } = await callRpc('log_client_error_secure', payload);
     expect(body?.message).toBe(expected);
     expect(body?.code).toBe('P0001');
