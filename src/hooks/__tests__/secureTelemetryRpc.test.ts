@@ -141,16 +141,14 @@ describe('logErrorToDatabase → log_client_error_secure', () => {
   });
 
   it.each([
-    ['empty error_type',     { _error_type: '',             _error_message: 'x' }, 'Invalid error_type'],
-    ['malformed error_type', { _error_type: 'BadType!',     _error_message: 'x' }, 'Invalid error_type'],
-    ['empty error_message',  { _error_type: 'network_error',_error_message: '   ' }, 'error_message required'],
+    ['empty error_type',     { error_type: '',              error_message: 'x' }, 'Invalid error_type'],
+    ['malformed error_type', { error_type: 'BadType!',      error_message: 'x' }, 'Invalid error_type'],
+    ['empty error_message',  { error_type: 'network_error', error_message: '   ' }, 'error_message required'],
   ])('swallows server validation error: %s', async (_label, payload, message) => {
     const rpcError = { message };
     mockRpc.mockResolvedValue({ error: rpcError });
 
-    await expect(
-      logErrorToDatabase(payload as Parameters<typeof logErrorToDatabase>[0]),
-    ).resolves.toBeUndefined();
+    await expect(logErrorToDatabase(payload)).resolves.toBeUndefined();
   });
 
   it('does not throw when the RPC throws unexpectedly', async () => {
