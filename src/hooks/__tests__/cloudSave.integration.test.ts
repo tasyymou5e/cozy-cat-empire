@@ -346,7 +346,7 @@ describe('Cloud Save Integration', () => {
 
     // Verify the save was upserted with the progressed state + inventory
     expect(mockUpsert).toHaveBeenCalled();
-    const savedPayload = mockUpsert.mock.calls.at(-1)?.[0] as {
+    const savedPayload = mockUpsert.mock.calls[mockUpsert.mock.calls.length - 1]?.[0] as {
       user_id: string;
       kittens_bred: number;
       game_state: GameState;
