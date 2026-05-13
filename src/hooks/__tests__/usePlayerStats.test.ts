@@ -1,25 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-
-const mockFrom = vi.fn();
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: { from: (...args: unknown[]) => mockFrom(...args) },
-}));
+import { globalSupabaseMock } from '@/test/supabaseMock';
 
 import { usePlayerStats } from '../usePlayerStats';
 
 describe('usePlayerStats', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFrom.mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-          order: vi.fn().mockResolvedValue({ data: [], error: null }),
-        }),
-      }),
-      upsert: vi.fn().mockResolvedValue({ error: null }),
-    });
+    globalSupabaseMock.reset();
   });
 
   it('should initialize with default stats', () => {
