@@ -339,9 +339,7 @@ describe('Cloud Save Integration', () => {
 
     // Wait 60s — auto-save interval fires
     await act(async () => {
-      vi.advanceTimersByTime(60_000);
-      await Promise.resolve();
-      await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(60_000);
     });
 
     // Verify the save was upserted with the progressed state + inventory
