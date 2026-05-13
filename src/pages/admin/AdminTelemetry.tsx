@@ -18,7 +18,12 @@ import { format, subDays } from 'date-fns';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
-import { mapTelemetryError } from '@/lib/telemetryErrorMessages';
+import {
+  mapTelemetryError,
+  rawMessagesForCategory,
+  TELEMETRY_ERROR_CATEGORIES,
+  type TelemetryErrorCategory,
+} from '@/lib/telemetryErrorMessages';
 
 type Row = {
   id: string;
@@ -43,6 +48,9 @@ export default function AdminTelemetry() {
   const [successFilter, setSuccessFilter] = useState<string>('');
   const [emailQuery, setEmailQuery] = useState('');
   const [emailDebounced, setEmailDebounced] = useState('');
+  const [category, setCategory] = useState<TelemetryErrorCategory | ''>('');
+  const [friendlyQuery, setFriendlyQuery] = useState('');
+  const [friendlyDebounced, setFriendlyDebounced] = useState('');
   const [days, setDays] = useState<number>(7);
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState<Row[]>([]);
@@ -57,8 +65,13 @@ export default function AdminTelemetry() {
   }, [emailQuery]);
 
   useEffect(() => {
+    const t = setTimeout(() => setFriendlyDebounced(friendlyQuery.trim().toLowerCase()), 300);
+    return () => clearTimeout(t);
+  }, [friendlyQuery]);
+
+  useEffect(() => {
     setPage(1);
-  }, [attemptType, successFilter, emailDebounced, days]);
+  }, [attemptType, successFilter, emailDebounced, category, friendlyDebounced, days]);
 
   const sinceISO = useMemo(
     () => subDays(new Date(), days).toISOString(),
@@ -78,6 +91,14 @@ export default function AdminTelemetry() {
     if (successFilter === 'true') q = q.eq('success', true);
     if (successFilter === 'false') q = q.eq('success', false);
     if (emailDebounced) q = q.ilike('email', `%${emailDebounced}%`);
+    if (category) {
+      const raws = rawMessagesForCategory(category);
+      if (raws.length > 0) {
+        // Server-side filter: error_message must match one of the
+        // canonical RAISE EXCEPTION strings for the chosen category.
+        q = q.in('error_message', raws as string[]);
+      }
+    }
 
     const { data, count: c, error } = await q;
     if (!error) {
@@ -111,7 +132,7 @@ export default function AdminTelemetry() {
     setTrendLoading(false);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, attemptType, successFilter, emailDebounced, days]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, attemptType, successFilter, emailDebounced, category, days]);
   useEffect(() => { loadTrend(); /* eslint-disable-next-line */ }, [days]);
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
@@ -190,7 +211,7 @@ export default function AdminTelemetry() {
             <CardTitle>Records ({count})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-4">
+            <div className="grid gap-3 md:grid-cols-3">
               <div className="space-y-1">
                 <Label>Email contains</Label>
                 <Input
@@ -223,6 +244,31 @@ export default function AdminTelemetry() {
                 </Select>
               </div>
               <div className="space-y-1">
+                <Label>Error category</Label>
+                <Select
+                  value={category || 'all'}
+                  onValueChange={(v) =>
+                    setCategory(v === 'all' ? '' : (v as TelemetryErrorCategory))
+                  }
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All categories</SelectItem>
+                    {TELEMETRY_ERROR_CATEGORIES.map((c) => (
+                      <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>Friendly text search</Label>
+                <Input
+                  value={friendlyQuery}
+                  onChange={(e) => setFriendlyQuery(e.target.value)}
+                  placeholder="e.g. metadata, too long, email"
+                />
+              </div>
+              <div className="space-y-1">
                 <Label>Window</Label>
                 <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -245,26 +291,51 @@ export default function AdminTelemetry() {
                     <TableHead>Outcome</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>User ID</TableHead>
+                    <TableHead>Category</TableHead>
                     <TableHead>Error</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {loading ? (
-                    Array.from({ length: 6 }).map((_, i) => (
-                      <TableRow key={i}>
-                        {Array.from({ length: 6 }).map((_, j) => (
-                          <TableCell key={j}><Skeleton className="h-5 w-24" /></TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : rows.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                        No records match the current filters.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    rows.map((r) => (
+                  {(() => {
+                    // Pre-compute friendly mapping once per row, then apply
+                    // the client-side friendly-text search (covers both
+                    // friendly copy and raw server message).
+                    const enriched = rows.map((r) => ({
+                      r,
+                      mapped: mapTelemetryError(r.error_message),
+                    }));
+                    const filtered = friendlyDebounced
+                      ? enriched.filter(({ r, mapped }) => {
+                          const haystack = [
+                            mapped.friendly,
+                            mapped.categoryLabel,
+                            r.error_message ?? '',
+                          ]
+                            .join(' ')
+                            .toLowerCase();
+                          return haystack.includes(friendlyDebounced);
+                        })
+                      : enriched;
+
+                    if (loading) {
+                      return Array.from({ length: 6 }).map((_, i) => (
+                        <TableRow key={i}>
+                          {Array.from({ length: 7 }).map((_, j) => (
+                            <TableCell key={j}><Skeleton className="h-5 w-24" /></TableCell>
+                          ))}
+                        </TableRow>
+                      ));
+                    }
+                    if (filtered.length === 0) {
+                      return (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                            No records match the current filters.
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }
+                    return filtered.map(({ r, mapped }) => (
                       <TableRow key={r.id}>
                         <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                           {format(new Date(r.created_at), 'yyyy-MM-dd HH:mm:ss')}
@@ -279,30 +350,40 @@ export default function AdminTelemetry() {
                         <TableCell className="font-mono text-xs">
                           {r.user_id ? r.user_id.slice(0, 8) + '…' : <span className="text-muted-foreground">—</span>}
                         </TableCell>
+                        <TableCell>
+                          {r.error_message ? (
+                            mapped.known ? (
+                              <Badge variant="outline" className="cursor-default" title={mapped.raw ?? ''}>
+                                {mapped.categoryLabel}
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary">Unknown</Badge>
+                            )
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-xs max-w-xs">
                           {r.error_message ? (
-                            (() => {
-                              const mapped = mapTelemetryError(r.error_message);
-                              return mapped.known ? (
-                                <span
-                                  className="block truncate"
-                                  title={`Server: ${mapped.raw}`}
-                                >
-                                  {mapped.friendly}
-                                </span>
-                              ) : (
-                                <span className="block truncate" title={r.error_message}>
-                                  {r.error_message}
-                                </span>
-                              );
-                            })()
+                            mapped.known ? (
+                              <span
+                                className="block truncate"
+                                title={`Server: ${mapped.raw}`}
+                              >
+                                {mapped.friendly}
+                              </span>
+                            ) : (
+                              <span className="block truncate" title={r.error_message}>
+                                {r.error_message}
+                              </span>
+                            )
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
+                    ));
+                  })()}
                 </TableBody>
               </Table>
             </div>
