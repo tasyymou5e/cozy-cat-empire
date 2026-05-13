@@ -21,40 +21,149 @@ import {
   CLIENT_ERROR_ERRORS,
 } from '@/constants/telemetryErrors';
 
-/** Friendly text shown to users / admins for each known RPC error. */
-const FRIENDLY_BY_RAW: Readonly<Record<string, string>> = {
-  // log_auth_attempt_secure
-  [AUTH_ATTEMPT_ERRORS.INVALID_ATTEMPT_TYPE]:
-    'Unrecognized authentication event type.',
-  [AUTH_ATTEMPT_ERRORS.INVALID_EMAIL]:
-    'Email address is missing or malformed.',
-  [AUTH_ATTEMPT_ERRORS.SUCCESS_REQUIRED]:
-    'Could not record this auth event: missing outcome flag.',
-  [AUTH_ATTEMPT_ERRORS.ERROR_MESSAGE_TOO_LONG]:
-    'Error description is too long to record (max 1000 characters).',
+/**
+ * Stable, machine-readable category keys for known telemetry RPC errors.
+ * These are surfaced in admin UI filters so admins can quickly slice
+ * common payload rejections without memorizing the exact server strings.
+ */
+export type TelemetryErrorCategory =
+  | 'invalid_attempt_type'
+  | 'invalid_email'
+  | 'success_required'
+  | 'invalid_error_type'
+  | 'error_message_required'
+  | 'error_message_too_long'
+  | 'error_stack_too_long'
+  | 'component_name_too_long'
+  | 'route_too_long'
+  | 'user_agent_too_long'
+  | 'metadata_invalid'
+  | 'metadata_too_large'
+  | 'unknown';
 
-  // log_client_error_secure
-  [CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE]:
-    'Invalid error category — must be lowercase letters, digits, or underscores.',
-  [CLIENT_ERROR_ERRORS.ERROR_MESSAGE_REQUIRED]:
-    'Error message is required.',
-  [CLIENT_ERROR_ERRORS.ERROR_STACK_TOO_LONG]:
-    'Error stack trace is too long to record (max 10,000 characters).',
-  [CLIENT_ERROR_ERRORS.COMPONENT_NAME_TOO_LONG]:
-    'Component name is too long (max 200 characters).',
-  [CLIENT_ERROR_ERRORS.ROUTE_TOO_LONG]:
-    'Route is too long to record (max 500 characters).',
-  [CLIENT_ERROR_ERRORS.USER_AGENT_TOO_LONG]:
-    'User agent string is too long to record (max 500 characters).',
+interface CategoryMeta {
+  key: TelemetryErrorCategory;
+  label: string;
+  friendly: string;
+  /** Raw RAISE EXCEPTION strings that map to this category. */
+  rawMessages: readonly string[];
+}
 
-  // shared between both RPCs (overrides above with identical mapping)
-  [CLIENT_ERROR_ERRORS.METADATA_MUST_BE_OBJECT]:
-    'Telemetry metadata must be a JSON object.',
-  [CLIENT_ERROR_ERRORS.METADATA_TOO_LARGE]:
-    'Telemetry metadata payload is too large.',
-  // `error_message too long` is shared too — value is identical so the
-  // assignment above already covers both RPCs.
-};
+/**
+ * Catalogue of every known category. Order is the recommended display
+ * order in admin filter dropdowns (most common rejections first).
+ */
+export const TELEMETRY_ERROR_CATEGORIES: readonly CategoryMeta[] = [
+  {
+    key: 'invalid_attempt_type',
+    label: 'Invalid attempt type',
+    friendly: 'Unrecognized authentication event type.',
+    rawMessages: [AUTH_ATTEMPT_ERRORS.INVALID_ATTEMPT_TYPE],
+  },
+  {
+    key: 'invalid_email',
+    label: 'Invalid email',
+    friendly: 'Email address is missing or malformed.',
+    rawMessages: [AUTH_ATTEMPT_ERRORS.INVALID_EMAIL],
+  },
+  {
+    key: 'success_required',
+    label: 'Missing outcome flag',
+    friendly: 'Could not record this auth event: missing outcome flag.',
+    rawMessages: [AUTH_ATTEMPT_ERRORS.SUCCESS_REQUIRED],
+  },
+  {
+    key: 'invalid_error_type',
+    label: 'Invalid error type',
+    friendly:
+      'Invalid error category — must be lowercase letters, digits, or underscores.',
+    rawMessages: [CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE],
+  },
+  {
+    key: 'error_message_required',
+    label: 'Missing error message',
+    friendly: 'Error message is required.',
+    rawMessages: [CLIENT_ERROR_ERRORS.ERROR_MESSAGE_REQUIRED],
+  },
+  {
+    key: 'error_message_too_long',
+    label: 'Error message too long',
+    friendly: 'Error description is too long to record.',
+    // Note: AUTH_ATTEMPT_ERRORS.ERROR_MESSAGE_TOO_LONG and
+    // CLIENT_ERROR_ERRORS.ERROR_MESSAGE_TOO_LONG share the same string.
+    rawMessages: [
+      AUTH_ATTEMPT_ERRORS.ERROR_MESSAGE_TOO_LONG,
+      CLIENT_ERROR_ERRORS.ERROR_MESSAGE_TOO_LONG,
+    ],
+  },
+  {
+    key: 'error_stack_too_long',
+    label: 'Stack trace too long',
+    friendly: 'Error stack trace is too long to record (max 10,000 characters).',
+    rawMessages: [CLIENT_ERROR_ERRORS.ERROR_STACK_TOO_LONG],
+  },
+  {
+    key: 'component_name_too_long',
+    label: 'Component name too long',
+    friendly: 'Component name is too long (max 200 characters).',
+    rawMessages: [CLIENT_ERROR_ERRORS.COMPONENT_NAME_TOO_LONG],
+  },
+  {
+    key: 'route_too_long',
+    label: 'Route too long',
+    friendly: 'Route is too long to record (max 500 characters).',
+    rawMessages: [CLIENT_ERROR_ERRORS.ROUTE_TOO_LONG],
+  },
+  {
+    key: 'user_agent_too_long',
+    label: 'User agent too long',
+    friendly: 'User agent string is too long to record (max 500 characters).',
+    rawMessages: [CLIENT_ERROR_ERRORS.USER_AGENT_TOO_LONG],
+  },
+  {
+    key: 'metadata_invalid',
+    label: 'Metadata not an object',
+    friendly: 'Telemetry metadata must be a JSON object.',
+    rawMessages: [
+      AUTH_ATTEMPT_ERRORS.METADATA_MUST_BE_OBJECT,
+      CLIENT_ERROR_ERRORS.METADATA_MUST_BE_OBJECT,
+    ],
+  },
+  {
+    key: 'metadata_too_large',
+    label: 'Metadata too large',
+    friendly: 'Telemetry metadata payload is too large.',
+    rawMessages: [
+      AUTH_ATTEMPT_ERRORS.METADATA_TOO_LARGE,
+      CLIENT_ERROR_ERRORS.METADATA_TOO_LARGE,
+    ],
+  },
+] as const;
+
+/** O(1) lookup: raw server message → category metadata. */
+const CATEGORY_BY_RAW: ReadonlyMap<string, CategoryMeta> = new Map(
+  TELEMETRY_ERROR_CATEGORIES.flatMap((c) =>
+    c.rawMessages.map((raw) => [raw, c] as const),
+  ),
+);
+
+/** Find the category metadata for a raw server message, if known. */
+export function getTelemetryCategory(
+  raw: string | null | undefined,
+): CategoryMeta | null {
+  if (!raw) return null;
+  return CATEGORY_BY_RAW.get(raw) ?? null;
+}
+
+/** Get every raw server message string for a given category. */
+export function rawMessagesForCategory(
+  category: TelemetryErrorCategory,
+): readonly string[] {
+  if (category === 'unknown') return [];
+  return (
+    TELEMETRY_ERROR_CATEGORIES.find((c) => c.key === category)?.rawMessages ?? []
+  );
+}
 
 const FALLBACK = 'Telemetry payload was rejected by the server.';
 
@@ -68,6 +177,10 @@ export interface FriendlyTelemetryError {
   friendly: string;
   /** True when `raw` matched a known constant from `telemetryErrors.ts`. */
   known: boolean;
+  /** Stable category key, or `'unknown'` if the message is unrecognized. */
+  category: TelemetryErrorCategory;
+  /** Display label for the category (or `'Unknown'`). */
+  categoryLabel: string;
 }
 
 /**
@@ -90,14 +203,32 @@ export function mapTelemetryError(
         : null;
 
   if (!raw) {
-    return { raw: null, friendly: FALLBACK, known: false };
+    return {
+      raw: null,
+      friendly: FALLBACK,
+      known: false,
+      category: 'unknown',
+      categoryLabel: 'Unknown',
+    };
   }
 
-  const friendly = FRIENDLY_BY_RAW[raw];
-  if (friendly) {
-    return { raw, friendly, known: true };
+  const meta = CATEGORY_BY_RAW.get(raw);
+  if (meta) {
+    return {
+      raw,
+      friendly: meta.friendly,
+      known: true,
+      category: meta.key,
+      categoryLabel: meta.label,
+    };
   }
-  return { raw, friendly: FALLBACK, known: false };
+  return {
+    raw,
+    friendly: FALLBACK,
+    known: false,
+    category: 'unknown',
+    categoryLabel: 'Unknown',
+  };
 }
 
 /** Convenience: get just the friendly string. */
@@ -106,3 +237,4 @@ export function friendlyTelemetryMessage(
 ): string {
   return mapTelemetryError(input).friendly;
 }
+
