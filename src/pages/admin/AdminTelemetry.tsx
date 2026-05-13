@@ -65,8 +65,13 @@ export default function AdminTelemetry() {
   }, [emailQuery]);
 
   useEffect(() => {
+    const t = setTimeout(() => setFriendlyDebounced(friendlyQuery.trim().toLowerCase()), 300);
+    return () => clearTimeout(t);
+  }, [friendlyQuery]);
+
+  useEffect(() => {
     setPage(1);
-  }, [attemptType, successFilter, emailDebounced, days]);
+  }, [attemptType, successFilter, emailDebounced, category, friendlyDebounced, days]);
 
   const sinceISO = useMemo(
     () => subDays(new Date(), days).toISOString(),
@@ -86,6 +91,14 @@ export default function AdminTelemetry() {
     if (successFilter === 'true') q = q.eq('success', true);
     if (successFilter === 'false') q = q.eq('success', false);
     if (emailDebounced) q = q.ilike('email', `%${emailDebounced}%`);
+    if (category) {
+      const raws = rawMessagesForCategory(category);
+      if (raws.length > 0) {
+        // Server-side filter: error_message must match one of the
+        // canonical RAISE EXCEPTION strings for the chosen category.
+        q = q.in('error_message', raws as string[]);
+      }
+    }
 
     const { data, count: c, error } = await q;
     if (!error) {
