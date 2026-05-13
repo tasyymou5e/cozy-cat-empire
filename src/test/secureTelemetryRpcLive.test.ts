@@ -134,9 +134,19 @@ describe('live: log_auth_attempt_secure exact server messages', () => {
   ];
 
   liveEach(cases)('%s → %s', async (_label, payload, expected) => {
-    const { body } = await callRpc('log_auth_attempt_secure', payload);
-    expect(body?.message).toBe(expected);
-    expect(body?.code).toBe('P0001');
+    const { status, body } = await callRpc('log_auth_attempt_secure', payload);
+    expect(status).toBe(400);
+    expect(body).not.toBeNull();
+    expect(body).toEqual({
+      code: 'P0001',
+      message: expected,
+      details: null,
+      hint: null,
+    });
+    // Body must contain exactly these four keys — no extras leaking out.
+    expect(Object.keys(body as object).sort()).toEqual(
+      ['code', 'details', 'hint', 'message'],
+    );
   });
 });
 
@@ -234,8 +244,17 @@ describe('live: log_client_error_secure exact server messages', () => {
   ];
 
   liveEach(cases)('%s → %s', async (_label, payload, expected) => {
-    const { body } = await callRpc('log_client_error_secure', payload);
-    expect(body?.message).toBe(expected);
-    expect(body?.code).toBe('P0001');
+    const { status, body } = await callRpc('log_client_error_secure', payload);
+    expect(status).toBe(400);
+    expect(body).not.toBeNull();
+    expect(body).toEqual({
+      code: 'P0001',
+      message: expected,
+      details: null,
+      hint: null,
+    });
+    expect(Object.keys(body as object).sort()).toEqual(
+      ['code', 'details', 'hint', 'message'],
+    );
   });
 });
