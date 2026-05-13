@@ -105,22 +105,26 @@ export function useBattlePass(userId?: string) {
 
     if (userId) {
       const syncToCloud = async () => {
-        await supabase.from('battle_pass_progress').upsert(
-          {
-            user_id: userId,
-            season_id: battlePass.seasonId,
-            current_xp: battlePass.currentXP,
-            current_tier: battlePass.currentTier,
-            is_premium: battlePass.isPremium,
-            claimed_rewards: battlePass.claimedRewards,
-            purchased_at: battlePass.purchasedAt || null,
-          },
-          {
-            onConflict: 'user_id,season_id',
-          }
-        );
+        try {
+          await supabase.from('battle_pass_progress').upsert(
+            {
+              user_id: userId,
+              season_id: battlePass.seasonId,
+              current_xp: battlePass.currentXP,
+              current_tier: battlePass.currentTier,
+              is_premium: battlePass.isPremium,
+              claimed_rewards: battlePass.claimedRewards,
+              purchased_at: battlePass.purchasedAt || null,
+            },
+            {
+              onConflict: 'user_id,season_id',
+            }
+          );
+        } catch {
+          // Silently swallow cloud sync errors; localStorage remains source of truth
+        }
       };
-      syncToCloud();
+      syncToCloud().catch(() => {});
     }
   }, [battlePass, userId]);
 
