@@ -308,9 +308,12 @@ describe('Cloud Save Integration', () => {
     mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
     const session1 = renderHook(() => useCloudSave(USER_ID));
 
+    let loadRes: unknown;
     await act(async () => {
-      await session1.result.current.cloudLoad(); // opens the load gate
+      loadRes = await session1.result.current.cloudLoad(); // opens the load gate
     });
+    // eslint-disable-next-line no-console
+    console.log('DEBUG loadRes', loadRes, 'isLoaded', session1.result.current.isLoaded);
 
     // 2) PROGRESS: simulate game progression and inventory changes
     const progressedState = makeState({
