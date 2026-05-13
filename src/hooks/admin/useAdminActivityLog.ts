@@ -200,17 +200,18 @@ export function useAdminActivityLog() {
  */
 export async function logAuthAttempt(params: LogAuthAttemptParams): Promise<void> {
   try {
-    const { error } = await supabase.from('auth_attempts_log').insert([
-      {
-        email: params.email,
-        attempt_type: params.attemptType,
-        success: params.success,
-        user_id: params.userId,
-        error_message: params.errorMessage,
+    // Route through SECURITY DEFINER RPC so unauthenticated failed-login
+    // telemetry still works while direct INSERT is locked down by RLS.
+    const { error } = await supabase.rpc('log_auth_attempt_secure', {
+      _email: params.email,
+      _attempt_type: params.attemptType,
+      _success: params.success,
+      _error_message: params.errorMessage ?? null,
+      _metadata: {
+        ...(params.metadata || {}),
         user_agent: navigator.userAgent,
-        metadata: (params.metadata || {}) as Json,
-      },
-    ]);
+      } as Json,
+    });
 
     if (error) {
       logger.error('Failed to log auth attempt:', error);

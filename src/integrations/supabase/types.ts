@@ -2071,6 +2071,28 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_auth_attempt_secure: {
+        Args: {
+          _attempt_type: string
+          _email: string
+          _error_message?: string
+          _metadata?: Json
+          _success: boolean
+        }
+        Returns: undefined
+      }
+      log_client_error_secure: {
+        Args: {
+          _component_name?: string
+          _error_message: string
+          _error_stack?: string
+          _error_type: string
+          _metadata?: Json
+          _route?: string
+          _user_agent?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

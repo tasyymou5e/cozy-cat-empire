@@ -43,25 +43,26 @@ export function useErrorLogger() {
       if (isRateLimited()) return;
 
       try {
-        const logEntry = {
-          user_id: user?.id || null,
-          error_type: data.error_type,
-          error_message: data.error_message.slice(0, 5000),
-          error_stack: data.error_stack?.slice(0, 10000) || null,
-          component_name: data.component_name || null,
-          route: data.route || window.location.pathname,
-          user_agent: navigator.userAgent,
-          metadata: {
-            ...data.metadata,
-            timestamp: new Date().toISOString(),
-            url: window.location.href,
-            viewport: { width: window.innerWidth, height: window.innerHeight },
-          },
+        const metadata = {
+          ...data.metadata,
+          timestamp: new Date().toISOString(),
+          url: window.location.href,
+          viewport: { width: window.innerWidth, height: window.innerHeight },
         };
 
-        log.error(logEntry);
+        log.error({ error_type: data.error_type, error_message: data.error_message, ...metadata });
 
-        const { error } = await supabase.from('error_logs').insert([logEntry]);
+        // Route through SECURITY DEFINER RPC so unauthenticated client errors
+        // still get captured while direct INSERT on error_logs requires auth.
+        const { error } = await supabase.rpc('log_client_error_secure', {
+          _error_type: data.error_type,
+          _error_message: data.error_message.slice(0, 5000),
+          _error_stack: data.error_stack?.slice(0, 10000) ?? null,
+          _component_name: data.component_name ?? null,
+          _route: data.route || window.location.pathname,
+          _user_agent: navigator.userAgent,
+          _metadata: metadata as never,
+        });
         if (error) log.error('Failed to save error log:', error);
       } catch (e) {
         log.error('Logging failed:', e);
@@ -159,15 +160,16 @@ export function useErrorLogger() {
 export async function logErrorToDatabase(data: ErrorLogData & { user_id?: string }) {
   if (isRateLimited()) return;
   try {
-    const logEntry = {
-      user_id: data.user_id || null, error_type: data.error_type,
-      error_message: data.error_message.slice(0, 5000), error_stack: data.error_stack?.slice(0, 10000) || null,
-      component_name: data.component_name || null,
-      route: data.route || (typeof window !== 'undefined' ? window.location.pathname : ''),
-      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
-      metadata: { ...data.metadata, timestamp: new Date().toISOString() },
-    };
-    await supabase.from('error_logs').insert([logEntry]);
+    const metadata = { ...data.metadata, timestamp: new Date().toISOString() };
+    await supabase.rpc('log_client_error_secure', {
+      _error_type: data.error_type,
+      _error_message: data.error_message.slice(0, 5000),
+      _error_stack: data.error_stack?.slice(0, 10000) ?? null,
+      _component_name: data.component_name ?? null,
+      _route: data.route || (typeof window !== 'undefined' ? window.location.pathname : ''),
+      _user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+      _metadata: metadata as never,
+    });
   } catch (e) {
     log.error('Standalone logging failed:', e);
   }
