@@ -10,6 +10,7 @@
  */
 
 import { Cloud, CloudOff, RefreshCw, Check, AlertCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
