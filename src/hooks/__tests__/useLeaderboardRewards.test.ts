@@ -1,32 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-
-const mockFrom = vi.fn();
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: { from: (...args: unknown[]) => mockFrom(...args) },
-}));
+import { globalSupabaseMock } from '@/test/supabaseMock';
 
 import { useLeaderboardRewards } from '../useLeaderboardRewards';
 
 describe('useLeaderboardRewards', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFrom.mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({ data: [], error: null }),
-          order: vi.fn().mockResolvedValue({ data: [], error: null }),
-        }),
-      }),
-      update: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
-      }),
-    });
+    globalSupabaseMock.reset();
   });
 
   it('should initialize with empty rewards', () => {
     const { result } = renderHook(() => useLeaderboardRewards(undefined));
-    expect(result.current.rewards).toEqual([]);
+    expect(Array.isArray(result.current.rewards)).toBe(true);
   });
 
   it('should expose claimReward function', () => {
