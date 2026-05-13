@@ -61,6 +61,7 @@ const AdminDocs = lazyWithRetry(() => import('./pages/admin/AdminDocs'));
 const AdminWinstonLogs = lazyWithRetry(() => import('./pages/admin/AdminWinstonLogs'));
 const AdminTracking = lazyWithRetry(() => import('./pages/admin/AdminTracking'));
 const AdminTestDashboard = lazyWithRetry(() => import('./pages/admin/AdminTestDashboard'));
+const AdminTelemetry = lazyWithRetry(() => import('./pages/admin/AdminTelemetry'));
 const queryClient = new QueryClient();
 
 const App = () => {
