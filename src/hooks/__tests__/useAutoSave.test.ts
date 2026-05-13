@@ -51,22 +51,26 @@ const createMockGameState = (overrides: Partial<GameState> = {}): GameState => (
 });
 
 /**
- * Advance fake timers by `ms` and then drain any pending timers that were
- * scheduled as a side-effect of awaited async work (e.g. retry setTimeouts
- * scheduled inside `await cloudSave(...)`). This makes the async retry chain
- * deterministic across environments.
+ * Flush queued microtasks so that any `await`-chained work (e.g. setTimeout
+ * scheduled after `await cloudSave(...)`) is observable before the next tick.
  */
-async function advanceAndDrain(ms: number, maxDrains = 10): Promise<void> {
+async function flushMicrotasks(): Promise<void> {
+  for (let i = 0; i < 5; i++) {
+    await Promise.resolve();
+  }
+}
+
+/**
+ * Advance fake timers by exactly `ms` and flush microtasks. Bounded — does NOT
+ * keep draining pending timers beyond the requested window, so it will not
+ * accidentally cross into the next 60s auto-save interval while testing the
+ * 5s retry chain.
+ */
+async function tick(ms: number): Promise<void> {
   await act(async () => {
     await vi.advanceTimersByTimeAsync(ms);
+    await flushMicrotasks();
   });
-  for (let i = 0; i < maxDrains; i++) {
-    const pending = vi.getTimerCount();
-    if (pending === 0) break;
-    await act(async () => {
-      await vi.runOnlyPendingTimersAsync();
-    });
-  }
 }
 
 describe('useAutoSave', () => {
