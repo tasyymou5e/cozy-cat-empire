@@ -110,7 +110,7 @@ describe('useAutoSave', () => {
         })
       );
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       expect(mockCloudSave).toHaveBeenCalledTimes(1);
     });
@@ -143,11 +143,11 @@ describe('useAutoSave', () => {
         { initialProps: { intervalMs: 60000 } }
       );
 
-      await advanceAndDrain(30000);
+      await tick(30000);
 
       rerender({ intervalMs: 30000 });
 
-      await advanceAndDrain(30000);
+      await tick(30000);
 
       expect(mockCloudSave).toHaveBeenCalled();
     });
@@ -164,9 +164,9 @@ describe('useAutoSave', () => {
         })
       );
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       expect(mockCloudSave.mock.calls.length).toBeLessThanOrEqual(1);
     });
@@ -186,13 +186,13 @@ describe('useAutoSave', () => {
         { initialProps: { state: initialState } }
       );
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       const callsAfterFirst = mockCloudSave.mock.calls.length;
 
       rerender({ state: updatedState });
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       expect(mockCloudSave.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     });
@@ -210,13 +210,13 @@ describe('useAutoSave', () => {
         { initialProps: { state: initialState } }
       );
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       const callsAfterFirst = mockCloudSave.mock.calls.length;
 
       rerender({ state: updatedState });
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       expect(mockCloudSave.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     });
@@ -234,13 +234,13 @@ describe('useAutoSave', () => {
         { initialProps: { state: initialState } }
       );
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       const callsAfterFirst = mockCloudSave.mock.calls.length;
 
       rerender({ state: updatedState });
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       expect(mockCloudSave.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     });
@@ -257,7 +257,7 @@ describe('useAutoSave', () => {
         })
       );
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       expect(mockCloudSave).not.toHaveBeenCalled();
     });
@@ -272,7 +272,7 @@ describe('useAutoSave', () => {
         })
       );
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       expect(mockCloudSave).not.toHaveBeenCalled();
     });
@@ -316,7 +316,7 @@ describe('useAutoSave', () => {
 
       // advanceAndDrain handles the full chain: interval tick -> initial save ->
       // 5s retry setTimeout -> retry save -> 5s retry setTimeout -> final save.
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
       expect(onSaveError).not.toHaveBeenCalled();
@@ -334,7 +334,7 @@ describe('useAutoSave', () => {
         })
       );
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       // MAX_RETRIES = 2, so we expect 1 initial + 2 retries = 3 attempts.
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
@@ -355,7 +355,7 @@ describe('useAutoSave', () => {
         })
       );
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
       expect(onSaveError).toHaveBeenCalledTimes(1);
@@ -376,7 +376,7 @@ describe('useAutoSave', () => {
         })
       );
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
       expect(result.current.stats.errorCount).toBe(1);
@@ -397,7 +397,7 @@ describe('useAutoSave', () => {
         })
       );
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       expect(onSaveStart).toHaveBeenCalledTimes(1);
     });
@@ -414,7 +414,7 @@ describe('useAutoSave', () => {
         })
       );
 
-      await advanceAndDrain(60000);
+      await tick(60000);
 
       expect(onSaveComplete).toHaveBeenCalledTimes(1);
     });
