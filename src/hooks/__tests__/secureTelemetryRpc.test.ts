@@ -21,7 +21,7 @@
  *     - _metadata must be a JSON object, ≤ 8 KB
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const mockRpc = vi.fn();
 
