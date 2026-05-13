@@ -78,6 +78,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Monitoring',
     items: [
       { id: 'errors', label: 'Error Logs', icon: AlertTriangle, path: '/catking/errors' },
+      { id: 'telemetry', label: 'Auth Telemetry', icon: Activity, path: '/catking/telemetry' },
       { id: 'winston', label: 'Winston Logger', icon: Terminal, path: '/catking/winston' },
       { id: 'security', label: 'Security Audit', icon: Shield, path: '/catking/security' },
     ],
