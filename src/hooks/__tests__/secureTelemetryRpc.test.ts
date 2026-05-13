@@ -22,6 +22,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {
+  AUTH_ATTEMPT_ERRORS,
+  CLIENT_ERROR_ERRORS,
+} from '@/constants/telemetryErrors';
 
 const mockRpc = vi.fn();
 
