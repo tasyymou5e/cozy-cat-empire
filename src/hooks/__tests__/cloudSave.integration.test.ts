@@ -313,12 +313,11 @@ describe('Cloud Save Integration', () => {
     // 1) LOGIN: mount useCloudSave for the user, no existing save yet
     const session1 = renderHook(() => useCloudSave(USER_ID));
 
-    let loadRes: unknown;
+    let loadRes: { data: unknown; error?: string } | undefined;
     await act(async () => {
       loadRes = await session1.result.current.cloudLoad(); // opens the load gate
     });
-    // eslint-disable-next-line no-console
-    console.log('DEBUG loadRes', loadRes, 'isLoaded', session1.result.current.isLoaded);
+    expect(loadRes?.error).toBeUndefined();
 
     // 2) PROGRESS: simulate game progression and inventory changes
     const progressedState = makeState({
