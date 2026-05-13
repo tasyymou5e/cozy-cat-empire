@@ -18,6 +18,7 @@ import { format, subDays } from 'date-fns';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
+import { mapTelemetryError } from '@/lib/telemetryErrorMessages';
 
 type Row = {
   id: string;
