@@ -7,7 +7,7 @@ vi.mock('@/config/tabUnlocks', () => ({
 }));
 
 vi.mock('@/constants/tabs', () => ({
-  TAB_LABELS: {},
+  TAB_LABELS: { actions: { icon: '🎬', label: 'Actions' } },
 }));
 
 vi.mock('@/hooks/use-toast', () => ({
