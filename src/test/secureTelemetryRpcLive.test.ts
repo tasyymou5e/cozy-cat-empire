@@ -145,37 +145,37 @@ describe('live: log_client_error_secure exact server messages', () => {
     [
       'empty error_type',
       { _error_type: '', _error_message: 'x' },
-      'Invalid error_type',
+      CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE,
     ],
     [
       'uppercase error_type',
       { _error_type: 'BadType', _error_message: 'x' },
-      'Invalid error_type',
+      CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE,
     ],
     [
       'error_type with punctuation',
       { _error_type: 'bad-type!', _error_message: 'x' },
-      'Invalid error_type',
+      CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE,
     ],
     [
       'error_type starts with digit',
       { _error_type: '1bad', _error_message: 'x' },
-      'Invalid error_type',
+      CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE,
     ],
     [
       'error_type too short',
       { _error_type: 'ab', _error_message: 'x' },
-      'Invalid error_type',
+      CLIENT_ERROR_ERRORS.INVALID_ERROR_TYPE,
     ],
     [
       'whitespace error_message',
       { _error_type: 'network_error', _error_message: '   ' },
-      'error_message required',
+      CLIENT_ERROR_ERRORS.ERROR_MESSAGE_REQUIRED,
     ],
     [
       'error_message too long',
       { _error_type: 'network_error', _error_message: 'x'.repeat(5001) },
-      'error_message too long',
+      CLIENT_ERROR_ERRORS.ERROR_MESSAGE_TOO_LONG,
     ],
     [
       'error_stack too long',
@@ -184,7 +184,7 @@ describe('live: log_client_error_secure exact server messages', () => {
         _error_message: 'x',
         _error_stack: 'y'.repeat(10001),
       },
-      'error_stack too long',
+      CLIENT_ERROR_ERRORS.ERROR_STACK_TOO_LONG,
     ],
     [
       'component_name too long',
@@ -193,7 +193,7 @@ describe('live: log_client_error_secure exact server messages', () => {
         _error_message: 'x',
         _component_name: 'c'.repeat(201),
       },
-      'component_name too long',
+      CLIENT_ERROR_ERRORS.COMPONENT_NAME_TOO_LONG,
     ],
     [
       'route too long',
@@ -202,7 +202,7 @@ describe('live: log_client_error_secure exact server messages', () => {
         _error_message: 'x',
         _route: '/'.padEnd(501, 'r'),
       },
-      'route too long',
+      CLIENT_ERROR_ERRORS.ROUTE_TOO_LONG,
     ],
     [
       'user_agent too long',
@@ -211,7 +211,7 @@ describe('live: log_client_error_secure exact server messages', () => {
         _error_message: 'x',
         _user_agent: 'u'.repeat(501),
       },
-      'user_agent too long',
+      CLIENT_ERROR_ERRORS.USER_AGENT_TOO_LONG,
     ],
     [
       'metadata not an object',
@@ -220,7 +220,7 @@ describe('live: log_client_error_secure exact server messages', () => {
         _error_message: 'x',
         _metadata: [1, 2, 3],
       },
-      'metadata must be an object',
+      CLIENT_ERROR_ERRORS.METADATA_MUST_BE_OBJECT,
     ],
     [
       'metadata too large',
@@ -229,7 +229,7 @@ describe('live: log_client_error_secure exact server messages', () => {
         _error_message: 'x',
         _metadata: { blob: 'y'.repeat(9000) },
       },
-      'metadata too large',
+      CLIENT_ERROR_ERRORS.METADATA_TOO_LARGE,
     ],
   ];
 
