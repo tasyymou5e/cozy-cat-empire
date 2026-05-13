@@ -79,27 +79,27 @@ describe('live: log_auth_attempt_secure exact server messages', () => {
     [
       'invalid attempt_type',
       { _email: 'a@b.co', _attempt_type: 'totally_not_allowed', _success: true },
-      'Invalid attempt_type',
+      AUTH_ATTEMPT_ERRORS.INVALID_ATTEMPT_TYPE,
     ],
     [
       'empty email',
       { _email: '   ', _attempt_type: 'login', _success: true },
-      'Invalid email',
+      AUTH_ATTEMPT_ERRORS.INVALID_EMAIL,
     ],
     [
       'email missing @',
       { _email: 'noatsign', _attempt_type: 'login', _success: true },
-      'Invalid email',
+      AUTH_ATTEMPT_ERRORS.INVALID_EMAIL,
     ],
     [
       'email too short',
       { _email: 'a', _attempt_type: 'login', _success: true },
-      'Invalid email',
+      AUTH_ATTEMPT_ERRORS.INVALID_EMAIL,
     ],
     [
       'success is null',
       { _email: 'a@b.co', _attempt_type: 'login', _success: null },
-      'success required',
+      AUTH_ATTEMPT_ERRORS.SUCCESS_REQUIRED,
     ],
     [
       'error_message too long',
@@ -109,7 +109,7 @@ describe('live: log_auth_attempt_secure exact server messages', () => {
         _success: false,
         _error_message: 'x'.repeat(1001),
       },
-      'error_message too long',
+      AUTH_ATTEMPT_ERRORS.ERROR_MESSAGE_TOO_LONG,
     ],
     [
       'metadata not an object (array)',
@@ -119,7 +119,7 @@ describe('live: log_auth_attempt_secure exact server messages', () => {
         _success: true,
         _metadata: [1, 2, 3],
       },
-      'metadata must be an object',
+      AUTH_ATTEMPT_ERRORS.METADATA_MUST_BE_OBJECT,
     ],
     [
       'metadata too large',
@@ -129,7 +129,7 @@ describe('live: log_auth_attempt_secure exact server messages', () => {
         _success: true,
         _metadata: { blob: 'y'.repeat(5000) },
       },
-      'metadata too large',
+      AUTH_ATTEMPT_ERRORS.METADATA_TOO_LARGE,
     ],
   ];
 
