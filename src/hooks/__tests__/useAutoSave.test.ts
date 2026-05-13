@@ -73,6 +73,19 @@ async function tick(ms: number): Promise<void> {
   });
 }
 
+/**
+ * Fire only the very next scheduled timer (whichever is earliest), then flush
+ * microtasks so the awaited async work inside its callback runs to
+ * completion. Use this to step through a chained retry sequence without
+ * accidentally also firing the 60s auto-save interval.
+ */
+async function fireNextTimer(): Promise<void> {
+  await act(async () => {
+    await vi.advanceTimersToNextTimerAsync();
+    await flushMicrotasks();
+  });
+}
+
 describe('useAutoSave', () => {
   let mockCloudSave: Mock;
 
