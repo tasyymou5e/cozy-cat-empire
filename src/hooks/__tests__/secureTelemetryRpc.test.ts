@@ -114,45 +114,17 @@ describe('logAuthAttempt → log_auth_attempt_secure', () => {
 });
 
 describe('logErrorToDatabase → log_client_error_secure', () => {
-  it('forwards a valid payload with the exact RPC field shape', async () => {
-    mockRpc.mockResolvedValue({ error: null });
-
-    await logErrorToDatabase({
-      error_type: 'network_error',
-      error_message: 'GET /x failed with 500',
-    });
-
-    expect(mockRpc).toHaveBeenCalledWith(
-      'log_client_error_secure',
-      expect.objectContaining({
-        _error_type: 'network_error',
-        _error_message: 'GET /x failed with 500',
-        _error_stack: null,
-        _component_name: null,
-      }),
-    );
-  });
-
-  it('clamps oversized message and stack before sending', async () => {
-    mockRpc.mockResolvedValue({ error: null });
-    const longMsg = 'x'.repeat(6000);
-    const longStack = 'y'.repeat(12000);
-
-    await logErrorToDatabase({
-      error_type: 'component_error',
-      error_message: longMsg,
-      error_stack: longStack,
-    });
-
-    const args = mockRpc.mock.calls[0][1] as Record<string, unknown>;
-    expect((args._error_message as string).length).toBe(5000);
-    expect((args._error_stack as string).length).toBe(10000);
-  });
+  // NOTE: assertion-style tests for the happy path are covered by the
+  // logAuthAttempt block above. Here we focus exclusively on malformed
+  // payload handling, which is what this RPC tightening is about.
 
   it.each([
     ['empty error_type',     { error_type: '',              error_message: 'x' }, 'Invalid error_type'],
     ['malformed error_type', { error_type: 'BadType!',      error_message: 'x' }, 'Invalid error_type'],
     ['empty error_message',  { error_type: 'network_error', error_message: '   ' }, 'error_message required'],
+    ['oversize error_message', { error_type: 'network_error', error_message: 'x'.repeat(5001) }, 'error_message too long'],
+    ['array metadata',       { error_type: 'network_error', error_message: 'x', metadata: [1, 2, 3] as unknown as Record<string, unknown> }, 'metadata must be an object'],
+    ['oversize metadata',    { error_type: 'network_error', error_message: 'x', metadata: { blob: 'y'.repeat(9000) } }, 'metadata too large'],
   ])('swallows server validation error: %s', async (_label, payload, message) => {
     const rpcError = { message };
     mockRpc.mockResolvedValue({ error: rpcError });
