@@ -29,6 +29,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   Crosshair,
+  Activity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
