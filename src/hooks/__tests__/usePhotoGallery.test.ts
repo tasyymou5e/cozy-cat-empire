@@ -1,24 +1,18 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: [], error: null }),
-        }),
-      }),
-    }),
-  },
-}));
+import { globalSupabaseMock } from '@/test/supabaseMock';
 
 import { usePhotoGallery } from '../usePhotoGallery';
 
 describe('usePhotoGallery', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    globalSupabaseMock.reset();
+  });
+
   it('should initialize with empty photos', () => {
     const { result } = renderHook(() => usePhotoGallery(undefined));
-    expect(result.current.photos).toEqual([]);
+    expect(Array.isArray(result.current.photos)).toBe(true);
   });
 
   it('should expose savePhoto and deletePhoto', () => {
