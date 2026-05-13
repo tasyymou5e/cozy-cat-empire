@@ -50,12 +50,51 @@ const createMockGameState = (overrides: Partial<GameState> = {}): GameState => (
   ...overrides,
 });
 
+/**
+ * Flush queued microtasks so that any `await`-chained work (e.g. setTimeout
+ * scheduled after `await cloudSave(...)`) is observable before the next tick.
+ */
+async function flushMicrotasks(): Promise<void> {
+  for (let i = 0; i < 5; i++) {
+    await Promise.resolve();
+  }
+}
+
+/**
+ * Advance fake timers by exactly `ms` and flush microtasks. Bounded — does NOT
+ * keep draining pending timers beyond the requested window, so it will not
+ * accidentally cross into the next 60s auto-save interval while testing the
+ * 5s retry chain.
+ */
+async function tick(ms: number): Promise<void> {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(ms);
+    await flushMicrotasks();
+  });
+}
+
+/**
+ * Fire only the very next scheduled timer (whichever is earliest), then flush
+ * microtasks so the awaited async work inside its callback runs to
+ * completion. Use this to step through a chained retry sequence without
+ * accidentally also firing the 60s auto-save interval.
+ */
+async function fireNextTimer(): Promise<void> {
+  await act(async () => {
+    await vi.advanceTimersToNextTimerAsync();
+    await flushMicrotasks();
+  });
+}
+
+
+const STABLE_RELATIONSHIPS = { relationships: [], events: [] } as const;
+
 describe('useAutoSave', () => {
   let mockCloudSave: Mock;
 
   beforeEach(() => {
     vi.useFakeTimers();
-    
+
     mockCloudSave = vi.fn().mockResolvedValue({ success: true });
     (useCloudSave as Mock).mockReturnValue({
       cloudSave: mockCloudSave,
@@ -80,17 +119,14 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
           onSaveComplete,
         })
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await tick(60000);
 
       expect(mockCloudSave).toHaveBeenCalledTimes(1);
     });
@@ -100,7 +136,7 @@ describe('useAutoSave', () => {
       const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
 
       const { unmount } = renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })
@@ -116,23 +152,18 @@ describe('useAutoSave', () => {
 
       const { rerender } = renderHook(
         ({ intervalMs }) =>
-          useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+          useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
             intervalMs,
             enabled: true,
           }),
         { initialProps: { intervalMs: 60000 } }
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(30000);
-      });
+      await tick(30000);
 
       rerender({ intervalMs: 30000 });
 
-      await act(async () => {
-        vi.advanceTimersByTime(30000);
-        await Promise.resolve();
-      });
+      await tick(30000);
 
       expect(mockCloudSave).toHaveBeenCalled();
     });
@@ -143,21 +174,15 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState();
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await tick(60000);
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await tick(60000);
 
       expect(mockCloudSave.mock.calls.length).toBeLessThanOrEqual(1);
     });
@@ -170,26 +195,20 @@ describe('useAutoSave', () => {
 
       const { rerender } = renderHook(
         ({ state }) =>
-          useAutoSave('user-123', state, 0, { relationships: [], events: [] }, mockCloudSave, {
+          useAutoSave('user-123', state, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
             intervalMs: 60000,
             enabled: true,
           }),
         { initialProps: { state: initialState } }
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await tick(60000);
 
       const callsAfterFirst = mockCloudSave.mock.calls.length;
 
       rerender({ state: updatedState });
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await tick(60000);
 
       expect(mockCloudSave.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     });
@@ -200,26 +219,20 @@ describe('useAutoSave', () => {
 
       const { rerender } = renderHook(
         ({ state }) =>
-          useAutoSave('user-123', state, 0, { relationships: [], events: [] }, mockCloudSave, {
+          useAutoSave('user-123', state, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
             intervalMs: 60000,
             enabled: true,
           }),
         { initialProps: { state: initialState } }
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await tick(60000);
 
       const callsAfterFirst = mockCloudSave.mock.calls.length;
 
       rerender({ state: updatedState });
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await tick(60000);
 
       expect(mockCloudSave.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     });
@@ -230,26 +243,20 @@ describe('useAutoSave', () => {
 
       const { rerender } = renderHook(
         ({ state }) =>
-          useAutoSave('user-123', state, 0, { relationships: [], events: [] }, mockCloudSave, {
+          useAutoSave('user-123', state, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
             intervalMs: 60000,
             enabled: true,
           }),
         { initialProps: { state: initialState } }
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await tick(60000);
 
       const callsAfterFirst = mockCloudSave.mock.calls.length;
 
       rerender({ state: updatedState });
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await tick(60000);
 
       expect(mockCloudSave.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     });
@@ -260,16 +267,13 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState();
 
       renderHook(() =>
-        useAutoSave(undefined, mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave(undefined, mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await tick(60000);
 
       expect(mockCloudSave).not.toHaveBeenCalled();
     });
@@ -278,16 +282,13 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState();
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: false,
         })
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await tick(60000);
 
       expect(mockCloudSave).not.toHaveBeenCalled();
     });
@@ -296,7 +297,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState();
 
       const { result } = renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: false,
         })
@@ -322,28 +323,22 @@ describe('useAutoSave', () => {
       const onSaveError = vi.fn();
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
           onSaveError,
         })
       );
 
-      // Initial save + both retries (each scheduled 5s after the previous failure).
-      // Use runOnlyPendingTimersAsync in a loop so that the async retry chain
-      // (setTimeout -> async fn -> awaited cloudSave -> next setTimeout) is fully
-      // drained between ticks.
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(60000);
-      });
-
-      for (let i = 0; i < 5 && mockCloudSave.mock.calls.length < 3; i++) {
-        await act(async () => {
-          await vi.runOnlyPendingTimersAsync();
-        });
-      }
+      // advanceAndDrain handles the full chain: interval tick -> initial save ->
+      // 5s retry setTimeout -> retry save -> 5s retry setTimeout -> final save.
+      await tick(60000);   // interval fires -> initial save (call #1) + schedules retry setTimeout
+      await fireNextTimer(); // first retry (call #2) + schedules next retry setTimeout
+      await fireNextTimer(); // second retry (call #3); MAX_RETRIES reached
+      await tick(0); // flush post-failure await chain (logAutoSaveError + setStats + onSaveError)
 
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
+      expect(onSaveError).not.toHaveBeenCalled();
     });
 
     it('should log error to database after max retries', async () => {
@@ -352,20 +347,20 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })
       );
 
-      await act(async () => { await vi.advanceTimersByTimeAsync(60000); });
-      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-      await act(async () => { await Promise.resolve(); await Promise.resolve(); });
-      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-      await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+      await tick(60000);
+      await fireNextTimer();
+      await fireNextTimer();
+      await tick(0); // flush post-failure await chain
 
-      // cloudSave was called at least once with failure
-      expect(mockCloudSave).toHaveBeenCalled();
+      // MAX_RETRIES = 2, so we expect 1 initial + 2 retries = 3 attempts.
+      expect(mockCloudSave).toHaveBeenCalledTimes(3);
+      expect(logErrorToDatabase).toHaveBeenCalled();
     });
 
     it('should call onSaveError callback after max retries', async () => {
@@ -375,21 +370,21 @@ describe('useAutoSave', () => {
       const onSaveError = vi.fn();
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
           onSaveError,
         })
       );
 
-      await act(async () => { await vi.advanceTimersByTimeAsync(60000); });
-      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-      await act(async () => { await Promise.resolve(); await Promise.resolve(); });
-      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-      await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+      await tick(60000);   // interval fires -> initial save (call #1) + schedules retry setTimeout
+      await fireNextTimer(); // first retry (call #2) + schedules next retry setTimeout
+      await fireNextTimer(); // second retry (call #3); MAX_RETRIES reached
+      await tick(0); // flush post-failure await chain (logAutoSaveError + setStats + onSaveError)
 
-      // At minimum the save was attempted
-      expect(mockCloudSave).toHaveBeenCalled();
+      expect(mockCloudSave).toHaveBeenCalledTimes(3);
+      expect(onSaveError).toHaveBeenCalledTimes(1);
+      expect(onSaveError.mock.calls[0][0]).toBeInstanceOf(Error);
     });
   });
 
@@ -400,20 +395,20 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       const { result } = renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })
       );
 
-      await act(async () => { await vi.advanceTimersByTimeAsync(60000); });
-      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-      await act(async () => { await Promise.resolve(); await Promise.resolve(); });
-      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-      await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+      await tick(60000);   // interval fires -> initial save (call #1) + schedules retry setTimeout
+      await fireNextTimer(); // first retry (call #2) + schedules next retry setTimeout
+      await fireNextTimer(); // second retry (call #3); MAX_RETRIES reached
+      await tick(0); // flush post-failure await chain (logAutoSaveError + setStats + onSaveError)
 
-      // cloudSave was called, verifying the mechanism works
-      expect(mockCloudSave).toHaveBeenCalled();
+      expect(mockCloudSave).toHaveBeenCalledTimes(3);
+      expect(result.current.stats.errorCount).toBe(1);
+      expect(result.current.stats.isRetrying).toBe(false);
     });
   });
 
@@ -423,17 +418,14 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
           onSaveStart,
         })
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await tick(60000);
 
       expect(onSaveStart).toHaveBeenCalledTimes(1);
     });
@@ -443,17 +435,14 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
           onSaveComplete,
         })
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await tick(60000);
 
       expect(onSaveComplete).toHaveBeenCalledTimes(1);
     });
@@ -464,7 +453,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       const { result } = renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })
@@ -481,7 +470,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       const { result } = renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
+        useAutoSave('user-123', mockState, 0, STABLE_RELATIONSHIPS, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })
