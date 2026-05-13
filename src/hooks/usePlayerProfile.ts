@@ -50,19 +50,24 @@ export function usePlayerProfile(userId: string | undefined) {
 
   const updateProfile = useCallback(async (displayName: string, avatarEmoji: string, username?: string): Promise<{ success: boolean; error?: string }> => {
     if (!userId) return { success: false, error: 'Not logged in' };
+    const parsed = profileUpdateSchema.safeParse({ display_name: displayName, avatar_emoji: avatarEmoji, username });
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid profile input' };
+    }
+    const validated = parsed.data;
     try {
-      const updateData: Record<string, string | null> = { display_name: displayName, avatar_emoji: avatarEmoji };
-      if (username !== undefined) updateData.username = username.trim().toLowerCase() || null;
+      const updateData: Record<string, string | null> = { display_name: validated.display_name, avatar_emoji: validated.avatar_emoji };
+      if (username !== undefined) updateData.username = validated.username || null;
       const { error } = await supabase.from('profiles').update(updateData).eq('id', userId);
       if (error) throw error;
-      supabase.from('player_stats').update({ display_name: displayName, avatar_emoji: avatarEmoji }).eq('user_id', userId)
+      supabase.from('player_stats').update({ display_name: validated.display_name, avatar_emoji: validated.avatar_emoji }).eq('user_id', userId)
         .then(({ error: statsError }) => {
           if (statsError) log.warn('Failed to sync to player_stats:', statsError.message);
           else log.debug('Synced profile to player_stats');
         });
       setProfile((prev) => prev ? {
-        ...prev, display_name: displayName, avatar_emoji: avatarEmoji,
-        username: username !== undefined ? username.trim().toLowerCase() || null : prev.username,
+        ...prev, display_name: validated.display_name, avatar_emoji: validated.avatar_emoji,
+        username: username !== undefined ? (validated.username || null) : prev.username,
       } : null);
       return { success: true };
     } catch (err) { log.error('Failed to update profile:', err); return { success: false, error: 'Failed to update profile' }; }
