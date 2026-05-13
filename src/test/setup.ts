@@ -59,7 +59,7 @@ vi.mock('@/types/guards', () => ({
 }));
 
 vi.mock('@/hooks/useErrorLogger', () => ({
-  logErrorToDatabase: vi.fn(),
+  logErrorToDatabase: vi.fn().mockResolvedValue(undefined),
   useErrorLogger: () => ({
     logError: vi.fn(),
     logInteractionError: vi.fn(),
