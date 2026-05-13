@@ -25,6 +25,7 @@ import {
   RotateCcw,
   Castle,
   MoreVertical,
+  CloudUpload,
 } from 'lucide-react';
 import { VIPTier } from '@/types/dailyRewards';
 
@@ -383,6 +384,17 @@ export function GameHeader({
                   <Sparkles className="h-4 w-4" />
                   What's New
                 </button>
+
+                {user && (
+                  <button
+                    onClick={onManualSave}
+                    disabled={!hasLoadedCloud || autoSaveStatus.isSyncing || autoSaveStatus.isRetrying}
+                    className="flex items-center gap-2 w-full text-sm p-2 rounded-md hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <CloudUpload className="h-4 w-4" />
+                    {autoSaveStatus.isSyncing || autoSaveStatus.isRetrying ? 'Saving…' : 'Save now'}
+                  </button>
+                )}
 
                 <button
                   onClick={onResetGame}

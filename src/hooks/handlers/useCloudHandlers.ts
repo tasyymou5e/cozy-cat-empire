@@ -106,7 +106,7 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
     }
   }, [hasOrphans, isChecking]);
 
-  const { stats: autoSaveStats, saveNow } = useAutoSave(
+  const { stats: autoSaveStats, saveNow, forceSave } = useAutoSave(
     auth.user?.id, state, kittensBreed,
     relationshipSystem.getRelationshipSaveData(),
     cloudSave.cloudSave,
@@ -215,9 +215,23 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
     dismissOrphans();
   }, [dismissOrphans]);
 
+  const triggerManualSave = useCallback(async () => {
+    if (!auth.user) {
+      toast({ title: 'Not logged in', description: 'Log in to save to the cloud.', variant: 'destructive' });
+      return;
+    }
+    if (!ui.hasLoadedCloud) {
+      toast({ title: 'Still loading', description: 'Cloud data is still loading. Try again in a moment.' });
+      return;
+    }
+    // forceSave resets the change-detection hash so a manual click always saves.
+    await forceSave();
+  }, [auth.user, ui.hasLoadedCloud, forceSave, toast]);
+
   return {
     handleCloudSave, handleCloudLoad, autoSaveStatus,
-    triggerManualSave: saveNow,
+    triggerManualSave,
+    autoSaveNow: saveNow,
     orphanedCats, showOrphanDialog, handleRecoverOrphans, handleDismissOrphans,
     createEventSnapshot,
   };
