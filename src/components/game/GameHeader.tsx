@@ -25,6 +25,7 @@ import {
   RotateCcw,
   Castle,
   MoreVertical,
+  CloudUpload,
 } from 'lucide-react';
 import { VIPTier } from '@/types/dailyRewards';
 
