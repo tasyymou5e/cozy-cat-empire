@@ -48,6 +48,9 @@ export default function AdminTelemetry() {
   const [successFilter, setSuccessFilter] = useState<string>('');
   const [emailQuery, setEmailQuery] = useState('');
   const [emailDebounced, setEmailDebounced] = useState('');
+  const [category, setCategory] = useState<TelemetryErrorCategory | ''>('');
+  const [friendlyQuery, setFriendlyQuery] = useState('');
+  const [friendlyDebounced, setFriendlyDebounced] = useState('');
   const [days, setDays] = useState<number>(7);
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState<Row[]>([]);
