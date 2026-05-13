@@ -85,11 +85,11 @@ describe('logAuthAttempt → log_auth_attempt_secure', () => {
   });
 
   it.each([
-    ['invalid attempt_type', { message: 'Invalid attempt_type' }],
-    ['malformed email',      { message: 'Invalid email' }],
-    ['array metadata',       { message: 'metadata must be an object' }],
-    ['oversize metadata',    { message: 'metadata too large' }],
-    ['oversize error msg',   { message: 'error_message too long' }],
+    ['invalid attempt_type', { message: AUTH_ATTEMPT_ERRORS.INVALID_ATTEMPT_TYPE }],
+    ['malformed email',      { message: AUTH_ATTEMPT_ERRORS.INVALID_EMAIL }],
+    ['array metadata',       { message: AUTH_ATTEMPT_ERRORS.METADATA_MUST_BE_OBJECT }],
+    ['oversize metadata',    { message: AUTH_ATTEMPT_ERRORS.METADATA_TOO_LARGE }],
+    ['oversize error msg',   { message: AUTH_ATTEMPT_ERRORS.ERROR_MESSAGE_TOO_LONG }],
   ])('swallows server validation error: %s', async (_label, rpcError) => {
     mockRpc.mockResolvedValue({ error: rpcError });
 
