@@ -243,6 +243,68 @@ export default function AdminTelemetry() {
 
         <Card>
           <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Error Category Trend ({days}d)
+              {category && (
+                <Badge variant="outline" className="ml-2 text-xs">
+                  {TELEMETRY_ERROR_CATEGORIES.find((c) => c.key === category)?.label ?? category}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {catTrendLoading ? (
+              <Skeleton className="h-48 w-full" />
+            ) : catTrend.length ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={catTrend}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: 8,
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  {(() => {
+                    const palette = [
+                      '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6',
+                      '#6366f1', '#a855f7', '#ec4899', '#14b8a6', '#f43f5e',
+                      '#84cc16', '#06b6d4', '#78716c',
+                    ];
+                    const cats = category
+                      ? [{ key: category, label: TELEMETRY_ERROR_CATEGORIES.find((c) => c.key === category)?.label ?? category }]
+                      : [
+                          ...TELEMETRY_ERROR_CATEGORIES.map((c) => ({ key: c.key, label: c.label })),
+                          { key: 'unknown', label: 'Unknown' },
+                        ];
+                    return cats.map((c, i) => (
+                      <Bar
+                        key={c.key}
+                        dataKey={c.key}
+                        name={c.label}
+                        stackId="a"
+                        fill={palette[i % palette.length]}
+                        radius={i === cats.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]}
+                      />
+                    ));
+                  })()}
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-48 flex items-center justify-center text-muted-foreground">
+                No error telemetry in the selected window.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Records ({count})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
