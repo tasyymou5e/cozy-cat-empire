@@ -140,15 +140,18 @@ export function AutoSaveIndicator({
     colorClass = 'text-destructive';
     bgClass = 'bg-destructive/10';
     statusText = 'Save failed';
+    dataStatus = 'error';
   } else if (justSaved) {
     Icon = Check;
     colorClass = 'text-[hsl(var(--success))]';
     bgClass = 'bg-[hsl(var(--success))]/15';
     statusText = 'Saved';
+    dataStatus = 'saved';
   } else if (hasRecentSave) {
     Icon = Check;
     colorClass = 'text-[hsl(var(--success))]';
     bgClass = 'bg-[hsl(var(--success))]/10';
+    dataStatus = 'saved';
   }
 
   const tooltipContent = (
