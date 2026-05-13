@@ -267,21 +267,188 @@ USING (is_active = true);
 ```
 
 ### error_logs
-```sql
--- Authenticated users can insert errors
-CREATE POLICY "Authenticated users can insert errors"
-ON public.error_logs FOR INSERT
-WITH CHECK (true);
 
--- Users can only view their own errors
+**RLS Policies (Exact):**
+```sql
+-- Authenticated users can insert their own error logs
+-- Enforces: auth present, user_id matches caller or is null,
+--           message length <= 5000, stack length <= 10000
+CREATE POLICY "Authenticated users can insert own error logs"
+ON public.error_logs FOR INSERT
+TO authenticated
+WITH CHECK (
+  (auth.uid() IS NOT NULL)
+  AND ((user_id IS NULL) OR (user_id = auth.uid()))
+  AND (char_length(COALESCE(error_message, ''::text)) <= 5000)
+  AND (char_length(COALESCE(error_stack, ''::text)) <= 10000)
+);
+
+-- Users can view only their own errors
 CREATE POLICY "Users can view their own errors"
 ON public.error_logs FOR SELECT
 USING (auth.uid() = user_id);
 
--- Note: No UPDATE or DELETE allowed via RLS
--- Cleanup is performed by cleanup-error-logs edge function using service role
--- Automatic cleanup: Daily at 3 AM UTC, deletes logs older than 30 days
+-- Admins can view all error logs
+CREATE POLICY "Admins can view all error logs"
+ON public.error_logs FOR SELECT
+USING (has_role(auth.uid(), 'admin'::app_role));
+
+-- Admins can update error logs (e.g. mark resolved)
+CREATE POLICY "Admins can update error logs"
+ON public.error_logs FOR UPDATE
+USING (has_role(auth.uid(), 'admin'::app_role));
+
+-- Admins can delete error logs
+CREATE POLICY "Admins can delete error logs"
+ON public.error_logs FOR DELETE
+USING (has_role(auth.uid(), 'admin'::app_role));
 ```
+
+**SECURITY DEFINER RPC — `log_client_error_secure`:**
+```sql
+CREATE OR REPLACE FUNCTION public.log_client_error_secure(
+  _error_type         text,
+  _error_message      text,
+  _error_stack        text DEFAULT NULL,
+  _component_name     text DEFAULT NULL,
+  _route              text DEFAULT NULL,
+  _user_agent         text DEFAULT NULL,
+  _metadata           jsonb DEFAULT '{}'::jsonb
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+  IF coalesce(_error_type, '') = '' OR coalesce(_error_message, '') = '' THEN
+    RAISE EXCEPTION 'error_type and error_message required';
+  END IF;
+
+  INSERT INTO public.error_logs (
+    user_id, error_type, error_message, error_stack,
+    component_name, route, user_agent, metadata
+  )
+  VALUES (
+    auth.uid(),
+    LEFT(_error_type, 100),
+    LEFT(_error_message, 5000),
+    LEFT(coalesce(_error_stack, ''), 10000),
+    LEFT(coalesce(_component_name, ''), 200),
+    LEFT(coalesce(_route, ''), 500),
+    LEFT(coalesce(_user_agent, ''), 500),
+    coalesce(_metadata, '{}'::jsonb)
+  );
+END;
+$$;
+```
+
+**RPC Execution Rights:**
+```sql
+GRANT EXECUTE ON FUNCTION public.log_client_error_secure TO anon, authenticated;
+```
+
+**Client Routing:**
+- `useErrorLogger.ts` → calls `supabase.rpc('log_client_error_secure', …)`
+- Edge functions with `SUPABASE_SERVICE_ROLE_KEY` bypass RLS and are unchanged.
+
+---
+
+### auth_attempts_log
+
+**RLS Policies (Exact):**
+```sql
+-- Authenticated users can insert their own auth attempts
+-- Enforces: auth present, user_id matches caller or is null,
+--           attempt_type in allow-list, email <= 254 chars, error_message <= 1000 chars
+CREATE POLICY "Authenticated users can insert own auth attempts"
+ON public.auth_attempts_log FOR INSERT
+TO authenticated
+WITH CHECK (
+  (auth.uid() IS NOT NULL)
+  AND ((user_id IS NULL) OR (user_id = auth.uid()))
+  AND (attempt_type = ANY (ARRAY[
+    'admin_login'::text,
+    'admin_login_failed'::text,
+    'access_denied'::text,
+    'login'::text,
+    'signup'::text,
+    'password_reset'::text,
+    'logout'::text
+  ]))
+  AND (char_length(COALESCE(email, ''::text)) <= 254)
+  AND (char_length(COALESCE(error_message, ''::text)) <= 1000)
+);
+
+-- Admins can view all auth attempts
+CREATE POLICY "Admins can view auth attempts"
+ON public.auth_attempts_log FOR SELECT
+USING (has_role(auth.uid(), 'admin'::app_role));
+```
+
+**SECURITY DEFINER RPC — `log_auth_attempt_secure`:**
+```sql
+CREATE OR REPLACE FUNCTION public.log_auth_attempt_secure(
+  _email          text,
+  _attempt_type   text,
+  _success        boolean,
+  _error_message  text DEFAULT NULL,
+  _metadata       jsonb DEFAULT '{}'::jsonb
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+  IF _attempt_type NOT IN (
+    'admin_login',
+    'admin_login_failed',
+    'access_denied',
+    'login',
+    'signup',
+    'password_reset',
+    'logout'
+  ) THEN
+    RAISE EXCEPTION 'Invalid attempt_type';
+  END IF;
+
+  INSERT INTO public.auth_attempts_log (
+    email, attempt_type, success, error_message, user_id, metadata
+  )
+  VALUES (
+    LEFT(coalesce(_email, ''), 254),
+    _attempt_type,
+    coalesce(_success, false),
+    LEFT(coalesce(_error_message, ''), 1000),
+    auth.uid(),
+    coalesce(_metadata, '{}'::jsonb)
+  );
+END;
+$$;
+```
+
+**RPC Execution Rights:**
+```sql
+GRANT EXECUTE ON FUNCTION public.log_auth_attempt_secure TO anon, authenticated;
+```
+
+**Allow-List for `attempt_type`:**
+| Value | Purpose |
+|-------|---------|
+| `admin_login` | Successful admin dashboard login |
+| `admin_login_failed` | Failed admin dashboard login attempt |
+| `access_denied` | Non-admin tried to access admin route |
+| `login` | Standard user login |
+| `signup` | New user registration |
+| `password_reset` | Password reset request |
+| `logout` | User sign-out |
+
+**Client Routing:**
+- `useAdminActivityLog.ts` → `logAuthAttempt()` calls `supabase.rpc('log_auth_attempt_secure', …)`
+- Direct `supabase.from('auth_attempts_log').insert(…)` is no longer used in client code.
+
+---
 
 ### Admin Tables
 ```sql
@@ -293,15 +460,6 @@ USING (has_role(auth.uid(), 'admin'::app_role));
 CREATE POLICY "Admins can insert activity log"
 ON public.admin_activity_log FOR INSERT
 WITH CHECK (has_role(auth.uid(), 'admin'::app_role));
-
--- Auth attempts log - anyone can insert, only admins can view
-CREATE POLICY "Anyone can log auth attempts"
-ON public.auth_attempts_log FOR INSERT
-WITH CHECK (true);
-
-CREATE POLICY "Admins can view auth attempts"
-ON public.auth_attempts_log FOR SELECT
-USING (has_role(auth.uid(), 'admin'::app_role));
 ```
 
 ---
