@@ -19,6 +19,7 @@ describe('useBattlePass', () => {
         }),
         order: vi.fn().mockResolvedValue({ data: [], error: null }),
       }),
+      upsert: vi.fn().mockResolvedValue({ data: null, error: null }),
     });
   });
 
