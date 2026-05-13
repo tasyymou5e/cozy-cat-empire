@@ -117,7 +117,36 @@ serve(async (req) => {
       );
     }
 
-    const { forceRegenerate, season } = parsed.data;
+    let { forceRegenerate, season } = parsed.data;
+
+    // forceRegenerate is destructive (deletes cached image and burns AI credits) — restrict to admins.
+    // Anonymous and non-admin callers always get the cached image.
+    if (forceRegenerate) {
+      const authHeader = req.headers.get('Authorization');
+      let isAdmin = false;
+      if (authHeader) {
+        try {
+          const token = authHeader.replace('Bearer ', '');
+          const { data: { user } } = await supabase.auth.getUser(token);
+          if (user) {
+            const { data: roleRow } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', user.id)
+              .eq('role', 'admin')
+              .maybeSingle();
+            isAdmin = !!roleRow;
+          }
+        } catch (_e) {
+          isAdmin = false;
+        }
+      }
+      if (!isAdmin) {
+        console.log('Non-admin caller requested forceRegenerate; ignoring and serving cached image.');
+        forceRegenerate = false;
+      }
+    }
+
     const BACKGROUND_KEY = getBackgroundKey(season as Season | undefined);
     const prompt = season && SEASONAL_PROMPTS[season as Season] ? SEASONAL_PROMPTS[season as Season] : DEFAULT_PROMPT;
 
