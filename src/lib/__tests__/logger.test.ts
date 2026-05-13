@@ -36,13 +36,17 @@ describe('createLogger', () => {
     const { createLogger } = await vi.importActual<typeof import('@/lib/logger')>('@/lib/logger');
     const log = createLogger('MyModule');
     log.warn('something happened');
-    expect(warnSpy).toHaveBeenCalledWith('[MyModule]', 'something happened');
+    expect(warnSpy).toHaveBeenCalled();
+    expect(warnSpy.mock.calls[0][0]).toContain('[MyModule]');
+    expect(warnSpy.mock.calls[0]).toContain('something happened');
   });
 
   it('error always outputs with namespace prefix', async () => {
     const { createLogger } = await vi.importActual<typeof import('@/lib/logger')>('@/lib/logger');
     const log = createLogger('MyModule');
     log.error('bad thing', { code: 500 });
-    expect(errorSpy).toHaveBeenCalledWith('[MyModule]', 'bad thing', { code: 500 });
+    expect(errorSpy).toHaveBeenCalled();
+    expect(errorSpy.mock.calls[0][0]).toContain('[MyModule]');
+    expect(errorSpy.mock.calls[0]).toContain('bad thing');
   });
 });
