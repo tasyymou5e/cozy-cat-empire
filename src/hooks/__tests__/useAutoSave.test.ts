@@ -361,12 +361,10 @@ describe('useAutoSave', () => {
       );
 
       await advanceAndDrain(60000);
-      // Drain the full retry chain (initial 60s tick + chained 5s setTimeouts).
-      await advanceAndDrain(5000);
-      await advanceAndDrain(5000);
 
-      // At minimum the save was attempted
-      expect(mockCloudSave).toHaveBeenCalled();
+      expect(mockCloudSave).toHaveBeenCalledTimes(3);
+      expect(onSaveError).toHaveBeenCalledTimes(1);
+      expect(onSaveError.mock.calls[0][0]).toBeInstanceOf(Error);
     });
   });
 
