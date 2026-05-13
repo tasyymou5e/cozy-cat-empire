@@ -316,7 +316,9 @@ describe('useAutoSave', () => {
 
       // advanceAndDrain handles the full chain: interval tick -> initial save ->
       // 5s retry setTimeout -> retry save -> 5s retry setTimeout -> final save.
-      await tick(60000);
+      await tick(60000); // interval fires -> initial save (call #1) + schedules retry at +5s
+      await tick(5000);  // first retry (call #2) + schedules retry at +5s
+      await tick(5000);  // second retry (call #3); MAX_RETRIES reached, no further setTimeout
 
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
       expect(onSaveError).not.toHaveBeenCalled();
@@ -355,7 +357,9 @@ describe('useAutoSave', () => {
         })
       );
 
-      await tick(60000);
+      await tick(60000); // interval fires -> initial save (call #1) + schedules retry at +5s
+      await tick(5000);  // first retry (call #2) + schedules retry at +5s
+      await tick(5000);  // second retry (call #3); MAX_RETRIES reached, no further setTimeout
 
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
       expect(onSaveError).toHaveBeenCalledTimes(1);
@@ -376,7 +380,9 @@ describe('useAutoSave', () => {
         })
       );
 
-      await tick(60000);
+      await tick(60000); // interval fires -> initial save (call #1) + schedules retry at +5s
+      await tick(5000);  // first retry (call #2) + schedules retry at +5s
+      await tick(5000);  // second retry (call #3); MAX_RETRIES reached, no further setTimeout
 
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
       expect(result.current.stats.errorCount).toBe(1);
