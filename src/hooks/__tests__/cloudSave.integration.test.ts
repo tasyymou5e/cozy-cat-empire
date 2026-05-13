@@ -342,6 +342,12 @@ describe('Cloud Save Integration', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(60_000);
     });
+    let directResult: { success: boolean; error?: string } | undefined;
+    await act(async () => {
+      directResult = await session1.result.current.cloudSave(progressedState, progressedKittens, progressedRels);
+    });
+    // eslint-disable-next-line no-console
+    console.log('DEBUG directResult', directResult, 'upsertCalls', mockUpsert.mock.calls.length);
     await act(async () => {
       await autoSave.result.current.saveNow();
     });
