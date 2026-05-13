@@ -54,6 +54,24 @@ serve(async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Require shared secret token (cron job sends this header)
+  const expectedToken = Deno.env.get('FUNCTION_SECRET_TOKEN');
+  const providedToken = req.headers.get('x-function-secret');
+  if (!expectedToken || providedToken !== expectedToken) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // HTML-escape user-controlled fields before embedding into the email template
+  const escapeHtml = (s: string) => s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
   try {
     const body = await req.json();
     const parsed = RequestSchema.safeParse(body);
