@@ -211,7 +211,7 @@ export default function AdminTelemetry() {
             <CardTitle>Records ({count})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-4">
+            <div className="grid gap-3 md:grid-cols-3">
               <div className="space-y-1">
                 <Label>Email contains</Label>
                 <Input
@@ -242,6 +242,31 @@ export default function AdminTelemetry() {
                     <SelectItem value="false">Failure</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>Error category</Label>
+                <Select
+                  value={category || 'all'}
+                  onValueChange={(v) =>
+                    setCategory(v === 'all' ? '' : (v as TelemetryErrorCategory))
+                  }
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All categories</SelectItem>
+                    {TELEMETRY_ERROR_CATEGORIES.map((c) => (
+                      <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>Friendly text search</Label>
+                <Input
+                  value={friendlyQuery}
+                  onChange={(e) => setFriendlyQuery(e.target.value)}
+                  placeholder="e.g. metadata, too long, email"
+                />
               </div>
               <div className="space-y-1">
                 <Label>Window</Label>
