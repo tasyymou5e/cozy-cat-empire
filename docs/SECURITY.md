@@ -521,6 +521,37 @@ GRANT EXECUTE ON FUNCTION public.log_auth_attempt_secure TO anon, authenticated;
 
 ---
 
+## Telemetry RPC Error Message Constants
+
+All `RAISE EXCEPTION` strings in `log_auth_attempt_secure` and `log_client_error_secure` live in **`src/constants/telemetryErrors.ts`** and are imported by both unit and live integration tests.
+
+### `AUTH_ATTEMPT_ERRORS`
+| Constant | Message | Trigger |
+|----------|---------|---------|
+| `INVALID_ATTEMPT_TYPE` | `Invalid attempt_type` | `_attempt_type` not in allow-list |
+| `INVALID_EMAIL` | `Invalid email` | `_email` missing `@`, < 3 chars, or > 254 chars |
+| `SUCCESS_REQUIRED` | `success required` | `_success` is `NULL` |
+| `ERROR_MESSAGE_TOO_LONG` | `error_message too long` | `_error_message` > 1000 chars |
+| `METADATA_MUST_BE_OBJECT` | `metadata must be an object` | `_metadata` is not a JSON object |
+| `METADATA_TOO_LARGE` | `metadata too large` | `_metadata` > 4096 bytes |
+
+### `CLIENT_ERROR_ERRORS`
+| Constant | Message | Trigger |
+|----------|---------|---------|
+| `INVALID_ERROR_TYPE` | `Invalid error_type` | `_error_type` does not match `^[a-z][a-z0-9_]{2,49}$` |
+| `ERROR_MESSAGE_REQUIRED` | `error_message required` | `_error_message` empty after trim |
+| `ERROR_MESSAGE_TOO_LONG` | `error_message too long` | `_error_message` > 5000 chars |
+| `ERROR_STACK_TOO_LONG` | `error_stack too long` | `_error_stack` > 10000 chars |
+| `COMPONENT_NAME_TOO_LONG` | `component_name too long` | `_component_name` > 200 chars |
+| `ROUTE_TOO_LONG` | `route too long` | `_route` > 500 chars |
+| `USER_AGENT_TOO_LONG` | `user_agent too long` | `_user_agent` > 500 chars |
+| `METADATA_MUST_BE_OBJECT` | `metadata must be an object` | `_metadata` is not a JSON object |
+| `METADATA_TOO_LARGE` | `metadata too large` | `_metadata` > 8192 bytes |
+
+**Invariant:** Changing any string in the SQL without updating `src/constants/telemetryErrors.ts` will break the live integration tests (`secureTelemetryRpcLive.test.ts`) because they assert exact message equality against these constants.
+
+---
+
 ### Admin Tables
 ```sql
 -- Only admins can access admin activity log
