@@ -59,6 +59,8 @@ export default function AdminTelemetry() {
   const [loading, setLoading] = useState(false);
   const [trend, setTrend] = useState<Array<{ date: string; success: number; failure: number }>>([]);
   const [trendLoading, setTrendLoading] = useState(false);
+  const [catTrend, setCatTrend] = useState<Array<Record<string, number | string>>>([]);
+  const [catTrendLoading, setCatTrendLoading] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setEmailDebounced(emailQuery.trim()), 300);
