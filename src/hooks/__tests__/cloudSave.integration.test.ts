@@ -203,7 +203,7 @@ describe('Cloud Save Integration', () => {
     const state = makeState();
 
     const { result } = renderHook(() =>
-      useAutoSaveFresh(USER_ID, state, 0, REL_DATA, {
+      useAutoSaveFresh(USER_ID, state, 0, REL_DATA, mockCloudSaveFn, {
         intervalMs: 30_000,
         enabled: true,
       }),

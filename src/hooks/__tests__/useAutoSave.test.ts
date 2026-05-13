@@ -80,7 +80,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
           onSaveComplete,
@@ -100,7 +100,7 @@ describe('useAutoSave', () => {
       const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
 
       const { unmount } = renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })
@@ -116,7 +116,7 @@ describe('useAutoSave', () => {
 
       const { rerender } = renderHook(
         ({ intervalMs }) =>
-          useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+          useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
             intervalMs,
             enabled: true,
           }),
@@ -143,7 +143,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState();
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })
@@ -170,7 +170,7 @@ describe('useAutoSave', () => {
 
       const { rerender } = renderHook(
         ({ state }) =>
-          useAutoSave('user-123', state, 0, { relationships: [], events: [] }, {
+          useAutoSave('user-123', state, 0, { relationships: [], events: [] }, mockCloudSave, {
             intervalMs: 60000,
             enabled: true,
           }),
@@ -200,7 +200,7 @@ describe('useAutoSave', () => {
 
       const { rerender } = renderHook(
         ({ state }) =>
-          useAutoSave('user-123', state, 0, { relationships: [], events: [] }, {
+          useAutoSave('user-123', state, 0, { relationships: [], events: [] }, mockCloudSave, {
             intervalMs: 60000,
             enabled: true,
           }),
@@ -230,7 +230,7 @@ describe('useAutoSave', () => {
 
       const { rerender } = renderHook(
         ({ state }) =>
-          useAutoSave('user-123', state, 0, { relationships: [], events: [] }, {
+          useAutoSave('user-123', state, 0, { relationships: [], events: [] }, mockCloudSave, {
             intervalMs: 60000,
             enabled: true,
           }),
@@ -260,7 +260,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState();
 
       renderHook(() =>
-        useAutoSave(undefined, mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave(undefined, mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })
@@ -278,7 +278,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState();
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: false,
         })
@@ -296,7 +296,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState();
 
       const { result } = renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: false,
         })
@@ -322,7 +322,7 @@ describe('useAutoSave', () => {
       const onSaveError = vi.fn();
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
           onSaveError,
@@ -353,7 +353,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })
@@ -376,7 +376,7 @@ describe('useAutoSave', () => {
       const onSaveError = vi.fn();
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
           onSaveError,
@@ -401,7 +401,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       const { result } = renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })
@@ -424,7 +424,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
           onSaveStart,
@@ -444,7 +444,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
           onSaveComplete,
@@ -465,7 +465,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       const { result } = renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })
@@ -482,7 +482,7 @@ describe('useAutoSave', () => {
       const mockState = createMockGameState({ cats: [{ id: '1' }] as any });
 
       const { result } = renderHook(() =>
-        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, {
+        useAutoSave('user-123', mockState, 0, { relationships: [], events: [] }, mockCloudSave, {
           intervalMs: 60000,
           enabled: true,
         })

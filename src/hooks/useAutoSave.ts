@@ -11,7 +11,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { GameState } from '@/types/game';
 import { CatRelationship, RelationshipEvent } from '@/types/relationships';
-import { useCloudSave } from './useCloudSave';
 import { logErrorToDatabase } from './useErrorLogger';
 import { createLogger } from '@/lib/logger';
 
@@ -55,11 +54,19 @@ const RETRY_DELAY_MS = 5000;
  * );
  * ```
  */
+type CloudSaveFn = (
+  gameState: GameState,
+  kittensBreed: number,
+  relationshipData: RelationshipSaveData,
+  options?: { isNewUser?: boolean }
+) => Promise<{ success: boolean; error?: string }>;
+
 export function useAutoSave(
   userId: string | undefined,
   gameState: GameState,
   kittensBreed: number,
   relationshipData: RelationshipSaveData,
+  cloudSaveFn: CloudSaveFn,
   options: UseAutoSaveOptions = {}
 ) {
   const {
@@ -70,7 +77,7 @@ export function useAutoSave(
     onSaveError,
   } = options;
 
-  const { cloudSave } = useCloudSave(userId);
+  const cloudSave = cloudSaveFn;
   const lastStateHashRef = useRef<string>('');
   const isSavingRef = useRef(false);
   const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
