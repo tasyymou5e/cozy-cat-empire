@@ -254,7 +254,7 @@ describe('useCatShows', () => {
     });
 
     it('should default to local tier', () => {
-      const cat = createMockCat({ health: 90, happiness: 80, grade: 5 });
+      const cat = createMockCat({ health: 90, happiness: 80, grade: 8 });
       mockDeps = createMockDependencies({
         cats: [cat],
         showCooldown: 0,
