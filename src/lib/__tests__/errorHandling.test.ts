@@ -50,13 +50,13 @@ describe('errorHandling utilities', () => {
       expect(result.error).toBe('Default msg');
     });
 
-    it('logs to console', () => {
+    it('logs via logger', () => {
       handleAsyncError(new Error('test'), {
         source: 'useHook',
         operation: 'op',
       }, 'msg');
 
-      expect(console.error).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
         '[useHook] op failed:',
         expect.any(Error)
       );
