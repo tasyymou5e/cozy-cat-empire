@@ -181,8 +181,15 @@ export function useFriends(userId: string | undefined) {
     async (friendUsername: string): Promise<FriendRequestResult> => {
       if (!userId) return { success: false, error: 'Not logged in' };
 
+      const searchTerm = friendUsername.trim();
+      // Validate search term: 1-50 chars, only safe chars (prevents PostgREST .or() injection / abuse)
+      if (searchTerm.length === 0) return { success: false, error: 'Username required' };
+      if (searchTerm.length > 50) return { success: false, error: 'Username too long' };
+      if (!/^[A-Za-z0-9_\- ]+$/.test(searchTerm)) {
+        return { success: false, error: 'Only letters, numbers, spaces, hyphens, and underscores allowed' };
+      }
+
       try {
-        const searchTerm = friendUsername.trim();
         const { data: profiles, error: searchError } = await supabase
           .from('profiles')
           .select('id, display_name, username')

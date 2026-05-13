@@ -673,8 +673,10 @@ Deno.serve(async (req) => {
       bytes[i] = binaryString.charCodeAt(i);
     }
 
-    // Upload to Supabase Storage
-    const fileName = `${cat.id}-${Date.now()}.${imageType}`;
+    // Upload to Supabase Storage under the requesting user's folder so storage RLS
+    // (user-folder isolation policies) can enforce per-user access.
+    const folder = userId ?? 'system';
+    const fileName = `${folder}/${cat.id}-${Date.now()}.${imageType}`;
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('cat-portraits')
       .upload(fileName, bytes, {
