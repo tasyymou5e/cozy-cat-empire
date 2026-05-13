@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Json } from '@/integrations/supabase/types';
 
 import { createLogger } from '@/lib/logger';
+import { mapTelemetryError } from '@/lib/telemetryErrorMessages';
 
 const logger = createLogger('useAdminActivityLog');
 
