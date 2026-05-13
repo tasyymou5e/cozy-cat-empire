@@ -1,8 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
+import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('PlayerProfile');
+
+const profileUpdateSchema = z.object({
+  display_name: z.string().trim().min(1, 'Display name is required').max(50, 'Display name must be 50 characters or less'),
+  avatar_emoji: z.string().trim().min(1, 'Avatar is required').max(8, 'Avatar must be a single emoji'),
+  username: z.string().trim().toLowerCase().max(30, 'Username must be 30 characters or less').regex(/^[a-z0-9_-]*$/i, 'Only letters, numbers, hyphens, and underscores allowed').optional(),
+});
 
 export interface PlayerProfile {
   id: string;
