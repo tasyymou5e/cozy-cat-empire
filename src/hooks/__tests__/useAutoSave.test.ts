@@ -340,12 +340,10 @@ describe('useAutoSave', () => {
       );
 
       await advanceAndDrain(60000);
-      // Drain the full retry chain (initial 60s tick + chained 5s setTimeouts).
-      await advanceAndDrain(5000);
-      await advanceAndDrain(5000);
 
-      // cloudSave was called at least once with failure
-      expect(mockCloudSave).toHaveBeenCalled();
+      // MAX_RETRIES = 2, so we expect 1 initial + 2 retries = 3 attempts.
+      expect(mockCloudSave).toHaveBeenCalledTimes(3);
+      expect(logErrorToDatabase).toHaveBeenCalled();
     });
 
     it('should call onSaveError callback after max retries', async () => {
