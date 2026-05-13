@@ -1,5 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const mockLoggerError = vi.fn();
+
+vi.mock('@/lib/logger', () => ({
+  createLogger: () => ({
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: mockLoggerError,
+  }),
+  logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: mockLoggerError },
+}));
+
 vi.mock('@/hooks/useErrorLogger', () => ({
   logErrorToDatabase: vi.fn().mockResolvedValue(undefined),
 }));
