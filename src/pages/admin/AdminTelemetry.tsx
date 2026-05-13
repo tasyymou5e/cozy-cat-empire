@@ -279,8 +279,26 @@ export default function AdminTelemetry() {
                         <TableCell className="font-mono text-xs">
                           {r.user_id ? r.user_id.slice(0, 8) + '…' : <span className="text-muted-foreground">—</span>}
                         </TableCell>
-                        <TableCell className="text-xs max-w-xs truncate" title={r.error_message || ''}>
-                          {r.error_message || <span className="text-muted-foreground">—</span>}
+                        <TableCell className="text-xs max-w-xs">
+                          {r.error_message ? (
+                            (() => {
+                              const mapped = mapTelemetryError(r.error_message);
+                              return mapped.known ? (
+                                <span
+                                  className="block truncate"
+                                  title={`Server: ${mapped.raw}`}
+                                >
+                                  {mapped.friendly}
+                                </span>
+                              ) : (
+                                <span className="block truncate" title={r.error_message}>
+                                  {r.error_message}
+                                </span>
+                              );
+                            })()
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))
