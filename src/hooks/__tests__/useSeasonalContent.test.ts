@@ -1,12 +1,17 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 
 import { useSeasonalContent } from '../useSeasonalContent';
 
 describe('useSeasonalContent', () => {
-  it('should return current season', () => {
+  it('should return current season as a Season object (or null off-season)', () => {
     const { result } = renderHook(() => useSeasonalContent());
-    expect(result.current.currentSeason).toBeDefined();
-    expect(['spring', 'summer', 'fall', 'winter']).toContain(result.current.currentSeason);
+    const season = result.current.currentSeason;
+    if (season !== null) {
+      expect(season).toHaveProperty('id');
+      expect(season).toHaveProperty('name');
+    }
+    expect(typeof result.current.daysRemaining).toBe('number');
+    expect(typeof result.current.isSeasonActive).toBe('boolean');
   });
 });
