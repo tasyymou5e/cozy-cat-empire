@@ -106,6 +106,15 @@ export function AutoSaveIndicator({
   const hasError = status.lastError && status.errorCount > 0;
   const hasRecentSave = status.lastSaveTime !== null;
 
+  // Show a prominent "Saved" pulse for 3s after a successful save completes
+  const [justSaved, setJustSaved] = useState(false);
+  useEffect(() => {
+    if (!status.lastSaveTime) return;
+    setJustSaved(true);
+    const t = setTimeout(() => setJustSaved(false), 3000);
+    return () => clearTimeout(t);
+  }, [status.lastSaveTime]);
+
   // Icon and color based on state
   let Icon = Cloud;
   let colorClass = 'text-[hsl(var(--success))]';
@@ -116,12 +125,17 @@ export function AutoSaveIndicator({
     Icon = RefreshCw;
     colorClass = 'text-primary';
     bgClass = 'bg-primary/10';
-    statusText = status.isRetrying ? 'Retrying...' : 'Saving...';
+    statusText = status.isRetrying ? 'Retrying…' : 'Saving…';
   } else if (hasError && !hasRecentSave) {
     Icon = AlertCircle;
     colorClass = 'text-destructive';
     bgClass = 'bg-destructive/10';
     statusText = 'Save failed';
+  } else if (justSaved) {
+    Icon = Check;
+    colorClass = 'text-[hsl(var(--success))]';
+    bgClass = 'bg-[hsl(var(--success))]/15';
+    statusText = 'Saved';
   } else if (hasRecentSave) {
     Icon = Check;
     colorClass = 'text-[hsl(var(--success))]';
