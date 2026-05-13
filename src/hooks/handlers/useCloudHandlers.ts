@@ -106,7 +106,7 @@ export function useCloudHandlers({ farmState }: CloudHandlersDeps) {
     }
   }, [hasOrphans, isChecking]);
 
-  const { stats: autoSaveStats, saveNow } = useAutoSave(
+  const { stats: autoSaveStats, saveNow, forceSave } = useAutoSave(
     auth.user?.id, state, kittensBreed,
     relationshipSystem.getRelationshipSaveData(),
     cloudSave.cloudSave,
