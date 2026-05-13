@@ -428,6 +428,12 @@ USING (has_role(auth.uid(), 'admin'::app_role));
 ```
 
 **SECURITY DEFINER RPC — `log_auth_attempt_secure`:**
+
+> The canonical error messages used in the `RAISE EXCEPTION` statements below are
+> defined as shared constants in **`src/constants/telemetryErrors.ts`**.
+> If you change a message in the SQL, you must update the TS constants and
+> all test assertions that import them.
+
 ```sql
 CREATE OR REPLACE FUNCTION public.log_auth_attempt_secure(
   _email          text,
@@ -441,29 +447,53 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path TO 'public'
 AS $$
+DECLARE
+  _meta jsonb := coalesce(_metadata, '{}'::jsonb);
+  _clean_email text := btrim(coalesce(_email, ''));
 BEGIN
-  IF _attempt_type NOT IN (
-    'admin_login',
-    'admin_login_failed',
-    'access_denied',
-    'login',
-    'signup',
-    'password_reset',
-    'logout'
+  -- attempt_type allow-list
+  IF _attempt_type IS NULL OR _attempt_type NOT IN (
+    'admin_login','admin_login_failed','access_denied',
+    'login','signup','password_reset','logout'
   ) THEN
     RAISE EXCEPTION 'Invalid attempt_type';
+  END IF;
+
+  -- email required, must look like an email, length-bounded
+  IF char_length(_clean_email) < 3
+     OR char_length(_clean_email) > 254
+     OR position('@' in _clean_email) = 0 THEN
+    RAISE EXCEPTION 'Invalid email';
+  END IF;
+
+  -- success must be explicit boolean
+  IF _success IS NULL THEN
+    RAISE EXCEPTION 'success required';
+  END IF;
+
+  -- error_message length cap
+  IF char_length(coalesce(_error_message, '')) > 1000 THEN
+    RAISE EXCEPTION 'error_message too long';
+  END IF;
+
+  -- metadata must be a JSON object and not too large
+  IF jsonb_typeof(_meta) <> 'object' THEN
+    RAISE EXCEPTION 'metadata must be an object';
+  END IF;
+  IF octet_length(_meta::text) > 4096 THEN
+    RAISE EXCEPTION 'metadata too large';
   END IF;
 
   INSERT INTO public.auth_attempts_log (
     email, attempt_type, success, error_message, user_id, metadata
   )
   VALUES (
-    LEFT(coalesce(_email, ''), 254),
+    LEFT(_clean_email, 254),
     _attempt_type,
-    coalesce(_success, false),
+    _success,
     LEFT(coalesce(_error_message, ''), 1000),
     auth.uid(),
-    coalesce(_metadata, '{}'::jsonb)
+    _meta
   );
 END;
 $$;
