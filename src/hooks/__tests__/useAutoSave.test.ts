@@ -106,10 +106,7 @@ describe('useAutoSave', () => {
         })
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(60000);
 
       expect(mockCloudSave).toHaveBeenCalledTimes(1);
     });
@@ -142,16 +139,11 @@ describe('useAutoSave', () => {
         { initialProps: { intervalMs: 60000 } }
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(30000);
-      });
+      await advanceAndDrain(30000);
 
       rerender({ intervalMs: 30000 });
 
-      await act(async () => {
-        vi.advanceTimersByTime(30000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(30000);
 
       expect(mockCloudSave).toHaveBeenCalled();
     });
@@ -168,15 +160,9 @@ describe('useAutoSave', () => {
         })
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(60000);
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(60000);
 
       expect(mockCloudSave.mock.calls.length).toBeLessThanOrEqual(1);
     });
@@ -196,19 +182,13 @@ describe('useAutoSave', () => {
         { initialProps: { state: initialState } }
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(60000);
 
       const callsAfterFirst = mockCloudSave.mock.calls.length;
 
       rerender({ state: updatedState });
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(60000);
 
       expect(mockCloudSave.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     });
@@ -226,19 +206,13 @@ describe('useAutoSave', () => {
         { initialProps: { state: initialState } }
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(60000);
 
       const callsAfterFirst = mockCloudSave.mock.calls.length;
 
       rerender({ state: updatedState });
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(60000);
 
       expect(mockCloudSave.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     });
@@ -256,19 +230,13 @@ describe('useAutoSave', () => {
         { initialProps: { state: initialState } }
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(60000);
 
       const callsAfterFirst = mockCloudSave.mock.calls.length;
 
       rerender({ state: updatedState });
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(60000);
 
       expect(mockCloudSave.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     });
@@ -285,10 +253,7 @@ describe('useAutoSave', () => {
         })
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(60000);
 
       expect(mockCloudSave).not.toHaveBeenCalled();
     });
@@ -303,10 +268,7 @@ describe('useAutoSave', () => {
         })
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(60000);
 
       expect(mockCloudSave).not.toHaveBeenCalled();
     });
@@ -377,11 +339,10 @@ describe('useAutoSave', () => {
         })
       );
 
-      await act(async () => { await vi.advanceTimersByTimeAsync(60000); });
-      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-      await act(async () => { await Promise.resolve(); await Promise.resolve(); });
-      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-      await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+      await advanceAndDrain(60000);
+      // Drain the full retry chain (initial 60s tick + chained 5s setTimeouts).
+      await advanceAndDrain(5000);
+      await advanceAndDrain(5000);
 
       // cloudSave was called at least once with failure
       expect(mockCloudSave).toHaveBeenCalled();
@@ -401,11 +362,10 @@ describe('useAutoSave', () => {
         })
       );
 
-      await act(async () => { await vi.advanceTimersByTimeAsync(60000); });
-      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-      await act(async () => { await Promise.resolve(); await Promise.resolve(); });
-      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-      await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+      await advanceAndDrain(60000);
+      // Drain the full retry chain (initial 60s tick + chained 5s setTimeouts).
+      await advanceAndDrain(5000);
+      await advanceAndDrain(5000);
 
       // At minimum the save was attempted
       expect(mockCloudSave).toHaveBeenCalled();
@@ -425,11 +385,10 @@ describe('useAutoSave', () => {
         })
       );
 
-      await act(async () => { await vi.advanceTimersByTimeAsync(60000); });
-      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-      await act(async () => { await Promise.resolve(); await Promise.resolve(); });
-      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-      await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+      await advanceAndDrain(60000);
+      // Drain the full retry chain (initial 60s tick + chained 5s setTimeouts).
+      await advanceAndDrain(5000);
+      await advanceAndDrain(5000);
 
       // cloudSave was called, verifying the mechanism works
       expect(mockCloudSave).toHaveBeenCalled();
@@ -449,10 +408,7 @@ describe('useAutoSave', () => {
         })
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(60000);
 
       expect(onSaveStart).toHaveBeenCalledTimes(1);
     });
@@ -469,10 +425,7 @@ describe('useAutoSave', () => {
         })
       );
 
-      await act(async () => {
-        vi.advanceTimersByTime(60000);
-        await Promise.resolve();
-      });
+      await advanceAndDrain(60000);
 
       expect(onSaveComplete).toHaveBeenCalledTimes(1);
     });
