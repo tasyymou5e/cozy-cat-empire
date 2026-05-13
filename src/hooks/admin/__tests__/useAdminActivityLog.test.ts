@@ -109,8 +109,6 @@ describe('useAdminActivityLog', () => {
 
   it('should handle database insert errors gracefully', async () => {
     mockInsert.mockResolvedValue({ error: { message: 'Insert failed' } });
-    
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const { result } = renderHook(() => useAdminActivityLog());
 
@@ -122,7 +120,6 @@ describe('useAdminActivityLog', () => {
       });
     });
 
-    expect(consoleSpy).toHaveBeenCalled();
-    consoleSpy.mockRestore();
+    expect(mockLoggerError).toHaveBeenCalled();
   });
 });
