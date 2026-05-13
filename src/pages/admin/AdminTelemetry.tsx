@@ -13,10 +13,11 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
+import { RefreshCw, ChevronLeft, ChevronRight, Activity, BarChart3 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  BarChart, Bar,
 } from 'recharts';
 import {
   mapTelemetryError,
