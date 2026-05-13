@@ -67,3 +67,32 @@ vi.mock('@/hooks/useErrorLogger', () => ({
     logComponentError: vi.fn(),
   }),
 }));
+
+// ── Shared Supabase client mock ──────────────────────────────────────────
+// Tests can override per-test by re-mocking `@/integrations/supabase/client`
+// at file scope (vi.mock factory), or by importing `globalSupabaseMock` from
+// `./supabaseMock` and calling setTableResult / setDefaultResult.
+
+vi.mock('@/integrations/supabase/client', async () => {
+  const { globalSupabaseMock } = await import('./supabaseMock');
+  return { supabase: globalSupabaseMock.client };
+});
+
+// ── Auth context mock (most hooks call useAuth) ──────────────────────────
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: 'test-user-id', email: 'test@example.com' },
+    session: { user: { id: 'test-user-id' } },
+    loading: false,
+    signIn: vi.fn(),
+    signUp: vi.fn(),
+    signOut: vi.fn(),
+  }),
+  AuthProvider: ({ children }: { children: unknown }) => children,
+}));
+
+// ── Toast hook mock ──────────────────────────────────────────────────────
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({ toast: vi.fn(), dismiss: vi.fn(), toasts: [] }),
+  toast: vi.fn(),
+}));
