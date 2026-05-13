@@ -183,6 +183,7 @@ export function AutoSaveIndicator({
         <TooltipTrigger asChild>
           <button
             onClick={onManualSave}
+            data-status={dataStatus}
             disabled={isSyncing || !onManualSave}
             className={cn(
               'flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors',
