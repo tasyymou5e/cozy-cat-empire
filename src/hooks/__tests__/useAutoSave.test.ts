@@ -332,6 +332,7 @@ describe('useAutoSave', () => {
       await tick(60000);   // interval fires -> initial save (call #1) + schedules retry setTimeout
       await fireNextTimer(); // first retry (call #2) + schedules next retry setTimeout
       await fireNextTimer(); // second retry (call #3); MAX_RETRIES reached
+      await tick(0); // flush post-failure await chain (logAutoSaveError + setStats + onSaveError)
 
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
       expect(onSaveError).not.toHaveBeenCalled();
@@ -352,6 +353,7 @@ describe('useAutoSave', () => {
       await tick(60000);
       await fireNextTimer();
       await fireNextTimer();
+      await tick(0); // flush post-failure await chain
 
       // MAX_RETRIES = 2, so we expect 1 initial + 2 retries = 3 attempts.
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
@@ -375,6 +377,7 @@ describe('useAutoSave', () => {
       await tick(60000);   // interval fires -> initial save (call #1) + schedules retry setTimeout
       await fireNextTimer(); // first retry (call #2) + schedules next retry setTimeout
       await fireNextTimer(); // second retry (call #3); MAX_RETRIES reached
+      await tick(0); // flush post-failure await chain (logAutoSaveError + setStats + onSaveError)
 
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
       expect(onSaveError).toHaveBeenCalledTimes(1);
@@ -398,6 +401,7 @@ describe('useAutoSave', () => {
       await tick(60000);   // interval fires -> initial save (call #1) + schedules retry setTimeout
       await fireNextTimer(); // first retry (call #2) + schedules next retry setTimeout
       await fireNextTimer(); // second retry (call #3); MAX_RETRIES reached
+      await tick(0); // flush post-failure await chain (logAutoSaveError + setStats + onSaveError)
 
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
       expect(result.current.stats.errorCount).toBe(1);
