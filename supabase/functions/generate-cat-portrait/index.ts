@@ -512,13 +512,23 @@ Deno.serve(async (req) => {
       ? 'google/gemini-3-pro-image-preview' 
       : 'google/gemini-3.1-flash-image-preview';
 
-    // Try to get user ID from auth header
+    // Require authenticated user — AI generation costs credits and must not be available anonymously.
     const authHeader = req.headers.get('Authorization');
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user } } = await supabase.auth.getUser(token);
-      userId = user?.id || null;
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user } } = await supabase.auth.getUser(token);
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    userId = user.id;
 
     // Check rate limit for authenticated users
     if (userId) {
