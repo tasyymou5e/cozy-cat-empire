@@ -13,10 +13,11 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
+import { RefreshCw, ChevronLeft, ChevronRight, Activity, BarChart3 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  BarChart, Bar,
 } from 'recharts';
 import {
   mapTelemetryError,
@@ -58,6 +59,8 @@ export default function AdminTelemetry() {
   const [loading, setLoading] = useState(false);
   const [trend, setTrend] = useState<Array<{ date: string; success: number; failure: number }>>([]);
   const [trendLoading, setTrendLoading] = useState(false);
+  const [catTrend, setCatTrend] = useState<Array<Record<string, number | string>>>([]);
+  const [catTrendLoading, setCatTrendLoading] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setEmailDebounced(emailQuery.trim()), 300);
@@ -132,8 +135,40 @@ export default function AdminTelemetry() {
     setTrendLoading(false);
   };
 
+  const loadCategoryTrend = async () => {
+    setCatTrendLoading(true);
+    const { data, error } = await supabase
+      .from('auth_attempts_log')
+      .select('created_at, error_message')
+      .eq('success', false)
+      .gte('created_at', sinceISO)
+      .order('created_at', { ascending: true })
+      .limit(5000);
+    if (!error && data) {
+      const catKeys = TELEMETRY_ERROR_CATEGORIES.map((c) => c.key);
+      const buckets = new Map<string, Record<string, number>>();
+      for (let i = days - 1; i >= 0; i--) {
+        const k = format(subDays(new Date(), i), 'yyyy-MM-dd');
+        const day: Record<string, number> = {};
+        catKeys.forEach((ck) => { day[ck] = 0; });
+        day.unknown = 0;
+        buckets.set(k, day);
+      }
+      data.forEach((r: any) => {
+        const k = format(new Date(r.created_at), 'yyyy-MM-dd');
+        const b = buckets.get(k);
+        if (b) {
+          const mapped = mapTelemetryError(r.error_message);
+          b[mapped.category] = (b[mapped.category] || 0) + 1;
+        }
+      });
+      setCatTrend(Array.from(buckets, ([date, v]) => ({ date: date.slice(5), ...v })));
+    }
+    setCatTrendLoading(false);
+  };
+
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, attemptType, successFilter, emailDebounced, category, days]);
-  useEffect(() => { loadTrend(); /* eslint-disable-next-line */ }, [days]);
+  useEffect(() => { loadTrend(); loadCategoryTrend(); /* eslint-disable-next-line */ }, [days]);
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
@@ -154,7 +189,7 @@ export default function AdminTelemetry() {
               Inspect submitted authentication and access telemetry records.
             </p>
           </div>
-          <Button variant="outline" onClick={() => { load(); loadTrend(); }} disabled={loading}>
+          <Button variant="outline" onClick={() => { load(); loadTrend(); loadCategoryTrend(); }} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -201,6 +236,68 @@ export default function AdminTelemetry() {
             ) : (
               <div className="h-64 flex items-center justify-center text-muted-foreground">
                 No telemetry in the selected window.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Error Category Trend ({days}d)
+              {category && (
+                <Badge variant="outline" className="ml-2 text-xs">
+                  {TELEMETRY_ERROR_CATEGORIES.find((c) => c.key === category)?.label ?? category}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {catTrendLoading ? (
+              <Skeleton className="h-48 w-full" />
+            ) : catTrend.length ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={catTrend}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: 8,
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  {(() => {
+                    const palette = [
+                      '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6',
+                      '#6366f1', '#a855f7', '#ec4899', '#14b8a6', '#f43f5e',
+                      '#84cc16', '#06b6d4', '#78716c',
+                    ];
+                    const cats = category
+                      ? [{ key: category, label: TELEMETRY_ERROR_CATEGORIES.find((c) => c.key === category)?.label ?? category }]
+                      : [
+                          ...TELEMETRY_ERROR_CATEGORIES.map((c) => ({ key: c.key, label: c.label })),
+                          { key: 'unknown', label: 'Unknown' },
+                        ];
+                    return cats.map((c, i) => (
+                      <Bar
+                        key={c.key}
+                        dataKey={c.key}
+                        name={c.label}
+                        stackId="a"
+                        fill={palette[i % palette.length]}
+                        radius={i === cats.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]}
+                      />
+                    ));
+                  })()}
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-48 flex items-center justify-center text-muted-foreground">
+                No error telemetry in the selected window.
               </div>
             )}
           </CardContent>
