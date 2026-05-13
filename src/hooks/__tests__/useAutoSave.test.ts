@@ -329,20 +329,19 @@ describe('useAutoSave', () => {
         })
       );
 
-      // Initial save
+      // Initial save + both retries (each scheduled 5s after the previous failure).
+      // Use runOnlyPendingTimersAsync in a loop so that the async retry chain
+      // (setTimeout -> async fn -> awaited cloudSave -> next setTimeout) is fully
+      // drained between ticks.
       await act(async () => {
         await vi.advanceTimersByTimeAsync(60000);
       });
 
-      // First retry
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(5000);
-      });
-
-      // Second retry
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(5000);
-      });
+      for (let i = 0; i < 5 && mockCloudSave.mock.calls.length < 3; i++) {
+        await act(async () => {
+          await vi.runOnlyPendingTimersAsync();
+        });
+      }
 
       expect(mockCloudSave).toHaveBeenCalledTimes(3);
     });
