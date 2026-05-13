@@ -50,12 +50,31 @@ const createMockGameState = (overrides: Partial<GameState> = {}): GameState => (
   ...overrides,
 });
 
+/**
+ * Advance fake timers by `ms` and then drain any pending timers that were
+ * scheduled as a side-effect of awaited async work (e.g. retry setTimeouts
+ * scheduled inside `await cloudSave(...)`). This makes the async retry chain
+ * deterministic across environments.
+ */
+async function advanceAndDrain(ms: number, maxDrains = 10): Promise<void> {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(ms);
+  });
+  for (let i = 0; i < maxDrains; i++) {
+    const pending = vi.getTimerCount();
+    if (pending === 0) break;
+    await act(async () => {
+      await vi.runOnlyPendingTimersAsync();
+    });
+  }
+}
+
 describe('useAutoSave', () => {
   let mockCloudSave: Mock;
 
   beforeEach(() => {
     vi.useFakeTimers();
-    
+
     mockCloudSave = vi.fn().mockResolvedValue({ success: true });
     (useCloudSave as Mock).mockReturnValue({
       cloudSave: mockCloudSave,
