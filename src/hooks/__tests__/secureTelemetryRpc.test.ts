@@ -44,14 +44,18 @@ vi.mock('@/contexts/AuthContext', () => ({
 import { logAuthAttempt } from '@/hooks/admin/useAdminActivityLog';
 import { logErrorToDatabase } from '@/hooks/useErrorLogger';
 
-let _clock = Date.now();
+// Defeat the module-level rate limiter inside useErrorLogger by replacing
+// Date.now with a monotonically advancing fake clock for the whole file.
+const _origNow = Date.now;
+let _clock = _origNow();
 beforeEach(() => {
   mockRpc.mockReset();
   mockLoggerError.mockReset();
-  // Jump the clock far past the 60s rate-limit window before each test so the
-  // module-level rate limiter inside useErrorLogger never blocks our calls.
   _clock += 5 * 60_000;
-  vi.spyOn(Date, 'now').mockReturnValue(_clock);
+  Date.now = () => _clock;
+});
+afterEach(() => {
+  Date.now = _origNow;
 });
 
 describe('logAuthAttempt → log_auth_attempt_secure', () => {
