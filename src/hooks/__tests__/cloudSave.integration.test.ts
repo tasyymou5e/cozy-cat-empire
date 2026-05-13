@@ -304,8 +304,13 @@ describe('Cloud Save Integration', () => {
   // ── E2E: login → 60s auto-save → refresh → progress restored ──────
 
   it('E2E: after login, waits 60s, refreshes the page, and restores progress + inventory', async () => {
+    // Reset stale .mockReturnValueOnce queues from prior tests
+    mockSelect.mockReturnValue({ eq: mockEq });
+    mockEq.mockReturnValue({ maybeSingle: mockMaybeSingle });
+    mockMaybeSingle.mockReset();
+    mockMaybeSingle.mockResolvedValue({ data: null, error: null });
+
     // 1) LOGIN: mount useCloudSave for the user, no existing save yet
-    mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
     const session1 = renderHook(() => useCloudSave(USER_ID));
 
     let loadRes: unknown;
