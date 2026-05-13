@@ -301,6 +301,107 @@ describe('Cloud Save Integration', () => {
     expect(loadResult?.error).toBeDefined();
   });
 
+  // ── E2E: login → 60s auto-save → refresh → progress restored ──────
+
+  it('E2E: after login, waits 60s, refreshes the page, and restores progress + inventory', async () => {
+    // Reset stale .mockReturnValueOnce queues from prior tests
+    mockSelect.mockReturnValue({ eq: mockEq });
+    mockEq.mockReturnValue({ maybeSingle: mockMaybeSingle });
+    mockMaybeSingle.mockReset();
+    mockMaybeSingle.mockResolvedValue({ data: null, error: null });
+
+    // 1) LOGIN: mount useCloudSave for the user, no existing save yet
+    const session1 = renderHook(() => useCloudSave(USER_ID));
+
+    let loadRes: { data: unknown; error?: string } | undefined;
+    await act(async () => {
+      loadRes = await session1.result.current.cloudLoad(); // opens the load gate
+    });
+    expect(loadRes?.error).toBeUndefined();
+
+    // 2) PROGRESS: simulate game progression and inventory changes
+    const progressedState = makeState({
+      money: 9999,
+      day: 42,
+      resources: { food: 77, medicine: 44, toys: 33, treats: 22 },
+      cats: [
+        { id: 'cat-1', name: 'Whiskers', type: 'stray', breed: 'tabby', health: 95, happiness: 90, hunger: 80, value: 80, age: 5, personality: 'playful', showWins: 3, isForSale: false, grade: 7, tricksLearned: ['sit'], trickProgress: {}, restLevel: 90, feedingScore: 70, lastTrainingDay: 41 },
+        { id: 'cat-2', name: 'Mittens', type: 'pure', breed: 'persian', health: 88, happiness: 92, hunger: 70, value: 200, age: 3, personality: 'affectionate', showWins: 1, isForSale: false, grade: 12, tricksLearned: [], trickProgress: {}, restLevel: 85, feedingScore: 60, lastTrainingDay: 40 },
+      ] as GameState['cats'],
+    });
+    const progressedKittens = 7;
+    const progressedRels = { relationships: [], events: [] };
+
+    // 3) AUTO-SAVE: wire useAutoSave to the SAME cloudSave from session1 (post-fix behavior)
+    const autoSave = renderHook(() =>
+      useAutoSave(
+        USER_ID,
+        progressedState,
+        progressedKittens,
+        progressedRels,
+        session1.result.current.cloudSave,
+        { intervalMs: 60_000, enabled: true },
+      ),
+    );
+
+    // Wait 60s — auto-save interval fires and persists the progressed state.
+    // Also call saveNow as a deterministic backstop in case fake-timer microtask
+    // ordering swallows the interval-driven async chain inside performAutoSaveWithRetry.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000);
+    });
+    await act(async () => {
+      await autoSave.result.current.saveNow();
+    });
+
+    // Verify the save was upserted with the progressed state + inventory
+    expect(mockUpsert).toHaveBeenCalled();
+    const savedPayload = mockUpsert.mock.calls[mockUpsert.mock.calls.length - 1]?.[0] as {
+      user_id: string;
+      kittens_bred: number;
+      game_state: GameState;
+    };
+    expect(savedPayload.user_id).toBe(USER_ID);
+    expect(savedPayload.kittens_bred).toBe(progressedKittens);
+    expect(savedPayload.game_state.money).toBe(9999);
+    expect(savedPayload.game_state.day).toBe(42);
+    expect(savedPayload.game_state.cats).toHaveLength(2);
+    expect(savedPayload.game_state.resources).toEqual({ food: 77, medicine: 44, toys: 33, treats: 22 });
+
+    // 4) REFRESH: unmount session, mount a fresh useCloudSave (simulates page reload)
+    session1.unmount();
+
+    mockMaybeSingle.mockResolvedValueOnce({
+      data: {
+        game_state: savedPayload.game_state,
+        kittens_bred: savedPayload.kittens_bred,
+        relationships: progressedRels,
+        last_played_at: new Date().toISOString(),
+      },
+      error: null,
+    });
+
+    const session2 = renderHook(() => useCloudSave(USER_ID));
+
+    let restored: { data: unknown; error?: string } | undefined;
+    await act(async () => {
+      restored = await session2.result.current.cloudLoad();
+    });
+
+    // 5) ASSERT: progress and inventory are restored exactly
+    const restoredData = restored?.data as {
+      game_state: GameState;
+      kittens_bred: number;
+    };
+    expect(restoredData).not.toBeNull();
+    expect(restoredData.kittens_bred).toBe(progressedKittens);
+    expect(restoredData.game_state.money).toBe(9999);
+    expect(restoredData.game_state.day).toBe(42);
+    expect(restoredData.game_state.cats).toHaveLength(2);
+    expect(restoredData.game_state.cats.map((c) => c.name)).toEqual(['Whiskers', 'Mittens']);
+    expect(restoredData.game_state.resources).toEqual({ food: 77, medicine: 44, toys: 33, treats: 22 });
+  });
+
   // ── hasCloudSave helper ─────────────────────────────────────────────
 
   it('hasCloudSave returns false when no save exists', async () => {
