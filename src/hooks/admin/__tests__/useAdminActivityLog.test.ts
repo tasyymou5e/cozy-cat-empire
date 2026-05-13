@@ -16,6 +16,18 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
+// Capture logger.error so we can assert error handling without using console
+const { mockLoggerError } = vi.hoisted(() => ({ mockLoggerError: vi.fn() }));
+vi.mock('@/lib/logger', () => ({
+  createLogger: () => ({
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: mockLoggerError,
+  }),
+  logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: mockLoggerError },
+}));
+
 // Mock Auth context
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({
@@ -97,8 +109,6 @@ describe('useAdminActivityLog', () => {
 
   it('should handle database insert errors gracefully', async () => {
     mockInsert.mockResolvedValue({ error: { message: 'Insert failed' } });
-    
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const { result } = renderHook(() => useAdminActivityLog());
 
@@ -110,7 +120,6 @@ describe('useAdminActivityLog', () => {
       });
     });
 
-    expect(consoleSpy).toHaveBeenCalled();
-    consoleSpy.mockRestore();
+    expect(mockLoggerError).toHaveBeenCalled();
   });
 });

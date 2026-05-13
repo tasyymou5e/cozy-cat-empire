@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { ReactNode } from 'react';
 
+// Override the global AuthContext mock from setup.ts so we can test the real
+// AuthProvider / useAuth implementation in this file.
+vi.mock('@/contexts/AuthContext', async () => await vi.importActual('@/contexts/AuthContext'));
+
+
 // Mock supabase before importing AuthContext
 const mockSignInWithPassword = vi.fn();
 const mockSignUp = vi.fn();

@@ -1,5 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const { mockLoggerError } = vi.hoisted(() => ({ mockLoggerError: vi.fn() }));
+
+vi.mock('@/lib/logger', () => ({
+  createLogger: () => ({
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: mockLoggerError,
+  }),
+  logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: mockLoggerError },
+}));
+
+vi.mock('@/hooks/useErrorLogger', () => ({
+  logErrorToDatabase: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock('@/hooks/useErrorLogger', () => ({
   logErrorToDatabase: vi.fn().mockResolvedValue(undefined),
 }));
@@ -38,13 +54,13 @@ describe('errorHandling utilities', () => {
       expect(result.error).toBe('Default msg');
     });
 
-    it('logs to console', () => {
+    it('logs via logger', () => {
       handleAsyncError(new Error('test'), {
         source: 'useHook',
         operation: 'op',
       }, 'msg');
 
-      expect(console.error).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
         '[useHook] op failed:',
         expect.any(Error)
       );
