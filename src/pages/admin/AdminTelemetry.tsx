@@ -135,6 +135,38 @@ export default function AdminTelemetry() {
     setTrendLoading(false);
   };
 
+  const loadCategoryTrend = async () => {
+    setCatTrendLoading(true);
+    const { data, error } = await supabase
+      .from('auth_attempts_log')
+      .select('created_at, error_message')
+      .eq('success', false)
+      .gte('created_at', sinceISO)
+      .order('created_at', { ascending: true })
+      .limit(5000);
+    if (!error && data) {
+      const catKeys = TELEMETRY_ERROR_CATEGORIES.map((c) => c.key);
+      const buckets = new Map<string, Record<string, number>>();
+      for (let i = days - 1; i >= 0; i--) {
+        const k = format(subDays(new Date(), i), 'yyyy-MM-dd');
+        const day: Record<string, number> = {};
+        catKeys.forEach((ck) => { day[ck] = 0; });
+        day.unknown = 0;
+        buckets.set(k, day);
+      }
+      data.forEach((r: any) => {
+        const k = format(new Date(r.created_at), 'yyyy-MM-dd');
+        const b = buckets.get(k);
+        if (b) {
+          const mapped = mapTelemetryError(r.error_message);
+          b[mapped.category] = (b[mapped.category] || 0) + 1;
+        }
+      });
+      setCatTrend(Array.from(buckets, ([date, v]) => ({ date: date.slice(5), ...v })));
+    }
+    setCatTrendLoading(false);
+  };
+
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, attemptType, successFilter, emailDebounced, category, days]);
   useEffect(() => { loadTrend(); /* eslint-disable-next-line */ }, [days]);
 
