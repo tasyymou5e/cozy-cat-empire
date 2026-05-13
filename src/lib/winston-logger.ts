@@ -111,6 +111,14 @@ const MAX_QUEUE_SIZE = 50;
 async function flushLogs() {
   if (logQueue.length === 0) return;
 
+  // RLS on application_logs requires auth.uid() IS NOT NULL.
+  // Drop logs collected before sign-in instead of spamming RLS errors.
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    logQueue = [];
+    return;
+  }
+
   const batch = logQueue.splice(0, MAX_QUEUE_SIZE);
 
   try {
