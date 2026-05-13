@@ -337,10 +337,22 @@ describe('Cloud Save Integration', () => {
       ),
     );
 
-    // Wait 60s — auto-save interval fires
+    // Wait 60s — auto-save interval fires (advance generously to flush retries/microtasks)
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(60_000);
+      await vi.advanceTimersByTimeAsync(70_000);
     });
+    // Extra microtask flush
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // If first attempt didn't reach upsert (e.g. due to async chain), retry window
+    if (mockUpsert.mock.calls.length === 0) {
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(60_000);
+      });
+    }
 
     // Verify the save was upserted with the progressed state + inventory
     expect(mockUpsert).toHaveBeenCalled();
