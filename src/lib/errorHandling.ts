@@ -76,20 +76,27 @@ export function handleAsyncError(
   // Log to console in development
   logger.error(`[${context.source}] ${context.operation} failed:`, error);
 
-  // Log to database (non-blocking)
-  logErrorToDatabase({
-    error_type: 'hook_error',
-    error_message: errorMessage,
-    error_stack: errorStack,
-    component_name: context.source,
-    user_id: context.userId,
-    metadata: {
-      operation: context.operation,
-      ...context.metadata,
-    },
-  }).catch(() => {
-    // Silently fail if database logging fails
-  });
+  // Log to database (non-blocking, defensive against sync/non-promise mocks)
+  try {
+    const result = logErrorToDatabase({
+      error_type: 'hook_error',
+      error_message: errorMessage,
+      error_stack: errorStack,
+      component_name: context.source,
+      user_id: context.userId,
+      metadata: {
+        operation: context.operation,
+        ...context.metadata,
+      },
+    });
+    if (result && typeof (result as Promise<unknown>).catch === 'function') {
+      (result as Promise<unknown>).catch(() => {
+        // Silently fail if database logging fails
+      });
+    }
+  } catch {
+    // Silently fail if logger throws synchronously
+  }
 
   return {
     success: false,
