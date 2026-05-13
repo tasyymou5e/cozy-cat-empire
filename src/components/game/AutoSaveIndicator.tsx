@@ -120,26 +120,38 @@ export function AutoSaveIndicator({
   let colorClass = 'text-[hsl(var(--success))]';
   let bgClass = 'bg-[hsl(var(--success))]/10';
   let statusText = formatSaveTime(status.lastSaveTime);
+  let dataStatus: 'idle' | 'saving' | 'retrying' | 'saved' | 'error' | 'loading' | 'offline' = 'idle';
 
-  if (isSyncing) {
+  if (status.isRetrying) {
+    // Distinct retry state — amber/warning visual to differentiate from initial save
+    Icon = AlertCircle;
+    colorClass = 'text-[hsl(var(--warning,38_92%_50%))]';
+    bgClass = 'bg-[hsl(var(--warning,38_92%_50%))]/10';
+    statusText = 'Retrying…';
+    dataStatus = 'retrying';
+  } else if (status.isSyncing) {
     Icon = RefreshCw;
     colorClass = 'text-primary';
     bgClass = 'bg-primary/10';
-    statusText = status.isRetrying ? 'Retrying…' : 'Saving…';
+    statusText = 'Saving…';
+    dataStatus = 'saving';
   } else if (hasError && !hasRecentSave) {
     Icon = AlertCircle;
     colorClass = 'text-destructive';
     bgClass = 'bg-destructive/10';
     statusText = 'Save failed';
+    dataStatus = 'error';
   } else if (justSaved) {
     Icon = Check;
     colorClass = 'text-[hsl(var(--success))]';
     bgClass = 'bg-[hsl(var(--success))]/15';
     statusText = 'Saved';
+    dataStatus = 'saved';
   } else if (hasRecentSave) {
     Icon = Check;
     colorClass = 'text-[hsl(var(--success))]';
     bgClass = 'bg-[hsl(var(--success))]/10';
+    dataStatus = 'saved';
   }
 
   const tooltipContent = (
@@ -174,6 +186,7 @@ export function AutoSaveIndicator({
         <TooltipTrigger asChild>
           <button
             onClick={onManualSave}
+            data-status={dataStatus}
             disabled={isSyncing || !onManualSave}
             className={cn(
               'flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors',
