@@ -260,6 +260,14 @@ const App = () => {
                               </AdminRoute>
                             }
                           />
+                          <Route
+                            path="/catking/telemetry"
+                            element={
+                              <AdminRoute>
+                                <AdminTelemetry />
+                              </AdminRoute>
+                            }
+                          />
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </Suspense>
