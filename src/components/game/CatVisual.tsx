@@ -155,13 +155,13 @@ export function CatVisual({
   onPortraitError,
 }: CatVisualProps) {
   const [portraitFailed, setPortraitFailed] = React.useState(false);
-  const { settings } = useGraphicsSettings();
+  const { settings, effectiveAnimations } = useGraphicsSettings();
 
   const tier = getGradeTier(cat.grade);
   const stars = getGradeStars(cat.grade);
   const hasPortrait = preferPortrait && cat.portraitUrl && !portraitFailed;
   const effectiveStyle = getEffectivePortraitStyle(cat.portraitStyle, settings.defaultPortraitStyle);
-  const microAnimEnabled = settings.enableMicroAnimations && settings.enableAnimations;
+  const microAnimEnabled = settings.enableMicroAnimations && effectiveAnimations;
 
   // For portrait mode with showGrade, use larger size display
   const isPortraitMode = size === 'portrait' && hasPortrait;
@@ -184,8 +184,8 @@ export function CatVisual({
         isPortraitMode && [
           'border-4 shadow-lg',
           tierBorderColors[tier],
-          tier === 'ultraRare' && 'animate-rainbow',
-          tier === 'veryRare' && 'animate-grade-glow [--grade-color:hsl(45,90%,50%)]',
+          effectiveAnimations && tier === 'ultraRare' && 'animate-rainbow',
+          effectiveAnimations && tier === 'veryRare' && 'animate-grade-glow [--grade-color:hsl(45,90%,50%)]',
         ],
         className
       )}
@@ -255,7 +255,7 @@ export function CatVisual({
             equippedCostumeId={equippedCostumeId}
             size={avatarSizeMap[size]}
             showCostume
-            animated={animated || tier === 'ultraRare' || tier === 'veryRare'}
+            animated={effectiveAnimations && (animated || tier === 'ultraRare' || tier === 'veryRare')}
             portraitStyle={effectiveStyle}
           />
         </Suspense>
@@ -272,7 +272,7 @@ export function CatVisual({
             equippedCostumeId={equippedCostumeId}
             size={avatarSizeMap[size]}
             showCostume
-            animated={animated || tier === 'ultraRare' || tier === 'veryRare'}
+            animated={effectiveAnimations && (animated || tier === 'ultraRare' || tier === 'veryRare')}
           />
         </div>
       )}
