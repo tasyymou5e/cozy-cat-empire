@@ -13,7 +13,10 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, ChevronLeft, ChevronRight, Activity, BarChart3 } from 'lucide-react';
+import { RefreshCw, ChevronLeft, ChevronRight, Activity, BarChart3, FileSearch, Bug } from 'lucide-react';
+import {
+  TelemetryDetailDialog, type TelemetryDetail,
+} from '@/components/admin/TelemetryDetailDialog';
 import { format, subDays } from 'date-fns';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -36,6 +39,70 @@ type Row = {
   created_at: string;
   metadata: any;
 };
+
+/** Rejected telemetry RPC call, recorded in application_logs by telemetryRpcAudit. */
+type RejectedRow = {
+  id: string;
+  created_at: string;
+  message: string;
+  metadata: any;
+};
+
+/** Build the drilldown payload for an accepted (stored) telemetry record. */
+function detailFromStoredRow(r: Row, mapped: ReturnType<typeof mapTelemetryError>): TelemetryDetail {
+  return {
+    title: `${r.attempt_type} — ${r.email}`,
+    subtitle: `Recorded ${format(new Date(r.created_at), 'yyyy-MM-dd HH:mm:ss')}`,
+    rpc: 'log_auth_attempt_secure',
+    outcome: 'accepted',
+    httpStatus: 204,
+    categoryLabel: r.error_message ? mapped.categoryLabel : undefined,
+    friendly: r.error_message ? mapped.friendly : undefined,
+    rawServerMessage: r.error_message,
+    requestJson: JSON.stringify(
+      {
+        _email: r.email,
+        _attempt_type: r.attempt_type,
+        _success: r.success,
+        _error_message: r.error_message,
+        _metadata: r.metadata ?? {},
+      },
+      null,
+      2
+    ),
+    responseJson: JSON.stringify(
+      {
+        status: 204,
+        body: null,
+        stored_row: {
+          id: r.id,
+          user_id: r.user_id,
+          created_at: r.created_at,
+          success: r.success,
+        },
+      },
+      null,
+      2
+    ),
+  };
+}
+
+/** Build the drilldown payload for a rejected RPC call. */
+function detailFromRejectedRow(r: RejectedRow): TelemetryDetail {
+  const m = r.metadata ?? {};
+  return {
+    title: 'Rejected payload',
+    subtitle: `Attempted ${format(new Date(r.created_at), 'yyyy-MM-dd HH:mm:ss')}`,
+    rpc: String(m.telemetry_rpc ?? 'unknown_rpc'),
+    outcome: 'rejected',
+    httpStatus: Number(m.http_status ?? 400),
+    categoryLabel: m.category_label ? String(m.category_label) : undefined,
+    friendly: m.friendly ? String(m.friendly) : undefined,
+    rawServerMessage: m.raw_server_message ? String(m.raw_server_message) : null,
+    requestJson: String(m.request_json ?? '"<no request captured>"'),
+    responseJson: String(m.response_json ?? '"<no response captured>"'),
+  };
+}
 
 const ATTEMPT_TYPES = [
   'admin_login', 'admin_login_failed', 'access_denied',
@@ -61,6 +128,9 @@ export default function AdminTelemetry() {
   const [trendLoading, setTrendLoading] = useState(false);
   const [catTrend, setCatTrend] = useState<Array<Record<string, number | string>>>([]);
   const [catTrendLoading, setCatTrendLoading] = useState(false);
+  const [detail, setDetail] = useState<TelemetryDetail | null>(null);
+  const [rejected, setRejected] = useState<RejectedRow[]>([]);
+  const [rejectedLoading, setRejectedLoading] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setEmailDebounced(emailQuery.trim()), 300);
@@ -167,8 +237,21 @@ export default function AdminTelemetry() {
     setCatTrendLoading(false);
   };
 
+  const loadRejected = async () => {
+    setRejectedLoading(true);
+    const { data, error } = await supabase
+      .from('application_logs')
+      .select('id, created_at, message, metadata')
+      .eq('label', 'TelemetryRPC')
+      .gte('created_at', sinceISO)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (!error && data) setRejected(data as RejectedRow[]);
+    setRejectedLoading(false);
+  };
+
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, attemptType, successFilter, emailDebounced, category, days]);
-  useEffect(() => { loadTrend(); loadCategoryTrend(); /* eslint-disable-next-line */ }, [days]);
+  useEffect(() => { loadTrend(); loadCategoryTrend(); loadRejected(); /* eslint-disable-next-line */ }, [days]);
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
@@ -189,7 +272,7 @@ export default function AdminTelemetry() {
               Inspect submitted authentication and access telemetry records.
             </p>
           </div>
-          <Button variant="outline" onClick={() => { load(); loadTrend(); loadCategoryTrend(); }} disabled={loading}>
+          <Button variant="outline" onClick={() => { load(); loadTrend(); loadCategoryTrend(); loadRejected(); }} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -390,6 +473,7 @@ export default function AdminTelemetry() {
                     <TableHead>User ID</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Error</TableHead>
+                    <TableHead className="text-right">Details</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -417,7 +501,7 @@ export default function AdminTelemetry() {
                     if (loading) {
                       return Array.from({ length: 6 }).map((_, i) => (
                         <TableRow key={i}>
-                          {Array.from({ length: 7 }).map((_, j) => (
+                          {Array.from({ length: 8 }).map((_, j) => (
                             <TableCell key={j}><Skeleton className="h-5 w-24" /></TableCell>
                           ))}
                         </TableRow>
@@ -426,7 +510,7 @@ export default function AdminTelemetry() {
                     if (filtered.length === 0) {
                       return (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                             No records match the current filters.
                           </TableCell>
                         </TableRow>
@@ -478,6 +562,16 @@ export default function AdminTelemetry() {
                             <span className="text-muted-foreground">—</span>
                           )}
                         </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setDetail(detailFromStoredRow(r, mapped))}
+                          >
+                            <FileSearch className="h-4 w-4" />
+                            <span className="ml-1 text-xs">View</span>
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ));
                   })()}
@@ -508,7 +602,88 @@ export default function AdminTelemetry() {
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bug className="h-5 w-5" />
+              Rejected RPC payloads ({rejected.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              Calls the database refused before storing anything — open one to see the
+              exact request that was sent and the response that came back.
+            </p>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Time</TableHead>
+                    <TableHead>RPC</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Reason</TableHead>
+                    <TableHead className="text-right">Details</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rejectedLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <TableRow key={i}>
+                        {Array.from({ length: 5 }).map((_, j) => (
+                          <TableCell key={j}><Skeleton className="h-5 w-24" /></TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : rejected.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        No rejected payloads in the selected window.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    rejected.map((r) => {
+                      const m = r.metadata ?? {};
+                      return (
+                        <TableRow key={r.id}>
+                          <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                            {format(new Date(r.created_at), 'yyyy-MM-dd HH:mm:ss')}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">
+                            {String(m.telemetry_rpc ?? '—')}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {String(m.category_label ?? 'Unknown')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs max-w-xs">
+                            <span className="block truncate" title={String(m.raw_server_message ?? '')}>
+                              {String(m.friendly ?? r.message)}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setDetail(detailFromRejectedRow(r))}
+                            >
+                              <FileSearch className="h-4 w-4" />
+                              <span className="ml-1 text-xs">View</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <TelemetryDetailDialog detail={detail} onClose={() => setDetail(null)} />
     </AdminLayout>
   );
 }
