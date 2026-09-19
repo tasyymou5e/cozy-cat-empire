@@ -179,6 +179,15 @@ export default function AdminAuth() {
           <p className="mt-6 text-center text-amber-500/60 text-xs">
             🔒 This portal is for authorized personnel only
           </p>
+          <div className="mt-3 text-center">
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="text-amber-300/70 hover:text-amber-200 text-xs underline"
+            >
+              ← Back to the game
+            </button>
+          </div>
         </CardContent>
       </Card>
     </div>
