@@ -49,7 +49,7 @@ export function SeasonalDecorations({ season, houseSize, className, animationsEn
       ))}
       
       {/* Animated ambient particles based on season */}
-      <SeasonalAmbient season={season} particles={ambientParticles} />
+      {animationsEnabled && <SeasonalAmbient season={season} particles={ambientParticles} />}
 
       {/* Season-specific overlay effects */}
       <SeasonOverlayEffect season={season} />

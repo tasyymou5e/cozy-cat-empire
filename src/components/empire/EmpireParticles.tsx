@@ -6,6 +6,8 @@ interface EmpireParticlesProps {
   type: ParticleType;
   density?: 'light' | 'medium' | 'heavy';
   enableReducedMotion?: boolean;
+  /** When false, no particles are rendered at all (reduced motion / low graphics) */
+  animationsEnabled?: boolean;
   className?: string;
 }
 
