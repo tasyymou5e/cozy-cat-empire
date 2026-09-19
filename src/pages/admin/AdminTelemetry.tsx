@@ -148,6 +148,8 @@ export default function AdminTelemetry() {
   const [detail, setDetail] = useState<TelemetryDetail | null>(null);
   const [rejected, setRejected] = useState<RejectedRow[]>([]);
   const [rejectedLoading, setRejectedLoading] = useState(false);
+  const [alerts, setAlerts] = useState<RejectedRow[]>([]);
+  const [alertsLoading, setAlertsLoading] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setEmailDebounced(emailQuery.trim()), 300);
@@ -267,8 +269,21 @@ export default function AdminTelemetry() {
     setRejectedLoading(false);
   };
 
+  const loadAlerts = async () => {
+    setAlertsLoading(true);
+    const { data, error } = await supabase
+      .from('application_logs')
+      .select('id, created_at, message, metadata')
+      .eq('label', 'AdminAlert')
+      .gte('created_at', sinceISO)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (!error && data) setAlerts(data as RejectedRow[]);
+    setAlertsLoading(false);
+  };
+
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, attemptType, successFilter, emailDebounced, category, days]);
-  useEffect(() => { loadTrend(); loadCategoryTrend(); loadRejected(); /* eslint-disable-next-line */ }, [days]);
+  useEffect(() => { loadTrend(); loadCategoryTrend(); loadRejected(); loadAlerts(); /* eslint-disable-next-line */ }, [days]);
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
