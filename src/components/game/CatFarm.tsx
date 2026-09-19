@@ -26,6 +26,7 @@ import { CompactStatusBar } from './CompactStatusBar';
 import { FloatingRewardPopups } from './FloatingRewardPopup';
 import { MessageBar } from './MessageBar';
 import { VirtualizedCatGrid } from './VirtualizedCatGrid';
+import { CategoryTabBar } from './CategoryTabBar';
 import { MobileNavBar } from './MobileNavBar';
 import { MobileGameDrawer } from './MobileGameDrawer';
 import { AICatAdvisor } from './AICatAdvisor';
@@ -54,6 +55,7 @@ export function CatFarm() {
   const {
     auth,
     isMobile,
+    isTablet,
     getCatReaction,
     state,
     actions,
@@ -146,7 +148,8 @@ export function CatFarm() {
   }
 
   // Mobile Layout
-  if (isMobile) {
+  // Mobile AND tablet get the compact, touch-first layout
+  if (isMobile || isTablet) {
     return (
       <AnimatedBackground variant="game" className="min-h-screen">
         <FloatingDecorations variant="paws" density="low" className="opacity-20" />
@@ -248,6 +251,13 @@ export function CatFarm() {
         />
 
         <Tabs value={ui.sideTab} onValueChange={ui.setSideTab} className="flex-1 flex flex-col pb-20">
+          <CategoryTabBar
+            activeTab={ui.sideTab}
+            onTabChange={ui.setSideTab}
+            highlightedTab={ui.highlightedTab}
+            badges={badgeCounts.tabBadges}
+          />
+
           <main className="game-main">
             <section className="cat-grid-section">
               <div className="flex items-center justify-between mb-4">

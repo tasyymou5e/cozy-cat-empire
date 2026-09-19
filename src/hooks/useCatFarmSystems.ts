@@ -11,7 +11,7 @@ import { useSound } from '@/contexts/SoundContext';
 import { useConfetti } from '@/hooks/useConfetti';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useAuth } from '@/contexts/AuthContext';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useDeviceType } from '@/hooks/use-mobile';
 import { useTheme } from 'next-themes';
 import { useCatReactions } from '@/contexts/CatReactionContext';
 
@@ -33,7 +33,7 @@ export function useCatFarmSystems() {
   const haptics = useHaptics();
   const { user, signOut, loading: authLoading } = useAuth();
   const { theme, setTheme } = useTheme();
-  const isMobile = useIsMobile();
+  const { isMobile, isTablet, deviceType } = useDeviceType();
   const { getCatReaction } = useCatReactions();
 
   return {
@@ -43,6 +43,8 @@ export function useCatFarmSystems() {
     auth: { user, signOut, loading: authLoading },
     theme: { theme, setTheme },
     isMobile,
+    isTablet,
+    deviceType,
     getCatReaction,
   };
 }
