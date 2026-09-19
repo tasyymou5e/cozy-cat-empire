@@ -43,7 +43,7 @@ export function GiftReceivedDialog({
 
   return (
     <Dialog open={!!gift} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md overflow-hidden">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-hidden flex flex-col gap-0 p-0">
         {/* Floating sparkles */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {[...Array(6)].map((_, i) => (
