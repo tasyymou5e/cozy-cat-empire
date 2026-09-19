@@ -111,7 +111,7 @@ export default function AdminPayloadValidator() {
         parsed.value as Record<string, unknown>,
         error as { code?: string; details?: string; hint?: string; message?: string },
       );
-      await logger.flush();
+      await winstonLogger.flush();
       toast.error('The server rejected this payload');
 
     } else {
