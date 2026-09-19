@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 interface TimeOfDayOverlayProps {
   gameDay: number;
   className?: string;
+  /** When false, ambient motion (twinkling stars, drifting beams) is disabled */
+  animationsEnabled?: boolean;
 }
 
 /**
@@ -12,7 +14,7 @@ interface TimeOfDayOverlayProps {
  * Cycles through morning (golden), afternoon (neutral), evening (warm), night (cool)
  * Includes ambient lighting effects like sun rays and stars
  */
-export function TimeOfDayOverlay({ gameDay, className }: TimeOfDayOverlayProps) {
+export function TimeOfDayOverlay({ gameDay, className, animationsEnabled = true }: TimeOfDayOverlayProps) {
   const timeOfDay = getTimeOfDay(gameDay);
   const overlay = TIME_OF_DAY_OVERLAYS[timeOfDay];
   const lightBeam = getLightBeamConfig(timeOfDay);
@@ -145,7 +147,7 @@ function SunsetGlow() {
 /**
  * Animated stars for night time
  */
-function Stars({ positions }: { positions: Array<{ x: number; y: number; size: string; delay: number; twinkle: boolean }> }) {
+function Stars({ positions, animationsEnabled = true }: { positions: Array<{ x: number; y: number; size: string; delay: number; twinkle: boolean }>; animationsEnabled?: boolean }) {
   return (
     <>
       {positions.map((star, i) => (
@@ -154,14 +156,15 @@ function Stars({ positions }: { positions: Array<{ x: number; y: number; size: s
           className={cn(
             'absolute opacity-70',
             star.size,
-            star.twinkle && 'animate-pulse'
+            animationsEnabled && star.twinkle && 'animate-pulse'
           )}
           style={{
             left: `${star.x}%`,
             top: `${star.y}%`,
-            animation: star.twinkle 
-              ? `pulse 2s ease-in-out ${star.delay}s infinite`
-              : undefined,
+            animation:
+              animationsEnabled && star.twinkle
+                ? `pulse 2s ease-in-out ${star.delay}s infinite`
+                : undefined,
           }}
         >
           {i % 5 === 0 ? '⭐' : '✨'}
