@@ -28,6 +28,8 @@ import { Clock, RefreshCw, Play, CheckCircle, XCircle, Calendar, Timer, Zap, Bel
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow, format } from 'date-fns';
+import { recordFailedAdminAlert } from '@/lib/adminAlertAudit';
+import { winstonLogger } from '@/lib/winston-logger';
 import {
   AreaChart,
   Area,

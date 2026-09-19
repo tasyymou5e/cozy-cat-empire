@@ -104,6 +104,23 @@ function detailFromRejectedRow(r: RejectedRow): TelemetryDetail {
   };
 }
 
+/** Build the drilldown payload for a failed send-admin-alert call. */
+function detailFromAlertRow(r: RejectedRow): TelemetryDetail {
+  const m = r.metadata ?? {};
+  return {
+    title: `Admin alert failed${m.job_name ? ` — ${String(m.job_name)}` : ''}`,
+    subtitle: `Attempted ${format(new Date(r.created_at), 'yyyy-MM-dd HH:mm:ss')}`,
+    rpc: 'send-admin-alert',
+    outcome: 'rejected',
+    httpStatus: Number(m.http_status ?? 0),
+    categoryLabel: m.is_test ? 'Test alert' : 'Job alert',
+    friendly: 'The admin alert email could not be sent.',
+    rawServerMessage: m.raw_server_message ? String(m.raw_server_message) : r.message,
+    requestJson: String(m.request_json ?? '"<no request captured>"'),
+    responseJson: String(m.response_json ?? '"<no response captured>"'),
+  };
+}
+
 const ATTEMPT_TYPES = [
   'admin_login', 'admin_login_failed', 'access_denied',
   'login', 'signup', 'password_reset', 'logout',
