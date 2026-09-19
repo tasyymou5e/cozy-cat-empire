@@ -13,7 +13,10 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, ChevronLeft, ChevronRight, Activity, BarChart3 } from 'lucide-react';
+import { RefreshCw, ChevronLeft, ChevronRight, Activity, BarChart3, FileSearch, Bug } from 'lucide-react';
+import {
+  TelemetryDetailDialog, type TelemetryDetail,
+} from '@/components/admin/TelemetryDetailDialog';
 import { format, subDays } from 'date-fns';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
