@@ -73,7 +73,7 @@ export function GiftReceivedDialog({
           <DialogDescription>{gift.sender_name || 'Someone'} sent you a cat!</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col items-center gap-4 py-4 relative z-10">
+        <div className="flex flex-col items-center gap-4 px-6 py-4 relative z-10 flex-1 overflow-y-auto">
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center border-4 border-primary/30 animate-pulse-glow">
               <CatVisual cat={gift.cat_data} size="lg" preferPortrait={true} />
