@@ -13,7 +13,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, ChevronLeft, ChevronRight, Activity, BarChart3, FileSearch, Bug } from 'lucide-react';
+import { RefreshCw, ChevronLeft, ChevronRight, Activity, BarChart3, FileSearch, Bug, Bell } from 'lucide-react';
 import {
   TelemetryDetailDialog, type TelemetryDetail,
 } from '@/components/admin/TelemetryDetailDialog';
@@ -304,7 +304,7 @@ export default function AdminTelemetry() {
               Inspect submitted authentication and access telemetry records.
             </p>
           </div>
-          <Button variant="outline" onClick={() => { load(); loadTrend(); loadCategoryTrend(); loadRejected(); }} disabled={loading}>
+          <Button variant="outline" onClick={() => { load(); loadTrend(); loadCategoryTrend(); loadRejected(); loadAlerts(); }} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -699,6 +699,86 @@ export default function AdminTelemetry() {
                               size="sm"
                               variant="ghost"
                               onClick={() => setDetail(detailFromRejectedRow(r))}
+                            >
+                              <FileSearch className="h-4 w-4" />
+                              <span className="ml-1 text-xs">View</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Failed admin alerts ({alerts.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              Admin alert emails that could not be sent — open one to see the exact
+              request that was sent and the response that came back.
+            </p>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Job</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Reason</TableHead>
+                    <TableHead className="text-right">Details</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {alertsLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <TableRow key={i}>
+                        {Array.from({ length: 5 }).map((_, j) => (
+                          <TableCell key={j}><Skeleton className="h-5 w-24" /></TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : alerts.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        No failed admin alerts in the selected window.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    alerts.map((r) => {
+                      const m = r.metadata ?? {};
+                      return (
+                        <TableRow key={r.id}>
+                          <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                            {format(new Date(r.created_at), 'yyyy-MM-dd HH:mm:ss')}
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {String(m.job_name ?? '—')}
+                            {m.is_test ? <Badge variant="secondary" className="ml-2">test</Badge> : null}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="destructive">
+                              {Number(m.http_status ?? 0) || 'error'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs max-w-xs">
+                            <span className="block truncate" title={String(m.raw_server_message ?? '')}>
+                              {String(m.raw_server_message ?? r.message)}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setDetail(detailFromAlertRow(r))}
                             >
                               <FileSearch className="h-4 w-4" />
                               <span className="ml-1 text-xs">View</span>
