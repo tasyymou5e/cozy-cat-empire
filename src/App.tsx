@@ -269,6 +269,14 @@ const App = () => {
                               </AdminRoute>
                             }
                           />
+                          <Route
+                            path="/catking/payload-validator"
+                            element={
+                              <AdminRoute>
+                                <AdminPayloadValidator />
+                              </AdminRoute>
+                            }
+                          />
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </Suspense>
