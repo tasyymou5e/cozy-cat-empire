@@ -510,7 +510,7 @@ export default function AdminTelemetry() {
                     if (filtered.length === 0) {
                       return (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                             No records match the current filters.
                           </TableCell>
                         </TableRow>
@@ -561,6 +561,16 @@ export default function AdminTelemetry() {
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setDetail(detailFromStoredRow(r, mapped))}
+                          >
+                            <FileSearch className="h-4 w-4" />
+                            <span className="ml-1 text-xs">View</span>
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ));
