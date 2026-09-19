@@ -26,6 +26,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { recordRejectedTelemetryRpc } from '@/lib/telemetryRpcAudit';
+import { winstonLogger } from '@/lib/winston-logger';
+
 import {
   TELEMETRY_RPC_SPECS, validateTelemetryPayload,
   type TelemetryRpcName, type FieldStatus, type ValidationReport,
@@ -103,7 +106,14 @@ export default function AdminPayloadValidator() {
     setSending(false);
     if (error) {
       setServerResult(`Rejected — ${error.message}`);
+      recordRejectedTelemetryRpc(
+        rpc,
+        parsed.value as Record<string, unknown>,
+        error as { code?: string; details?: string; hint?: string; message?: string },
+      );
+      await winstonLogger.flush();
       toast.error('The server rejected this payload');
+
     } else {
       setServerResult('Accepted — the record was stored.');
       toast.success('Payload accepted and stored');
