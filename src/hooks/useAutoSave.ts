@@ -13,6 +13,7 @@ import { GameState } from '@/types/game';
 import { CatRelationship, RelationshipEvent } from '@/types/relationships';
 import { logErrorToDatabase } from './useErrorLogger';
 import { createLogger } from '@/lib/logger';
+import { keepaliveCloudSave, startTokenCache } from '@/lib/keepaliveSave';
 
 const log = createLogger('AutoSave');
 
