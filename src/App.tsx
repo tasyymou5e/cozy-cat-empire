@@ -64,6 +64,7 @@ const AdminTestDashboard = lazyWithRetry(() => import('./pages/admin/AdminTestDa
 const AdminTelemetry = lazyWithRetry(() => import('./pages/admin/AdminTelemetry'));
 const AdminPayloadValidator = lazyWithRetry(() => import('./pages/admin/AdminPayloadValidator'));
 const AdminPlayerActivity = lazyWithRetry(() => import('./pages/admin/AdminPlayerActivity'));
+const AdminPlayerMessages = lazyWithRetry(() => import('./pages/admin/AdminPlayerMessages'));
 const queryClient = new QueryClient();
 
 const App = () => {
