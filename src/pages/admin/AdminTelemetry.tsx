@@ -473,6 +473,7 @@ export default function AdminTelemetry() {
                     <TableHead>User ID</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Error</TableHead>
+                    <TableHead className="text-right">Details</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -500,7 +501,7 @@ export default function AdminTelemetry() {
                     if (loading) {
                       return Array.from({ length: 6 }).map((_, i) => (
                         <TableRow key={i}>
-                          {Array.from({ length: 7 }).map((_, j) => (
+                          {Array.from({ length: 8 }).map((_, j) => (
                             <TableCell key={j}><Skeleton className="h-5 w-24" /></TableCell>
                           ))}
                         </TableRow>
