@@ -77,11 +77,34 @@ export function useAutoSave(
     onSaveError,
   } = options;
 
-  const cloudSave = cloudSaveFn;
   const lastStateHashRef = useRef<string>('');
   const isSavingRef = useRef(false);
   const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSuccessfulSaveRef = useRef<string | null>(null);
+
+  /**
+   * Latest render values kept in a ref so the save callback (and therefore the
+   * 60s interval) has a stable identity. Without this, every game-state change
+   * recreated the interval and continuous play could starve auto-save forever.
+   */
+  const latestRef = useRef({
+    gameState,
+    kittensBreed,
+    relationshipData,
+    cloudSave: cloudSaveFn,
+    onSaveStart,
+    onSaveComplete,
+    onSaveError,
+  });
+  latestRef.current = {
+    gameState,
+    kittensBreed,
+    relationshipData,
+    cloudSave: cloudSaveFn,
+    onSaveStart,
+    onSaveComplete,
+    onSaveError,
+  };
 
   const [stats, setStats] = useState<AutoSaveStats>({
     lastSaveTime: null,
