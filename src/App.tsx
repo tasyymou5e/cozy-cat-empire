@@ -287,6 +287,14 @@ const App = () => {
                               </AdminRoute>
                             }
                           />
+                          <Route
+                            path="/catking/messages"
+                            element={
+                              <AdminRoute>
+                                <AdminPlayerMessages />
+                              </AdminRoute>
+                            }
+                          />
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </Suspense>
