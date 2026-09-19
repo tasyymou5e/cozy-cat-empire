@@ -115,7 +115,7 @@ export function GiftReceivedDialog({
           )}
         </div>
 
-        <DialogFooter className="flex gap-2 sm:gap-2 relative z-10">
+        <DialogFooter className="flex flex-row gap-2 sm:gap-2 relative z-10 shrink-0 px-6 py-4 border-t border-border bg-background/95 pb-safe">
           <Button variant="outline" className="flex-1" onClick={() => onDecline(gift.id)}>
             <X className="w-4 h-4 mr-2" />
             Decline
