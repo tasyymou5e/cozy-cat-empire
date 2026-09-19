@@ -32,7 +32,7 @@ import {
   Castle,
   Home,
   Gamepad2,
-} from 'lucide-react';
+, MessageSquare} from 'lucide-react';
 import { CATEGORIES } from './CategoryTabBar';
 
 interface ExternalPageSidebarProps {
@@ -52,6 +52,7 @@ const EXTERNAL_LINKS = [
   { href: '/photobooth', icon: Camera, label: 'Photo Booth' },
   { href: '/gallery', icon: Image, label: 'Gallery' },
   { href: '/leaderboard', icon: Globe, label: 'Leaderboard' },
+  { href: '/messages', icon: MessageSquare, label: 'Messages' },
 ];
 
 /**
