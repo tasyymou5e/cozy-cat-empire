@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth, logAuthAttempt } from '@/hooks/admin';
 import { useAdminPrefetch } from '@/hooks/usePrefetch';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ShieldAlert } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface AdminRouteProps {
   children: React.ReactNode;
