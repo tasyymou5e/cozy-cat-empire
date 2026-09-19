@@ -295,24 +295,26 @@ export default function AdminScheduledJobs() {
 
   const handleSendTestAlert = async () => {
     setIsSendingTest(true);
+    const body = {
+      job_name: 'Test Job',
+      job_id: 0,
+      status: 'test',
+      error_message: 'This is a test alert to verify the notification system is working correctly.',
+      start_time: new Date().toISOString(),
+      end_time: new Date().toISOString(),
+      is_test: true,
+    };
     try {
-      const { error } = await supabase.functions.invoke('send-admin-alert', {
-        body: {
-          job_name: 'Test Job',
-          job_id: 0,
-          status: 'test',
-          error_message: 'This is a test alert to verify the notification system is working correctly.',
-          start_time: new Date().toISOString(),
-          end_time: new Date().toISOString(),
-          is_test: true,
-        },
-      });
+      const { error } = await supabase.functions.invoke('send-admin-alert', { body });
       if (error) throw error;
       toast({
         title: 'Test Alert Sent',
         description: 'Check your email for the test notification.',
       });
     } catch (error) {
+      // Persist the exact request/response so it shows up on Admin > Telemetry.
+      recordFailedAdminAlert(body, error);
+      await winstonLogger.flush();
       toast({
         title: 'Failed to Send',
         description: error instanceof Error ? error.message : 'Unknown error',
