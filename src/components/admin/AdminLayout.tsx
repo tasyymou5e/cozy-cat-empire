@@ -31,6 +31,7 @@ import {
   Crosshair,
   Activity,
   ShieldCheck,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -65,6 +66,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'User Management',
     items: [
       { id: 'users', label: 'Users', icon: Users, path: '/catking/users' },
+      { id: 'messages', label: 'Player Inbox', icon: MessageSquare, path: '/catking/messages' },
       { id: 'profiles', label: 'Profile Repair', icon: Wrench, path: '/catking/profiles' },
       { id: 'game-repair', label: 'Game Save Repair', icon: Database, path: '/catking/game-repair' },
     ],

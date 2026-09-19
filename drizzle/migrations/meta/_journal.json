@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789861588880,
+      "tag": "0000_create_player_messages",
+      "breakpoints": true
+    }
+  ]
+}

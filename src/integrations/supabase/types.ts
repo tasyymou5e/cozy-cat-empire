@@ -1293,6 +1293,68 @@ export type Database = {
           },
         ]
       }
+      player_messages: {
+        Row: {
+          body: string
+          created_at: string
+          direction: string
+          id: string
+          player_id: string
+          read_by_admin: boolean
+          read_by_player: boolean
+          sender_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          direction: string
+          id?: string
+          player_id: string
+          read_by_admin?: boolean
+          read_by_player?: boolean
+          sender_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          player_id?: string
+          read_by_admin?: boolean
+          read_by_player?: boolean
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_messages_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_messages_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_portrait_credits: {
         Row: {
           created_at: string | null
