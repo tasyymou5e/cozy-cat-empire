@@ -95,7 +95,7 @@ export function EmpireRenderDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 overflow-y-auto px-6 py-4">
           {/* Scene preview */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-3">
             <h4 className="font-medium text-sm">Scene Settings</h4>
