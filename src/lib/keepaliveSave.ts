@@ -66,6 +66,13 @@ export function keepaliveCloudSave({
       last_played_at: new Date().toISOString(),
     });
 
+    // Browsers cap keepalive request bodies at ~64 KB; bail out so the caller
+    // can fall back to a regular save instead of silently dropping the request.
+    if (body.length > 60_000) {
+      log.debug('Payload too large for keepalive save', { bytes: body.length });
+      return false;
+    }
+
     void fetch(`${SUPABASE_URL}/rest/v1/game_saves?on_conflict=user_id`, {
       method: 'POST',
       keepalive: true,
