@@ -32,7 +32,8 @@ import {
   Castle,
   Home,
   Gamepad2,
-, MessageSquare} from 'lucide-react';
+  MessageSquare,
+} from 'lucide-react';
 import { CATEGORIES } from './CategoryTabBar';
 
 interface ExternalPageSidebarProps {
