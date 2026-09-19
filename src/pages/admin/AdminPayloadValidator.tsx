@@ -26,6 +26,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { recordRejectedTelemetryRpc } from '@/lib/telemetryRpcAudit';
+import { winstonLogger } from '@/lib/winston-logger';
+
 import {
   TELEMETRY_RPC_SPECS, validateTelemetryPayload,
   type TelemetryRpcName, type FieldStatus, type ValidationReport,
