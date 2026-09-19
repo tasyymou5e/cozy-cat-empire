@@ -287,7 +287,7 @@ export default function AdminPlayerActivity() {
           </div>
 
           {/* Main grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             {/* Players table */}
             <div className="lg:col-span-2 admin-panel admin-fade-in overflow-hidden flex flex-col">
               <div
