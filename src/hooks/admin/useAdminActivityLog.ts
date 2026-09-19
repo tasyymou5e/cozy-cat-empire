@@ -14,6 +14,7 @@ import { Json } from '@/integrations/supabase/types';
 
 import { createLogger } from '@/lib/logger';
 import { mapTelemetryError } from '@/lib/telemetryErrorMessages';
+import { recordRejectedTelemetryRpc } from '@/lib/telemetryRpcAudit';
 
 const logger = createLogger('useAdminActivityLog');
 

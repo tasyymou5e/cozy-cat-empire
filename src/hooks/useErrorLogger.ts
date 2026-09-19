@@ -71,6 +71,20 @@ export function useErrorLogger() {
             friendly: mapped.friendly,
             known: mapped.known,
           });
+          // Persist the rejected request/response for admin drilldown.
+          recordRejectedTelemetryRpc(
+            'log_client_error_secure',
+            {
+              _error_type: data.error_type,
+              _error_message: data.error_message.slice(0, 5000),
+              _error_stack: data.error_stack?.slice(0, 10000) ?? null,
+              _component_name: data.component_name ?? null,
+              _route: data.route || window.location.pathname,
+              _user_agent: navigator.userAgent,
+              _metadata: metadata,
+            },
+            error
+          );
         }
       } catch (e) {
         log.error('Logging failed:', e);
