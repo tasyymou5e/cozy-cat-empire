@@ -307,6 +307,7 @@ export function EmpireScene({
               canPlay={resources.toys > 0}
               parallaxOffset={microDepthEnabled ? parallaxOffset : { x: 0, y: 0 }}
               enableMicroDepth={microDepthEnabled}
+              animationsEnabled={effectiveAnimations}
             />
           );
         })}
@@ -315,17 +316,22 @@ export function EmpireScene({
       {/* Layer 4: Atmospheric overlays - Fixed (no parallax) */}
       <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 50 }}>
         {settings.enableTimeOfDayEffects && (
-          <TimeOfDayOverlay gameDay={gameDay} />
+          <TimeOfDayOverlay gameDay={gameDay} animationsEnabled={effectiveAnimations} />
         )}
         
         {settings.enableSeasonalDecorations && (
-          <SeasonalDecorations season={season} houseSize={houseSize} />
+          <SeasonalDecorations
+            season={season}
+            houseSize={houseSize}
+            animationsEnabled={effectiveAnimations}
+          />
         )}
         
         {zone.particles && settings.enableParticles && settings.enableEmpireParticles && (
           <EmpireParticles 
             type={zone.particles} 
             enableReducedMotion={settings.enableReducedMotion}
+            animationsEnabled={effectiveAnimations}
             density="light"
           />
         )}
