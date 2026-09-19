@@ -40,6 +40,70 @@ type Row = {
   metadata: any;
 };
 
+/** Rejected telemetry RPC call, recorded in application_logs by telemetryRpcAudit. */
+type RejectedRow = {
+  id: string;
+  created_at: string;
+  message: string;
+  metadata: any;
+};
+
+/** Build the drilldown payload for an accepted (stored) telemetry record. */
+function detailFromStoredRow(r: Row, mapped: ReturnType<typeof mapTelemetryError>): TelemetryDetail {
+  return {
+    title: `${r.attempt_type} — ${r.email}`,
+    subtitle: `Recorded ${format(new Date(r.created_at), 'yyyy-MM-dd HH:mm:ss')}`,
+    rpc: 'log_auth_attempt_secure',
+    outcome: 'accepted',
+    httpStatus: 204,
+    categoryLabel: r.error_message ? mapped.categoryLabel : undefined,
+    friendly: r.error_message ? mapped.friendly : undefined,
+    rawServerMessage: r.error_message,
+    requestJson: JSON.stringify(
+      {
+        _email: r.email,
+        _attempt_type: r.attempt_type,
+        _success: r.success,
+        _error_message: r.error_message,
+        _metadata: r.metadata ?? {},
+      },
+      null,
+      2
+    ),
+    responseJson: JSON.stringify(
+      {
+        status: 204,
+        body: null,
+        stored_row: {
+          id: r.id,
+          user_id: r.user_id,
+          created_at: r.created_at,
+          success: r.success,
+        },
+      },
+      null,
+      2
+    ),
+  };
+}
+
+/** Build the drilldown payload for a rejected RPC call. */
+function detailFromRejectedRow(r: RejectedRow): TelemetryDetail {
+  const m = r.metadata ?? {};
+  return {
+    title: 'Rejected payload',
+    subtitle: `Attempted ${format(new Date(r.created_at), 'yyyy-MM-dd HH:mm:ss')}`,
+    rpc: String(m.telemetry_rpc ?? 'unknown_rpc'),
+    outcome: 'rejected',
+    httpStatus: Number(m.http_status ?? 400),
+    categoryLabel: m.category_label ? String(m.category_label) : undefined,
+    friendly: m.friendly ? String(m.friendly) : undefined,
+    rawServerMessage: m.raw_server_message ? String(m.raw_server_message) : null,
+    requestJson: String(m.request_json ?? '"<no request captured>"'),
+    responseJson: String(m.response_json ?? '"<no response captured>"'),
+  };
+}
+
 const ATTEMPT_TYPES = [
   'admin_login', 'admin_login_failed', 'access_denied',
   'login', 'signup', 'password_reset', 'logout',
@@ -64,6 +128,9 @@ export default function AdminTelemetry() {
   const [trendLoading, setTrendLoading] = useState(false);
   const [catTrend, setCatTrend] = useState<Array<Record<string, number | string>>>([]);
   const [catTrendLoading, setCatTrendLoading] = useState(false);
+  const [detail, setDetail] = useState<TelemetryDetail | null>(null);
+  const [rejected, setRejected] = useState<RejectedRow[]>([]);
+  const [rejectedLoading, setRejectedLoading] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setEmailDebounced(emailQuery.trim()), 300);
