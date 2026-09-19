@@ -272,7 +272,7 @@ export default function AdminTelemetry() {
               Inspect submitted authentication and access telemetry records.
             </p>
           </div>
-          <Button variant="outline" onClick={() => { load(); loadTrend(); loadCategoryTrend(); }} disabled={loading}>
+          <Button variant="outline" onClick={() => { load(); loadTrend(); loadCategoryTrend(); loadRejected(); }} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
