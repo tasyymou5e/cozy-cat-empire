@@ -602,7 +602,88 @@ export default function AdminTelemetry() {
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bug className="h-5 w-5" />
+              Rejected RPC payloads ({rejected.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              Calls the database refused before storing anything — open one to see the
+              exact request that was sent and the response that came back.
+            </p>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Time</TableHead>
+                    <TableHead>RPC</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Reason</TableHead>
+                    <TableHead className="text-right">Details</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rejectedLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <TableRow key={i}>
+                        {Array.from({ length: 5 }).map((_, j) => (
+                          <TableCell key={j}><Skeleton className="h-5 w-24" /></TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : rejected.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        No rejected payloads in the selected window.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    rejected.map((r) => {
+                      const m = r.metadata ?? {};
+                      return (
+                        <TableRow key={r.id}>
+                          <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                            {format(new Date(r.created_at), 'yyyy-MM-dd HH:mm:ss')}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">
+                            {String(m.telemetry_rpc ?? '—')}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {String(m.category_label ?? 'Unknown')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs max-w-xs">
+                            <span className="block truncate" title={String(m.raw_server_message ?? '')}>
+                              {String(m.friendly ?? r.message)}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setDetail(detailFromRejectedRow(r))}
+                            >
+                              <FileSearch className="h-4 w-4" />
+                              <span className="ml-1 text-xs">View</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <TelemetryDetailDialog detail={detail} onClose={() => setDetail(null)} />
     </AdminLayout>
   );
 }
