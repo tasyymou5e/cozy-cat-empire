@@ -103,7 +103,14 @@ export default function AdminPayloadValidator() {
     setSending(false);
     if (error) {
       setServerResult(`Rejected — ${error.message}`);
+      recordRejectedTelemetryRpc(
+        rpc,
+        parsed.value as Record<string, unknown>,
+        error as { code?: string; details?: string; hint?: string; message?: string },
+      );
+      await logger.flush();
       toast.error('The server rejected this payload');
+
     } else {
       setServerResult('Accepted — the record was stored.');
       toast.success('Payload accepted and stored');
