@@ -219,7 +219,7 @@ export function EmpireRenderDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2 sm:gap-0 shrink-0 px-6 py-4 border-t border-border bg-background/95 pb-safe">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
