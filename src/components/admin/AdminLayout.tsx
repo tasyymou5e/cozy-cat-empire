@@ -31,6 +31,7 @@ import {
   Crosshair,
   Activity,
   ShieldCheck,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
