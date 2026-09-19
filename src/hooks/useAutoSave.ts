@@ -13,6 +13,7 @@ import { GameState } from '@/types/game';
 import { CatRelationship, RelationshipEvent } from '@/types/relationships';
 import { logErrorToDatabase } from './useErrorLogger';
 import { createLogger } from '@/lib/logger';
+import { keepaliveCloudSave, startTokenCache } from '@/lib/keepaliveSave';
 
 const log = createLogger('AutoSave');
 
@@ -272,19 +273,62 @@ export function useAutoSave(
     };
   }, [userId, enabled, intervalMs, performAutoSaveWithRetry]);
 
+  /**
+   * Last-chance saves. `beforeunload` is unreliable (it never fires on mobile
+   * tab kills and async work is cancelled), so we:
+   *  - save normally when the tab is merely hidden (page is still alive), and
+   *  - dispatch a `keepalive` request on `pagehide`, which the browser finishes
+   *    even after the tab is gone.
+   */
   useEffect(() => {
     if (!userId || !enabled) return;
 
-    const handleBeforeUnload = () => {
-      log.debug('beforeunload - attempting final save');
-      performAutoSaveWithRetry();
+    startTokenCache();
+
+    const flushWithKeepalive = (reason: string) => {
+      const { gameState: gs, kittensBreed: kb, relationshipData: rd } = latestRef.current;
+      const hash = generateStateHash(gs, kb);
+      if (hash === lastStateHashRef.current) {
+        log.debug(`${reason} - nothing to save`);
+        return;
+      }
+
+      const dispatched = keepaliveCloudSave({
+        userId,
+        gameState: gs,
+        kittensBreed: kb,
+        relationships: rd,
+      });
+
+      if (dispatched) {
+        lastStateHashRef.current = hash;
+        lastSuccessfulSaveRef.current = new Date().toISOString();
+        log.debug(`${reason} - keepalive save dispatched`);
+      } else {
+        log.debug(`${reason} - keepalive unavailable, falling back to async save`);
+        performAutoSaveWithRetry();
+      }
     };
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        // Page is still running here, so a normal (retryable) save is best.
+        performAutoSaveWithRetry();
+      }
+    };
+
+    const handlePageHide = () => flushWithKeepalive('pagehide');
+    const handleBeforeUnload = () => flushWithKeepalive('beforeunload');
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [userId, enabled, performAutoSaveWithRetry]);
+  }, [userId, enabled, performAutoSaveWithRetry, generateStateHash]);
 
   return {
     stats,
