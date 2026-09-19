@@ -77,11 +77,34 @@ export function useAutoSave(
     onSaveError,
   } = options;
 
-  const cloudSave = cloudSaveFn;
   const lastStateHashRef = useRef<string>('');
   const isSavingRef = useRef(false);
   const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSuccessfulSaveRef = useRef<string | null>(null);
+
+  /**
+   * Latest render values kept in a ref so the save callback (and therefore the
+   * 60s interval) has a stable identity. Without this, every game-state change
+   * recreated the interval and continuous play could starve auto-save forever.
+   */
+  const latestRef = useRef({
+    gameState,
+    kittensBreed,
+    relationshipData,
+    cloudSave: cloudSaveFn,
+    onSaveStart,
+    onSaveComplete,
+    onSaveError,
+  });
+  latestRef.current = {
+    gameState,
+    kittensBreed,
+    relationshipData,
+    cloudSave: cloudSaveFn,
+    onSaveStart,
+    onSaveComplete,
+    onSaveError,
+  };
 
   const [stats, setStats] = useState<AutoSaveStats>({
     lastSaveTime: null,
@@ -112,6 +135,7 @@ export function useAutoSave(
 
   const logAutoSaveError = useCallback(
     async (error: Error, retryCount: number, stateHash: string) => {
+      const { gameState: gs } = latestRef.current;
       try {
         await logErrorToDatabase({
           error_type: 'auto_save_error',
@@ -120,8 +144,8 @@ export function useAutoSave(
           metadata: {
             retryCount,
             stateHash: stateHash.slice(0, 100),
-            catsCount: gameState.cats.length,
-            day: gameState.day,
+            catsCount: gs.cats.length,
+            day: gs.day,
             intervalMs,
             lastSuccessfulSave: lastSuccessfulSaveRef.current,
           },
@@ -130,7 +154,7 @@ export function useAutoSave(
         log.error('Failed to log error:', logError);
       }
     },
-    [userId, gameState.cats.length, gameState.day, intervalMs]
+    [userId, intervalMs]
   );
 
   const performAutoSaveWithRetry = useCallback(
@@ -142,7 +166,17 @@ export function useAutoSave(
         return;
       }
 
-      const hash = currentHash ?? generateStateHash(gameState, kittensBreed);
+      const {
+        gameState: gs,
+        kittensBreed: kb,
+        relationshipData: rd,
+        cloudSave,
+        onSaveStart: startCb,
+        onSaveComplete: completeCb,
+        onSaveError: errorCb,
+      } = latestRef.current;
+
+      const hash = currentHash ?? generateStateHash(gs, kb);
 
       if (retryCount === 0 && hash === lastStateHashRef.current) {
         log.debug('Skipped: no changes detected');
@@ -151,7 +185,7 @@ export function useAutoSave(
 
       if (retryCount === 0) {
         isSavingRef.current = true;
-        onSaveStart?.();
+        startCb?.();
         log.debug('Starting save...');
       } else {
         setStats((prev) => ({ ...prev, isRetrying: true }));
@@ -159,7 +193,7 @@ export function useAutoSave(
       }
 
       try {
-        const result = await cloudSave(gameState, kittensBreed, relationshipData);
+        const result = await cloudSave(gs, kb, rd);
 
         if (result.success) {
           lastStateHashRef.current = hash;
@@ -173,7 +207,7 @@ export function useAutoSave(
           }));
 
           log.debug('Save successful');
-          onSaveComplete?.();
+          completeCb?.();
         } else {
           const error = new Error(result.error || 'Cloud save returned false');
           
@@ -191,7 +225,7 @@ export function useAutoSave(
               lastError: error.message,
               isRetrying: false,
             }));
-            onSaveError?.(error, retryCount);
+            errorCb?.(error, retryCount);
           }
         }
       } catch (error) {
@@ -211,7 +245,7 @@ export function useAutoSave(
             lastError: err.message,
             isRetrying: false,
           }));
-          onSaveError?.(err, retryCount);
+          errorCb?.(err, retryCount);
         }
       } finally {
         if (retryCount === 0 || retryCount >= MAX_RETRIES) {
@@ -219,11 +253,7 @@ export function useAutoSave(
         }
       }
     },
-    [
-      userId, enabled, gameState, kittensBreed, relationshipData,
-      cloudSave, generateStateHash, logAutoSaveError,
-      onSaveStart, onSaveComplete, onSaveError,
-    ]
+    [userId, enabled, generateStateHash, logAutoSaveError]
   );
 
   useEffect(() => {
