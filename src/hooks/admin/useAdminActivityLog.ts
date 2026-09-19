@@ -223,6 +223,18 @@ export async function logAuthAttempt(params: LogAuthAttemptParams): Promise<void
         friendly: mapped.friendly,
         known: mapped.known,
       });
+      // Persist the rejected request/response for admin drilldown.
+      recordRejectedTelemetryRpc(
+        'log_auth_attempt_secure',
+        {
+          _email: params.email,
+          _attempt_type: params.attemptType,
+          _success: params.success,
+          _error_message: params.errorMessage ?? null,
+          _metadata: { ...(params.metadata || {}), user_agent: navigator.userAgent },
+        },
+        error
+      );
     }
   } catch (err) {
     logger.error('Error logging auth attempt:', err);
