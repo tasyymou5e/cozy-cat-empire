@@ -63,6 +63,7 @@ const AdminTracking = lazyWithRetry(() => import('./pages/admin/AdminTracking'))
 const AdminTestDashboard = lazyWithRetry(() => import('./pages/admin/AdminTestDashboard'));
 const AdminTelemetry = lazyWithRetry(() => import('./pages/admin/AdminTelemetry'));
 const AdminPayloadValidator = lazyWithRetry(() => import('./pages/admin/AdminPayloadValidator'));
+const AdminPlayerActivity = lazyWithRetry(() => import('./pages/admin/AdminPlayerActivity'));
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -274,6 +275,14 @@ const App = () => {
                             element={
                               <AdminRoute>
                                 <AdminPayloadValidator />
+                              </AdminRoute>
+                            }
+                          />
+                          <Route
+                            path="/catking/activity"
+                            element={
+                              <AdminRoute>
+                                <AdminPlayerActivity />
                               </AdminRoute>
                             }
                           />
