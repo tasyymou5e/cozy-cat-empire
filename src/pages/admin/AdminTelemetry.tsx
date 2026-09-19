@@ -237,8 +237,21 @@ export default function AdminTelemetry() {
     setCatTrendLoading(false);
   };
 
+  const loadRejected = async () => {
+    setRejectedLoading(true);
+    const { data, error } = await supabase
+      .from('application_logs')
+      .select('id, created_at, message, metadata')
+      .eq('label', 'TelemetryRPC')
+      .gte('created_at', sinceISO)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (!error && data) setRejected(data as RejectedRow[]);
+    setRejectedLoading(false);
+  };
+
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, attemptType, successFilter, emailDebounced, category, days]);
-  useEffect(() => { loadTrend(); loadCategoryTrend(); /* eslint-disable-next-line */ }, [days]);
+  useEffect(() => { loadTrend(); loadCategoryTrend(); loadRejected(); /* eslint-disable-next-line */ }, [days]);
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
