@@ -9,7 +9,9 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 const ALLOWED_ORIGINS: (string | RegExp)[] = [
   'https://cozy-cat-empire.lovable.app',
   /^https:\/\/.*\.lovable\.app$/,
-  /^http:\/\/localhost(:d+)?$/,
+  /^http:\/\/localhost(:\d+)?$/,
+  /^https:\/\/.*\.lovableproject\.com$/,
+  /^https:\/\/(www\.)?cozycatempire\.com$/,
 ];
 
 function getCorsHeaders(req: Request) {
