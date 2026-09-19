@@ -58,6 +58,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Overview',
     items: [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/catking/dashboard' },
+      { id: 'activity', label: 'Player Activity', icon: Activity, path: '/catking/activity' },
     ],
   },
   {
