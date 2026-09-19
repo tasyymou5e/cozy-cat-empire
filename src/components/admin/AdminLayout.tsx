@@ -30,6 +30,7 @@ import {
   PanelLeft,
   Crosshair,
   Activity,
+  ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -80,6 +81,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: 'errors', label: 'Error Logs', icon: AlertTriangle, path: '/catking/errors' },
       { id: 'telemetry', label: 'Auth Telemetry', icon: Activity, path: '/catking/telemetry' },
+      { id: 'payload-validator', label: 'Payload Validator', icon: ShieldCheck, path: '/catking/payload-validator' },
       { id: 'winston', label: 'Winston Logger', icon: Terminal, path: '/catking/winston' },
       { id: 'security', label: 'Security Audit', icon: Shield, path: '/catking/security' },
     ],
