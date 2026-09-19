@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { createLogger } from '@/lib/logger';
 import { mapTelemetryError } from '@/lib/telemetryErrorMessages';
+import { recordRejectedTelemetryRpc } from '@/lib/telemetryRpcAudit';
 
 const log = createLogger('ErrorLogger');
 
