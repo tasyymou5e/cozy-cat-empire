@@ -56,10 +56,10 @@ export function TimeOfDayOverlay({ gameDay, className, animationsEnabled = true 
       {lightBeam?.show && <LightBeam config={lightBeam} />}
 
       {/* Morning sun rays effect */}
-      {timeOfDay === 'morning' && <SunRays />}
+      {timeOfDay === 'morning' && <SunRays animationsEnabled={animationsEnabled} />}
       
       {/* Night stars and moon */}
-      {timeOfDay === 'night' && <Stars positions={starPositions} />}
+      {timeOfDay === 'night' && <Stars positions={starPositions} animationsEnabled={animationsEnabled} />}
 
       {/* Evening glow on horizon */}
       {timeOfDay === 'evening' && <SunsetGlow />}
@@ -96,7 +96,7 @@ function LightBeam({ config }: { config: { angle: number; intensity: number; col
 /**
  * Animated sun rays for morning time
  */
-function SunRays() {
+function SunRays({ animationsEnabled = true }: { animationsEnabled?: boolean }) {
   return (
     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-1/2 overflow-hidden opacity-30">
       <div 
@@ -113,7 +113,7 @@ function SunRays() {
             rgba(255,220,100,0.25) 100deg,
             transparent 110deg
           )`,
-          animation: 'spin 60s linear infinite',
+          animation: animationsEnabled ? 'spin 60s linear infinite' : undefined,
         }}
       />
       {/* Sun glow */}
