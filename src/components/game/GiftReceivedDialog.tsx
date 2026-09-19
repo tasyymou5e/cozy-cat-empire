@@ -61,7 +61,7 @@ export function GiftReceivedDialog({
           ))}
         </div>
 
-        <DialogHeader className="text-center relative z-10">
+        <DialogHeader className="text-center relative z-10 px-6 pt-6 shrink-0">
           <div className="mx-auto mb-2 w-16 h-16 rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center animate-gift-unwrap">
             <Gift className="w-8 h-8 text-primary animate-bounce" />
           </div>
