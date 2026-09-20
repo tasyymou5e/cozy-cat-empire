@@ -164,8 +164,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                       to={item.path}
                       onClick={() => mobile && setMobileMenuOpen(false)}
                       className={cn(
-                        'flex items-center gap-2.5 rounded-md text-sm font-medium transition-colors',
-                        collapsed && !mobile ? 'justify-center px-2 py-2' : 'px-3 py-1.5',
+                        'flex items-center gap-2.5 rounded-md text-sm font-medium transition-colors touch-target',
+                        collapsed && !mobile
+                          ? 'justify-center px-2 py-2 min-h-11'
+                          : mobile
+                            ? 'px-3 py-2.5 min-h-11'
+                            : 'px-3 py-1.5',
                         isActive
                           ? 'bg-primary text-primary-foreground'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted'
