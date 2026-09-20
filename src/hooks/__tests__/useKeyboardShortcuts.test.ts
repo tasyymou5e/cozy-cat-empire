@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 
-vi.mock('react-router-dom', () => ({ useNavigate: () => vi.fn() }));
+vi.mock('@/lib/router-compat', () => ({ useNavigate: () => vi.fn() }));
 
 describe('useKeyboardShortcuts', () => {
   it('should register keyboard event listeners on window', async () => {
