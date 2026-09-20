@@ -1295,7 +1295,11 @@ export type Database = {
       }
       player_messages: {
         Row: {
+          attachment_name: string | null
+          attachment_type: string | null
+          attachment_url: string | null
           body: string
+          broadcast_id: string | null
           created_at: string
           direction: string
           id: string
@@ -1305,7 +1309,11 @@ export type Database = {
           sender_id: string | null
         }
         Insert: {
+          attachment_name?: string | null
+          attachment_type?: string | null
+          attachment_url?: string | null
           body: string
+          broadcast_id?: string | null
           created_at?: string
           direction: string
           id?: string
@@ -1315,7 +1323,11 @@ export type Database = {
           sender_id?: string | null
         }
         Update: {
+          attachment_name?: string | null
+          attachment_type?: string | null
+          attachment_url?: string | null
           body?: string
+          broadcast_id?: string | null
           created_at?: string
           direction?: string
           id?: string
@@ -2063,6 +2075,18 @@ export type Database = {
     }
     Functions: {
       admin_delete_user: { Args: { _user_id: string }; Returns: boolean }
+      broadcast_player_message: {
+        Args: {
+          _attachment_name?: string
+          _attachment_type?: string
+          _attachment_url?: string
+          _body: string
+        }
+        Returns: {
+          broadcast_id: string
+          recipients: number
+        }[]
+      }
       get_auth_config_status: { Args: never; Returns: Json }
       get_cron_job_history: {
         Args: { limit_count?: number }

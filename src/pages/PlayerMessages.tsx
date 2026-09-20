@@ -9,7 +9,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Send, Loader2, MessageSquare, Mail } from 'lucide-react';
+import { Send, Loader2, MessageSquare, Mail, Paperclip, X } from 'lucide-react';
+import { MessageAttachment } from '@/components/messages/MessageAttachment';
+import { uploadMessageAttachment } from '@/lib/messageAttachments';
 import { createLogger } from '@/lib/logger';
 
 const logger = createLogger('PlayerMessages');
@@ -23,6 +25,9 @@ interface PlayerMessage {
   read_by_player: boolean;
   read_by_admin: boolean;
   created_at: string;
+  attachment_url?: string | null;
+  attachment_name?: string | null;
+  attachment_type?: string | null;
 }
 
 const MAX_BODY = 4000;
@@ -47,6 +52,8 @@ export default function PlayerMessages() {
   const [isLoading, setIsLoading] = useState(true);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const unreadCount = useMemo(
@@ -132,8 +139,25 @@ export default function PlayerMessages() {
 
   const handleSend = async () => {
     const body = draft.trim();
-    if (!user || !body || sending) return;
+    if (!user || sending) return;
+    if (!body && !file) return;
     setSending(true);
+
+    let attachment: { path: string; name: string; type: string } | null = null;
+    if (file) {
+      try {
+        attachment = await uploadMessageAttachment(file, user.id);
+      } catch (err) {
+        setSending(false);
+        logger.warn('Attachment upload failed', err as Error);
+        toast({
+          title: "Couldn't attach that file",
+          description: err instanceof Error ? err.message : 'Please try a smaller file.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
 
     const { data, error } = await supabase
       .from('player_messages')
@@ -141,9 +165,12 @@ export default function PlayerMessages() {
         player_id: user.id,
         sender_id: user.id,
         direction: 'from_player',
-        body: body.slice(0, MAX_BODY),
+        body: (body || attachment?.name || 'Attachment').slice(0, MAX_BODY),
         read_by_player: true,
         read_by_admin: false,
+        attachment_url: attachment?.path ?? null,
+        attachment_name: attachment?.name ?? null,
+        attachment_type: attachment?.type ?? null,
       })
       .select()
       .single();
@@ -162,6 +189,7 @@ export default function PlayerMessages() {
 
     setMessages((prev) => [...prev, data as PlayerMessage]);
     setDraft('');
+    setFile(null);
     toast({ title: 'Message sent 💌', description: 'The team will get back to you here.' });
   };
 
@@ -221,6 +249,13 @@ export default function PlayerMessages() {
                     )}
                   >
                     <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                    {m.attachment_url && (
+                      <MessageAttachment
+                        path={m.attachment_url}
+                        name={m.attachment_name}
+                        type={m.attachment_type}
+                      />
+                    )}
                     <p
                       className={cn(
                         'text-[11px] mt-1',
@@ -251,22 +286,58 @@ export default function PlayerMessages() {
             maxLength={MAX_BODY}
             className="min-h-[90px] resize-none text-base"
           />
+          {file && (
+            <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs">
+              <Paperclip className="h-3.5 w-3.5 shrink-0" />
+              <span className="min-w-0 flex-1 truncate">{file.name}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 touch-target"
+                aria-label="Remove attachment"
+                onClick={() => setFile(null)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs text-muted-foreground">
               {draft.length}/{MAX_BODY} • ⌘/Ctrl + Enter to send
             </span>
-            <Button
-              onClick={() => void handleSend()}
-              disabled={!draft.trim() || sending}
-              className="min-h-[44px] gap-2"
-            >
-              {sending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-              Send
-            </Button>
+            <div className="flex items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const picked = e.target.files?.[0] ?? null;
+                  setFile(picked);
+                  e.target.value = '';
+                }}
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="min-h-[44px] min-w-[44px] touch-target"
+                aria-label="Attach a file"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => void handleSend()}
+                disabled={(!draft.trim() && !file) || sending}
+                className="min-h-[44px] gap-2"
+              >
+                {sending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                Send
+              </Button>
+            </div>
           </div>
         </Card>
       </>

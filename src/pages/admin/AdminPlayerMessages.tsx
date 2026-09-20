@@ -17,7 +17,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { MessageSquare, Search, Send, RefreshCw, Inbox } from 'lucide-react';
+import { MessageSquare, Search, Send, RefreshCw, Inbox, Paperclip, X, Megaphone } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { MessageAttachment } from '@/components/messages/MessageAttachment';
+import { uploadMessageAttachment } from '@/lib/messageAttachments';
 
 interface MessageRow {
   id: string;
@@ -28,6 +38,10 @@ interface MessageRow {
   read_by_admin: boolean;
   read_by_player: boolean;
   created_at: string;
+  attachment_url: string | null;
+  attachment_name: string | null;
+  attachment_type: string | null;
+  broadcast_id: string | null;
 }
 
 interface PlayerLite {
@@ -73,7 +87,9 @@ function useMessages() {
     queryFn: async () => {
       const { data: messages, error } = await supabase
         .from('player_messages')
-        .select('id, player_id, sender_id, direction, body, read_by_admin, read_by_player, created_at')
+        .select(
+          'id, player_id, sender_id, direction, body, read_by_admin, read_by_player, created_at, attachment_url, attachment_name, attachment_type, broadcast_id',
+        )
         .order('created_at', { ascending: true })
         .limit(2000);
       if (error) throw error;
@@ -128,6 +144,13 @@ export default function AdminPlayerMessages() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [broadcastOpen, setBroadcastOpen] = useState(false);
+  const [broadcastBody, setBroadcastBody] = useState('');
+  const [broadcastFile, setBroadcastFile] = useState<File | null>(null);
+  const broadcastFileRef = useRef<HTMLInputElement | null>(null);
+  const [broadcasting, setBroadcasting] = useState(false);
   const [extraPlayers, setExtraPlayers] = useState<PlayerLite[]>([]);
   const threadEndRef = useRef<HTMLDivElement | null>(null);
   const directory = usePlayerDirectory(search);
@@ -220,13 +243,30 @@ export default function AdminPlayerMessages() {
 
   const handleSend = async () => {
     const body = draft.trim();
-    if (!body || !selectedId || !user?.id) return;
+    if ((!body && !file) || !selectedId || !user?.id) return;
     setSending(true);
+
+    let attachment: { path: string; name: string; type: string } | null = null;
+    if (file) {
+      try {
+        attachment = await uploadMessageAttachment(file, selectedId);
+      } catch (err) {
+        setSending(false);
+        toast.error("Couldn't attach that file", {
+          description: err instanceof Error ? err.message : 'Upload failed.',
+        });
+        return;
+      }
+    }
+
     const { error } = await supabase.from('player_messages').insert({
       player_id: selectedId,
       sender_id: user.id,
       direction: 'to_player',
-      body: body.slice(0, 4000),
+      body: (body || attachment?.name || 'Attachment').slice(0, 4000),
+      attachment_url: attachment?.path ?? null,
+      attachment_name: attachment?.name ?? null,
+      attachment_type: attachment?.type ?? null,
     });
     setSending(false);
     if (error) {
@@ -234,7 +274,46 @@ export default function AdminPlayerMessages() {
       return;
     }
     setDraft('');
+    setFile(null);
     toast.success('Message sent');
+    queryClient.invalidateQueries({ queryKey: ['admin-player-messages'] });
+  };
+
+  const handleBroadcast = async () => {
+    const body = broadcastBody.trim();
+    if (!body || !user?.id) return;
+    setBroadcasting(true);
+
+    let attachment: { path: string; name: string; type: string } | null = null;
+    if (broadcastFile) {
+      try {
+        attachment = await uploadMessageAttachment(broadcastFile, 'broadcast');
+      } catch (err) {
+        setBroadcasting(false);
+        toast.error("Couldn't attach that file", {
+          description: err instanceof Error ? err.message : 'Upload failed.',
+        });
+        return;
+      }
+    }
+
+    const { data, error } = await supabase.rpc('broadcast_player_message', {
+      _body: body.slice(0, 4000),
+      _attachment_url: attachment?.path ?? null,
+      _attachment_name: attachment?.name ?? null,
+      _attachment_type: attachment?.type ?? null,
+    });
+    setBroadcasting(false);
+
+    if (error) {
+      toast.error('Broadcast not sent', { description: error.message });
+      return;
+    }
+    const recipients = Array.isArray(data) ? (data[0]?.recipients ?? 0) : 0;
+    setBroadcastBody('');
+    setBroadcastFile(null);
+    setBroadcastOpen(false);
+    toast.success(`Broadcast sent to ${recipients} player${recipients === 1 ? '' : 's'}`);
     queryClient.invalidateQueries({ queryKey: ['admin-player-messages'] });
   };
 
@@ -256,10 +335,16 @@ export default function AdminPlayerMessages() {
               )}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => void refetch()} disabled={isRefetching}>
-            <RefreshCw className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => setBroadcastOpen(true)}>
+              <Megaphone className="mr-2 h-4 w-4" />
+              Broadcast
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => void refetch()} disabled={isRefetching}>
+              <RefreshCw className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr] items-start">
@@ -394,13 +479,20 @@ export default function AdminPlayerMessages() {
                         <div className="max-w-[80%]">
                           <div
                             className={cn(
-                              'whitespace-pre-wrap break-words rounded-2xl px-4 py-2 text-sm',
+                              'break-words rounded-2xl px-4 py-2 text-sm',
                               fromAdmin
                                 ? 'bg-primary text-primary-foreground'
                                 : 'admin-inset text-foreground',
                             )}
                           >
-                            {m.body}
+                            <span className="whitespace-pre-wrap">{m.body}</span>
+                            {m.attachment_url && (
+                              <MessageAttachment
+                                path={m.attachment_url}
+                                name={m.attachment_name}
+                                type={m.attachment_type}
+                              />
+                            )}
                           </div>
                           <p
                             className={cn(
@@ -410,6 +502,7 @@ export default function AdminPlayerMessages() {
                           >
                             {fmtClock(m.created_at)}
                             {fromAdmin && (m.read_by_player ? ' · read' : ' · sent')}
+                            {m.broadcast_id && ' · broadcast'}
                           </p>
                         </div>
                       </div>
@@ -433,14 +526,52 @@ export default function AdminPlayerMessages() {
                     maxLength={4000}
                     className="resize-none"
                   />
+                  {file && (
+                    <div className="mt-2 flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs">
+                      <Paperclip className="h-3.5 w-3.5 shrink-0" />
+                      <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        aria-label="Remove attachment"
+                        onClick={() => setFile(null)}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  )}
                   <div className="mt-2 flex items-center justify-between gap-3">
                     <span className="text-[11px] text-muted-foreground">
                       {draft.length}/4000 · ⌘/Ctrl + Enter to send
                     </span>
-                    <Button size="sm" onClick={() => void handleSend()} disabled={sending || !draft.trim()}>
-                      <Send className="mr-2 h-4 w-4" />
-                      Send
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => {
+                          setFile(e.target.files?.[0] ?? null);
+                          e.target.value = '';
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        aria-label="Attach a file"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Paperclip className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => void handleSend()}
+                        disabled={sending || (!draft.trim() && !file)}
+                      >
+                        <Send className="mr-2 h-4 w-4" />
+                        Send
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </>
@@ -448,6 +579,72 @@ export default function AdminPlayerMessages() {
           </div>
         </div>
       </div>
+
+      <Dialog open={broadcastOpen} onOpenChange={setBroadcastOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Broadcast to all players</DialogTitle>
+            <DialogDescription>
+              Everyone gets this message in their in-game inbox. Suspended accounts are skipped.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Textarea
+            value={broadcastBody}
+            onChange={(e) => setBroadcastBody(e.target.value)}
+            placeholder="Announcement, patch notes, event news…"
+            rows={5}
+            maxLength={4000}
+            className="resize-none"
+          />
+
+          {broadcastFile && (
+            <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs">
+              <Paperclip className="h-3.5 w-3.5 shrink-0" />
+              <span className="min-w-0 flex-1 truncate">{broadcastFile.name}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                aria-label="Remove attachment"
+                onClick={() => setBroadcastFile(null)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
+
+          <DialogFooter className="items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <input
+                ref={broadcastFileRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  setBroadcastFile(e.target.files?.[0] ?? null);
+                  e.target.value = '';
+                }}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => broadcastFileRef.current?.click()}
+              >
+                <Paperclip className="mr-2 h-4 w-4" />
+                Attach
+              </Button>
+              <span className="text-[11px] text-muted-foreground">{broadcastBody.length}/4000</span>
+            </div>
+            <Button
+              onClick={() => void handleBroadcast()}
+              disabled={broadcasting || !broadcastBody.trim()}
+            >
+              <Megaphone className="mr-2 h-4 w-4" />
+              {broadcasting ? 'Sending…' : 'Send to everyone'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
