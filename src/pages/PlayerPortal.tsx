@@ -20,14 +20,21 @@ import { createLogger } from '@/lib/logger';
 import {
   ArrowLeft,
   BarChart3,
+  Cat as CatIcon,
+  Heart,
   Loader2,
   LogIn,
   Mail,
   RefreshCw,
   Send,
   Star,
+  Trophy,
   User,
+  Utensils,
 } from 'lucide-react';
+import { GradeBadge } from '@/components/game/GradeBadge';
+import { CatAvatar } from '@/components/game/CatAvatar';
+import type { Cat } from '@/types/game';
 
 const logger = createLogger('PlayerPortal');
 const MAX_BODY = 4000;
