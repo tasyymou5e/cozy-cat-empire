@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/lib/router-compat';
 import { useAdminAuth, logAuthAttempt } from '@/hooks/admin';
 import { useAdminPrefetch } from '@/hooks/usePrefetch';
 import { Loader2, ShieldAlert } from 'lucide-react';

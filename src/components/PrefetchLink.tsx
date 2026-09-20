@@ -1,4 +1,4 @@
-import { Link, LinkProps } from 'react-router-dom';
+import { Link, LinkProps } from '@/lib/router-compat';
 import { forwardRef, useCallback, useRef } from 'react';
 import { prefetchRoute } from '@/lib/routePrefetch';
 

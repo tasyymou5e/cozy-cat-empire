@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from '@/lib/router-compat';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { ExternalPageSidebar } from '@/components/game/ExternalPageSidebar';
 import { MobileNavFAB } from '@/components/game/MobileNavFAB';

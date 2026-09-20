@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/lib/router-compat';
 import { Cat, HouseSize, GameState } from '@/types/game';
 import { EmpireInteraction } from '@/types/empire';
 import { ENHANCED_EMPIRE_ZONES, ROAMING_CAT_LIMITS } from '@/config/empire';

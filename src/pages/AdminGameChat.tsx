@@ -6,7 +6,7 @@
  *
  * Route: /admin-chat (admin role required)
  */
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { GameLayout } from '@/components/layouts/GameLayout';
 import { Breadcrumbs } from '@/components/game/Breadcrumbs';
 import { AdminPlayerInbox } from '@/pages/admin/AdminPlayerMessages';

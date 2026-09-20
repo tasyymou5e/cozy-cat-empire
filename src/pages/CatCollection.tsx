@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import type { TrickId } from '@/types/grading';
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { useGameState } from '@/hooks/game';
 import { useSound } from '@/contexts/SoundContext';
 import { useIsMobile } from '@/hooks/use-mobile';
