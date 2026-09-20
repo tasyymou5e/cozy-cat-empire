@@ -1,12 +1,16 @@
 // Service Worker for Push Notifications and Asset Caching
 // Version 2 - Updated caching strategy for code-split chunks
 
-const CACHE_VERSION = 'v3';
+// v4: bumped so returning visitors drop every cache created before the
+// framework upgrade (the old SPA shell) on activate.
+const CACHE_VERSION = 'v4';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `runtime-${CACHE_VERSION}`;
 
-// Assets to precache on install
-const PRECACHE_ASSETS = ['/', '/index.html', '/favicon.ico', '/og-image.png'];
+// Assets to precache on install. '/index.html' is no longer a real URL — the app
+// is server-rendered — and a missing entry makes cache.addAll reject, which would
+// abort install and take push notifications down with it.
+const PRECACHE_ASSETS = ['/favicon.ico', '/og-image.png'];
 
 // Regex to match hashed JS/CSS chunks (e.g., Index-CRUofOJP.js)
 const HASHED_ASSET_REGEX = /\/assets\/.*-[a-zA-Z0-9]{8}\.(js|css)$/;

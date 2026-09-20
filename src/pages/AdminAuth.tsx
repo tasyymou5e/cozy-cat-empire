@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/lib/router-compat';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminAuth, logAuthAttempt } from '@/hooks/admin';

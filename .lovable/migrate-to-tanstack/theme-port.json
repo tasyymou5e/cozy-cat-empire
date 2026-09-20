@@ -1,0 +1,14 @@
+{
+  "customizations": [
+    { "token": "semantic color tokens (:root + .dark HSL sets)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "@theme --color-* mappings for border/input/ring/background/foreground/primary/secondary/destructive/muted/accent/popover/card/sidebar", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" },
+    { "token": "--breakpoint-xs: 400px", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" },
+    { "token": "--radius-sm/md/lg", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" },
+    { "token": "--shadow-2xs/xs/sm/md/lg/xl/2xl (inlined literal values)", "source": "tailwind.config.ts + src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--font-sans/serif/mono (Lato, EB Garamond, Fira Code)", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" },
+    { "token": "--animate-* (54 custom animations incl. wiggle, heart-pop, grade-glow, rainbow-glow, kawaii-breathe)", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" },
+    { "token": "@keyframes (40 config keyframes emitted + 14 already defined in index.css preserved)", "source": "tailwind.config.ts + src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "container utility (center, 2rem padding, 1400px 2xl max-width)", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" },
+    { "token": "glassmorphism/cozy utilities, game layout components, admin console, noise overlay, auth split layout (@layer base/components/utilities blocks)", "source": "src/index.css", "reappliedIn": "src/styles.css" }
+  ]
+}

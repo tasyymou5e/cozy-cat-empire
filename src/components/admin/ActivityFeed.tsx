@@ -321,7 +321,7 @@ export function ActivityFeed() {
                     className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-muted/30 
                                cursor-pointer hover:bg-muted/50 transition-colors
                                animate-in slide-in-from-top-2 duration-300
-                               focus:outline-none focus:ring-2 focus:ring-primary/50"
+                               focus:outline-hidden focus:ring-2 focus:ring-primary/50"
                   >
                     <div
                       className={`p-1.5 sm:p-2 rounded-full shrink-0 ${getActivityColor(activity.activity_type)}`}

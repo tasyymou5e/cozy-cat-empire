@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from '@/lib/router-compat';
 import { Cat as CatIcon, Image as ImageIcon } from 'lucide-react';
 import { GameLayout } from '@/components/layouts/GameLayout';
 import { Breadcrumbs } from '@/components/game/Breadcrumbs';

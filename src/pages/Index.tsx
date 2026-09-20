@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/lib/router-compat';
 import { useAuth } from '@/contexts/AuthContext';
 import { CatFarm } from '@/components/game/CatFarm';
 import { ProfileSetupDialog } from '@/components/game/ProfileSetupDialog';

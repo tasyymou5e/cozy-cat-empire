@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlayerStats } from '@/hooks/usePlayerStats';
 import { useLeaderboardRewards } from '@/hooks/useLeaderboardRewards';

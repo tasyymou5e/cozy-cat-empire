@@ -277,7 +277,7 @@ export function BreedingPanel({
                                 <button
                                   type="button"
                                   onClick={() => toggleScoreTip('Breed rarity & synergy')}
-                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-none focus:ring-1 focus:ring-ring"
+                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-hidden focus:ring-1 focus:ring-ring"
                                 >
                                   <div className="font-medium">{match.scores.genetics}%</div>
                                   <div className="text-muted-foreground">Genes</div>
@@ -292,7 +292,7 @@ export function BreedingPanel({
                                 <button
                                   type="button"
                                   onClick={() => toggleScoreTip('Parent grade quality')}
-                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-none focus:ring-1 focus:ring-ring"
+                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-hidden focus:ring-1 focus:ring-ring"
                                 >
                                   <div className="font-medium">{match.scores.grades}%</div>
                                   <div className="text-muted-foreground">Grade</div>
@@ -307,7 +307,7 @@ export function BreedingPanel({
                                 <button
                                   type="button"
                                   onClick={() => toggleScoreTip('Relationship level bonus')}
-                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-none focus:ring-1 focus:ring-ring"
+                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-hidden focus:ring-1 focus:ring-ring"
                                 >
                                   <div className="font-medium">{match.scores.relationship}%</div>
                                   <div className="text-muted-foreground">Bond</div>
@@ -322,7 +322,7 @@ export function BreedingPanel({
                                 <button
                                   type="button"
                                   onClick={() => toggleScoreTip('Personality compatibility')}
-                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-none focus:ring-1 focus:ring-ring"
+                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-hidden focus:ring-1 focus:ring-ring"
                                 >
                                   <div className="font-medium">{match.scores.personality}%</div>
                                   <div className="text-muted-foreground">Pers.</div>
@@ -337,7 +337,7 @@ export function BreedingPanel({
                                 <button
                                   type="button"
                                   onClick={() => toggleScoreTip('Current health & condition')}
-                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-none focus:ring-1 focus:ring-ring"
+                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-hidden focus:ring-1 focus:ring-ring"
                                 >
                                   <div className="font-medium">{match.scores.health}%</div>
                                   <div className="text-muted-foreground">Health</div>
