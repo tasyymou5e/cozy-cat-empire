@@ -335,10 +335,16 @@ export default function AdminPlayerMessages() {
               )}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => void refetch()} disabled={isRefetching}>
-            <RefreshCw className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => setBroadcastOpen(true)}>
+              <Megaphone className="mr-2 h-4 w-4" />
+              Broadcast
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => void refetch()} disabled={isRefetching}>
+              <RefreshCw className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr] items-start">
