@@ -175,6 +175,12 @@ export default function AdminAuth() {
             </div>
           )}
 
+          {notice && (
+            <div className="mb-4 p-3 rounded-lg bg-amber-900/50 border border-amber-600">
+              <p className="text-amber-200 text-sm">{notice}</p>
+            </div>
+          )}
+
           {error && !accessDenied && (
             <div className="mb-4 p-3 rounded-lg bg-red-900/50 border border-red-700">
               <p className="text-red-200 text-sm">{error}</p>
@@ -217,9 +223,31 @@ export default function AdminAuth() {
               disabled={isSubmitting}
               className="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 text-primary-foreground dark:text-foreground font-semibold"
             >
-              {isSubmitting ? 'Authenticating...' : 'Access Portal'}
+              {isSubmitting
+                ? mode === 'signup'
+                  ? 'Creating account...'
+                  : 'Authenticating...'
+                : mode === 'signup'
+                  ? 'Create Admin Account'
+                  : 'Access Portal'}
             </Button>
           </form>
+
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === 'signin' ? 'signup' : 'signin');
+                setError('');
+                setNotice('');
+              }}
+              className="text-amber-300/80 hover:text-amber-200 text-sm underline"
+            >
+              {mode === 'signin'
+                ? "Don't have an account? Create one"
+                : 'Already have an account? Sign in'}
+            </button>
+          </div>
 
           <p className="mt-6 text-center text-amber-500/60 text-xs">
             🔒 This portal is for authorized personnel only
