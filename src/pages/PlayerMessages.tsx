@@ -52,6 +52,8 @@ export default function PlayerMessages() {
   const [isLoading, setIsLoading] = useState(true);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const unreadCount = useMemo(
