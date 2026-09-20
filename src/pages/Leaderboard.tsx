@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { Volume2, VolumeX, Sun, Moon, Settings2 } from 'lucide-react';
+import { Volume2, VolumeX, Sun, Moon, Settings2, Trophy } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { GameLayout } from '@/components/layouts/GameLayout';
@@ -15,6 +16,7 @@ export default function Leaderboard() {
   const { setVolume } = useSound();
 
   const [soundOn, setSoundOn] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setVolume(soundOn ? 0.5 : 0);
