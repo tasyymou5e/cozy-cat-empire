@@ -30,6 +30,8 @@ import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow, format } from 'date-fns';
 import { recordFailedAdminAlert } from '@/lib/adminAlertAudit';
 import { winstonLogger } from '@/lib/winston-logger';
+import { triggerScheduledJob, sendAdminAlertNow } from '@/lib/jobs/triggerJob.functions';
+
 import {
   AreaChart,
   Area,
@@ -267,16 +269,11 @@ export default function AdminScheduledJobs() {
       const functionName = JOB_FUNCTION_MAP[jobName];
       if (!functionName) throw new Error('Unknown job');
 
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const { error } = await supabase.functions.invoke(functionName, {
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
+      await triggerScheduledJob({
+        data: { job: functionName as Parameters<typeof triggerScheduledJob>[0]['data']['job'] },
       });
-
-      if (error) throw error;
     },
+
     onSuccess: (_, jobName) => {
       toast({
         title: 'Job Triggered',
@@ -307,8 +304,8 @@ export default function AdminScheduledJobs() {
       is_test: true,
     };
     try {
-      const { error } = await supabase.functions.invoke('send-admin-alert', { body });
-      if (error) throw error;
+      await sendAdminAlertNow({ data: body });
+
       toast({
         title: 'Test Alert Sent',
         description: 'Check your email for the test notification.',

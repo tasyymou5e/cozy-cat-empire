@@ -50,6 +50,11 @@ import { Route as CustomizeIndexRouteImport } from './routes/customize/index'
 import { Route as CustomizeCatIdRouteImport } from './routes/customize/$catId'
 import { Route as PhotoboothIndexRouteImport } from './routes/photobooth/index'
 import { Route as PhotoboothCatIdRouteImport } from './routes/photobooth/$catId'
+import { Route as ApiPublicJobsCleanupErrorLogsRouteImport } from './routes/api/public/jobs/cleanup-error-logs'
+import { Route as ApiPublicJobsGenerateWeeklyChallengesRouteImport } from './routes/api/public/jobs/generate-weekly-challenges'
+import { Route as ApiPublicJobsProcessLeaderboardRewardsRouteImport } from './routes/api/public/jobs/process-leaderboard-rewards'
+import { Route as ApiPublicJobsSendAdminAlertRouteImport } from './routes/api/public/jobs/send-admin-alert'
+import { Route as ApiPublicJobsSyncHealthCheckRouteImport } from './routes/api/public/jobs/sync-health-check'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -256,6 +261,36 @@ const PhotoboothCatIdRoute = PhotoboothCatIdRouteImport.update({
   path: '/photobooth/$catId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicJobsCleanupErrorLogsRoute =
+  ApiPublicJobsCleanupErrorLogsRouteImport.update({
+    id: '/api/public/jobs/cleanup-error-logs',
+    path: '/api/public/jobs/cleanup-error-logs',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicJobsGenerateWeeklyChallengesRoute =
+  ApiPublicJobsGenerateWeeklyChallengesRouteImport.update({
+    id: '/api/public/jobs/generate-weekly-challenges',
+    path: '/api/public/jobs/generate-weekly-challenges',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicJobsProcessLeaderboardRewardsRoute =
+  ApiPublicJobsProcessLeaderboardRewardsRouteImport.update({
+    id: '/api/public/jobs/process-leaderboard-rewards',
+    path: '/api/public/jobs/process-leaderboard-rewards',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicJobsSendAdminAlertRoute =
+  ApiPublicJobsSendAdminAlertRouteImport.update({
+    id: '/api/public/jobs/send-admin-alert',
+    path: '/api/public/jobs/send-admin-alert',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicJobsSyncHealthCheckRoute =
+  ApiPublicJobsSyncHealthCheckRouteImport.update({
+    id: '/api/public/jobs/sync-health-check',
+    path: '/api/public/jobs/sync-health-check',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -299,6 +334,11 @@ export interface FileRoutesByFullPath {
   '/catking/': typeof CatkingIndexRoute
   '/customize/': typeof CustomizeIndexRoute
   '/photobooth/': typeof PhotoboothIndexRoute
+  '/api/public/jobs/cleanup-error-logs': typeof ApiPublicJobsCleanupErrorLogsRoute
+  '/api/public/jobs/generate-weekly-challenges': typeof ApiPublicJobsGenerateWeeklyChallengesRoute
+  '/api/public/jobs/process-leaderboard-rewards': typeof ApiPublicJobsProcessLeaderboardRewardsRoute
+  '/api/public/jobs/send-admin-alert': typeof ApiPublicJobsSendAdminAlertRoute
+  '/api/public/jobs/sync-health-check': typeof ApiPublicJobsSyncHealthCheckRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -342,6 +382,11 @@ export interface FileRoutesByTo {
   '/catking': typeof CatkingIndexRoute
   '/customize': typeof CustomizeIndexRoute
   '/photobooth': typeof PhotoboothIndexRoute
+  '/api/public/jobs/cleanup-error-logs': typeof ApiPublicJobsCleanupErrorLogsRoute
+  '/api/public/jobs/generate-weekly-challenges': typeof ApiPublicJobsGenerateWeeklyChallengesRoute
+  '/api/public/jobs/process-leaderboard-rewards': typeof ApiPublicJobsProcessLeaderboardRewardsRoute
+  '/api/public/jobs/send-admin-alert': typeof ApiPublicJobsSendAdminAlertRoute
+  '/api/public/jobs/sync-health-check': typeof ApiPublicJobsSyncHealthCheckRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -386,6 +431,11 @@ export interface FileRoutesById {
   '/catking/': typeof CatkingIndexRoute
   '/customize/': typeof CustomizeIndexRoute
   '/photobooth/': typeof PhotoboothIndexRoute
+  '/api/public/jobs/cleanup-error-logs': typeof ApiPublicJobsCleanupErrorLogsRoute
+  '/api/public/jobs/generate-weekly-challenges': typeof ApiPublicJobsGenerateWeeklyChallengesRoute
+  '/api/public/jobs/process-leaderboard-rewards': typeof ApiPublicJobsProcessLeaderboardRewardsRoute
+  '/api/public/jobs/send-admin-alert': typeof ApiPublicJobsSendAdminAlertRoute
+  '/api/public/jobs/sync-health-check': typeof ApiPublicJobsSyncHealthCheckRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -431,6 +481,11 @@ export interface FileRouteTypes {
     | '/catking/'
     | '/customize/'
     | '/photobooth/'
+    | '/api/public/jobs/cleanup-error-logs'
+    | '/api/public/jobs/generate-weekly-challenges'
+    | '/api/public/jobs/process-leaderboard-rewards'
+    | '/api/public/jobs/send-admin-alert'
+    | '/api/public/jobs/sync-health-check'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -474,6 +529,11 @@ export interface FileRouteTypes {
     | '/catking'
     | '/customize'
     | '/photobooth'
+    | '/api/public/jobs/cleanup-error-logs'
+    | '/api/public/jobs/generate-weekly-challenges'
+    | '/api/public/jobs/process-leaderboard-rewards'
+    | '/api/public/jobs/send-admin-alert'
+    | '/api/public/jobs/sync-health-check'
   id:
     | '__root__'
     | '/'
@@ -517,6 +577,11 @@ export interface FileRouteTypes {
     | '/catking/'
     | '/customize/'
     | '/photobooth/'
+    | '/api/public/jobs/cleanup-error-logs'
+    | '/api/public/jobs/generate-weekly-challenges'
+    | '/api/public/jobs/process-leaderboard-rewards'
+    | '/api/public/jobs/send-admin-alert'
+    | '/api/public/jobs/sync-health-check'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -561,6 +626,11 @@ export interface RootRouteChildren {
   CatkingIndexRoute: typeof CatkingIndexRoute
   CustomizeIndexRoute: typeof CustomizeIndexRoute
   PhotoboothIndexRoute: typeof PhotoboothIndexRoute
+  ApiPublicJobsCleanupErrorLogsRoute: typeof ApiPublicJobsCleanupErrorLogsRoute
+  ApiPublicJobsGenerateWeeklyChallengesRoute: typeof ApiPublicJobsGenerateWeeklyChallengesRoute
+  ApiPublicJobsProcessLeaderboardRewardsRoute: typeof ApiPublicJobsProcessLeaderboardRewardsRoute
+  ApiPublicJobsSendAdminAlertRoute: typeof ApiPublicJobsSendAdminAlertRoute
+  ApiPublicJobsSyncHealthCheckRoute: typeof ApiPublicJobsSyncHealthCheckRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -852,6 +922,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PhotoboothCatIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/jobs/cleanup-error-logs': {
+      id: '/api/public/jobs/cleanup-error-logs'
+      path: '/api/public/jobs/cleanup-error-logs'
+      fullPath: '/api/public/jobs/cleanup-error-logs'
+      preLoaderRoute: typeof ApiPublicJobsCleanupErrorLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/jobs/generate-weekly-challenges': {
+      id: '/api/public/jobs/generate-weekly-challenges'
+      path: '/api/public/jobs/generate-weekly-challenges'
+      fullPath: '/api/public/jobs/generate-weekly-challenges'
+      preLoaderRoute: typeof ApiPublicJobsGenerateWeeklyChallengesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/jobs/process-leaderboard-rewards': {
+      id: '/api/public/jobs/process-leaderboard-rewards'
+      path: '/api/public/jobs/process-leaderboard-rewards'
+      fullPath: '/api/public/jobs/process-leaderboard-rewards'
+      preLoaderRoute: typeof ApiPublicJobsProcessLeaderboardRewardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/jobs/send-admin-alert': {
+      id: '/api/public/jobs/send-admin-alert'
+      path: '/api/public/jobs/send-admin-alert'
+      fullPath: '/api/public/jobs/send-admin-alert'
+      preLoaderRoute: typeof ApiPublicJobsSendAdminAlertRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/jobs/sync-health-check': {
+      id: '/api/public/jobs/sync-health-check'
+      path: '/api/public/jobs/sync-health-check'
+      fullPath: '/api/public/jobs/sync-health-check'
+      preLoaderRoute: typeof ApiPublicJobsSyncHealthCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -897,6 +1002,13 @@ const rootRouteChildren: RootRouteChildren = {
   CatkingIndexRoute: CatkingIndexRoute,
   CustomizeIndexRoute: CustomizeIndexRoute,
   PhotoboothIndexRoute: PhotoboothIndexRoute,
+  ApiPublicJobsCleanupErrorLogsRoute: ApiPublicJobsCleanupErrorLogsRoute,
+  ApiPublicJobsGenerateWeeklyChallengesRoute:
+    ApiPublicJobsGenerateWeeklyChallengesRoute,
+  ApiPublicJobsProcessLeaderboardRewardsRoute:
+    ApiPublicJobsProcessLeaderboardRewardsRoute,
+  ApiPublicJobsSendAdminAlertRoute: ApiPublicJobsSendAdminAlertRoute,
+  ApiPublicJobsSyncHealthCheckRoute: ApiPublicJobsSyncHealthCheckRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
