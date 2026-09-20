@@ -9,7 +9,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Send, Loader2, MessageSquare, Mail } from 'lucide-react';
+import { Send, Loader2, MessageSquare, Mail, Paperclip, X } from 'lucide-react';
+import { MessageAttachment } from '@/components/messages/MessageAttachment';
+import { uploadMessageAttachment } from '@/lib/messageAttachments';
 import { createLogger } from '@/lib/logger';
 
 const logger = createLogger('PlayerMessages');
