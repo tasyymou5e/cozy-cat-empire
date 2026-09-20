@@ -243,13 +243,30 @@ export default function AdminPlayerMessages() {
 
   const handleSend = async () => {
     const body = draft.trim();
-    if (!body || !selectedId || !user?.id) return;
+    if ((!body && !file) || !selectedId || !user?.id) return;
     setSending(true);
+
+    let attachment: { path: string; name: string; type: string } | null = null;
+    if (file) {
+      try {
+        attachment = await uploadMessageAttachment(file, selectedId);
+      } catch (err) {
+        setSending(false);
+        toast.error("Couldn't attach that file", {
+          description: err instanceof Error ? err.message : 'Upload failed.',
+        });
+        return;
+      }
+    }
+
     const { error } = await supabase.from('player_messages').insert({
       player_id: selectedId,
       sender_id: user.id,
       direction: 'to_player',
-      body: body.slice(0, 4000),
+      body: (body || attachment?.name || 'Attachment').slice(0, 4000),
+      attachment_url: attachment?.path ?? null,
+      attachment_name: attachment?.name ?? null,
+      attachment_type: attachment?.type ?? null,
     });
     setSending(false);
     if (error) {
@@ -257,7 +274,46 @@ export default function AdminPlayerMessages() {
       return;
     }
     setDraft('');
+    setFile(null);
     toast.success('Message sent');
+    queryClient.invalidateQueries({ queryKey: ['admin-player-messages'] });
+  };
+
+  const handleBroadcast = async () => {
+    const body = broadcastBody.trim();
+    if (!body || !user?.id) return;
+    setBroadcasting(true);
+
+    let attachment: { path: string; name: string; type: string } | null = null;
+    if (broadcastFile) {
+      try {
+        attachment = await uploadMessageAttachment(broadcastFile, 'broadcast');
+      } catch (err) {
+        setBroadcasting(false);
+        toast.error("Couldn't attach that file", {
+          description: err instanceof Error ? err.message : 'Upload failed.',
+        });
+        return;
+      }
+    }
+
+    const { data, error } = await supabase.rpc('broadcast_player_message', {
+      _body: body.slice(0, 4000),
+      _attachment_url: attachment?.path ?? null,
+      _attachment_name: attachment?.name ?? null,
+      _attachment_type: attachment?.type ?? null,
+    });
+    setBroadcasting(false);
+
+    if (error) {
+      toast.error('Broadcast not sent', { description: error.message });
+      return;
+    }
+    const recipients = Array.isArray(data) ? (data[0]?.recipients ?? 0) : 0;
+    setBroadcastBody('');
+    setBroadcastFile(null);
+    setBroadcastOpen(false);
+    toast.success(`Broadcast sent to ${recipients} player${recipients === 1 ? '' : 's'}`);
     queryClient.invalidateQueries({ queryKey: ['admin-player-messages'] });
   };
 
