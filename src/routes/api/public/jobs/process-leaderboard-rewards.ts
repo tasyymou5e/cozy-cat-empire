@@ -7,7 +7,7 @@ export const Route = createFileRoute('/api/public/jobs/process-leaderboard-rewar
     handlers: {
       OPTIONS: async ({ request }) => preflightResponse(request),
       POST: async ({ request }) => {
-        const unauthorized = verifyJobSecret(request);
+        const unauthorized = await verifyJobSecret(request);
         if (unauthorized) return unauthorized;
 
         try {
