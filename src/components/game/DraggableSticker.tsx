@@ -44,8 +44,12 @@ export const DraggableSticker: React.FC<DraggableStickerProps> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  // Selected state gives touch users (no hover) a way to reveal the delete button:
+  // tapping a sticker without dragging toggles selection.
+  const [isSelected, setIsSelected] = useState(false);
   const stickerRef = useRef<HTMLDivElement>(null);
   const startPosRef = useRef({ x: 0, y: 0 });
+  const movedRef = useRef(false);
 
   const stickerData = PHOTO_STICKERS.find((s) => s.id === sticker.stickerId);
   if (!stickerData) return null;

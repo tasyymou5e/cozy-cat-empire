@@ -73,6 +73,11 @@ export function BreedingPanel({
   const [parent1, setParent1] = useState<string>('');
   const [parent2, setParent2] = useState<string>('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  // Touch fallback for score tooltips: tap a score cell to pin its explanation.
+  const { isCoarse } = usePointerCapability();
+  const [activeScoreTip, setActiveScoreTip] = useState<string | null>(null);
+  const toggleScoreTip = (tip: string) =>
+    setActiveScoreTip((current) => (current === tip ? null : tip));
 
   const eligibleCats = cats.filter((c) => c.health >= 60 && c.age >= 1);
 
