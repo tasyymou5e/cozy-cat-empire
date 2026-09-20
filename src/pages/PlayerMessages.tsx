@@ -286,22 +286,58 @@ export default function PlayerMessages() {
             maxLength={MAX_BODY}
             className="min-h-[90px] resize-none text-base"
           />
+          {file && (
+            <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs">
+              <Paperclip className="h-3.5 w-3.5 shrink-0" />
+              <span className="min-w-0 flex-1 truncate">{file.name}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 touch-target"
+                aria-label="Remove attachment"
+                onClick={() => setFile(null)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs text-muted-foreground">
               {draft.length}/{MAX_BODY} • ⌘/Ctrl + Enter to send
             </span>
-            <Button
-              onClick={() => void handleSend()}
-              disabled={!draft.trim() || sending}
-              className="min-h-[44px] gap-2"
-            >
-              {sending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-              Send
-            </Button>
+            <div className="flex items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const picked = e.target.files?.[0] ?? null;
+                  setFile(picked);
+                  e.target.value = '';
+                }}
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="min-h-[44px] min-w-[44px] touch-target"
+                aria-label="Attach a file"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => void handleSend()}
+                disabled={(!draft.trim() && !file) || sending}
+                className="min-h-[44px] gap-2"
+              >
+                {sending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                Send
+              </Button>
+            </div>
           </div>
         </Card>
       </>
