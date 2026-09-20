@@ -1865,6 +1865,20 @@ html.app-no-glow .animate-firefly-glow {
   a:not(.compact-link) {
     min-height: 44px;
   }
+
+  /* Icon-only controls also need width, not just height */
+  button:not(.compact-btn),
+  [role="button"]:not(.compact-btn),
+  [role="tab"]:not(.compact-btn) {
+    min-width: 44px;
+  }
+
+  /* Navigation rows (admin sidebar, drawers) need a full-height hit area */
+  nav a:not(.compact-link),
+  aside a:not(.compact-link),
+  [data-sidebar-nav] a:not(.compact-link) {
+    min-height: 44px;
+  }
 }
 
 /* ============================================================================
