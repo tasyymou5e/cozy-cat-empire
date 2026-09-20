@@ -48,7 +48,7 @@ export function useCoopChallenges(
             .map((c) => {
               const isInitiator = c.initiator_id === userId;
               const partnerId = isInitiator ? c.partner_id : c.initiator_id;
-              const friend = friends.find((f) => f.friend_id === partnerId);
+              const friend = friendsRef.current.find((f) => f.friend_id === partnerId);
               return {
                 id: c.id, challenge: c.challenge_data as unknown as CoopChallenge,
                 partnerId, partnerName: friend?.display_name || 'Friend',
@@ -72,7 +72,7 @@ export function useCoopChallenges(
         } else if (pendingData) {
           const now = new Date();
           setPendingInvites(pendingData.filter((i) => new Date(i.expires_at) > now).map((i) => {
-            const sender = friends.find((f) => f.friend_id === i.sender_id);
+            const sender = friendsRef.current.find((f) => f.friend_id === i.sender_id);
             return {
               id: i.id, challenge: i.challenge_data as unknown as CoopChallenge,
               senderId: i.sender_id, senderName: sender?.display_name || 'Friend',
@@ -116,14 +116,14 @@ export function useCoopChallenges(
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'coop_challenge_invites', filter: `recipient_id=eq.${userId}` },
         (payload) => {
           const newInvite = payload.new as Record<string, unknown>;
-          const sender = friends.find((f) => f.friend_id === newInvite.sender_id);
+          const sender = friendsRef.current.find((f) => f.friend_id === newInvite.sender_id);
           setPendingInvites((prev) => [...prev, {
             id: String(newInvite.id), challenge: newInvite.challenge_data as CoopChallengeInvite['challenge'],
             senderId: String(newInvite.sender_id), senderName: sender?.display_name || 'Friend',
             senderAvatar: sender?.avatar_emoji || '😺', sentAt: String(newInvite.sent_at),
             expiresAt: String(newInvite.expires_at),
           }]);
-          playSound?.('notification');
+          playSoundRef.current?.('notification');
           toast({ title: '🤝 New Challenge Invite!', description: `${sender?.display_name || 'A friend'} invited you to a coop challenge!` });
         })
       .subscribe();
@@ -132,7 +132,7 @@ export function useCoopChallenges(
       supabase.removeChannel(challengeChannel);
       supabase.removeChannel(inviteChannel);
     };
-  }, [userId, friends, playSound]);
+  }, [userId]);
 
   const sendInvite = useCallback(async (friendId: string, challengeId: string): Promise<boolean> => {
     if (!userId) return false;
