@@ -38,6 +38,10 @@ interface MessageRow {
   read_by_admin: boolean;
   read_by_player: boolean;
   created_at: string;
+  attachment_url: string | null;
+  attachment_name: string | null;
+  attachment_type: string | null;
+  broadcast_id: string | null;
 }
 
 interface PlayerLite {
