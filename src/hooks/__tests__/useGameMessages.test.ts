@@ -41,10 +41,8 @@ describe('useGameMessages', () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useGameMessages());
 
-    act(() => {
-      result.current.showMessage('Comforted cats!', 'success');
-      result.current.showMessage('Trained cats!', 'success');
-    });
+    act(() => result.current.showMessage('Comforted cats!', 'success'));
+    act(() => result.current.showMessage('Trained cats!', 'success'));
 
     act(() => vi.advanceTimersByTime(5000));
     expect(result.current.currentMessage?.text).toBe('Trained cats!');
