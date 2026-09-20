@@ -13,12 +13,17 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    // paper (vector cat avatars) is browser-only and drags jsdom into the server
+    // bundle, where it cannot build. It is only ever reached from client-side
+    // dynamic imports, so stub it out in every server-side environment.
     environments: {
       ssr: {
         resolve: {
-          // paper (vector cat avatars) is browser-only and drags jsdom into the
-          // server bundle, where it cannot build. It is only ever reached from
-          // client-side dynamic imports, so stub it out for the server only.
+          alias: [{ find: /^paper$/, replacement: "/src/lib/paper-server-stub.ts" }],
+        },
+      },
+      nitro: {
+        resolve: {
           alias: [{ find: /^paper$/, replacement: "/src/lib/paper-server-stub.ts" }],
         },
       },
