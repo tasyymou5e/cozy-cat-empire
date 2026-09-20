@@ -83,6 +83,7 @@ const App = () => {
                     <Sonner />
                     <BrowserRouter>
                       <TrackingScripts />
+                      <GraphicsMotionGate />
                       <Suspense fallback={<PageLoader />}>
                         <Routes>
                           <Route path="/" element={<Index />} />
