@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dialog';
 import { MessageAttachment } from '@/components/messages/MessageAttachment';
 import { uploadMessageAttachment } from '@/lib/messageAttachments';
+import { CannedRepliesPicker } from '@/components/admin/CannedRepliesPicker';
 import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 interface MessageRow {
