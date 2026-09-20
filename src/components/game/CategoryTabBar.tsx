@@ -290,7 +290,7 @@ export function CategoryTabBar({
       </TooltipProvider>
 
       {/* Sub-tabs for current category */}
-      <TabsList className="flex justify-center gap-1 p-1 bg-muted/50 rounded-lg overflow-x-auto scrollbar-hide h-auto w-auto">
+      <TabsList className="flex justify-start sm:justify-center gap-1.5 p-1 bg-muted/50 rounded-lg overflow-x-auto scrollbar-hide h-auto w-full sm:w-auto max-w-full">
         {currentCategory.tabs.map((tab) => {
           const isHighlighted = tab.id === highlightedTab;
           const badgeCount = badges[tab.id] || 0;
