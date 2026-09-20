@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const log = createLogger('Friends');
 
@@ -146,8 +147,7 @@ export function useFriends(userId: string | undefined) {
 
     const subscribedUserId = userId;
 
-    const channel = supabase
-      .channel(`friends-${userId}`)
+    const channel = createRealtimeChannel(`friends-${userId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'player_friends', filter: `friend_id=eq.${userId}` },

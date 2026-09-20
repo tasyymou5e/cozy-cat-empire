@@ -7,6 +7,7 @@ import {
 import { Friend } from '@/hooks/useFriends';
 import { toast } from '@/hooks/use-toast';
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const log = createLogger('CoopChallenges');
 
@@ -105,14 +106,12 @@ export function useCoopChallenges(
 
     loadFromCloud();
 
-    const challengeChannel = supabase
-      .channel('coop-challenges')
+    const challengeChannel = createRealtimeChannel('coop-challenges')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'coop_challenges', filter: `initiator_id=eq.${userId}` }, () => loadFromCloud())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'coop_challenges', filter: `partner_id=eq.${userId}` }, () => loadFromCloud())
       .subscribe();
 
-    const inviteChannel = supabase
-      .channel('coop-invites')
+    const inviteChannel = createRealtimeChannel('coop-invites')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'coop_challenge_invites', filter: `recipient_id=eq.${userId}` },
         (payload) => {
           const newInvite = payload.new as Record<string, unknown>;

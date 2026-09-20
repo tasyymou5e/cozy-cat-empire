@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const logger = createLogger('ActivityFeed');
 
@@ -184,8 +185,7 @@ export function ActivityFeed() {
   useEffect(() => {
     let isMounted = true;
 
-    const channel = supabase
-      .channel('activity-feed-realtime')
+    const channel = createRealtimeChannel('activity-feed-realtime')
       .on(
         'postgres_changes',
         {

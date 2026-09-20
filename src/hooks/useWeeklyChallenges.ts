@@ -30,6 +30,7 @@ import type {
 import type { SoundType } from '@/contexts/SoundContext';
 
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const logger = createLogger('useWeeklyChallenges');
 
@@ -204,8 +205,7 @@ export function useWeeklyChallenges(
   useEffect(() => {
     if (!userId) return;
 
-    const channel = supabase
-      .channel('challenge-progress')
+    const channel = createRealtimeChannel('challenge-progress')
       .on(
         'postgres_changes',
         {

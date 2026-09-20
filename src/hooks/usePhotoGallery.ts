@@ -4,6 +4,7 @@ import { useCloudGallery } from './useCloudGallery';
 import { supabase } from '@/integrations/supabase/client';
 
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const logger = createLogger('usePhotoGallery');
 
@@ -180,8 +181,7 @@ export function usePhotoGallery(userId?: string | null) {
   useEffect(() => {
     if (!userId) return;
 
-    const channel = supabase
-      .channel(`gallery-${userId}`)
+    const channel = createRealtimeChannel(`gallery-${userId}`)
       .on(
         'postgres_changes',
         {

@@ -6,6 +6,7 @@ import { isValidGameState, isCatRelationship, isRelationshipEvent } from '@/type
 import { migrateSaveData, needsMigration, getSaveVersionInfo } from '@/lib/saveMigration';
 import { Json } from '@/integrations/supabase/types';
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const log = createLogger('CloudSync');
 
@@ -59,8 +60,7 @@ export function useCloudSave(userId: string | undefined, onExternalUpdate?: () =
   useEffect(() => {
     if (!userId) return;
 
-    const channel = supabase
-      .channel(`game_saves:${userId}`)
+    const channel = createRealtimeChannel(`game_saves:${userId}`)
       .on(
         'postgres_changes',
         {

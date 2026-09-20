@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { createLogger } from '@/lib/logger';
 import { handleAsyncError } from '@/lib/errorHandling';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const log = createLogger('Notifications');
 
@@ -134,8 +135,7 @@ export function useNotifications(userId: string | undefined) {
     // Phase 2: Capture userId at subscription time
     const subscribedUserId = userId;
 
-    const friendChannel = supabase
-      .channel('friend-notifications')
+    const friendChannel = createRealtimeChannel('friend-notifications')
       .on(
         'postgres_changes',
         {
@@ -156,8 +156,7 @@ export function useNotifications(userId: string | undefined) {
       )
       .subscribe();
 
-    const giftChannel = supabase
-      .channel('gift-notifications')
+    const giftChannel = createRealtimeChannel('gift-notifications')
       .on(
         'postgres_changes',
         {
@@ -178,8 +177,7 @@ export function useNotifications(userId: string | undefined) {
       )
       .subscribe();
 
-    const tradeChannel = supabase
-      .channel('trade-notifications')
+    const tradeChannel = createRealtimeChannel('trade-notifications')
       .on(
         'postgres_changes',
         {

@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dialog';
 import { MessageAttachment } from '@/components/messages/MessageAttachment';
 import { uploadMessageAttachment } from '@/lib/messageAttachments';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 interface MessageRow {
   id: string;
@@ -230,8 +231,7 @@ export function AdminPlayerInbox() {
 
   // Live updates while the inbox is open.
   useEffect(() => {
-    const channel = supabase
-      .channel('admin-player-messages')
+    const channel = createRealtimeChannel('admin-player-messages')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_messages' }, () => {
         queryClient.invalidateQueries({ queryKey: ['admin-player-messages'] });
       })

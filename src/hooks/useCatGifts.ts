@@ -14,6 +14,7 @@ import { toast } from '@/hooks/use-toast';
 import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const logger = createLogger('useCatGifts');
 
@@ -228,8 +229,7 @@ export function useCatGifts(userId: string | undefined) {
     // Phase 2: Capture userId at subscription time
     const subscribedUserId = userId;
 
-    const channel = supabase
-      .channel('cat-gifts-changes')
+    const channel = createRealtimeChannel('cat-gifts-changes')
       .on(
         'postgres_changes',
         {

@@ -37,6 +37,7 @@ import {
 import { GradeBadge } from '@/components/game/GradeBadge';
 import { CatAvatar } from '@/components/game/CatAvatar';
 import type { Cat } from '@/types/game';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const logger = createLogger('PlayerPortal');
 const MAX_BODY = 4000;
@@ -192,8 +193,7 @@ export default function PlayerPortal() {
   // Live updates for new admin messages
   useEffect(() => {
     if (!user) return;
-    const channel = supabase
-      .channel(`portal-messages-${user.id}`)
+    const channel = createRealtimeChannel(`portal-messages-${user.id}`)
       .on(
         'postgres_changes',
         {

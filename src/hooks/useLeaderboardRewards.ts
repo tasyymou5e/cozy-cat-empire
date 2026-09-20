@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const logger = createLogger('useLeaderboardRewards');
 
@@ -135,8 +136,7 @@ export function useLeaderboardRewards(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
 
-    const channel = supabase
-      .channel('leaderboard-rewards-changes')
+    const channel = createRealtimeChannel('leaderboard-rewards-changes')
       .on(
         'postgres_changes',
         {

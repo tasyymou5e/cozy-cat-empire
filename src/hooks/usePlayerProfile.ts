@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const log = createLogger('PlayerProfile');
 
@@ -44,7 +45,7 @@ export function usePlayerProfile(userId: string | undefined) {
     for (const existing of supabase.getChannels()) {
       if (existing.topic === `realtime:${topic}`) supabase.removeChannel(existing);
     }
-    const channel = supabase.channel(topic)
+    const channel = createRealtimeChannel(topic)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
         (payload) => {
           if (subscribedUserId !== userId) { log.debug('Ignoring stale update for different user'); return; }

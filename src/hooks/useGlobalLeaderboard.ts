@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { GameState } from '@/types/game';
 
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const logger = createLogger('useGlobalLeaderboard');
 
@@ -313,8 +314,7 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
 
   // Realtime subscription - stable effect that doesn't depend on fetchLeaderboard
   useEffect(() => {
-    const channel = supabase
-      .channel('leaderboard-realtime')
+    const channel = createRealtimeChannel('leaderboard-realtime')
       .on(
         'postgres_changes',
         {
