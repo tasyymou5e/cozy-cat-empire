@@ -26,6 +26,7 @@ export default function AdminAuth() {
   const [accessDenied, setAccessDenied] = useState(false);
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [notice, setNotice] = useState('');
+  const [bootstrapping, setBootstrapping] = useState(false);
 
   // Check admin status when user changes
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function AdminAuth() {
         userId: user.id,
       });
       navigate('/catking/dashboard');
-    } else if (user && !isAdmin && checked) {
+    } else if (user && !isAdmin && checked && !bootstrapping) {
       // Log access denied - only when we've definitively checked
       logAuthAttempt({
         email: user.email || 'unknown',
