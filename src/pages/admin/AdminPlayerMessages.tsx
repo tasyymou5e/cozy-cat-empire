@@ -144,6 +144,13 @@ export default function AdminPlayerMessages() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [broadcastOpen, setBroadcastOpen] = useState(false);
+  const [broadcastBody, setBroadcastBody] = useState('');
+  const [broadcastFile, setBroadcastFile] = useState<File | null>(null);
+  const broadcastFileRef = useRef<HTMLInputElement | null>(null);
+  const [broadcasting, setBroadcasting] = useState(false);
   const [extraPlayers, setExtraPlayers] = useState<PlayerLite[]>([]);
   const threadEndRef = useRef<HTMLDivElement | null>(null);
   const directory = usePlayerDirectory(search);
