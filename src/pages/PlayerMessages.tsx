@@ -249,6 +249,13 @@ export default function PlayerMessages() {
                     )}
                   >
                     <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                    {m.attachment_url && (
+                      <MessageAttachment
+                        path={m.attachment_url}
+                        name={m.attachment_name}
+                        type={m.attachment_type}
+                      />
+                    )}
                     <p
                       className={cn(
                         'text-[11px] mt-1',
