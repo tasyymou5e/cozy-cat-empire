@@ -137,8 +137,25 @@ export default function PlayerMessages() {
 
   const handleSend = async () => {
     const body = draft.trim();
-    if (!user || !body || sending) return;
+    if (!user || sending) return;
+    if (!body && !file) return;
     setSending(true);
+
+    let attachment: { path: string; name: string; type: string } | null = null;
+    if (file) {
+      try {
+        attachment = await uploadMessageAttachment(file, user.id);
+      } catch (err) {
+        setSending(false);
+        logger.warn('Attachment upload failed', err as Error);
+        toast({
+          title: "Couldn't attach that file",
+          description: err instanceof Error ? err.message : 'Please try a smaller file.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
 
     const { data, error } = await supabase
       .from('player_messages')
@@ -146,9 +163,12 @@ export default function PlayerMessages() {
         player_id: user.id,
         sender_id: user.id,
         direction: 'from_player',
-        body: body.slice(0, MAX_BODY),
+        body: (body || attachment?.name || 'Attachment').slice(0, MAX_BODY),
         read_by_player: true,
         read_by_admin: false,
+        attachment_url: attachment?.path ?? null,
+        attachment_name: attachment?.name ?? null,
+        attachment_type: attachment?.type ?? null,
       })
       .select()
       .single();
@@ -167,6 +187,7 @@ export default function PlayerMessages() {
 
     setMessages((prev) => [...prev, data as PlayerMessage]);
     setDraft('');
+    setFile(null);
     toast({ title: 'Message sent 💌', description: 'The team will get back to you here.' });
   };
 
