@@ -25,6 +25,9 @@ interface PlayerMessage {
   read_by_player: boolean;
   read_by_admin: boolean;
   created_at: string;
+  attachment_url?: string | null;
+  attachment_name?: string | null;
+  attachment_type?: string | null;
 }
 
 const MAX_BODY = 4000;
