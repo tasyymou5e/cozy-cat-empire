@@ -302,7 +302,7 @@ export function CategoryTabBar({
                   value={tab.id}
                   onClick={() => onTabChange(tab.id)}
                   className={cn(
-                    'relative flex-shrink-0 min-w-10 min-h-10 text-base px-3 transition-all',
+                    'relative flex-shrink-0 min-w-11 min-h-11 text-base px-3 transition-all touch-target',
                     isHighlighted && 'ring-2 ring-primary animate-pulse'
                   )}
                 >
