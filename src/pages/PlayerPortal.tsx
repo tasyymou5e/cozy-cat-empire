@@ -256,6 +256,49 @@ export default function PlayerPortal() {
     await loadMessages();
   };
 
+  // Leaderboard (public player_stats)
+  const [boardCategory, setBoardCategory] = useState<PortalBoardCategory>('grade');
+  const [boardEntries, setBoardEntries] = useState<PortalBoardEntry[]>([]);
+  const [boardLoading, setBoardLoading] = useState(true);
+
+  const loadBoard = useCallback(async (category: PortalBoardCategory) => {
+    setBoardLoading(true);
+    const { data, error } = await supabase
+      .from('player_stats')
+      .select(
+        'user_id, display_name, avatar_emoji, highest_cat_grade, total_days_survived, total_money_earned'
+      )
+      .order(PORTAL_BOARD_COLUMNS[category], { ascending: false })
+      .limit(LEADERBOARD_SIZE);
+    if (error) {
+      logger.warn('Failed to load portal leaderboard', error);
+      setBoardEntries([]);
+    } else {
+      setBoardEntries((data ?? []) as unknown as PortalBoardEntry[]);
+    }
+    setBoardLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setBoardEntries([]);
+      setBoardLoading(false);
+      return;
+    }
+    void loadBoard(boardCategory);
+  }, [user, boardCategory, loadBoard]);
+
+  const boardCategories: {
+    id: PortalBoardCategory;
+    label: string;
+    icon: typeof Star;
+    value: (e: PortalBoardEntry) => string;
+  }[] = [
+    { id: 'grade', label: 'Cat Grade', icon: Star, value: (e) => `Grade ${e.highest_cat_grade}` },
+    { id: 'days', label: 'Days Survived', icon: CalendarDays, value: (e) => `${e.total_days_survived} days` },
+    { id: 'wealth', label: 'Money Earned', icon: Coins, value: (e) => `$${e.total_money_earned.toLocaleString()}` },
+  ];
+
   // Signed-out state
   if (!authLoading && !user) {
     return (
