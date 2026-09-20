@@ -48,6 +48,7 @@ export interface GraphicsSettings {
 
 const STORAGE_KEY = 'cat-farm-graphics-settings';
 const SETTINGS_VERSION = 1;
+const SETTINGS_EVENT = 'cat-farm-graphics-settings-change';
 
 /**
  * Get initial settings from localStorage or defaults
@@ -118,6 +119,8 @@ function saveSettings(settings: GraphicsSettings): void {
         settings,
       })
     );
+    // Notify other hook instances (e.g. the global motion gate) in this tab
+    window.dispatchEvent(new CustomEvent(SETTINGS_EVENT, { detail: settings }));
   } catch (e) {
     logger.warn('[GraphicsSettings] Failed to save settings:', e);
   }
@@ -155,6 +158,16 @@ export function useGraphicsSettings() {
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  // Keep every hook instance in sync when settings change anywhere in the app
+  useEffect(() => {
+    const handleExternalChange = (e: Event) => {
+      const detail = (e as CustomEvent<GraphicsSettings>).detail;
+      if (detail) setSettings(detail);
+    };
+    window.addEventListener(SETTINGS_EVENT, handleExternalChange);
+    return () => window.removeEventListener(SETTINGS_EVENT, handleExternalChange);
   }, []);
 
   // Update a single setting
