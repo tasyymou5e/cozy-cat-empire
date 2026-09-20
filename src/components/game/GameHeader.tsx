@@ -17,6 +17,7 @@ import {
   LogIn,
   LogOut,
   User,
+  UserRound,
   Sun,
   Moon,
   CalendarDays,
