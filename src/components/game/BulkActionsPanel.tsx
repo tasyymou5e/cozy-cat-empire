@@ -96,6 +96,7 @@ export function BulkActionsPanel({
 }: BulkActionsProps) {
   const [selectMode, setSelectMode] = useState(false);
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
+  const [sellDialogOpen, setSellDialogOpen] = useState(false);
 
   // Calculate stats
   const sickCats = cats.filter((c) => c.health < 70);
@@ -134,7 +135,12 @@ export function BulkActionsPanel({
   const deselectAll = () => setSelectedCats([]);
 
   const handleSellSelected = () => {
-    onSellSelected(selectedCats);
+    const ids = selectedCats;
+    // Close the dialog first so Radix can animate/unmount cleanly, then
+    // mutate selection state — clearing selection while the dialog is open
+    // unmounts it mid-animation and strands the overlay.
+    setSellDialogOpen(false);
+    onSellSelected(ids);
     setSelectedCats([]);
     setSelectMode(false);
   };
@@ -314,31 +320,34 @@ export function BulkActionsPanel({
                 </div>
               </ScrollArea>
 
-              {selectedCats.length > 0 && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm" className="w-full gap-2">
-                      <Trash2 className="h-4 w-4" />
-                      Sell {selectedCats.length} cats for ${totalSellValue}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirm Bulk Sell</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        You are about to sell {selectedCats.length} cats for a total of $
-                        {totalSellValue}. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleSellSelected}>
-                        Sell {selectedCats.length} Cats
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
+              <AlertDialog open={sellDialogOpen} onOpenChange={setSellDialogOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-full gap-2"
+                    disabled={selectedCats.length === 0}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Sell {selectedCats.length} cats for ${totalSellValue}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm Bulk Sell</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      You are about to sell {selectedCats.length} cats for a total of $
+                      {totalSellValue}. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleSellSelected}>
+                      Sell {selectedCats.length} Cats
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           )}
         </div>
