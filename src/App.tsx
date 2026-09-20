@@ -13,6 +13,7 @@ import { ErrorLoggerProvider } from './components/ErrorLoggerProvider';
 import { AdminRoute } from './components/admin/AdminRoute';
 import { lazyWithRetry } from './lib/lazyWithRetry';
 import { TrackingScripts } from './components/TrackingScripts';
+import { GraphicsMotionGate } from './components/GraphicsMotionGate';
 
 // Page loading fallback component
 const PageLoader = () => (
