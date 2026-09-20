@@ -226,7 +226,10 @@ export function RelationshipPanel({
                                   <TooltipTrigger asChild>
                                     <Badge
                                       variant="outline"
-                                      className={`text-xs gap-0.5 ${getDecayWarningColor(decayInfo.decayLevel)}`}
+                                      tabIndex={0}
+                                      role="button"
+                                      aria-label={`Last interaction ${decayInfo.daysSinceInteraction} days ago`}
+                                      className={`text-xs gap-0.5 cursor-help focus:outline-none focus:ring-1 focus:ring-ring ${getDecayWarningColor(decayInfo.decayLevel)}`}
                                     >
                                       <AlertTriangle className="h-3 w-3" />
                                       {decayInfo.daysSinceInteraction}d
