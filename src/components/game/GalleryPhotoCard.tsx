@@ -2,6 +2,7 @@ import React from 'react';
 import { Download, Trash2, Heart, Eye, Cloud, CloudOff, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GalleryPhoto } from '@/types/gallery';
+import { usePointerCapability } from '@/hooks/usePointerCapability';
 import { format } from 'date-fns';
 
 /**
