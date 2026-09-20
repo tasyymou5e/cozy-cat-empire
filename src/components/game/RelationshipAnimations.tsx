@@ -46,6 +46,7 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
   const [particles, setParticles] = useState<ParticleEffect[]>([]);
   const [showGlow, setShowGlow] = useState<'positive' | 'negative' | 'neutral' | null>(null);
   const handledEventIdsRef = useRef(new Set<string>());
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const { playSound } = useSound();
   const { addReaction } = useCatReactions();
 
@@ -128,6 +129,7 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
       setFloatingEmojis((prev) => prev.filter((e) => !e.id.startsWith(lastEventId)));
       setParticles((prev) => prev.filter((p) => p.id !== lastEventId));
     }, 2500);
+    timersRef.current.push(glowTimer, notifTimer, cleanupTimer);
 
     // Do not cancel these timers when another relationship event arrives.
     // Bulk socialization emits several events rapidly, and cancelling an older
@@ -137,10 +139,8 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
 
   useEffect(() => {
     return () => {
-      setFloatingEmojis([]);
-      setNotifications([]);
-      setParticles([]);
-      setShowGlow(null);
+      timersRef.current.forEach(clearTimeout);
+      timersRef.current = [];
     };
   }, []);
 
