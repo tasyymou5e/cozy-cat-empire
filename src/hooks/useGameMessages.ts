@@ -183,7 +183,10 @@ export function useGameMessages(): UseGameMessagesReturn {
       } else {
         // Critical priority messages interrupt current message
         if (priority === 'critical') {
-          setMessageQueue((prev) => [currentMessageRef.current!, ...prev].slice(0, MAX_QUEUE));
+          const interruptedMessage = currentMessageRef.current;
+          setMessageQueue((prev) =>
+            interruptedMessage ? [interruptedMessage, ...prev].slice(0, MAX_QUEUE) : prev
+          );
           setCurrentMessage(newMessage);
           setMessageHistory((hist) => [newMessage, ...hist].slice(0, MAX_HISTORY));
           clearDismissTimer();

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RelationshipEvent } from '@/types/relationships';
 import {
   HeartParticles,
@@ -45,6 +45,7 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
   const [notifications, setNotifications] = useState<InteractionNotification[]>([]);
   const [particles, setParticles] = useState<ParticleEffect[]>([]);
   const [showGlow, setShowGlow] = useState<'positive' | 'negative' | 'neutral' | null>(null);
+  const handledEventIdsRef = useRef(new Set<string>());
   const { playSound } = useSound();
   const { addReaction } = useCatReactions();
 
@@ -52,7 +53,8 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
     if (!lastEventId || events.length === 0) return;
 
     const latestEvent = events.find((e) => e.id === lastEventId);
-    if (!latestEvent) return;
+    if (!latestEvent || handledEventIdsRef.current.has(lastEventId)) return;
+    handledEventIdsRef.current.add(lastEventId);
 
     // Play sound based on interaction type
     if (latestEvent.type === 'positive') {
@@ -127,12 +129,20 @@ export function RelationshipAnimations({ events, lastEventId }: RelationshipAnim
       setParticles((prev) => prev.filter((p) => p.id !== lastEventId));
     }, 2500);
 
-    return () => {
-      clearTimeout(glowTimer);
-      clearTimeout(notifTimer);
-      clearTimeout(cleanupTimer);
-    };
+    // Do not cancel these timers when another relationship event arrives.
+    // Bulk socialization emits several events rapidly, and cancelling an older
+    // event's cleanup left its notification and particles on screen forever.
+    return undefined;
   }, [lastEventId, events]);
+
+  useEffect(() => {
+    return () => {
+      setFloatingEmojis([]);
+      setNotifications([]);
+      setParticles([]);
+      setShowGlow(null);
+    };
+  }, []);
 
   if (
     floatingEmojis.length === 0 &&
