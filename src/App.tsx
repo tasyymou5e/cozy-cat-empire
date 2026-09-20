@@ -35,6 +35,7 @@ const Leaderboard = lazyWithRetry(() => import('./pages/Leaderboard'));
 const Stats = lazyWithRetry(() => import('./pages/Stats'));
 const Empire = lazyWithRetry(() => import('./pages/Empire'));
 const Auth = lazyWithRetry(() => import('./pages/Auth'));
+const PlayerMessages = lazyWithRetry(() => import('./pages/PlayerMessages'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
 
 
@@ -92,6 +93,7 @@ const App = () => {
                           <Route path="/leaderboard" element={<Leaderboard />} />
                           <Route path="/stats" element={<Stats />} />
                           <Route path="/empire" element={<Empire />} />
+                          <Route path="/messages" element={<PlayerMessages />} />
                           <Route path="/auth" element={<Auth />} />
                           
                           <Route path="/catking" element={<AdminAuth />} />

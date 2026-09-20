@@ -8,6 +8,8 @@ interface SeasonalDecorationsProps {
   season: RealSeason;
   houseSize: HouseSize;
   className?: string;
+  /** When false, floating/ambient motion is disabled (reduced motion / low graphics) */
+  animationsEnabled?: boolean;
 }
 
 /**
@@ -15,7 +17,7 @@ interface SeasonalDecorationsProps {
  * Each house type has unique seasonal decorations defined in ENHANCED_EMPIRE_ZONES
  * Includes static decorations and animated ambient effects
  */
-export function SeasonalDecorations({ season, houseSize, className }: SeasonalDecorationsProps) {
+export function SeasonalDecorations({ season, houseSize, className, animationsEnabled = true }: SeasonalDecorationsProps) {
   const zone = ENHANCED_EMPIRE_ZONES[houseSize];
   const decorations = zone.seasonalDecorations?.[season] || [];
 
@@ -33,7 +35,7 @@ export function SeasonalDecorations({ season, houseSize, className }: SeasonalDe
       {decorations.map((deco, i) => (
         <span
           key={`${season}-deco-${i}`}
-          className="absolute animate-float drop-shadow-sm"
+          className={cn('absolute drop-shadow-sm', animationsEnabled && 'animate-float')}
           style={{
             left: `${deco.position.x}%`,
             top: `${deco.position.y}%`,
@@ -47,7 +49,7 @@ export function SeasonalDecorations({ season, houseSize, className }: SeasonalDe
       ))}
       
       {/* Animated ambient particles based on season */}
-      <SeasonalAmbient season={season} particles={ambientParticles} />
+      {animationsEnabled && <SeasonalAmbient season={season} particles={ambientParticles} />}
 
       {/* Season-specific overlay effects */}
       <SeasonOverlayEffect season={season} />

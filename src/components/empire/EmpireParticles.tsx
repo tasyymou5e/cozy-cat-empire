@@ -6,6 +6,8 @@ interface EmpireParticlesProps {
   type: ParticleType;
   density?: 'light' | 'medium' | 'heavy';
   enableReducedMotion?: boolean;
+  /** When false, no particles are rendered at all (reduced motion / low graphics) */
+  animationsEnabled?: boolean;
   className?: string;
 }
 
@@ -80,6 +82,7 @@ export function EmpireParticles({
   type, 
   density = 'light', 
   enableReducedMotion,
+  animationsEnabled = true,
   className 
 }: EmpireParticlesProps) {
   const config = PARTICLE_CONFIG[type];
@@ -104,7 +107,7 @@ export function EmpireParticles({
   const animationType = getAnimationType(type);
 
   // Respect reduced motion preference - after all hooks
-  if (enableReducedMotion) return null;
+  if (enableReducedMotion || !animationsEnabled) return null;
 
   return (
     <div 

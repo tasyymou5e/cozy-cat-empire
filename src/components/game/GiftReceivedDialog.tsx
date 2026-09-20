@@ -43,7 +43,7 @@ export function GiftReceivedDialog({
 
   return (
     <Dialog open={!!gift} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md overflow-hidden">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-hidden flex flex-col gap-0 p-0">
         {/* Floating sparkles */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {[...Array(6)].map((_, i) => (
@@ -61,7 +61,7 @@ export function GiftReceivedDialog({
           ))}
         </div>
 
-        <DialogHeader className="text-center relative z-10">
+        <DialogHeader className="text-center relative z-10 px-6 pt-6 shrink-0">
           <div className="mx-auto mb-2 w-16 h-16 rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center animate-gift-unwrap">
             <Gift className="w-8 h-8 text-primary animate-bounce" />
           </div>
@@ -73,7 +73,7 @@ export function GiftReceivedDialog({
           <DialogDescription>{gift.sender_name || 'Someone'} sent you a cat!</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col items-center gap-4 py-4 relative z-10">
+        <div className="flex flex-col items-center gap-4 px-6 py-4 relative z-10 flex-1 overflow-y-auto">
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center border-4 border-primary/30 animate-pulse-glow">
               <CatVisual cat={gift.cat_data} size="lg" preferPortrait={true} />
@@ -115,7 +115,7 @@ export function GiftReceivedDialog({
           )}
         </div>
 
-        <DialogFooter className="flex gap-2 sm:gap-2 relative z-10">
+        <DialogFooter className="flex flex-row gap-2 sm:gap-2 relative z-10 shrink-0 px-6 py-4 border-t border-border bg-background/95 pb-safe">
           <Button variant="outline" className="flex-1" onClick={() => onDecline(gift.id)}>
             <X className="w-4 h-4 mr-2" />
             Decline

@@ -84,8 +84,8 @@ export function EmpireRenderDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-w-md max-h-[85vh] overflow-hidden flex flex-col gap-0 p-0">
+        <DialogHeader className="px-6 pt-6 shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
             Render Your Empire
@@ -95,7 +95,7 @@ export function EmpireRenderDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 overflow-y-auto px-6 py-4">
           {/* Scene preview */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-3">
             <h4 className="font-medium text-sm">Scene Settings</h4>
@@ -219,7 +219,7 @@ export function EmpireRenderDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2 sm:gap-0 shrink-0 px-6 py-4 border-t border-border bg-background/95 pb-safe">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}

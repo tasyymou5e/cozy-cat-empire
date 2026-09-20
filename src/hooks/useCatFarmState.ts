@@ -185,6 +185,8 @@ export function useCatFarmState() {
     auth: systems.auth,
     theme: systems.theme,
     isMobile: systems.isMobile,
+    isTablet: systems.isTablet,
+    deviceType: systems.deviceType,
     getCatReaction: systems.getCatReaction,
 
     // Game state

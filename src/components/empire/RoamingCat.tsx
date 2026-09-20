@@ -19,6 +19,8 @@ interface RoamingCatProps {
   canPlay: boolean;
   parallaxOffset?: { x: number; y: number };
   enableMicroDepth?: boolean;
+  /** When false, walking/idle animations and transitions are disabled */
+  animationsEnabled?: boolean;
 }
 
 /**
@@ -54,6 +56,7 @@ export function RoamingCat({
   canPlay,
   parallaxOffset = { x: 0, y: 0 },
   enableMicroDepth = false,
+  animationsEnabled = true,
 }: RoamingCatProps) {
   const { getCatReaction } = useCatReactions();
   const reaction = getCatReaction(cat.id);
@@ -101,8 +104,8 @@ export function RoamingCat({
           className={cn(
             'absolute cursor-pointer group will-change-transform',
             'hover:scale-110 hover:z-50',
-            'transition-all ease-in-out',
-            position.state === 'walking' && 'animate-cat-walk',
+            animationsEnabled && 'transition-all ease-in-out',
+            animationsEnabled && position.state === 'walking' && 'animate-cat-walk',
             position.state === 'sleeping' && 'opacity-90'
           )}
           style={{
@@ -110,8 +113,8 @@ export function RoamingCat({
             top: `${position.y}%`,
             transform: `${microDepthTransform} translate(-50%, -50%) scaleX(${position.facing === 'left' ? -1 : 1}) scale(${scale})`,
             zIndex: isHovered ? 100 : zIndex,
-            transitionDuration: `${MOVEMENT_TIMING.transitionDuration}ms`,
-            transitionProperty: 'left, top, transform',
+            transitionDuration: animationsEnabled ? `${MOVEMENT_TIMING.transitionDuration}ms` : '0ms',
+            transitionProperty: animationsEnabled ? 'left, top, transform' : 'none',
           }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -122,7 +125,7 @@ export function RoamingCat({
               cat={cat}
               equippedCostumeId={equippedCostumeId}
               size="lg"
-              animated
+              animated={animationsEnabled}
             />
             
             {/* Reaction overlay */}
@@ -132,7 +135,7 @@ export function RoamingCat({
             {stateIndicator && (
               <div className={cn(
                 'absolute -top-2 left-1/2 -translate-x-1/2',
-                stateIndicator.animation
+                animationsEnabled && stateIndicator.animation
               )}>
                 <span className="text-xl">{stateIndicator.emoji}</span>
               </div>
