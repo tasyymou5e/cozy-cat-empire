@@ -125,6 +125,20 @@ function getDefaultSettings(): GraphicsSettings {
     enableMicroAnimations: GRAPHICS_CONFIG.enableMicroAnimations,
     defaultPortraitStyle: GRAPHICS_CONFIG.defaultPortraitStyle,
     preferPaperAvatar: GRAPHICS_CONFIG.preferPaperAvatar,
+    ...(isLowPowerDevice()
+      ? {
+          avatarQuality: 'medium' as const,
+          vectorEngine: 'simple' as const,
+          preferPaperAvatar: false,
+          enableSparkles: false,
+          enableParticles: false,
+          enableEmpireParallax: false,
+          enableEmpireParticles: false,
+          enableMicroDepthParallax: false,
+          enableSeasonalDecorations: false,
+          enableCostumeAnimations: false,
+        }
+      : {}),
   };
 }
 
