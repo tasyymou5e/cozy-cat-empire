@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState, useCallback } from 'react';
 import type { WinstonLogLevel } from '@/lib/winston-logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 interface LogFilters {
   level?: WinstonLogLevel | '';
@@ -215,8 +216,7 @@ export function useRealtimeWinstonLogs() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const channel = supabase
-      .channel('winston-logs-realtime')
+    const channel = createRealtimeChannel('winston-logs-realtime')
       .on(
         'postgres_changes',
         {

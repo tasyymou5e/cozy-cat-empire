@@ -84,7 +84,7 @@ export function useBadges(userId?: string): UseBadgesReturn {
           id: row.id,
           userId: row.user_id,
           badgeId: row.badge_id,
-          unlockedAt: row.unlocked_at,
+          unlockedAt: row.unlocked_at ?? '',
           isDisplayed: row.is_displayed || false,
         }));
 

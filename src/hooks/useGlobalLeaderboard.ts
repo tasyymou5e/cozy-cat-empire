@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { GameState } from '@/types/game';
 
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const logger = createLogger('useGlobalLeaderboard');
 
@@ -170,8 +171,16 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
         setTotalCount(count || 0);
 
         // Calculate rank with page offset
-        const ranked = (data || []).map((entry, index) => ({
+        const ranked: LeaderboardEntry[] = (data || []).map((entry, index) => ({
           ...entry,
+          avatar_emoji: entry.avatar_emoji ?? '😺',
+          total_show_wins: entry.total_show_wins ?? 0,
+          total_cats_owned: entry.total_cats_owned ?? 0,
+          total_kittens_bred: entry.total_kittens_bred ?? 0,
+          highest_cat_grade: entry.highest_cat_grade ?? 0,
+          total_money_earned: entry.total_money_earned ?? 0,
+          achievements_unlocked: entry.achievements_unlocked ?? 0,
+          total_days_survived: entry.total_days_survived ?? undefined,
           rank: from + index + 1,
         }));
 
@@ -217,7 +226,18 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
               .maybeSingle();
 
             if (userData) {
-              setUserStats(userData);
+              const normalizedUserData: LeaderboardEntry = {
+                ...userData,
+                avatar_emoji: userData.avatar_emoji ?? '😺',
+                total_show_wins: userData.total_show_wins ?? 0,
+                total_cats_owned: userData.total_cats_owned ?? 0,
+                total_kittens_bred: userData.total_kittens_bred ?? 0,
+                highest_cat_grade: userData.highest_cat_grade ?? 0,
+                total_money_earned: userData.total_money_earned ?? 0,
+                achievements_unlocked: userData.achievements_unlocked ?? 0,
+                total_days_survived: userData.total_days_survived ?? undefined,
+              };
+              setUserStats(normalizedUserData);
               // Calculate rank by counting how many have higher scores
               const { count } = await supabase
                 .from('player_stats')
@@ -294,8 +314,7 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
 
   // Realtime subscription - stable effect that doesn't depend on fetchLeaderboard
   useEffect(() => {
-    const channel = supabase
-      .channel('leaderboard-realtime')
+    const channel = createRealtimeChannel('leaderboard-realtime')
       .on(
         'postgres_changes',
         {

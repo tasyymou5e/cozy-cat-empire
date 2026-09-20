@@ -30,6 +30,7 @@ import type {
 import type { SoundType } from '@/contexts/SoundContext';
 
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const logger = createLogger('useWeeklyChallenges');
 
@@ -182,6 +183,9 @@ export function useWeeklyChallenges(
         ...challenge,
         difficulty: challenge.difficulty as ChallengeWithProgress['difficulty'],
         challenge_type: challenge.challenge_type as ChallengeType,
+        is_active: challenge.is_active ?? false,
+        created_at: challenge.created_at ?? '',
+        reward_badge: challenge.reward_badge ?? null,
         progress: progressMap.get(challenge.id) as PlayerChallengeProgress | undefined,
       }));
 
@@ -201,8 +205,7 @@ export function useWeeklyChallenges(
   useEffect(() => {
     if (!userId) return;
 
-    const channel = supabase
-      .channel('challenge-progress')
+    const channel = createRealtimeChannel('challenge-progress')
       .on(
         'postgres_changes',
         {

@@ -59,8 +59,8 @@ export function useErrorLogger() {
         const { error } = await supabase.rpc('log_client_error_secure', {
           _error_type: data.error_type,
           _error_message: data.error_message.slice(0, 5000),
-          _error_stack: data.error_stack?.slice(0, 10000) ?? null,
-          _component_name: data.component_name ?? null,
+          _error_stack: data.error_stack?.slice(0, 10000) ?? undefined,
+          _component_name: data.component_name ?? undefined,
           _route: data.route || window.location.pathname,
           _user_agent: navigator.userAgent,
           _metadata: metadata as never,
@@ -187,8 +187,8 @@ export async function logErrorToDatabase(data: ErrorLogData & { user_id?: string
     await supabase.rpc('log_client_error_secure', {
       _error_type: data.error_type,
       _error_message: data.error_message.slice(0, 5000),
-      _error_stack: data.error_stack?.slice(0, 10000) ?? null,
-      _component_name: data.component_name ?? null,
+      _error_stack: data.error_stack?.slice(0, 10000) ?? undefined,
+      _component_name: data.component_name ?? undefined,
       _route: data.route || (typeof window !== 'undefined' ? window.location.pathname : ''),
       _user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
       _metadata: metadata as never,

@@ -71,9 +71,9 @@ export function useClub(userId?: string): UseClubReturn {
 
       const levelInfo = getClubLevel(clubData.total_xp || 0);
       setMyClub({
-        id: clubData.id, name: clubData.name, emoji: clubData.emoji, description: clubData.description,
-        ownerId: clubData.owner_id, maxMembers: levelInfo.maxMembers, createdAt: clubData.created_at,
-        updatedAt: clubData.updated_at, totalXp: clubData.total_xp || 0, level: levelInfo.level,
+        id: clubData.id, name: clubData.name, emoji: clubData.emoji ?? '😺', description: clubData.description ?? undefined,
+        ownerId: clubData.owner_id ?? '', maxMembers: levelInfo.maxMembers, createdAt: clubData.created_at ?? '',
+        updatedAt: clubData.updated_at ?? '', totalXp: clubData.total_xp || 0, level: levelInfo.level,
       });
 
       const { data: membersData } = await supabase.from('club_members')

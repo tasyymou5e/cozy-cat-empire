@@ -13,7 +13,7 @@ export function useMiniGameTrigger() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentGame, setCurrentGame] = useState<MiniGameType>('yarn');
   const lastGameRef = useRef<MiniGameType | null>(null);
-  const timerRef = useRef<NodeJS.Timeout>();
+  const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const pickGame = useCallback(() => {
     const filtered = GAME_TYPES.filter((g) => g !== lastGameRef.current);

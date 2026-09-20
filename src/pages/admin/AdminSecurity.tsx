@@ -585,7 +585,7 @@ export default function AdminSecurity() {
         {/* Security Score Dashboard */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SecurityScoreCard 
-            results={linterResults} 
+            results={linterResults ?? null} 
             previousScore={previousScore}
             isLoading={isScanning}
           />

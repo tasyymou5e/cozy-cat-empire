@@ -177,7 +177,7 @@ export function useBreeding(deps: GameHookDependencies): BreedingActions {
 
         // Check for Perfect Match achievement (breeding best friends)
         const relationship = relationshipSystem.getRelationship(cat1Id, cat2Id);
-        const isBestFriendBreed = relationship && relationship.level === 'bestFriend';
+        const isBestFriendBreed = !!relationship && relationship.level === 'bestFriend';
 
         setKittensBreed((k) => k + 1);
 

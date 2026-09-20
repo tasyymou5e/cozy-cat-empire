@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { LeaderboardCategory } from './useGlobalLeaderboard';
 
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const logger = createLogger('usePlayerStats');
 
@@ -144,8 +145,7 @@ export function usePlayerStats(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
 
-    const channel = supabase
-      .channel(`player-stats-${userId}`)
+    const channel = createRealtimeChannel(`player-stats-${userId}`)
       .on(
         'postgres_changes',
         {

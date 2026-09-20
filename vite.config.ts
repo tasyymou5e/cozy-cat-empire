@@ -4,7 +4,13 @@
 //     nitro (build-only using cloudflare as a default target), VITE_* env injection, @ path alias,
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+
+// paper.js (vector cat avatars) is browser-only and pulls jsdom into the server
+// bundle, where it cannot build. It is only ever reached from client-side dynamic
+// imports, so every server-side build resolves it to a stub instead.
+const paperServerStub = fileURLToPath(new URL("./src/lib/paper-server-stub.ts", import.meta.url));
 
 export default defineConfig({
   tanstackStart: {
@@ -13,20 +19,15 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
-    // paper (vector cat avatars) is browser-only and drags jsdom into the server
-    // bundle, where it cannot build. It is only ever reached from client-side
-    // dynamic imports, so stub it out in every server-side environment.
-    environments: {
-      ssr: {
-        resolve: {
-          alias: [{ find: /^paper$/, replacement: "/src/lib/paper-server-stub.ts" }],
+    plugins: [
+      {
+        name: "stub-paper-on-server",
+        enforce: "pre" as const,
+        resolveId(id, _importer, options) {
+          if (id === "paper" && options?.ssr) return paperServerStub;
+          return null;
         },
       },
-      nitro: {
-        resolve: {
-          alias: [{ find: /^paper$/, replacement: "/src/lib/paper-server-stub.ts" }],
-        },
-      },
-    },
+    ],
   },
 });

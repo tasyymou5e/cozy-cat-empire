@@ -632,7 +632,7 @@ export default function AdminModeration() {
                           <TableRow key={challenge.id}>
                             <TableCell>
                               <Switch
-                                checked={challenge.is_active}
+                                checked={challenge.is_active ?? false}
                                 onCheckedChange={() => toggleChallengeActive(challenge)}
                               />
                             </TableCell>
@@ -964,7 +964,14 @@ export default function AdminModeration() {
             await updateChallengeMutation.mutateAsync({ id: editingChallenge.id, data });
           }}
           initialData={{
-            ...editingChallenge,
+            name: editingChallenge.name,
+            description: editingChallenge.description,
+            emoji: editingChallenge.emoji,
+            challenge_type: editingChallenge.challenge_type,
+            target_value: editingChallenge.target_value,
+            reward_coins: editingChallenge.reward_coins,
+            reward_badge: editingChallenge.reward_badge ?? '',
+            is_active: editingChallenge.is_active ?? true,
             difficulty:
               (editingChallenge.difficulty as 'easy' | 'medium' | 'hard' | 'expert') || 'medium',
             starts_at: new Date(editingChallenge.starts_at),
@@ -990,7 +997,7 @@ export default function AdminModeration() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteChallengeMutation.mutate(deletingChallenge?.id)}
+              onClick={() => deletingChallenge && deleteChallengeMutation.mutate(deletingChallenge.id)}
               className="bg-destructive hover:bg-destructive/90"
             >
               Delete

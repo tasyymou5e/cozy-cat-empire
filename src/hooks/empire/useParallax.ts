@@ -20,7 +20,7 @@ export function useParallax(
 ): ParallaxOffset {
   const [offset, setOffset] = useState<ParallaxOffset>({ x: 0, y: 0 });
   const targetRef = useRef<ParallaxOffset>({ x: 0, y: 0 });
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
 
   // Smooth animation loop for fluid parallax
   const animate = useCallback(() => {

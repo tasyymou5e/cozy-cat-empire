@@ -124,8 +124,8 @@ export function useRewardHandlers({ farmState }: RewardHandlersDeps) {
 
   // Handle retiring a cat to Hall of Fame
   const handleRetireCat = useCallback(
-    (cat: Cat) => {
-      const legacyResult = legacy.retireCat(cat, state.day);
+    async (cat: Cat) => {
+      const legacyResult = await legacy.retireCat(cat, state.day);
       if (legacyResult) {
         actions.sellCat(cat.id);
         playSound?.('achievement');

@@ -42,7 +42,7 @@ export class PanelErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log the error to database
     logErrorToDatabase({
       error_type: 'panel_error',
@@ -64,7 +64,7 @@ export class PanelErrorBoundary extends Component<Props, State> {
     this.setState({ hasError: false, error: null });
   };
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return (
         <Card className={`${this.props.fallbackHeight || 'min-h-[200px]'}`}>

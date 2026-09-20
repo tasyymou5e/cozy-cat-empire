@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useCatFarmState, TAB_LABELS } from '@/hooks/useCatFarmState';
 import { useCatFarmHandlers, MOOD_LABELS } from '@/hooks/useCatFarmHandlers';
 import { GameActions } from '@/types/gameEvents';
+import type { SpecializationType } from '@/types/specializations';
 // Decomposed components
 import { CatFarmSkeleton } from './CatFarmSkeleton';
 import { GameHeader } from './GameHeader';
@@ -160,7 +161,7 @@ export function CatFarm() {
           showShortcutsHelp={ui.showShortcutsHelp}
           onCloseShortcutsHelp={() => ui.setShowShortcutsHelp(false)}
           events={relationshipSystem.events}
-          lastEventId={relationshipSystem.lastEventId}
+          lastEventId={relationshipSystem.lastEventId ?? ''}
           cats={state.cats}
           onCatClick={() => farmState.sound.playSound('click')}
           onFeed={(catId) => dispatchAction(GameActions.FEED_SINGLE_CAT, { catId })}
@@ -438,7 +439,8 @@ export function CatFarm() {
                 }}
                 specialization={{
                   kittensBred: kittensBreed,
-                  onSpecialize: actions.setSpecialization,
+                  onSpecialize: (catId: string, specializationId: string) =>
+                    actions.setSpecialization(catId, specializationId as SpecializationType),
                   canSpecialize: specializations.canSpecialize,
                   getSpecialization: specializations.getSpecialization,
                   getActiveBonuses: () => specializations.getActiveBonuses(state.cats),
@@ -465,7 +467,7 @@ export function CatFarm() {
                   onSave: auth.user ? handleCloudSave : actions.saveGame,
                   onLoad: auth.user ? handleCloudLoad : actions.loadGame,
                   hasSave: actions.hasSaveGame(),
-                  lastSaveDay: actions.getSaveDay(),
+                  lastSaveDay: actions.getSaveDay() ?? 0,
                 }}
               />
             </aside>
@@ -538,7 +540,7 @@ export function CatFarm() {
               showShortcutsHelp={ui.showShortcutsHelp}
               onCloseShortcutsHelp={() => ui.setShowShortcutsHelp(false)}
               events={relationshipSystem.events}
-              lastEventId={relationshipSystem.lastEventId}
+              lastEventId={relationshipSystem.lastEventId ?? ''}
               cats={state.cats}
               onCatClick={() => farmState.sound.playSound('click')}
               onFeed={(catId) => dispatchAction(GameActions.FEED_SINGLE_CAT, { catId })}
@@ -823,7 +825,8 @@ export function CatFarm() {
                     }}
                     specialization={{
                       kittensBred: kittensBreed,
-                      onSpecialize: actions.setSpecialization,
+                      onSpecialize: (catId: string, specializationId: string) =>
+                    actions.setSpecialization(catId, specializationId as SpecializationType),
                       canSpecialize: specializations.canSpecialize,
                       getSpecialization: specializations.getSpecialization,
                       getActiveBonuses: () => specializations.getActiveBonuses(state.cats),
@@ -850,7 +853,7 @@ export function CatFarm() {
                       onSave: auth.user ? handleCloudSave : actions.saveGame,
                       onLoad: auth.user ? handleCloudLoad : actions.loadGame,
                       hasSave: actions.hasSaveGame(),
-                      lastSaveDay: actions.getSaveDay(),
+                      lastSaveDay: actions.getSaveDay() ?? 0,
                     }}
                   />
                 </aside>

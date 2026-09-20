@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const log = createLogger('Friends');
 
@@ -18,11 +19,11 @@ export interface Friend {
   username: string | null;
   avatar_emoji: string;
   status: 'pending' | 'accepted' | 'blocked';
-  created_at: string;
+  created_at: string | null;
   stats?: {
-    total_show_wins: number;
-    total_cats_owned: number;
-    total_kittens_bred: number;
+    total_show_wins: number | null;
+    total_cats_owned: number | null;
+    total_kittens_bred: number | null;
   };
 }
 
@@ -32,7 +33,7 @@ export interface FriendRequest {
   display_name: string | null;
   username: string | null;
   avatar_emoji: string;
-  created_at: string;
+  created_at: string | null;
 }
 
 interface FriendRequestResult {
@@ -146,8 +147,7 @@ export function useFriends(userId: string | undefined) {
 
     const subscribedUserId = userId;
 
-    const channel = supabase
-      .channel(`friends-${userId}`)
+    const channel = createRealtimeChannel(`friends-${userId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'player_friends', filter: `friend_id=eq.${userId}` },

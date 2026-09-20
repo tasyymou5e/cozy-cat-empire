@@ -13,6 +13,7 @@ import { Send, Loader2, MessageSquare, Mail, Paperclip, X } from 'lucide-react';
 import { MessageAttachment } from '@/components/messages/MessageAttachment';
 import { uploadMessageAttachment } from '@/lib/messageAttachments';
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const logger = createLogger('PlayerMessages');
 
@@ -92,8 +93,7 @@ export default function PlayerMessages() {
 
     void load();
 
-    const channel = supabase
-      .channel('player-inbox')
+    const channel = createRealtimeChannel('player-inbox')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'player_messages', filter: `player_id=eq.${user.id}` },

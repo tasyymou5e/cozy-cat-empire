@@ -4,6 +4,7 @@ import { PanelErrorBoundary } from '../PanelErrorBoundary';
 import { PanelSkeleton } from '../PanelSkeleton';
 import { Cat, Resources } from '@/types/game';
 import { CatRelationship, CatGroup, RelationshipEvent } from '@/types/relationships';
+import { GameAction, GameActionPayloads } from '@/types/gameEvents';
 
 // Lazy load panels for performance
 const SocializePanel = lazy(() =>
@@ -33,8 +34,8 @@ interface SocialPanelsProps {
   maintenanceStreak: number;
   needsAttentionCount: number;
   quickSocializePair?: { cat1Id: string; cat2Id: string } | null;
-  dispatchAction: (type: string, payload?: Record<string, unknown>) => void;
-  getRelationship: (cat1Id: string, cat2Id: string) => CatRelationship | undefined;
+  dispatchAction: <A extends GameAction>(action: A, payload?: GameActionPayloads[A]) => void;
+  getRelationship: (cat1Id: string, cat2Id: string) => CatRelationship | null;
   onClearSelection: () => void;
   onQuickSocialize: (cat1Id: string, cat2Id: string) => void;
   onHealAll: () => void;

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const log = createLogger('PlayerProfile');
 
@@ -37,7 +38,7 @@ export function usePlayerProfile(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
     const subscribedUserId = userId;
-    const channel = supabase.channel(`profile-${userId}`)
+    const channel = createRealtimeChannel(`profile-${userId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
         (payload) => {
           if (subscribedUserId !== userId) { log.debug('Ignoring stale update for different user'); return; }
@@ -56,7 +57,7 @@ export function usePlayerProfile(userId: string | undefined) {
     }
     const validated = parsed.data;
     try {
-      const updateData: Record<string, string | null> = { display_name: validated.display_name, avatar_emoji: validated.avatar_emoji };
+      const updateData: { display_name: string; avatar_emoji: string; username?: string | null } = { display_name: validated.display_name, avatar_emoji: validated.avatar_emoji };
       if (username !== undefined) updateData.username = validated.username || null;
       const { error } = await supabase.from('profiles').update(updateData).eq('id', userId);
       if (error) throw error;

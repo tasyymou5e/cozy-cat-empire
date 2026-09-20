@@ -15,6 +15,7 @@ import { toast } from '@/hooks/use-toast';
 import { logPlayerActivity } from '@/hooks/usePlayerActivityLog';
 
 import { createLogger } from '@/lib/logger';
+import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 const logger = createLogger('useTrading');
 
@@ -242,6 +243,10 @@ export function useTrading(userId: string | undefined) {
             requested_cats: (t.requested_cats || []) as unknown as Cat[],
             requested_resources: (t.requested_resources || {}) as unknown as Partial<Resources>,
             status: t.status as TradeOffer['status'],
+            offered_money: t.offered_money ?? 0,
+            requested_money: t.requested_money ?? 0,
+            created_at: t.created_at ?? '',
+            expires_at: t.expires_at ?? '',
             sender_name: nameMap.get(t.sender_id) || 'Unknown',
           }))
         );
@@ -254,6 +259,10 @@ export function useTrading(userId: string | undefined) {
             requested_cats: (t.requested_cats || []) as unknown as Cat[],
             requested_resources: (t.requested_resources || {}) as unknown as Partial<Resources>,
             status: t.status as TradeOffer['status'],
+            offered_money: t.offered_money ?? 0,
+            requested_money: t.requested_money ?? 0,
+            created_at: t.created_at ?? '',
+            expires_at: t.expires_at ?? '',
             recipient_name: nameMap.get(t.recipient_id) || 'Unknown',
           }))
         );
@@ -280,8 +289,7 @@ export function useTrading(userId: string | undefined) {
     // Phase 2: Capture userId at subscription time
     const subscribedUserId = userId;
 
-    const channel = supabase
-      .channel('trade-offers-changes')
+    const channel = createRealtimeChannel('trade-offers-changes')
       .on(
         'postgres_changes',
         {

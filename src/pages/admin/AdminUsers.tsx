@@ -302,7 +302,7 @@ export default function AdminUsers() {
         actionDescription: `Changed user role to ${newRole}`,
         targetUserId: selectedUser.id,
         targetTable: 'user_roles',
-        metadata: { oldRole: selectedUser.role, newRole },
+        metadata: { oldRole: selectedUser.role ?? null, newRole },
       });
 
       toast({

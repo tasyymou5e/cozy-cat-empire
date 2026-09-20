@@ -128,7 +128,7 @@ export function useDailyLoginRewards(
         const lastLogin = existing.last_login_date;
 
         if (lastLogin === today) {
-          const reward = getRewardForDay(existing.current_streak);
+          const reward = getRewardForDay(existing.current_streak ?? 0);
           setLoginData(existing as LoginData);
           setTodayReward(reward);
           setCanClaim(existing.last_claimed_date !== today);
@@ -136,8 +136,8 @@ export function useDailyLoginRewards(
             setShowModal(true);
           }
         } else if (lastLogin === yesterday) {
-          const newStreak = existing.current_streak + 1;
-          const longestStreak = Math.max(newStreak, existing.longest_streak);
+          const newStreak = (existing.current_streak ?? 0) + 1;
+          const longestStreak = Math.max(newStreak, existing.longest_streak ?? 0);
 
           const { data: updated, error: updateError } = await supabase
             .from('daily_login_rewards')
@@ -145,7 +145,7 @@ export function useDailyLoginRewards(
               last_login_date: today,
               current_streak: newStreak,
               longest_streak: longestStreak,
-              total_logins: existing.total_logins + 1,
+              total_logins: (existing.total_logins ?? 0) + 1,
             })
             .eq('id', existing.id)
             .select()
@@ -159,7 +159,7 @@ export function useDailyLoginRewards(
           setCanClaim(true);
           setShowModal(true);
 
-          const oldVipTier = getVIPTier(existing.current_streak);
+          const oldVipTier = getVIPTier(existing.current_streak ?? 0);
           const newVipTier = getVIPTier(newStreak);
 
           if (newVipTier && (!oldVipTier || newVipTier.minStreak > oldVipTier.minStreak)) {
@@ -181,7 +181,7 @@ export function useDailyLoginRewards(
             .update({
               last_login_date: today,
               current_streak: 1,
-              total_logins: existing.total_logins + 1,
+              total_logins: (existing.total_logins ?? 0) + 1,
             })
             .eq('id', existing.id)
             .select()
