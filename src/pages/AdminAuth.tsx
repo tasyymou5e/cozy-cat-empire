@@ -97,6 +97,8 @@ export default function AdminAuth() {
       // If granted, the admin check in useEffect picks up the new role and redirects.
     } catch {
       setNotice('Account created, but admin setup failed. Please contact an administrator.');
+    } finally {
+      setBootstrapping(false);
     }
   };
 
