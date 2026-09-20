@@ -144,7 +144,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <Collapsible key={group.label} defaultOpen={isGroupActive || group.items.length === 1}>
             <CollapsibleTrigger
               className={cn(
-                'flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors',
+                'flex w-full items-center justify-between rounded-md px-2 text-xs font-semibold uppercase tracking-wider transition-colors',
+                mobile ? 'py-2.5 min-h-11' : 'py-1.5',
                 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
                 collapsed && !mobile && 'justify-center px-0'
               )}
