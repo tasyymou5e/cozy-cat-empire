@@ -1721,6 +1721,83 @@
   }
 }
 
+/* In-app Reduced Motion / low graphics quality gate.
+   Applied to <html> by GraphicsMotionGate when the in-app animation
+   settings are off, mirroring the prefers-reduced-motion rules above. */
+html.app-reduce-motion .animated-gradient-bg,
+html.app-reduce-motion .animate-float,
+html.app-reduce-motion .animate-sway,
+html.app-reduce-motion .animate-pulse-slow,
+html.app-reduce-motion .animate-bounce-gentle,
+html.app-reduce-motion .animate-spin-slow,
+html.app-reduce-motion .animate-fade-in-up,
+html.app-reduce-motion .animate-rainbow-glow,
+html.app-reduce-motion .animate-golden-glow,
+html.app-reduce-motion .animate-purple-glow,
+html.app-reduce-motion .animate-pulse-glow,
+html.app-reduce-motion .animate-sparkle,
+html.app-reduce-motion .animate-costume-glow-gold,
+html.app-reduce-motion .animate-costume-glow-vip,
+html.app-reduce-motion .animate-costume-glow-fire,
+html.app-reduce-motion .animate-costume-flow,
+html.app-reduce-motion .animate-costume-rainbow,
+html.app-reduce-motion .animate-costume-flutter,
+html.app-reduce-motion .animate-costume-sparkle,
+html.app-reduce-motion .animate-costume-shimmer-bronze,
+html.app-reduce-motion .animate-costume-shimmer-silver,
+html.app-reduce-motion .animate-particle-sparkle,
+html.app-reduce-motion .animate-walk-left-to-right,
+html.app-reduce-motion .animate-walk-right-to-left,
+html.app-reduce-motion .animate-cat-idle,
+html.app-reduce-motion .animate-cat-breathe,
+html.app-reduce-motion .animate-tail-swish,
+html.app-reduce-motion .animate-snowfall,
+html.app-reduce-motion .animate-blossom-float,
+html.app-reduce-motion .animate-firefly-glow,
+html.app-reduce-motion .animate-leaf-fall,
+html.app-reduce-motion .animate-bounce-in,
+html.app-reduce-motion .panel-animate-in,
+html.app-reduce-motion .gradient-border-active::before,
+html.app-reduce-motion .animate-count-flash,
+html.app-reduce-motion .skeleton-shimmer,
+html.app-reduce-motion .before\:animate-shimmer::before {
+  animation: none !important;
+}
+
+/* Static glow fallbacks so rarity is still readable without animation */
+html.app-reduce-motion .animate-rainbow-glow {
+  box-shadow: 0 0 25px 6px rgba(236, 72, 153, 0.5);
+  border-color: rgb(236, 72, 153);
+}
+
+html.app-reduce-motion .animate-golden-glow {
+  box-shadow: 0 0 20px 5px rgba(234, 179, 8, 0.5);
+}
+
+html.app-reduce-motion .animate-purple-glow {
+  box-shadow: 0 0 15px 4px rgba(168, 85, 247, 0.4);
+}
+
+html.app-reduce-motion .animate-costume-glow-gold,
+html.app-reduce-motion .animate-costume-glow-vip,
+html.app-reduce-motion .animate-costume-glow-fire {
+  filter: drop-shadow(0 0 6px #ffd700);
+}
+
+/* Glow gate: tier/costume glows off entirely (low quality or glows disabled) */
+html.app-no-glow .animate-rainbow-glow,
+html.app-no-glow .animate-golden-glow,
+html.app-no-glow .animate-purple-glow,
+html.app-no-glow .animate-pulse-glow,
+html.app-no-glow .animate-costume-glow-gold,
+html.app-no-glow .animate-costume-glow-vip,
+html.app-no-glow .animate-costume-glow-fire,
+html.app-no-glow .animate-firefly-glow {
+  animation: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
 /* Tutorial hotspot pulse animation */
 @keyframes tutorial-pulse {
   0%, 100% {
