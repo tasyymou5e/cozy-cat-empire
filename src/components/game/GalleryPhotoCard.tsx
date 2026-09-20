@@ -66,6 +66,7 @@ export const GalleryPhotoCard: React.FC<GalleryPhotoCardProps> = ({
 }) => {
   // Use cloud URL if available, otherwise use local dataUrl
   const imageSrc = photo.imageUrl || photo.imageDataUrl;
+  const { isCoarse } = usePointerCapability();
 
   return (
     <div className="group relative rounded-lg overflow-hidden bg-card border shadow-sm hover:shadow-md transition-shadow">
