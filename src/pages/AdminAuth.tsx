@@ -57,14 +57,57 @@ export default function AdminAuth() {
     }
   }, [user, isAdmin, adminLoading, checked, navigate, signOut]);
 
+  const handleSignUp = async (validated: { email: string; password: string }) => {
+    const { error: signUpError } = await signUp(validated.email, validated.password, {
+      display_name: 'Cat King Admin',
+      avatar_emoji: '👑',
+    });
+    if (signUpError) {
+      setError(signUpError.message);
+      return;
+    }
+
+    // Sign in immediately — if email confirmation is required this fails and
+    // we tell the user to confirm first.
+    const { error: signInError } = await signIn(validated.email, validated.password);
+    if (signInError) {
+      setNotice('Account created. Check your email to confirm it, then sign in here.');
+      setMode('signin');
+      return;
+    }
+
+    // First-admin bootstrap: grants admin only if no admin exists yet.
+    try {
+      const { bootstrapAdmin } = await import('@/lib/admin/bootstrapAdmin.functions');
+      const result = await bootstrapAdmin({ data: validated });
+      if (!result.granted) {
+        setNotice(
+          result.reason === 'admin_exists'
+            ? 'Account created. An existing admin must grant you access from the Users page.'
+            : 'Account created, but admin access could not be granted.'
+        );
+      }
+      // If granted, the admin check in useEffect picks up the new role and redirects.
+    } catch {
+      setNotice('Account created, but admin setup failed. Please contact an administrator.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setNotice('');
     setAccessDenied(false);
     setIsSubmitting(true);
 
     try {
       const validated = authSchema.parse({ email, password });
+
+      if (mode === 'signup') {
+        await handleSignUp(validated);
+        return;
+      }
+
       const { error: signInError } = await signIn(validated.email, validated.password);
 
       if (signInError) {
