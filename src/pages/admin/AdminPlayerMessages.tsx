@@ -136,7 +136,7 @@ function usePlayerDirectory(term: string) {
   });
 }
 
-export default function AdminPlayerMessages() {
+export function AdminPlayerInbox() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data, isLoading, refetch, isRefetching } = useMessages();
@@ -323,7 +323,7 @@ export default function AdminPlayerMessages() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="admin-console admin-fade-in space-y-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -645,6 +645,14 @@ export default function AdminPlayerMessages() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
+  );
+}
+
+export default function AdminPlayerMessages() {
+  return (
+    <AdminLayout>
+      <AdminPlayerInbox />
     </AdminLayout>
   );
 }

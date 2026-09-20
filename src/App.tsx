@@ -38,6 +38,7 @@ const Empire = lazyWithRetry(() => import('./pages/Empire'));
 const Auth = lazyWithRetry(() => import('./pages/Auth'));
 const PlayerMessages = lazyWithRetry(() => import('./pages/PlayerMessages'));
 const PlayerPortal = lazyWithRetry(() => import('./pages/PlayerPortal'));
+const AdminGameChat = lazyWithRetry(() => import('./pages/AdminGameChat'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
 
 
@@ -98,6 +99,7 @@ const App = () => {
                           <Route path="/empire" element={<Empire />} />
                           <Route path="/messages" element={<PlayerMessages />} />
                           <Route path="/portal" element={<PlayerPortal />} />
+                          <Route path="/admin-chat" element={<AdminGameChat />} />
                           <Route path="/auth" element={<Auth />} />
                           
                           <Route path="/catking" element={<AdminAuth />} />
