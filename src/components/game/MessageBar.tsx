@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { GameMessage } from '@/hooks/useGameMessages';
+import { Button } from '@/components/ui/button';
 
 interface MessageBarProps {
   message?: string;
@@ -21,37 +22,15 @@ export const MessageBar = React.forwardRef<HTMLDivElement, MessageBarProps>(func
   const [displayedMessage, setDisplayedMessage] = useState<{ text: string; type: string } | null>(
     incomingText ? { text: incomingText, type: incomingType } : null
   );
-  const [isExiting, setIsExiting] = useState(false);
-  const exitTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Clean up any pending exit timer
-    if (exitTimerRef.current) {
-      clearTimeout(exitTimerRef.current);
-      exitTimerRef.current = null;
-    }
-
     if (incomingText) {
-      // New message — show immediately, cancel any exit
       setDisplayedMessage({ text: incomingText, type: incomingType });
-      setIsExiting(false);
-    } else if (displayedMessage) {
-      // Message cleared — start exit animation
-      setIsExiting(true);
-      exitTimerRef.current = setTimeout(() => {
-        setDisplayedMessage(null);
-        setIsExiting(false);
-      }, 300);
+    } else {
+      // Remove cleared messages immediately. Keeping a local copy for an exit
+      // animation could leave the banner mounted if its timer was interrupted.
+      setDisplayedMessage(null);
     }
-
-    return () => {
-      if (exitTimerRef.current) {
-        clearTimeout(exitTimerRef.current);
-        exitTimerRef.current = null;
-      }
-    };
-    // Only react to incoming message changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incomingText, incomingType]);
 
   if (!displayedMessage) return null;
@@ -60,8 +39,7 @@ export const MessageBar = React.forwardRef<HTMLDivElement, MessageBarProps>(func
     <div
       ref={ref}
       className={cn(
-        'message-bar relative',
-        isExiting ? 'animate-message-out' : 'animate-message-in',
+        'message-bar relative animate-message-in',
         displayedMessage.type === 'success' && 'message-success',
         displayedMessage.type === 'warning' && 'message-warning',
         displayedMessage.type === 'error' && 'message-error'
@@ -76,13 +54,16 @@ export const MessageBar = React.forwardRef<HTMLDivElement, MessageBarProps>(func
       )}
 
       {onDismiss && (
-        <button
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
           onClick={onDismiss}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 bg-background/80 hover:bg-destructive hover:text-destructive-foreground rounded-full flex items-center justify-center transition-colors"
+          className="absolute right-1 top-1/2 min-h-11 min-w-11 -translate-y-1/2 rounded-full hover:bg-destructive hover:text-destructive-foreground"
           aria-label="Dismiss message"
         >
-          <X className="h-3.5 w-3.5" />
-        </button>
+          <X className="h-4 w-4" />
+        </Button>
       )}
     </div>
   );
