@@ -1481,6 +1481,7 @@ export type Database = {
           id: string
           last_updated: string | null
           total_cats_owned: number | null
+          total_days_survived: number
           total_kittens_bred: number | null
           total_money_earned: number | null
           total_show_wins: number | null
@@ -1494,6 +1495,7 @@ export type Database = {
           id?: string
           last_updated?: string | null
           total_cats_owned?: number | null
+          total_days_survived?: number
           total_kittens_bred?: number | null
           total_money_earned?: number | null
           total_show_wins?: number | null
@@ -1507,6 +1509,7 @@ export type Database = {
           id?: string
           last_updated?: string | null
           total_cats_owned?: number | null
+          total_days_survived?: number
           total_kittens_bred?: number | null
           total_money_earned?: number | null
           total_show_wins?: number | null
