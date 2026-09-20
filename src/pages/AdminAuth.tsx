@@ -56,7 +56,7 @@ export default function AdminAuth() {
       setAccessDenied(true);
       signOut();
     }
-  }, [user, isAdmin, adminLoading, checked, navigate, signOut]);
+  }, [user, isAdmin, adminLoading, checked, bootstrapping, navigate, signOut]);
 
   const handleSignUp = async (validated: { email: string; password: string }) => {
     const { error: signUpError } = await signUp(validated.email, validated.password, {
@@ -78,9 +78,15 @@ export default function AdminAuth() {
     }
 
     // First-admin bootstrap: grants admin only if no admin exists yet.
+    setBootstrapping(true);
     try {
       const { bootstrapAdmin } = await import('@/lib/admin/bootstrapAdmin.functions');
       const result = await bootstrapAdmin({ data: validated });
+      if (result.granted) {
+        // Full reload so the role check re-runs with the fresh grant.
+        window.location.href = '/catking/dashboard';
+        return;
+      }
       if (!result.granted) {
         setNotice(
           result.reason === 'admin_exists'
