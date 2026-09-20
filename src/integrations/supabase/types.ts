@@ -1016,6 +1016,24 @@ export type Database = {
           },
         ]
       }
+      job_cron_secret: {
+        Row: {
+          created_at: string
+          id: boolean
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          id?: boolean
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          id?: boolean
+          token?: string
+        }
+        Relationships: []
+      }
       leaderboard_rewards: {
         Row: {
           category: string
