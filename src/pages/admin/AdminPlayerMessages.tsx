@@ -479,13 +479,20 @@ export default function AdminPlayerMessages() {
                         <div className="max-w-[80%]">
                           <div
                             className={cn(
-                              'whitespace-pre-wrap break-words rounded-2xl px-4 py-2 text-sm',
+                              'break-words rounded-2xl px-4 py-2 text-sm',
                               fromAdmin
                                 ? 'bg-primary text-primary-foreground'
                                 : 'admin-inset text-foreground',
                             )}
                           >
-                            {m.body}
+                            <span className="whitespace-pre-wrap">{m.body}</span>
+                            {m.attachment_url && (
+                              <MessageAttachment
+                                path={m.attachment_url}
+                                name={m.attachment_name}
+                                type={m.attachment_type}
+                              />
+                            )}
                           </div>
                           <p
                             className={cn(
@@ -495,6 +502,7 @@ export default function AdminPlayerMessages() {
                           >
                             {fmtClock(m.created_at)}
                             {fromAdmin && (m.read_by_player ? ' · read' : ' · sent')}
+                            {m.broadcast_id && ' · broadcast'}
                           </p>
                         </div>
                       </div>
@@ -518,14 +526,52 @@ export default function AdminPlayerMessages() {
                     maxLength={4000}
                     className="resize-none"
                   />
+                  {file && (
+                    <div className="mt-2 flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs">
+                      <Paperclip className="h-3.5 w-3.5 shrink-0" />
+                      <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        aria-label="Remove attachment"
+                        onClick={() => setFile(null)}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  )}
                   <div className="mt-2 flex items-center justify-between gap-3">
                     <span className="text-[11px] text-muted-foreground">
                       {draft.length}/4000 · ⌘/Ctrl + Enter to send
                     </span>
-                    <Button size="sm" onClick={() => void handleSend()} disabled={sending || !draft.trim()}>
-                      <Send className="mr-2 h-4 w-4" />
-                      Send
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => {
+                          setFile(e.target.files?.[0] ?? null);
+                          e.target.value = '';
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        aria-label="Attach a file"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Paperclip className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => void handleSend()}
+                        disabled={sending || (!draft.trim() && !file)}
+                      >
+                        <Send className="mr-2 h-4 w-4" />
+                        Send
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </>
@@ -533,6 +579,72 @@ export default function AdminPlayerMessages() {
           </div>
         </div>
       </div>
+
+      <Dialog open={broadcastOpen} onOpenChange={setBroadcastOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Broadcast to all players</DialogTitle>
+            <DialogDescription>
+              Everyone gets this message in their in-game inbox. Suspended accounts are skipped.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Textarea
+            value={broadcastBody}
+            onChange={(e) => setBroadcastBody(e.target.value)}
+            placeholder="Announcement, patch notes, event news…"
+            rows={5}
+            maxLength={4000}
+            className="resize-none"
+          />
+
+          {broadcastFile && (
+            <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs">
+              <Paperclip className="h-3.5 w-3.5 shrink-0" />
+              <span className="min-w-0 flex-1 truncate">{broadcastFile.name}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                aria-label="Remove attachment"
+                onClick={() => setBroadcastFile(null)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
+
+          <DialogFooter className="items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <input
+                ref={broadcastFileRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  setBroadcastFile(e.target.files?.[0] ?? null);
+                  e.target.value = '';
+                }}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => broadcastFileRef.current?.click()}
+              >
+                <Paperclip className="mr-2 h-4 w-4" />
+                Attach
+              </Button>
+              <span className="text-[11px] text-muted-foreground">{broadcastBody.length}/4000</span>
+            </div>
+            <Button
+              onClick={() => void handleBroadcast()}
+              disabled={broadcasting || !broadcastBody.trim()}
+            >
+              <Megaphone className="mr-2 h-4 w-4" />
+              {broadcasting ? 'Sending…' : 'Send to everyone'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
