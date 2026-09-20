@@ -21,6 +21,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { ChevronDown, Heart, Sparkles, Target, TrendingUp } from 'lucide-react';
 import { CatVisual } from './CatVisual';
+import { usePointerCapability } from '@/hooks/usePointerCapability';
 import { GradeBadge } from './GradeBadge';
 import {
   findOptimalBreedingMatches,
