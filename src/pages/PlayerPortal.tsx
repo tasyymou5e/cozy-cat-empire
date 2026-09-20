@@ -297,7 +297,7 @@ export default function PlayerPortal() {
 
         <main className="max-w-5xl mx-auto p-4 panel-fade-in">
           <Tabs defaultValue="messages">
-            <TabsList className="mb-4">
+            <TabsList className="mb-4 max-w-full overflow-x-auto justify-start">
               <TabsTrigger value="messages" className="gap-2">
                 <Mail className="h-4 w-4" />
                 Messages
