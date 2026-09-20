@@ -363,7 +363,7 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
                           <Badge>{trade.status}</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {format(new Date(trade.created_at), 'PPp')}
+                          {format(new Date(trade.created_at ?? 0), 'PPp')}
                         </p>
                       </CardContent>
                     </Card>
@@ -391,7 +391,7 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
                           <p className="text-sm text-muted-foreground mt-1">"{gift.message}"</p>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">
-                          {format(new Date(gift.created_at), 'PPp')}
+                          {format(new Date(gift.created_at ?? 0), 'PPp')}
                         </p>
                       </CardContent>
                     </Card>
@@ -412,7 +412,7 @@ export function UserDetailModal({ userId, onClose }: UserDetailModalProps) {
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">{error.error_message}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {format(new Date(error.created_at), 'PPp')}
+                          {format(new Date(error.created_at ?? 0), 'PPp')}
                         </p>
                       </CardContent>
                     </Card>

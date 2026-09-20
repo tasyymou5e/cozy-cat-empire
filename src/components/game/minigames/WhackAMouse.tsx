@@ -15,7 +15,7 @@ export function WhackAMouse({ onComplete, onSkip }: WhackAMouseProps) {
   const [activeHoles, setActiveHoles] = useState<Set<number>>(new Set());
   const [whackedHole, setWhackedHole] = useState<number | null>(null);
   const [isActive, setIsActive] = useState(true);
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Timer
   useEffect(() => {

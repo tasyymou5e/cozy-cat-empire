@@ -208,7 +208,7 @@ export async function logAuthAttempt(params: LogAuthAttemptParams): Promise<void
       _email: params.email,
       _attempt_type: params.attemptType,
       _success: params.success,
-      _error_message: params.errorMessage ?? null,
+      _error_message: params.errorMessage ?? undefined,
       _metadata: {
         ...(params.metadata || {}),
         user_agent: navigator.userAgent,
@@ -231,7 +231,7 @@ export async function logAuthAttempt(params: LogAuthAttemptParams): Promise<void
           _email: params.email,
           _attempt_type: params.attemptType,
           _success: params.success,
-          _error_message: params.errorMessage ?? null,
+          _error_message: params.errorMessage ?? undefined,
           _metadata: { ...(params.metadata || {}), user_agent: navigator.userAgent },
         },
         error

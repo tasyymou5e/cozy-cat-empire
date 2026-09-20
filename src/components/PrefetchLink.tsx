@@ -19,7 +19,7 @@ interface PrefetchLinkProps extends Omit<LinkProps, 'prefetch'> {
 export const PrefetchLink = forwardRef<HTMLAnchorElement, PrefetchLinkProps>(
   ({ to, prefetchStrategy = 'hover', onMouseEnter, onFocus, children, ...props }, ref) => {
     const hasPrefetched = useRef(false);
-    const path = typeof to === 'string' ? to : to.pathname || '';
+    const path = to;
 
     // Prefetch on mount if requested
     if (prefetchStrategy === 'mount' && !hasPrefetched.current) {

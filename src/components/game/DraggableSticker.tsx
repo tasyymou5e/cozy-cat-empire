@@ -9,7 +9,7 @@ interface DraggableStickerProps {
   /** Sticker placement data */
   sticker: PlacedSticker;
   /** Reference to the container element for position calculations */
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
   /** Callback when sticker position changes */
   onUpdate: (id: string, updates: Partial<PlacedSticker>) => void;
   /** Callback when removing the sticker */

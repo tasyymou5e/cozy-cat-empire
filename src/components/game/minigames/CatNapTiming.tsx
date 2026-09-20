@@ -11,7 +11,7 @@ export function CatNapTiming({ onComplete, onSkip }: CatNapTimingProps) {
   const [direction, setDirection] = useState(1);
   const [stopped, setStopped] = useState(false);
   const [score, setScore] = useState(0);
-  const animRef = useRef<number>();
+  const animRef = useRef<number | undefined>(undefined);
   const startRef = useRef(Date.now());
 
   const animate = useCallback(() => {

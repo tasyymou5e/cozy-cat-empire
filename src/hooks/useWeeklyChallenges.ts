@@ -182,6 +182,9 @@ export function useWeeklyChallenges(
         ...challenge,
         difficulty: challenge.difficulty as ChallengeWithProgress['difficulty'],
         challenge_type: challenge.challenge_type as ChallengeType,
+        is_active: challenge.is_active ?? false,
+        created_at: challenge.created_at ?? '',
+        reward_badge: challenge.reward_badge ?? null,
         progress: progressMap.get(challenge.id) as PlayerChallengeProgress | undefined,
       }));
 

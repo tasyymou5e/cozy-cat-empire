@@ -141,7 +141,7 @@ export function useCatFarmState() {
 
   // Friends and coop
   const friends = useFriends(auth.user?.id);
-  const coopChallenges = useCoopChallenges(auth.user?.id, friends.friends, playSound);
+  const coopChallenges = useCoopChallenges(auth.user?.id, friends.friends, (type) => playSound?.(type as Parameters<NonNullable<typeof playSound>>[0]));
 
   // === NEW GAMIFICATION HOOKS ===
   const tabUnlocks = useTabUnlocks({

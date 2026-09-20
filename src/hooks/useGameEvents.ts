@@ -4,6 +4,8 @@ import { ObjectiveType } from '@/types/dailyObjectives';
 import { XPSource } from '@/types/battlePass';
 import { CoopChallengeType } from '@/types/coopChallenges';
 import { Resources } from '@/types/game';
+import type { TrickId } from '@/types/grading';
+import type { ShowTier } from '@/types/showEvents';
 import { getSoundForAction } from '@/config/gameEventSounds';
 import type { SoundType } from '@/contexts/SoundContext';
 
@@ -20,12 +22,12 @@ interface UseGameEventsConfig {
     useToys: () => void;
     comfortCat: (catId: string) => void;
     sellCat: (catId: string) => void;
-    trainCat: (catId: string, trickId: string) => void;
+    trainCat: (catId: string, trickId: TrickId) => void;
     restCat: (catId: string) => void;
     breedCats: (cat1Id: string, cat2Id: string) => void;
     socializeCats: (cat1Id: string, cat2Id: string) => void;
     doGroupActivity: (groupId: string, activityType: 'play' | 'treat' | 'nap') => void;
-    catShow: (tier?: string) => void;
+    catShow: (tier?: ShowTier) => void;
   };
   trackObjective: (type: ObjectiveType, amount?: number) => void;
   addBattlePassXP: (source: XPSource) => void;
@@ -96,7 +98,7 @@ export function useGameEvents(config: UseGameEventsConfig) {
         }
         case 'TRAIN_CAT': {
           const p = payload as GameActionPayloads['TRAIN_CAT'];
-          actions.trainCat(p.catId, p.trickId);
+          actions.trainCat(p.catId, p.trickId as TrickId);
           break;
         }
         case 'REST_CAT': {
@@ -121,7 +123,7 @@ export function useGameEvents(config: UseGameEventsConfig) {
         }
         case 'CAT_SHOW': {
           const p = payload as GameActionPayloads['CAT_SHOW'];
-          actions.catShow(p?.tier);
+          actions.catShow(p?.tier as ShowTier | undefined);
           break;
         }
       }

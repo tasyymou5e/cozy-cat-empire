@@ -191,6 +191,7 @@ export function useCatGifts(userId: string | undefined) {
             ...g,
             cat_data: g.cat_data as unknown as Cat,
             status: g.status as CatGiftStatus,
+            created_at: g.created_at ?? '',
             sender_name: nameMap.get(g.sender_id) || 'Unknown',
           }))
         );
@@ -200,6 +201,7 @@ export function useCatGifts(userId: string | undefined) {
             ...g,
             cat_data: g.cat_data as unknown as Cat,
             status: g.status as CatGiftStatus,
+            created_at: g.created_at ?? '',
             recipient_name: nameMap.get(g.recipient_id) || 'Unknown',
           }))
         );

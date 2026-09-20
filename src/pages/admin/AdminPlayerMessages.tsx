@@ -299,9 +299,9 @@ export function AdminPlayerInbox() {
 
     const { data, error } = await supabase.rpc('broadcast_player_message', {
       _body: body.slice(0, 4000),
-      _attachment_url: attachment?.path ?? null,
-      _attachment_name: attachment?.name ?? null,
-      _attachment_type: attachment?.type ?? null,
+      _attachment_url: attachment?.path ?? undefined,
+      _attachment_name: attachment?.name ?? undefined,
+      _attachment_type: attachment?.type ?? undefined,
     });
     setBroadcasting(false);
 

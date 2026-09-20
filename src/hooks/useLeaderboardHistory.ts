@@ -94,7 +94,7 @@ export function useLeaderboardHistory(userId: string | undefined, category?: Lea
 
       if (!wealthError && wealthData) {
         const wealthPoints: WealthDataPoint[] = wealthData.map((d) => ({
-          date: d.recorded_at,
+          date: d.recorded_at ?? '',
           wealth: d.score,
         }));
         setWealthHistory(wealthPoints);
@@ -112,8 +112,9 @@ export function useLeaderboardHistory(userId: string | undefined, category?: Lea
         const progressionMap = new Map<string, RankProgressionData>();
 
         allRanks.forEach((entry) => {
-          const dateKey = new Date(entry.recorded_at).toISOString().split('T')[0];
-          const existing = progressionMap.get(dateKey) || { date: entry.recorded_at };
+          const recordedAt = entry.recorded_at ?? new Date().toISOString();
+          const dateKey = new Date(recordedAt).toISOString().split('T')[0];
+          const existing = progressionMap.get(dateKey) || { date: recordedAt };
           // Use type-safe assignment
           const key = entry.category as keyof RankProgressionData;
           if (key !== 'date') {

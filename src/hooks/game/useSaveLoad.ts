@@ -19,7 +19,7 @@ export interface SaveLoadActions {
   hasSaveGame: () => boolean;
   getSaveDay: () => number | null;
   resetGame: () => void;
-  loadFromData: (gameState: GameState, kittens: number, relationshipData: RelationshipSaveData | null) => void;
+  loadFromData: (gameState: GameState, kittens: number, relationshipData?: RelationshipSaveData | null) => void;
 }
 
 export function useSaveLoad(deps: GameHookDependencies): SaveLoadActions {
@@ -110,7 +110,7 @@ export function useSaveLoad(deps: GameHookDependencies): SaveLoadActions {
   }, [setState, setKittensBreed, relationshipSystem, playSound, showMessage]);
 
   const loadFromData = useCallback(
-    (gameState: GameState, kittens: number, relationshipData: RelationshipSaveData | null) => {
+    (gameState: GameState, kittens: number, relationshipData?: RelationshipSaveData | null) => {
       setState(gameState);
       setKittensBreed(kittens);
       if (relationshipData) {

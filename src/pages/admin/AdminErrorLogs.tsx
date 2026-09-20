@@ -252,7 +252,7 @@ export default function AdminErrorLogs() {
       if (existing) {
         existing.count++;
       } else {
-        groups.set(key, { count: 1, latestId: error.id, latestTime: error.created_at });
+        groups.set(key, { count: 1, latestId: error.id, latestTime: error.created_at ?? '' });
       }
     });
 

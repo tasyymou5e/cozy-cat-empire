@@ -82,7 +82,7 @@ export function useAdminRateLimit() {
         return { allowed: true, remaining: config.limit, resetAt: null };
       }
 
-      const windowStart = new Date(data.window_start);
+      const windowStart = new Date(data.window_start ?? Date.now());
       const windowEnd = new Date(windowStart.getTime() + config.windowHours * 60 * 60 * 1000);
       const now = new Date();
 
@@ -92,7 +92,7 @@ export function useAdminRateLimit() {
       }
 
       // Within window, check count
-      const remaining = config.limit - data.action_count;
+      const remaining = config.limit - (data.action_count ?? 0);
       return {
         allowed: remaining > 0,
         remaining: Math.max(0, remaining),
@@ -121,7 +121,7 @@ export function useAdminRateLimit() {
       const now = new Date();
 
       if (existing) {
-        const windowStart = new Date(existing.window_start);
+        const windowStart = new Date(existing.window_start ?? Date.now());
         const windowEnd = new Date(windowStart.getTime() + config.windowHours * 60 * 60 * 1000);
 
         if (now > windowEnd) {
@@ -138,7 +138,7 @@ export function useAdminRateLimit() {
           await supabase
             .from('admin_rate_limits')
             .update({
-              action_count: existing.action_count + 1,
+              action_count: (existing.action_count ?? 0) + 1,
             })
             .eq('id', existing.id);
         }

@@ -18,11 +18,11 @@ export interface Friend {
   username: string | null;
   avatar_emoji: string;
   status: 'pending' | 'accepted' | 'blocked';
-  created_at: string;
+  created_at: string | null;
   stats?: {
-    total_show_wins: number;
-    total_cats_owned: number;
-    total_kittens_bred: number;
+    total_show_wins: number | null;
+    total_cats_owned: number | null;
+    total_kittens_bred: number | null;
   };
 }
 
@@ -32,7 +32,7 @@ export interface FriendRequest {
   display_name: string | null;
   username: string | null;
   avatar_emoji: string;
-  created_at: string;
+  created_at: string | null;
 }
 
 interface FriendRequestResult {
