@@ -67,6 +67,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Build your cat empire! Collect strays, adopted and pure breed cats. Do chores, enter cat shows, and upgrade from apartment to farm!",
       },
       { name: "author", content: "Lovable" },
+      {
+        name: "google-site-verification",
+        content: "Lcj4govo5dBDfI9gmiiVEszFuw8eLpJW-JJIU9mW9aM",
+      },
       { name: "theme-color", content: "#f97316" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
