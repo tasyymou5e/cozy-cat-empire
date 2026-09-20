@@ -20,6 +20,14 @@ export function useCoopChallenges(
   const [sentInvites, setSentInvites] = useState<CoopChallengeInvite[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // `friends` is a fresh array on every render and `playSound` is not always
+  // memoised, so they are read through refs instead of being effect deps —
+  // otherwise the load effect re-runs on every render and loops.
+  const friendsRef = useRef(friends);
+  friendsRef.current = friends;
+  const playSoundRef = useRef(playSound);
+  playSoundRef.current = playSound;
+
   useEffect(() => {
     if (!userId) { setLoading(false); return; }
 
