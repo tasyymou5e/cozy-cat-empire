@@ -1,0 +1,15 @@
+# Cozy Cat Empire
+
+> A cozy browser game where you raise cats, win cat shows, breed kittens, and grow from a small apartment to a 100-acre cat farm.
+
+Cozy Cat Empire is a free idle/management game. Players collect stray, adopted and pure-breed cats, care for them, train tricks, enter cat shows, breed kittens, trade with friends, and climb global leaderboards.
+
+## Pages
+
+- [Play Cozy Cat Empire](/): Start the game — take in cats, care for them and grow your empire.
+- [Cat Collection](/collection): Browse collectible cat cards for every breed.
+- [Photo Gallery](/gallery): Cat photos created in the in-game photo booth.
+- [Cat Relationships](/relationships): See friendships and rivalries between cats.
+- [Global Leaderboard](/leaderboard): Top players by show wins, cats owned, kittens bred and money earned.
+- [Player Stats](/stats): Your own progress and records.
+- [Your Empire](/empire): The animated view of your farm and roaming cats.
