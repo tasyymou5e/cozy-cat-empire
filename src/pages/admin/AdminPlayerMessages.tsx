@@ -17,7 +17,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { MessageSquare, Search, Send, RefreshCw, Inbox } from 'lucide-react';
+import { MessageSquare, Search, Send, RefreshCw, Inbox, Paperclip, X, Megaphone } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { MessageAttachment } from '@/components/messages/MessageAttachment';
+import { uploadMessageAttachment } from '@/lib/messageAttachments';
 
 interface MessageRow {
   id: string;
