@@ -302,7 +302,7 @@ export function EmpireScene({
         enabled={parallaxEnabled && !microDepthEnabled} // Disable layer parallax when micro-depth is active
         zIndex={40}
       >
-        {cats.map((cat) => {
+        {roamingCats.map((cat) => {
           const position = positions.get(cat.id);
           if (!position) return null;
 
@@ -363,6 +363,11 @@ export function EmpireScene({
         <Badge variant="secondary" className="bg-background/80 backdrop-blur shadow-sm">
           🐱 {cats.length} cats
         </Badge>
+        {hiddenCatCount > 0 && (
+          <Badge variant="outline" className="bg-background/80 backdrop-blur shadow-sm text-xs">
+            👀 {roamingCats.length} roaming
+          </Badge>
+        )}
         <Badge variant="secondary" className="bg-background/80 backdrop-blur shadow-sm">
           {zone.name}
         </Badge>
