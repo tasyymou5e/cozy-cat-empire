@@ -257,7 +257,7 @@ export function CategoryTabBar({
                     size="sm"
                     onClick={() => handleCategoryClick(category.id)}
                     className={cn(
-                      'relative flex items-center gap-1 min-w-10 min-h-10 px-2 sm:px-3 transition-all',
+                      'relative flex items-center gap-1 min-w-11 min-h-11 px-2.5 sm:px-3 transition-all touch-target',
                       isActive && 'shadow-md'
                     )}
                   >
