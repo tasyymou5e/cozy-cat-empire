@@ -14,7 +14,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-import { ChevronDown, BarChart3, LayoutGrid, Heart, Camera, Image, Globe, Castle, MessageSquare } from 'lucide-react';
+import { ChevronDown, BarChart3, LayoutGrid, Heart, Camera, Image, Globe, Castle, MessageSquare, UserRound } from 'lucide-react';
 import { CATEGORIES, getCategoryForTab } from './CategoryTabBar';
 import { useHaptics } from '@/hooks/useHaptics';
 
@@ -37,6 +37,7 @@ const EXTERNAL_LINKS = [
   { href: '/gallery', icon: <Image className="h-5 w-5" />, label: 'Photo Gallery' },
   { href: '/leaderboard', icon: <Globe className="h-5 w-5" />, label: 'Global Leaderboard' },
   { href: '/messages', icon: <MessageSquare className="h-5 w-5" />, label: 'Messages' },
+  { href: '/portal', icon: <UserRound className="h-5 w-5" />, label: 'My Portal' },
 ];
 
 export function MobileGameDrawer({
