@@ -291,8 +291,6 @@ export function RelationshipNetworkGraph({
                         ? 'animate-[line-tension_0.5s_ease-in-out_infinite]'
                         : ''
                   }`}
-                  onMouseEnter={() => setHoveredRelationship(rel)}
-                  onMouseLeave={() => setHoveredRelationship(null)}
                 />
 
                 {/* Decorations for special relationships */}
