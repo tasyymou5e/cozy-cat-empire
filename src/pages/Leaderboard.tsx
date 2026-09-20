@@ -62,7 +62,19 @@ export default function Leaderboard() {
         </header>
 
         <main className="container max-w-4xl py-8 px-4">
-          <GlobalLeaderboardPanel userId={user?.id} />
+          {user ? (
+            <GlobalLeaderboardPanel userId={user.id} />
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-4 rounded-xl border bg-card/60 p-10 text-center">
+              <Trophy className="h-10 w-10 text-primary" />
+              <h2 className="text-xl font-semibold">Sign in to see the leaderboard</h2>
+              <p className="max-w-sm text-sm text-muted-foreground">
+                Player rankings and progress are only visible to signed-in players. Create a free
+                account or sign in to see where you stand.
+              </p>
+              <Button onClick={() => navigate({ to: '/auth' })}>Sign in</Button>
+            </div>
+          )}
         </main>
       </div>
     </GameLayout>
