@@ -47,8 +47,29 @@ export interface GraphicsSettings {
 }
 
 const STORAGE_KEY = 'cat-farm-graphics-settings';
-const SETTINGS_VERSION = 1;
+// v2: defaults are seeded from the device so phones start on lighter graphics
+const SETTINGS_VERSION = 2;
 const SETTINGS_EVENT = 'cat-farm-graphics-settings-change';
+
+/**
+ * Detect small / touch-first devices so we can seed lighter defaults.
+ * Users can still turn every effect back on in Settings.
+ */
+function isLowPowerDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    const small = window.matchMedia('(max-width: 768px)').matches;
+    const fewCores =
+      typeof navigator !== 'undefined' &&
+      typeof navigator.hardwareConcurrency === 'number' &&
+      navigator.hardwareConcurrency > 0 &&
+      navigator.hardwareConcurrency <= 4;
+    return (coarse && small) || (small && fewCores);
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Get initial settings from localStorage or defaults
