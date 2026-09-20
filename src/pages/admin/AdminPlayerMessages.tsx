@@ -645,6 +645,14 @@ export function AdminPlayerInbox() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
+  );
+}
+
+export default function AdminPlayerMessages() {
+  return (
+    <AdminLayout>
+      <AdminPlayerInbox />
     </AdminLayout>
   );
 }
