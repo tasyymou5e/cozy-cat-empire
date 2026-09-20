@@ -216,16 +216,28 @@ export function GameHeader({
                   {user ? (
                     <div className="space-y-2">
                       <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                      <Link to="/portal" className="block">
+                        <Button variant="ghost" size="sm" className="w-full compact-btn justify-start">
+                          <UserRound className="h-4 w-4 mr-2" /> My Portal
+                        </Button>
+                      </Link>
                       <Button variant="outline" size="sm" className="w-full compact-btn" onClick={onSignOut}>
                         <LogOut className="h-4 w-4 mr-2" /> Log Out
                       </Button>
                     </div>
                   ) : (
-                    <Link to="/auth">
-                      <Button variant="outline" size="sm" className="w-full compact-btn gap-2">
-                        <LogIn className="h-4 w-4" /> Log In
-                      </Button>
-                    </Link>
+                    <div className="space-y-2">
+                      <Link to="/auth">
+                        <Button variant="outline" size="sm" className="w-full compact-btn gap-2">
+                          <LogIn className="h-4 w-4" /> Log In
+                        </Button>
+                      </Link>
+                      <Link to="/portal">
+                        <Button variant="ghost" size="sm" className="w-full compact-btn justify-start">
+                          <UserRound className="h-4 w-4 mr-2" /> My Portal
+                        </Button>
+                      </Link>
+                    </div>
                   )}
                 </div>
               </div>
@@ -433,6 +445,11 @@ export function GameHeader({
                     Last sync: {new Date(autoSaveStatus.lastSaveTime).toLocaleTimeString()}
                   </p>
                 )}
+                <Link to="/portal" className="block">
+                  <Button variant="ghost" size="sm" className="w-full justify-start">
+                    <UserRound className="h-4 w-4 mr-2" /> My Portal
+                  </Button>
+                </Link>
                 <Button variant="outline" size="sm" className="w-full" onClick={onSignOut}>
                   <LogOut className="h-4 w-4 mr-2" /> Log Out
                 </Button>
