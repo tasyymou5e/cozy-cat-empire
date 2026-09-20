@@ -1,115 +1,109 @@
 # Cron Jobs Documentation
 
-## Active Cron Jobs
+## Where the jobs live
 
-| Job Name | Schedule | Status |
-|----------|----------|--------|
-| `generate-weekly-challenges` | Sundays at midnight | ✅ Active |
-| `process-leaderboard-rewards` | Daily at 1 AM | ✅ Active |
-| `cleanup-error-logs-daily` | Daily at 3 AM | ✅ Active |
-| `sync-health-check-10min` | Every 10 minutes | ✅ Active |
+The five job workloads now run **inside the TanStack Start app** as server routes under
+`src/routes/api/public/jobs/*`. Each one:
+
+- verifies the `x-function-secret` header against `FUNCTION_SECRET_TOKEN` with a
+  length-checked constant-time compare before doing any work,
+- validates its request body with Zod (only `send-admin-alert` takes a body),
+- loads `supabaseAdmin` inside the handler via
+  `await import('@/integrations/supabase/client.server')`.
+
+The job logic itself lives in `src/lib/jobs/*.server.ts` so the HTTP endpoints and the
+admin manual triggers share exactly one implementation.
+
+| Job | Schedule | Endpoint | Logic |
+|---|---|---|---|
+| `sync-health-check-10min` | Every 10 minutes (`*/10 * * * *`) | `/api/public/jobs/sync-health-check` | `src/lib/jobs/syncHealthCheck.server.ts` |
+| `process-leaderboard-rewards` | Daily at 1 AM (`0 1 * * *`) | `/api/public/jobs/process-leaderboard-rewards` | `src/lib/jobs/leaderboardRewards.server.ts` |
+| `cleanup-error-logs-daily` | Daily at 3 AM (`0 3 * * *`) | `/api/public/jobs/cleanup-error-logs` | `src/lib/jobs/cleanupErrorLogs.server.ts` |
+| `generate-weekly-challenges` | Sundays at midnight (`0 0 * * 0`) | `/api/public/jobs/generate-weekly-challenges` | `src/lib/jobs/weeklyChallenges.server.ts` |
+| Admin failure/test alert | On job failure or on demand | `/api/public/jobs/send-admin-alert` | `src/lib/jobs/adminAlert.server.ts` |
+
+Base URL for schedules (immutable across renames):
+`https://project--e8e83e8c-0c77-43d8-8d1e-9f913ade2ac9.lovable.app`
 
 ---
 
-### sync-health-check-10min
+### sync-health-check
 
-**Schedule:** Every 10 minutes (`*/10 * * * *`)
+Validates data integrity across recently played cloud saves (last 24 h, max 500 saves):
+cat count vs. space limit, required cat fields, duplicate cat IDs, health/grade bounds,
+negative money. Writes a summary row to `sync_health_log` and critical findings to
+`error_logs`.
 
-**Purpose:** Validates data integrity across all active game saves.
+### process-leaderboard-rewards
 
-**What it does:**
-1. Fetches saves played within last 24 hours
-2. Validates each save for data integrity issues:
-   - Cat count vs space limit
-   - Required fields on all cats
-   - No duplicate cat IDs
-   - Portrait URL validity
-3. Logs results to `sync_health_log` table
-4. Logs critical issues to `error_logs`
+For each ended daily/weekly/monthly period, creates top-3 rewards per category
+(`wins`, `cats`, `breeding`, `wealth`, `achievements`) in `leaderboard_rewards` and records
+the period in `rewards_processing_log` so it is never processed twice.
 
-**Edge Function:** `supabase/functions/sync-health-check/index.ts`
+### cleanup-error-logs
 
-**Setup (already scheduled):**
+Deletes rows older than 30 days from `error_logs`, `application_logs` and
+`player_activity_log`.
+
+### generate-weekly-challenges
+
+If the current week has no challenges yet: deactivates expired ones and inserts a fresh
+set (2 easy, 2 medium, 1 hard) into `weekly_challenges`.
+
+### send-admin-alert
+
+Emails every admin (via Resend) about a failed or test job. Requires `RESEND_API_KEY`.
+
+---
+
+## Scheduling / re-pointing
+
+`pg_cron` calls the endpoints with the shared secret header:
+
 ```sql
 SELECT cron.schedule(
   'sync-health-check-10min',
   '*/10 * * * *',
   $$
   SELECT net.http_post(
-    url:='https://bkkluziuyystiqkcpbnd.supabase.co/functions/v1/sync-health-check',
-    headers:='{"Content-Type": "application/json", "Authorization": "Bearer <anon_key>"}'::jsonb,
+    url:='https://project--e8e83e8c-0c77-43d8-8d1e-9f913ade2ac9.lovable.app/api/public/jobs/sync-health-check',
+    headers:='{"Content-Type": "application/json", "x-function-secret": "<FUNCTION_SECRET_TOKEN>"}'::jsonb,
     body:='{}'::jsonb
   );
   $$
 );
 ```
 
----
+The endpoints only exist on the live site after the app is published, so schedules are
+re-pointed **after** a publish. Until then the old Supabase functions keep running, so
+there is no gap in coverage.
 
-### generate-weekly-challenges
+## Manual triggers
 
-**Schedule:** Sundays at midnight (`0 0 * * 0`)
+Admins trigger jobs from the dashboard without any shared secret — the UI calls the
+admin-gated server functions in `src/lib/jobs/triggerJob.functions.ts`, which verify the
+caller's `admin` role via `has_role` before running the job:
 
-**Purpose:** Auto-generates new weekly challenges for all players.
-
-**Edge Function:** `supabase/functions/generate-weekly-challenges/index.ts`
-
----
-
-### process-leaderboard-rewards
-
-**Schedule:** Daily at 1 AM (`0 1 * * *`)
-
-**Purpose:** Calculates and distributes leaderboard rewards.
-
-**Edge Function:** `supabase/functions/process-leaderboard-rewards/index.ts`
-
----
-
-### cleanup-error-logs-daily
-
-**Schedule:** Daily at 3 AM (`0 3 * * *`)
-
-**Purpose:** Cleans up old error logs to prevent database bloat.
-
-**Edge Function:** `supabase/functions/cleanup-error-logs/index.ts`
-
----
-
-## Manual Triggers
-
-All cron jobs can be manually triggered from:
-- Admin Dashboard → Scheduled Jobs page (`/catking/scheduled-jobs`)
-- Admin Dashboard → Save Recovery page (`/catking/save-recovery`)
-- Direct edge function invocation via curl
+- `/catking/scheduled-jobs` — run any of the four jobs, send a test alert email
+- `/catking/save-recovery` — run the data health check
 
 ## Monitoring
 
-View cron job history in Admin Dashboard:
-- `/catking/scheduled-jobs` - Job run history and status
-- `/catking/save-recovery` - Sync health logs
+- `/catking/scheduled-jobs` — job run history and status (`cron.job_run_details`)
+- `/catking/save-recovery` — sync health logs
 
-## Managing Cron Jobs
+## Managing cron jobs
 
-### View all scheduled jobs:
 ```sql
-SELECT * FROM cron.job ORDER BY jobid;
+SELECT * FROM cron.job ORDER BY jobid;                                  -- list
+SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 50;    -- history
+SELECT cron.unschedule('job-name-here');                                -- remove
 ```
 
-### View recent job runs:
-```sql
-SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 50;
-```
+## Adding a new job
 
-### Unschedule a job:
-```sql
-SELECT cron.unschedule('job-name-here');
-```
-
-## Adding New Cron Jobs
-
-1. Create edge function in `supabase/functions/`
-2. Add to `supabase/config.toml` with `verify_jwt = false`
-3. Deploy the function
-4. Schedule via `cron.schedule()` SQL
-5. Document in this file
+1. Add the logic to `src/lib/jobs/<name>.server.ts`.
+2. Add a route in `src/routes/api/public/jobs/<name>.ts` that verifies the shared secret.
+3. Add it to the admin trigger server function if it needs a manual button.
+4. Publish, then schedule via `cron.schedule()`.
+5. Document it here.
