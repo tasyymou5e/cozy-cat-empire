@@ -84,6 +84,7 @@ const App = () => {
                     <Toaster />
                     <Sonner />
                     <BrowserRouter>
+                      <RouteMeta />
                       <TrackingScripts />
                       <GraphicsMotionGate />
                       <Suspense fallback={<PageLoader />}>
