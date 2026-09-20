@@ -13,13 +13,15 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
-    resolve: {
-      alias: [
-        // paper (vector cat avatars) is browser-only and drags jsdom into the
-        // server bundle, which fails to build. It is only ever imported
-        // dynamically from client components, so stub it out server-side.
-        { find: /^paper$/, replacement: "/src/lib/paper-server-stub.ts" },
-      ],
+    environments: {
+      ssr: {
+        resolve: {
+          // paper (vector cat avatars) is browser-only and drags jsdom into the
+          // server bundle, where it cannot build. It is only ever reached from
+          // client-side dynamic imports, so stub it out for the server only.
+          alias: [{ find: /^paper$/, replacement: "/src/lib/paper-server-stub.ts" }],
+        },
+      },
     },
   },
 });
