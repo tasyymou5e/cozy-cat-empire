@@ -47,18 +47,37 @@ function timingSafeEqual(a: string, b: string): boolean {
 
 /**
  * Returns null when the caller is authorized, otherwise the Response to return.
- * Read process.env inside the handler (env is injected per request on Workers).
+ *
+ * Two credentials are accepted, both compared in constant time:
+ *  - FUNCTION_SECRET_TOKEN (env) — used by admin manual triggers / legacy callers
+ *  - public.job_cron_secret.token (database) — used by pg_cron schedules, which
+ *    cannot read worker env vars.
  */
-export function verifyJobSecret(request: Request): Response | null {
-  const expected = process.env['FUNCTION_SECRET_TOKEN'];
-  if (!expected) {
-    console.error('[jobs] FUNCTION_SECRET_TOKEN not configured');
-    return jsonResponse(request, { error: 'Server configuration error' }, 500);
-  }
+export async function verifyJobSecret(request: Request): Promise<Response | null> {
   const provided = request.headers.get('x-function-secret');
-  if (!provided || !timingSafeEqual(provided, expected)) {
-    console.error('[jobs] Invalid or missing function secret');
+  if (!provided) {
+    console.error('[jobs] Missing function secret');
     return jsonResponse(request, { error: 'Unauthorized' }, 401);
   }
-  return null;
+
+  const envSecret = process.env['FUNCTION_SECRET_TOKEN'];
+  if (envSecret && timingSafeEqual(provided, envSecret)) return null;
+
+  try {
+    const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+    const { data, error } = await supabaseAdmin
+      .from('job_cron_secret')
+      .select('token')
+      .eq('id', true)
+      .maybeSingle();
+    if (error) throw error;
+    if (data?.token && timingSafeEqual(provided, data.token)) return null;
+  } catch (err) {
+    console.error('[jobs] Failed to load cron secret:', err instanceof Error ? err.message : err);
+    return jsonResponse(request, { error: 'Server configuration error' }, 500);
+  }
+
+  console.error('[jobs] Invalid function secret');
+  return jsonResponse(request, { error: 'Unauthorized' }, 401);
 }
+
