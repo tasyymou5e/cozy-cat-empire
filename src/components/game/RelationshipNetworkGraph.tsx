@@ -255,6 +255,22 @@ export function RelationshipNetworkGraph({
 
             return (
               <g key={`${rel.catId1}-${rel.catId2}`}>
+                {/* Invisible fat line: generous tap target for touch users */}
+                <line
+                  x1={pos1.x}
+                  y1={pos1.y}
+                  x2={pos2.x}
+                  y2={pos2.y}
+                  stroke="transparent"
+                  strokeWidth={Math.max(strokeWidth, 14)}
+                  strokeLinecap="round"
+                  className="cursor-pointer"
+                  onClick={() =>
+                    setHoveredRelationship((current) =>
+                      current?.catId1 === rel.catId1 && current?.catId2 === rel.catId2 ? null : rel
+                    )
+                  }
+                />
                 <line
                   x1={pos1.x}
                   y1={pos1.y}
@@ -266,7 +282,7 @@ export function RelationshipNetworkGraph({
                   strokeLinecap="round"
                   opacity={isFaded ? 0.15 : isHighlighted ? 1 : 0.7}
                   filter={isHighlighted ? 'url(#glow)' : undefined}
-                  className={`transition-all duration-200 cursor-pointer ${
+                  className={`transition-all duration-200 cursor-pointer pointer-events-none ${
                     level === 'bestFriend'
                       ? 'animate-[line-pulse_2s_ease-in-out_infinite]'
                       : level === 'enemy'
