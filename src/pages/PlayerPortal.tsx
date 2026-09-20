@@ -20,7 +20,9 @@ import { createLogger } from '@/lib/logger';
 import {
   ArrowLeft,
   BarChart3,
+  CalendarDays,
   Cat as CatIcon,
+  Coins,
   Heart,
   Loader2,
   LogIn,
@@ -38,6 +40,24 @@ import type { Cat } from '@/types/game';
 
 const logger = createLogger('PlayerPortal');
 const MAX_BODY = 4000;
+const LEADERBOARD_SIZE = 10;
+
+type PortalBoardCategory = 'grade' | 'days' | 'wealth';
+
+const PORTAL_BOARD_COLUMNS: Record<PortalBoardCategory, string> = {
+  grade: 'highest_cat_grade',
+  days: 'total_days_survived',
+  wealth: 'total_money_earned',
+};
+
+interface PortalBoardEntry {
+  user_id: string;
+  display_name: string | null;
+  avatar_emoji: string;
+  highest_cat_grade: number;
+  total_days_survived: number;
+  total_money_earned: number;
+}
 
 interface PortalMessage {
   id: string;
