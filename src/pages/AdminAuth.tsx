@@ -16,7 +16,7 @@ const authSchema = z.object({
 
 export default function AdminAuth() {
   const navigate = useNavigate();
-  const { signIn, signOut, user } = useAuth();
+  const { signIn, signUp, signOut, user } = useAuth();
   const { isAdmin, loading: adminLoading, checked } = useAdminAuth();
 
   const [email, setEmail] = useState('');
@@ -24,6 +24,9 @@ export default function AdminAuth() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [notice, setNotice] = useState('');
+  const [bootstrapping, setBootstrapping] = useState(false);
 
   // Check admin status when user changes
   useEffect(() => {
@@ -41,7 +44,7 @@ export default function AdminAuth() {
         userId: user.id,
       });
       navigate('/catking/dashboard');
-    } else if (user && !isAdmin && checked) {
+    } else if (user && !isAdmin && checked && !bootstrapping) {
       // Log access denied - only when we've definitively checked
       logAuthAttempt({
         email: user.email || 'unknown',
@@ -53,16 +56,67 @@ export default function AdminAuth() {
       setAccessDenied(true);
       signOut();
     }
-  }, [user, isAdmin, adminLoading, checked, navigate, signOut]);
+  }, [user, isAdmin, adminLoading, checked, bootstrapping, navigate, signOut]);
+
+  const handleSignUp = async (validated: { email: string; password: string }) => {
+    const { error: signUpError } = await signUp(validated.email, validated.password, {
+      display_name: 'Cat King Admin',
+      avatar_emoji: '👑',
+    });
+    if (signUpError) {
+      setError(signUpError.message);
+      return;
+    }
+
+    // Sign in immediately — if email confirmation is required this fails and
+    // we tell the user to confirm first.
+    const { error: signInError } = await signIn(validated.email, validated.password);
+    if (signInError) {
+      setNotice('Account created. Check your email to confirm it, then sign in here.');
+      setMode('signin');
+      return;
+    }
+
+    // First-admin bootstrap: grants admin only if no admin exists yet.
+    setBootstrapping(true);
+    try {
+      const { bootstrapAdmin } = await import('@/lib/admin/bootstrapAdmin.functions');
+      const result = await bootstrapAdmin({ data: validated });
+      if (result.granted) {
+        // Full reload so the role check re-runs with the fresh grant.
+        window.location.href = '/catking/dashboard';
+        return;
+      }
+      if (!result.granted) {
+        setNotice(
+          result.reason === 'admin_exists'
+            ? 'Account created. An existing admin must grant you access from the Users page.'
+            : 'Account created, but admin access could not be granted.'
+        );
+      }
+      // If granted, the admin check in useEffect picks up the new role and redirects.
+    } catch {
+      setNotice('Account created, but admin setup failed. Please contact an administrator.');
+    } finally {
+      setBootstrapping(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setNotice('');
     setAccessDenied(false);
     setIsSubmitting(true);
 
     try {
       const validated = authSchema.parse({ email, password });
+
+      if (mode === 'signup') {
+        await handleSignUp(validated);
+        return;
+      }
+
       const { error: signInError } = await signIn(validated.email, validated.password);
 
       if (signInError) {
@@ -130,6 +184,12 @@ export default function AdminAuth() {
             </div>
           )}
 
+          {notice && (
+            <div className="mb-4 p-3 rounded-lg bg-amber-900/50 border border-amber-600">
+              <p className="text-amber-200 text-sm">{notice}</p>
+            </div>
+          )}
+
           {error && !accessDenied && (
             <div className="mb-4 p-3 rounded-lg bg-red-900/50 border border-red-700">
               <p className="text-red-200 text-sm">{error}</p>
@@ -172,9 +232,31 @@ export default function AdminAuth() {
               disabled={isSubmitting}
               className="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 text-primary-foreground dark:text-foreground font-semibold"
             >
-              {isSubmitting ? 'Authenticating...' : 'Access Portal'}
+              {isSubmitting
+                ? mode === 'signup'
+                  ? 'Creating account...'
+                  : 'Authenticating...'
+                : mode === 'signup'
+                  ? 'Create Admin Account'
+                  : 'Access Portal'}
             </Button>
           </form>
+
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === 'signin' ? 'signup' : 'signin');
+                setError('');
+                setNotice('');
+              }}
+              className="text-amber-300/80 hover:text-amber-200 text-sm underline"
+            >
+              {mode === 'signin'
+                ? "Don't have an account? Create one"
+                : 'Already have an account? Sign in'}
+            </button>
+          </div>
 
           <p className="mt-6 text-center text-amber-500/60 text-xs">
             🔒 This portal is for authorized personnel only
