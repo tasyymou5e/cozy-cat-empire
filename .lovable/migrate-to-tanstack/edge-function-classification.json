@@ -3,23 +3,108 @@
   "migrated": 0,
   "leftOnSupabase": 17,
   "functions": [
-    { "name": "admin-delete-user", "classification": "deno-only", "reason": "uses service-role admin API", "outcome": "left-on-supabase" },
-    { "name": "cat-ai-assistant", "classification": "internal-only", "reason": "streaming AI gateway responses; Deno stream handling", "outcome": "left-on-supabase" },
-    { "name": "cleanup-error-logs", "classification": "cron", "reason": "scheduled cleanup job", "outcome": "left-on-supabase" },
-    { "name": "generate-auth-background", "classification": "internal-only", "reason": "AI image generation with storage upload via service role", "outcome": "left-on-supabase" },
-    { "name": "generate-cat-portrait", "classification": "internal-only", "reason": "AI image generation with storage upload via service role", "outcome": "left-on-supabase" },
-    { "name": "generate-empire-scene", "classification": "internal-only", "reason": "AI image generation with storage upload via service role", "outcome": "left-on-supabase" },
-    { "name": "generate-weekly-challenges", "classification": "cron", "reason": "scheduled challenge generation", "outcome": "left-on-supabase" },
-    { "name": "manage-portrait-credits", "classification": "deno-only", "reason": "service-role credit ledger writes", "outcome": "left-on-supabase" },
-    { "name": "process-leaderboard-rewards", "classification": "cron", "reason": "scheduled reward processing", "outcome": "left-on-supabase" },
-    { "name": "recover-lost-cats", "classification": "deno-only", "reason": "admin data-repair with service role", "outcome": "left-on-supabase" },
-    { "name": "run-security-linter", "classification": "deno-only", "reason": "queries Supabase management/linter APIs", "outcome": "left-on-supabase" },
-    { "name": "save-test-report", "classification": "internal-only", "reason": "service-role insert of test reports", "outcome": "left-on-supabase" },
-    { "name": "send-admin-alert", "classification": "internal-only", "reason": "outbound email/alert delivery with server secrets", "outcome": "left-on-supabase" },
-    { "name": "send-password-reset", "classification": "deno-only", "reason": "auth admin API for recovery links", "outcome": "left-on-supabase" },
-    { "name": "send-push-notification", "classification": "deno-only", "reason": "web-push VAPID signing in Deno crypto", "outcome": "left-on-supabase" },
-    { "name": "sync-health-check", "classification": "cron", "reason": "scheduled health probe", "outcome": "left-on-supabase" },
-    { "name": "validate-display-name", "classification": "internal-only", "reason": "moderation check using server-side word lists", "outcome": "left-on-supabase" }
+    {
+      "name": "admin-delete-user",
+      "classification": "deno-only",
+      "reason": "uses service-role admin API",
+      "outcome": "left"
+    },
+    {
+      "name": "cat-ai-assistant",
+      "classification": "internal-only",
+      "reason": "streaming AI gateway responses; Deno stream handling",
+      "outcome": "left"
+    },
+    {
+      "name": "cleanup-error-logs",
+      "classification": "cron",
+      "reason": "scheduled cleanup job",
+      "outcome": "left"
+    },
+    {
+      "name": "generate-auth-background",
+      "classification": "internal-only",
+      "reason": "AI image generation with storage upload via service role",
+      "outcome": "left"
+    },
+    {
+      "name": "generate-cat-portrait",
+      "classification": "internal-only",
+      "reason": "AI image generation with storage upload via service role",
+      "outcome": "left"
+    },
+    {
+      "name": "generate-empire-scene",
+      "classification": "internal-only",
+      "reason": "AI image generation with storage upload via service role",
+      "outcome": "left"
+    },
+    {
+      "name": "generate-weekly-challenges",
+      "classification": "cron",
+      "reason": "scheduled challenge generation",
+      "outcome": "left"
+    },
+    {
+      "name": "manage-portrait-credits",
+      "classification": "deno-only",
+      "reason": "service-role credit ledger writes",
+      "outcome": "left"
+    },
+    {
+      "name": "process-leaderboard-rewards",
+      "classification": "cron",
+      "reason": "scheduled reward processing",
+      "outcome": "left"
+    },
+    {
+      "name": "recover-lost-cats",
+      "classification": "deno-only",
+      "reason": "admin data-repair with service role",
+      "outcome": "left"
+    },
+    {
+      "name": "run-security-linter",
+      "classification": "deno-only",
+      "reason": "queries Supabase management/linter APIs",
+      "outcome": "left"
+    },
+    {
+      "name": "save-test-report",
+      "classification": "internal-only",
+      "reason": "service-role insert of test reports",
+      "outcome": "left"
+    },
+    {
+      "name": "send-admin-alert",
+      "classification": "internal-only",
+      "reason": "outbound email/alert delivery with server secrets",
+      "outcome": "left"
+    },
+    {
+      "name": "send-password-reset",
+      "classification": "deno-only",
+      "reason": "auth admin API for recovery links",
+      "outcome": "left"
+    },
+    {
+      "name": "send-push-notification",
+      "classification": "deno-only",
+      "reason": "web-push VAPID signing in Deno crypto",
+      "outcome": "left"
+    },
+    {
+      "name": "sync-health-check",
+      "classification": "cron",
+      "reason": "scheduled health probe",
+      "outcome": "left"
+    },
+    {
+      "name": "validate-display-name",
+      "classification": "internal-only",
+      "reason": "moderation check using server-side word lists",
+      "outcome": "left"
+    }
   ],
   "rationale": "All 17 functions depend on service-role access, Deno-only crypto/admin APIs, or scheduled invocation. Migrating them to server functions would split secrets across two runtimes with no benefit, so they stay on the existing backend and keep their current URLs and schedules."
 }
