@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dialog';
 import { MessageAttachment } from '@/components/messages/MessageAttachment';
 import { uploadMessageAttachment } from '@/lib/messageAttachments';
+import { CannedRepliesPicker } from '@/components/admin/CannedRepliesPicker';
 import { createRealtimeChannel } from '@/integrations/supabase/realtime';
 
 interface MessageRow {
@@ -555,6 +556,12 @@ export function AdminPlayerInbox() {
                           e.target.value = '';
                         }}
                       />
+                      <CannedRepliesPicker
+                        playerName={nameOf(selectedPlayer)}
+                        draft={draft}
+                        onInsert={setDraft}
+                        disabled={sending}
+                      />
                       <Button
                         variant="outline"
                         size="sm"
@@ -624,6 +631,12 @@ export function AdminPlayerInbox() {
                   setBroadcastFile(e.target.files?.[0] ?? null);
                   e.target.value = '';
                 }}
+              />
+              <CannedRepliesPicker
+                playerName="everyone"
+                draft={broadcastBody}
+                onInsert={setBroadcastBody}
+                disabled={broadcasting}
               />
               <Button
                 variant="outline"
