@@ -5,8 +5,11 @@
 The five job workloads now run **inside the TanStack Start app** as server routes under
 `src/routes/api/public/jobs/*`. Each one:
 
-- verifies the `x-function-secret` header against `FUNCTION_SECRET_TOKEN` with a
-  length-checked constant-time compare before doing any work,
+- verifies the `x-function-secret` header with a length-checked constant-time compare
+  against either `FUNCTION_SECRET_TOKEN` (env) or `public.job_cron_secret.token`
+  (database row, used by `pg_cron`, which cannot read worker env vars) before doing any
+  work,
+
 - validates its request body with Zod (only `send-admin-alert` takes a body),
 - loads `supabaseAdmin` inside the handler via
   `await import('@/integrations/supabase/client.server')`.
@@ -58,7 +61,8 @@ Emails every admin (via Resend) about a failed or test job. Requires `RESEND_API
 
 ## Scheduling / re-pointing
 
-`pg_cron` calls the endpoints with the shared secret header:
+`pg_cron` calls the endpoints and reads the shared secret straight out of the database, so
+no secret value is ever written into a schedule definition:
 
 ```sql
 SELECT cron.schedule(
@@ -66,17 +70,23 @@ SELECT cron.schedule(
   '*/10 * * * *',
   $$
   SELECT net.http_post(
-    url:='https://project--e8e83e8c-0c77-43d8-8d1e-9f913ade2ac9.lovable.app/api/public/jobs/sync-health-check',
-    headers:='{"Content-Type": "application/json", "x-function-secret": "<FUNCTION_SECRET_TOKEN>"}'::jsonb,
-    body:='{}'::jsonb
+    url := 'https://project--e8e83e8c-0c77-43d8-8d1e-9f913ade2ac9.lovable.app/api/public/jobs/sync-health-check',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-function-secret', (SELECT token FROM public.job_cron_secret WHERE id)
+    ),
+    body := '{}'::jsonb
   );
   $$
 );
 ```
 
-The endpoints only exist on the live site after the app is published, so schedules are
-re-pointed **after** a publish. Until then the old Supabase functions keep running, so
-there is no gap in coverage.
+`public.job_cron_secret` holds a single random token, has RLS enabled with **no policies**
+and is granted only to `service_role`, so no client role can read it.
+
+All four schedules point at the in-app endpoints. The endpoints only exist on the live site
+once the app is published, so a publish must follow any change to the job auth code.
+
 
 ## Manual triggers
 
