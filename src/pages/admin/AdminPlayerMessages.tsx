@@ -87,7 +87,9 @@ function useMessages() {
     queryFn: async () => {
       const { data: messages, error } = await supabase
         .from('player_messages')
-        .select('id, player_id, sender_id, direction, body, read_by_admin, read_by_player, created_at')
+        .select(
+          'id, player_id, sender_id, direction, body, read_by_admin, read_by_player, created_at, attachment_url, attachment_name, attachment_type, broadcast_id',
+        )
         .order('created_at', { ascending: true })
         .limit(2000);
       if (error) throw error;
