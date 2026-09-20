@@ -20,14 +20,21 @@ import { createLogger } from '@/lib/logger';
 import {
   ArrowLeft,
   BarChart3,
+  Cat as CatIcon,
+  Heart,
   Loader2,
   LogIn,
   Mail,
   RefreshCw,
   Send,
   Star,
+  Trophy,
   User,
+  Utensils,
 } from 'lucide-react';
+import { GradeBadge } from '@/components/game/GradeBadge';
+import { CatAvatar } from '@/components/game/CatAvatar';
+import type { Cat } from '@/types/game';
 
 const logger = createLogger('PlayerPortal');
 const MAX_BODY = 4000;
@@ -86,6 +93,40 @@ export default function PlayerPortal() {
       });
     }
   };
+
+  // Cats (from the player's cloud save)
+  const [cats, setCats] = useState<Cat[]>([]);
+  const [catCostumes, setCatCostumes] = useState<Record<string, string>>({});
+  const [catsLoading, setCatsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setCats([]);
+      setCatsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    const loadCats = async () => {
+      const { data, error } = await supabase
+        .from('game_saves')
+        .select('game_state')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) {
+        logger.warn('Failed to load portal cats', error);
+      } else {
+        const gs = (data?.game_state ?? {}) as { cats?: Cat[]; catCostumes?: Record<string, string> };
+        setCats(Array.isArray(gs.cats) ? gs.cats : []);
+        setCatCostumes(gs.catCostumes ?? {});
+      }
+      setCatsLoading(false);
+    };
+    void loadCats();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   // Messages
   const [messages, setMessages] = useState<PortalMessage[]>([]);
@@ -256,7 +297,7 @@ export default function PlayerPortal() {
 
         <main className="max-w-5xl mx-auto p-4 panel-fade-in">
           <Tabs defaultValue="messages">
-            <TabsList className="mb-4">
+            <TabsList className="mb-4 max-w-full overflow-x-auto justify-start">
               <TabsTrigger value="messages" className="gap-2">
                 <Mail className="h-4 w-4" />
                 Messages
@@ -269,6 +310,10 @@ export default function PlayerPortal() {
               <TabsTrigger value="profile" className="gap-2">
                 <User className="h-4 w-4" />
                 Profile
+              </TabsTrigger>
+              <TabsTrigger value="cats" className="gap-2">
+                <CatIcon className="h-4 w-4" />
+                My Cats
               </TabsTrigger>
               <TabsTrigger value="stats" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
@@ -417,6 +462,83 @@ export default function PlayerPortal() {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* CATS */}
+            <TabsContent value="cats">
+              {catsLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground py-10 justify-center">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Loading your cats…
+                </div>
+              ) : cats.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6 text-center text-muted-foreground">
+                    <CatIcon className="h-10 w-10 mx-auto mb-3 opacity-60" />
+                    <p className="font-medium">No cats saved yet</p>
+                    <p className="text-sm">
+                      Your cats appear here once your game has saved to the cloud.
+                    </p>
+                    <Link to="/">
+                      <Button variant="outline" size="sm" className="mt-4">
+                        Back to Game
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {cats.map((cat) => (
+                    <Card key={cat.id}>
+                      <CardContent className="pt-4 pb-4">
+                        <div className="flex items-start gap-3">
+                          <CatAvatar
+                            cat={cat}
+                            size="md"
+                            animated={false}
+                            equippedCostumeId={catCostumes[cat.id]}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-semibold truncate">{cat.name}</p>
+                              <GradeBadge grade={cat.grade} showStars={false} size="sm" />
+                            </div>
+                            <p className="text-xs text-muted-foreground capitalize">
+                              {cat.breed} • {cat.personality} • Day {cat.age}
+                            </p>
+                            {cat.showWins > 0 && (
+                              <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                <Trophy className="h-3 w-3 text-yellow-500" />
+                                {cat.showWins} show win{cat.showWins === 1 ? '' : 's'}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="mt-3 space-y-1.5">
+                          {(
+                            [
+                              { icon: Heart, label: 'Health', value: cat.health },
+                              { icon: Star, label: 'Happy', value: cat.happiness },
+                              { icon: Utensils, label: 'Fed', value: cat.hunger },
+                            ] as const
+                          ).map(({ icon: Icon, label, value }) => (
+                            <div key={label} className="flex items-center gap-2 text-xs">
+                              <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                              <span className="w-12 text-muted-foreground">{label}</span>
+                              <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-primary"
+                                  style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+                                />
+                              </div>
+                              <span className="w-8 text-right tabular-nums">{value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             {/* STATS */}
