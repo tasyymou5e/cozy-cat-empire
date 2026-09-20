@@ -94,6 +94,40 @@ export default function PlayerPortal() {
     }
   };
 
+  // Cats (from the player's cloud save)
+  const [cats, setCats] = useState<Cat[]>([]);
+  const [catCostumes, setCatCostumes] = useState<Record<string, string>>({});
+  const [catsLoading, setCatsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setCats([]);
+      setCatsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    const loadCats = async () => {
+      const { data, error } = await supabase
+        .from('game_saves')
+        .select('game_state')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) {
+        logger.warn('Failed to load portal cats', error);
+      } else {
+        const gs = (data?.game_state ?? {}) as { cats?: Cat[]; catCostumes?: Record<string, string> };
+        setCats(Array.isArray(gs.cats) ? gs.cats : []);
+        setCatCostumes(gs.catCostumes ?? {});
+      }
+      setCatsLoading(false);
+    };
+    void loadCats();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   // Messages
   const [messages, setMessages] = useState<PortalMessage[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
@@ -276,6 +310,10 @@ export default function PlayerPortal() {
               <TabsTrigger value="profile" className="gap-2">
                 <User className="h-4 w-4" />
                 Profile
+              </TabsTrigger>
+              <TabsTrigger value="cats" className="gap-2">
+                <CatIcon className="h-4 w-4" />
+                My Cats
               </TabsTrigger>
               <TabsTrigger value="stats" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
