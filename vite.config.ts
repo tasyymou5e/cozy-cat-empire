@@ -12,4 +12,14 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    resolve: {
+      alias: [
+        // paper (vector cat avatars) is browser-only and drags jsdom into the
+        // server bundle, which fails to build. It is only ever imported
+        // dynamically from client components, so stub it out server-side.
+        { find: /^paper$/, replacement: "/src/lib/paper-server-stub.ts" },
+      ],
+    },
+  },
 });
