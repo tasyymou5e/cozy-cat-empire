@@ -37,9 +37,14 @@ export function usePlayerProfile(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
     const subscribedUserId = userId;
-    // Unique topic per mount: reusing a topic returns the already-subscribed
-    // channel, and adding listeners after subscribe() throws.
-    const channel = supabase.channel(`profile-${userId}-${Math.random().toString(36).slice(2)}`)
+    // Reusing a topic hands back the already-subscribed channel, and adding
+    // listeners after subscribe() throws. Drop any leftover channel for this
+    // topic (e.g. from a remounted effect) before creating a fresh one.
+    const topic = `profile-${userId}`;
+    for (const existing of supabase.getChannels()) {
+      if (existing.topic === `realtime:${topic}`) supabase.removeChannel(existing);
+    }
+    const channel = supabase.channel(topic)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
         (payload) => {
           if (subscribedUserId !== userId) { log.debug('Ignoring stale update for different user'); return; }
