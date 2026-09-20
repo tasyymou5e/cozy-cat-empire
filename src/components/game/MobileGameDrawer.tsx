@@ -14,9 +14,10 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-import { ChevronDown, BarChart3, LayoutGrid, Heart, Camera, Image, Globe, Castle, MessageSquare, UserRound } from 'lucide-react';
+import { ChevronDown, BarChart3, LayoutGrid, Heart, Camera, Image, Globe, Castle, MessageSquare, UserRound, ShieldCheck } from 'lucide-react';
 import { CATEGORIES, getCategoryForTab } from './CategoryTabBar';
 import { useHaptics } from '@/hooks/useHaptics';
+import { useAdminAuth } from '@/hooks/admin/useAdminAuth';
 
 interface MobileGameDrawerProps {
   open: boolean;
@@ -51,6 +52,11 @@ export function MobileGameDrawer({
 }: MobileGameDrawerProps) {
   const activeCategory = getCategoryForTab(activeTab);
   const { vibrate } = useHaptics();
+  const { isAdmin } = useAdminAuth();
+
+  const externalLinks = isAdmin
+    ? [...EXTERNAL_LINKS, { href: '/admin-chat', icon: <ShieldCheck className="h-5 w-5" />, label: 'Admin Chat' }]
+    : EXTERNAL_LINKS;
 
   const handleTabClick = (tabId: string) => {
     vibrate('light');

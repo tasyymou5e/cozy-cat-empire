@@ -36,6 +36,8 @@ import {
   UserRound,
 } from 'lucide-react';
 import { CATEGORIES } from './CategoryTabBar';
+import { useAdminAuth } from '@/hooks/admin/useAdminAuth';
+import { ShieldCheck } from 'lucide-react';
 
 interface ExternalPageSidebarProps {
   /** Current page path for highlighting (e.g., '/empire', '/collection') */
@@ -68,6 +70,11 @@ export function ExternalPageSidebar({ currentPage, day, money }: ExternalPageSid
   const { state } = useSidebar();
   const navigate = useNavigate();
   const isCollapsed = state === 'collapsed';
+  const { isAdmin } = useAdminAuth();
+
+  const links = isAdmin
+    ? [...EXTERNAL_LINKS, { href: '/admin-chat', icon: ShieldCheck, label: 'Admin Chat' }]
+    : EXTERNAL_LINKS;
 
   const isExternalPage = (href: string) => currentPage === href;
   const isOnMainGame = currentPage === '/' || currentPage === '';
@@ -183,7 +190,7 @@ export function ExternalPageSidebar({ currentPage, day, money }: ExternalPageSid
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {EXTERNAL_LINKS.map((link) => {
+              {links.map((link) => {
                 const isActive = isExternalPage(link.href);
                 const IconComponent = link.icon;
 
