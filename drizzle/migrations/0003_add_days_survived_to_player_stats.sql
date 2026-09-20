@@ -1,0 +1,1 @@
+ALTER TABLE public.player_stats ADD COLUMN IF NOT EXISTS total_days_survived integer NOT NULL DEFAULT 0;

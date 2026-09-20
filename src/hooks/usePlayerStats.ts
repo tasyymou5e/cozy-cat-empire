@@ -17,6 +17,7 @@ export interface PlayerStats {
   total_money_earned: number;
   achievements_unlocked: number;
   highest_cat_grade: number;
+  total_days_survived?: number;
   last_updated: string;
 }
 

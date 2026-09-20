@@ -20,7 +20,9 @@ import { createLogger } from '@/lib/logger';
 import {
   ArrowLeft,
   BarChart3,
+  CalendarDays,
   Cat as CatIcon,
+  Coins,
   Heart,
   Loader2,
   LogIn,
@@ -38,6 +40,24 @@ import type { Cat } from '@/types/game';
 
 const logger = createLogger('PlayerPortal');
 const MAX_BODY = 4000;
+const LEADERBOARD_SIZE = 10;
+
+type PortalBoardCategory = 'grade' | 'days' | 'wealth';
+
+const PORTAL_BOARD_COLUMNS: Record<PortalBoardCategory, string> = {
+  grade: 'highest_cat_grade',
+  days: 'total_days_survived',
+  wealth: 'total_money_earned',
+};
+
+interface PortalBoardEntry {
+  user_id: string;
+  display_name: string | null;
+  avatar_emoji: string;
+  highest_cat_grade: number;
+  total_days_survived: number;
+  total_money_earned: number;
+}
 
 interface PortalMessage {
   id: string;
@@ -236,6 +256,49 @@ export default function PlayerPortal() {
     await loadMessages();
   };
 
+  // Leaderboard (public player_stats)
+  const [boardCategory, setBoardCategory] = useState<PortalBoardCategory>('grade');
+  const [boardEntries, setBoardEntries] = useState<PortalBoardEntry[]>([]);
+  const [boardLoading, setBoardLoading] = useState(true);
+
+  const loadBoard = useCallback(async (category: PortalBoardCategory) => {
+    setBoardLoading(true);
+    const { data, error } = await supabase
+      .from('player_stats')
+      .select(
+        'user_id, display_name, avatar_emoji, highest_cat_grade, total_days_survived, total_money_earned'
+      )
+      .order(PORTAL_BOARD_COLUMNS[category], { ascending: false })
+      .limit(LEADERBOARD_SIZE);
+    if (error) {
+      logger.warn('Failed to load portal leaderboard', error);
+      setBoardEntries([]);
+    } else {
+      setBoardEntries((data ?? []) as unknown as PortalBoardEntry[]);
+    }
+    setBoardLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setBoardEntries([]);
+      setBoardLoading(false);
+      return;
+    }
+    void loadBoard(boardCategory);
+  }, [user, boardCategory, loadBoard]);
+
+  const boardCategories: {
+    id: PortalBoardCategory;
+    label: string;
+    icon: typeof Star;
+    value: (e: PortalBoardEntry) => string;
+  }[] = [
+    { id: 'grade', label: 'Cat Grade', icon: Star, value: (e) => `Grade ${e.highest_cat_grade}` },
+    { id: 'days', label: 'Days Survived', icon: CalendarDays, value: (e) => `${e.total_days_survived} days` },
+    { id: 'wealth', label: 'Money Earned', icon: Coins, value: (e) => `$${e.total_money_earned.toLocaleString()}` },
+  ];
+
   // Signed-out state
   if (!authLoading && !user) {
     return (
@@ -318,6 +381,10 @@ export default function PlayerPortal() {
               <TabsTrigger value="stats" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
                 Cat Stats
+              </TabsTrigger>
+              <TabsTrigger value="leaderboard" className="gap-2">
+                <Trophy className="h-4 w-4" />
+                Leaderboard
               </TabsTrigger>
             </TabsList>
 
@@ -593,6 +660,83 @@ export default function PlayerPortal() {
                   </Card>
                 )}
               </div>
+            </TabsContent>
+
+            {/* LEADERBOARD */}
+            <TabsContent value="leaderboard">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Player leaderboard</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {boardCategories.map(({ id, label, icon: Icon }) => (
+                      <Button
+                        key={id}
+                        variant={boardCategory === id ? 'default' : 'outline'}
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => setBoardCategory(id)}
+                      >
+                        <Icon className="h-4 w-4" />
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {boardLoading ? (
+                    <div className="flex items-center gap-2 text-muted-foreground py-10 justify-center">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Loading the leaderboard…
+                    </div>
+                  ) : boardEntries.length === 0 ? (
+                    <div className="text-center py-10 text-muted-foreground">
+                      <Trophy className="h-10 w-10 mx-auto mb-3 opacity-60" />
+                      <p className="font-medium">No players ranked yet</p>
+                      <p className="text-sm">
+                        Save your game to the cloud to appear on the leaderboard.
+                      </p>
+                    </div>
+                  ) : (
+                    <ol className="divide-y divide-border">
+                      {boardEntries.map((entry, index) => {
+                        const isMe = entry.user_id === user?.id;
+                        const active = boardCategories.find((c) => c.id === boardCategory);
+                        return (
+                          <li
+                            key={entry.user_id}
+                            className={cn(
+                              'flex items-center gap-3 py-2.5 px-2 rounded-md',
+                              isMe && 'bg-primary/10'
+                            )}
+                          >
+                            <span className="w-7 text-center font-bold tabular-nums text-muted-foreground">
+                              {index + 1}
+                            </span>
+                            <span className="text-2xl">{entry.avatar_emoji || '😺'}</span>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium truncate">
+                                {entry.display_name || 'Cat Farmer'}
+                                {isMe && <span className="text-primary"> (you)</span>}
+                              </p>
+                            </div>
+                            <span className="text-sm font-semibold tabular-nums shrink-0">
+                              {active?.value(entry)}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  )}
+
+                  <div className="flex justify-end">
+                    <Link to="/leaderboard">
+                      <Button variant="outline" size="sm">
+                        Full leaderboard
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </main>

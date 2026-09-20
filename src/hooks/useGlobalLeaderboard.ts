@@ -22,6 +22,7 @@ export interface LeaderboardEntry {
   highest_cat_grade: number;
   total_money_earned: number;
   achievements_unlocked: number;
+  total_days_survived?: number;
   rank?: number;
   rankChange?: RankChange;
 }
@@ -343,6 +344,7 @@ export function useGlobalLeaderboard(userId: string | undefined, friendIds?: str
           total_kittens_bred: kittensBreed,
           highest_cat_grade: Math.max(...gameState.cats.map((c) => c.grade || 1), 1),
           total_money_earned: gameState.money,
+          total_days_survived: gameState.day || 1,
           achievements_unlocked: gameState.achievements.filter((a) => a.unlocked).length,
           last_updated: new Date().toISOString(),
         };
