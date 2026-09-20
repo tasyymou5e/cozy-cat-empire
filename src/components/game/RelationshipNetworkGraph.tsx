@@ -255,7 +255,7 @@ export function RelationshipNetworkGraph({
 
             return (
               <g key={`${rel.catId1}-${rel.catId2}`}>
-                {/* Invisible fat line: generous tap target for touch users */}
+                {/* Invisible fat line: generous tap target for touch users, also owns hover/click */}
                 <line
                   x1={pos1.x}
                   y1={pos1.y}
@@ -265,6 +265,8 @@ export function RelationshipNetworkGraph({
                   strokeWidth={Math.max(strokeWidth, 14)}
                   strokeLinecap="round"
                   className="cursor-pointer"
+                  onMouseEnter={() => setHoveredRelationship(rel)}
+                  onMouseLeave={() => setHoveredRelationship(null)}
                   onClick={() =>
                     setHoveredRelationship((current) =>
                       current?.catId1 === rel.catId1 && current?.catId2 === rel.catId2 ? null : rel
