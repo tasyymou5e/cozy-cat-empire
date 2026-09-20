@@ -16,7 +16,7 @@ const authSchema = z.object({
 
 export default function AdminAuth() {
   const navigate = useNavigate();
-  const { signIn, signOut, user } = useAuth();
+  const { signIn, signUp, signOut, user } = useAuth();
   const { isAdmin, loading: adminLoading, checked } = useAdminAuth();
 
   const [email, setEmail] = useState('');
@@ -24,6 +24,8 @@ export default function AdminAuth() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [notice, setNotice] = useState('');
 
   // Check admin status when user changes
   useEffect(() => {
