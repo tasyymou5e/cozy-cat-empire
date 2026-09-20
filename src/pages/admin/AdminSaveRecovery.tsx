@@ -110,12 +110,9 @@ export default function AdminSaveRecovery() {
   // Manual sync health check trigger
   const triggerHealthCheck = useMutation({
     mutationFn: async () => {
-      const response = await supabase.functions.invoke('sync-health-check', {
-        body: {},
-      });
-      if (response.error) throw response.error;
-      return response.data;
+      return await triggerScheduledJob({ data: { job: 'sync-health-check' } });
     },
+
     onSuccess: () => {
       toast.success('Health check completed');
       refetchHealth();
