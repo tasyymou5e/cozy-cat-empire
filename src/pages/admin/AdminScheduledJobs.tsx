@@ -304,8 +304,8 @@ export default function AdminScheduledJobs() {
       is_test: true,
     };
     try {
-      const { error } = await supabase.functions.invoke('send-admin-alert', { body });
-      if (error) throw error;
+      await sendAdminAlertNow({ data: body });
+
       toast({
         title: 'Test Alert Sent',
         description: 'Check your email for the test notification.',
