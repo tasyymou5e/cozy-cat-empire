@@ -33,6 +33,7 @@ import {
   Home,
   Gamepad2,
   MessageSquare,
+  UserRound,
 } from 'lucide-react';
 import { CATEGORIES } from './CategoryTabBar';
 
@@ -54,6 +55,7 @@ const EXTERNAL_LINKS = [
   { href: '/gallery', icon: Image, label: 'Gallery' },
   { href: '/leaderboard', icon: Globe, label: 'Leaderboard' },
   { href: '/messages', icon: MessageSquare, label: 'Messages' },
+  { href: '/portal', icon: UserRound, label: 'My Portal' },
 ];
 
 /**
