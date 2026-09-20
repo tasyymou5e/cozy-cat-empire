@@ -21,6 +21,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { ChevronDown, Heart, Sparkles, Target, TrendingUp } from 'lucide-react';
 import { CatVisual } from './CatVisual';
+import { usePointerCapability } from '@/hooks/usePointerCapability';
 import { GradeBadge } from './GradeBadge';
 import {
   findOptimalBreedingMatches,
@@ -73,6 +74,11 @@ export function BreedingPanel({
   const [parent1, setParent1] = useState<string>('');
   const [parent2, setParent2] = useState<string>('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  // Touch fallback for score tooltips: tap a score cell to pin its explanation.
+  const { isCoarse } = usePointerCapability();
+  const [activeScoreTip, setActiveScoreTip] = useState<string | null>(null);
+  const toggleScoreTip = (tip: string) =>
+    setActiveScoreTip((current) => (current === tip ? null : tip));
 
   const eligibleCats = cats.filter((c) => c.health >= 60 && c.age >= 1);
 
@@ -268,10 +274,14 @@ export function BreedingPanel({
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div className="text-center p-1 rounded bg-background/50">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleScoreTip('Breed rarity & synergy')}
+                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-none focus:ring-1 focus:ring-ring"
+                                >
                                   <div className="font-medium">{match.scores.genetics}%</div>
                                   <div className="text-muted-foreground">Genes</div>
-                                </div>
+                                </button>
                               </TooltipTrigger>
                               <TooltipContent>Breed rarity & synergy</TooltipContent>
                             </Tooltip>
@@ -279,10 +289,14 @@ export function BreedingPanel({
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div className="text-center p-1 rounded bg-background/50">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleScoreTip('Parent grade quality')}
+                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-none focus:ring-1 focus:ring-ring"
+                                >
                                   <div className="font-medium">{match.scores.grades}%</div>
                                   <div className="text-muted-foreground">Grade</div>
-                                </div>
+                                </button>
                               </TooltipTrigger>
                               <TooltipContent>Parent grade quality</TooltipContent>
                             </Tooltip>
@@ -290,10 +304,14 @@ export function BreedingPanel({
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div className="text-center p-1 rounded bg-background/50">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleScoreTip('Relationship level bonus')}
+                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-none focus:ring-1 focus:ring-ring"
+                                >
                                   <div className="font-medium">{match.scores.relationship}%</div>
                                   <div className="text-muted-foreground">Bond</div>
-                                </div>
+                                </button>
                               </TooltipTrigger>
                               <TooltipContent>Relationship level bonus</TooltipContent>
                             </Tooltip>
@@ -301,10 +319,14 @@ export function BreedingPanel({
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div className="text-center p-1 rounded bg-background/50">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleScoreTip('Personality compatibility')}
+                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-none focus:ring-1 focus:ring-ring"
+                                >
                                   <div className="font-medium">{match.scores.personality}%</div>
                                   <div className="text-muted-foreground">Pers.</div>
-                                </div>
+                                </button>
                               </TooltipTrigger>
                               <TooltipContent>Personality compatibility</TooltipContent>
                             </Tooltip>
@@ -312,15 +334,26 @@ export function BreedingPanel({
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div className="text-center p-1 rounded bg-background/50">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleScoreTip('Current health & condition')}
+                                  className="w-full text-center p-1 rounded bg-background/50 cursor-help focus:outline-none focus:ring-1 focus:ring-ring"
+                                >
                                   <div className="font-medium">{match.scores.health}%</div>
                                   <div className="text-muted-foreground">Health</div>
-                                </div>
+                                </button>
                               </TooltipTrigger>
                               <TooltipContent>Current health & condition</TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </div>
+
+                        {/* Touch fallback: pinned score explanation (tap a score cell) */}
+                        {isCoarse && activeScoreTip && (
+                          <p className="text-[10px] text-muted-foreground text-center pt-1 animate-fade-in">
+                            {activeScoreTip}
+                          </p>
+                        )}
 
                         {/* Kitten estimate */}
                         <div className="flex items-center gap-2 text-xs bg-background/50 p-2 rounded">

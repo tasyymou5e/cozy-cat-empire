@@ -44,8 +44,12 @@ export const DraggableSticker: React.FC<DraggableStickerProps> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  // Selected state gives touch users (no hover) a way to reveal the delete button:
+  // tapping a sticker without dragging toggles selection.
+  const [isSelected, setIsSelected] = useState(false);
   const stickerRef = useRef<HTMLDivElement>(null);
   const startPosRef = useRef({ x: 0, y: 0 });
+  const movedRef = useRef(false);
 
   const stickerData = PHOTO_STICKERS.find((s) => s.id === sticker.stickerId);
   if (!stickerData) return null;
@@ -82,6 +86,7 @@ export const DraggableSticker: React.FC<DraggableStickerProps> = ({
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0];
     setIsDragging(true);
+    movedRef.current = false;
     startPosRef.current = { x: touch.clientX, y: touch.clientY };
 
     const handleTouchMove = (moveEvent: TouchEvent) => {
@@ -92,6 +97,9 @@ export const DraggableSticker: React.FC<DraggableStickerProps> = ({
       const deltaX = ((touchMove.clientX - startPosRef.current.x) / containerRect.width) * 100;
       const deltaY = ((touchMove.clientY - startPosRef.current.y) / containerRect.height) * 100;
 
+      // Any meaningful movement counts as a drag, not a tap
+      if (Math.abs(deltaX) + Math.abs(deltaY) > 0.5) movedRef.current = true;
+
       const newX = Math.max(0, Math.min(100, sticker.x + deltaX));
       const newY = Math.max(0, Math.min(100, sticker.y + deltaY));
 
@@ -101,6 +109,8 @@ export const DraggableSticker: React.FC<DraggableStickerProps> = ({
 
     const handleTouchEnd = () => {
       setIsDragging(false);
+      // A touch with no drag is a tap: toggle selection to reveal/hide the delete button
+      if (!movedRef.current) setIsSelected((s) => !s);
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
     };
@@ -126,16 +136,17 @@ export const DraggableSticker: React.FC<DraggableStickerProps> = ({
     >
       <span className="text-4xl">{stickerData.emoji}</span>
 
-      {/* Delete button - hidden during export */}
-      {isHovered && !isDragging && !isExporting && (
+      {/* Delete button - shown on hover (desktop) or when selected via tap (touch); hidden during export */}
+      {(isHovered || isSelected) && !isDragging && !isExporting && (
         <button
-          className="absolute -top-2 -right-2 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-xs hover:scale-110 transition-transform"
+          aria-label={`Remove ${stickerData.emoji} sticker`}
+          className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-xs hover:scale-110 transition-transform shadow-sm"
           onClick={(e) => {
             e.stopPropagation();
             onRemove(sticker.id);
           }}
         >
-          <X className="w-3 h-3" />
+          <X className="w-3.5 h-3.5" />
         </button>
       )}
     </div>
