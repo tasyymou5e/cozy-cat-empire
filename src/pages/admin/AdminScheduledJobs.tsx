@@ -269,16 +269,11 @@ export default function AdminScheduledJobs() {
       const functionName = JOB_FUNCTION_MAP[jobName];
       if (!functionName) throw new Error('Unknown job');
 
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const { error } = await supabase.functions.invoke(functionName, {
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
+      await triggerScheduledJob({
+        data: { job: functionName as Parameters<typeof triggerScheduledJob>[0]['data']['job'] },
       });
-
-      if (error) throw error;
     },
+
     onSuccess: (_, jobName) => {
       toast({
         title: 'Job Triggered',
