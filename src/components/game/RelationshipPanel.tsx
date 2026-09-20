@@ -229,7 +229,7 @@ export function RelationshipPanel({
                                       tabIndex={0}
                                       role="button"
                                       aria-label={`Last interaction ${decayInfo.daysSinceInteraction} days ago`}
-                                      className={`text-xs gap-0.5 cursor-help focus:outline-none focus:ring-1 focus:ring-ring ${getDecayWarningColor(decayInfo.decayLevel)}`}
+                                      className={`text-xs gap-0.5 cursor-help focus:outline-hidden focus:ring-1 focus:ring-ring ${getDecayWarningColor(decayInfo.decayLevel)}`}
                                     >
                                       <AlertTriangle className="h-3 w-3" />
                                       {decayInfo.daysSinceInteraction}d

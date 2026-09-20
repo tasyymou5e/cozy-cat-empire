@@ -45,7 +45,7 @@ export function MobileNavFAB({
         'fixed z-50 flex items-center justify-center',
         'bg-primary text-primary-foreground shadow-lg',
         'transition-all duration-200 ease-out',
-        'active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+        'active:scale-95 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
         // Position: bottom-right with safe area consideration
         'bottom-6 right-6 mb-safe z-50',
         // Size and shape
