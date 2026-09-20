@@ -212,3 +212,14 @@ export const MOVEMENT_TIMING = {
   maxInterval: 8000, // Maximum ms between movements
   transitionDuration: 3000, // CSS transition duration in ms
 };
+
+/**
+ * Maximum number of simultaneously roaming cats per device type.
+ * Each roaming cat owns a movement timer, so capping this keeps
+ * small screens from running dozens of intervals at once.
+ */
+export const ROAMING_CAT_LIMITS: Record<'mobile' | 'tablet' | 'desktop', number> = {
+  mobile: 6,
+  tablet: 10,
+  desktop: 18,
+};

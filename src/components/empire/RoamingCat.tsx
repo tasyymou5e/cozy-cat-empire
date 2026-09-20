@@ -98,71 +98,80 @@ export function RoamingCat({
   const stateIndicator = getStateIndicator(position.state);
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <div
-          className={cn(
-            'absolute cursor-pointer group will-change-transform',
-            'hover:scale-110 hover:z-50',
-            animationsEnabled && 'transition-all ease-in-out',
-            animationsEnabled && position.state === 'walking' && 'animate-cat-walk',
-            position.state === 'sleeping' && 'opacity-90'
-          )}
-          style={{
-            left: `${position.x}%`,
-            top: `${position.y}%`,
-            transform: `${microDepthTransform} translate(-50%, -50%) scaleX(${position.facing === 'left' ? -1 : 1}) scale(${scale})`,
-            zIndex: isHovered ? 100 : zIndex,
-            transitionDuration: animationsEnabled ? `${MOVEMENT_TIMING.transitionDuration}ms` : '0ms',
-            transitionProperty: animationsEnabled ? 'left, top, transform' : 'none',
-          }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          {/* Cat Visual */}
-          <div className="relative">
-            <CatVisual
-              cat={cat}
-              equippedCostumeId={equippedCostumeId}
-              size="lg"
-              animated={animationsEnabled}
-            />
-            
-            {/* Reaction overlay */}
-            {reaction && <CatCardReaction reaction={reaction} />}
-            
-            {/* State indicator */}
-            {stateIndicator && (
-              <div className={cn(
-                'absolute -top-2 left-1/2 -translate-x-1/2',
-                animationsEnabled && stateIndicator.animation
-              )}>
-                <span className="text-xl">{stateIndicator.emoji}</span>
-              </div>
+    /**
+     * Mover: a full-size layer translated with translate3d so movement is
+     * GPU-composited (percentages resolve against the scene, not the cat).
+     */
+    <div
+      className="absolute inset-0 pointer-events-none will-change-transform"
+      style={{
+        transform: `${microDepthTransform} translate3d(${position.x}%, ${position.y}%, 0)`,
+        zIndex: isHovered ? 100 : zIndex,
+        transition: animationsEnabled
+          ? `transform ${MOVEMENT_TIMING.transitionDuration}ms ease-in-out`
+          : 'none',
+      }}
+    >
+      <Popover>
+        <PopoverTrigger asChild>
+          <div
+            className={cn(
+              'absolute left-0 top-0 pointer-events-auto cursor-pointer group will-change-transform',
+              animationsEnabled && 'transition-transform duration-200 ease-out',
+              animationsEnabled && position.state === 'walking' && 'animate-cat-walk',
+              position.state === 'sleeping' && 'opacity-90'
             )}
+            style={{
+              transform: `translate(-50%, -50%) scaleX(${position.facing === 'left' ? -1 : 1}) scale(${isHovered ? scale * 1.1 : scale})`,
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            {/* Cat Visual */}
+            <div className="relative">
+              <CatVisual
+                cat={cat}
+                equippedCostumeId={equippedCostumeId}
+                size="lg"
+                animated={animationsEnabled}
+              />
+
+              {/* Reaction overlay */}
+              {reaction && <CatCardReaction reaction={reaction} />}
+
+              {/* State indicator */}
+              {stateIndicator && (
+                <div className={cn(
+                  'absolute -top-2 left-1/2 -translate-x-1/2',
+                  animationsEnabled && stateIndicator.animation
+                )}>
+                  <span className="text-xl">{stateIndicator.emoji}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Name label on hover */}
+            <div className="absolute left-1/2 -translate-x-1/2 -bottom-5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="text-xs font-medium bg-background/80 px-1.5 py-0.5 rounded whitespace-nowrap shadow-sm">
+                {cat.name}
+              </span>
+            </div>
           </div>
-          
-          {/* Name label on hover */}
-          <div className="absolute left-1/2 -translate-x-1/2 -bottom-5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <span className="text-xs font-medium bg-background/80 px-1.5 py-0.5 rounded whitespace-nowrap shadow-sm">
-              {cat.name}
-            </span>
-          </div>
-        </div>
-      </PopoverTrigger>
-      
-      <PopoverContent 
-        side="top" 
-        className="p-0 w-auto"
-        sideOffset={8}
-      >
-        <EmpireInteractionMenu
-          cat={cat}
-          onAction={handleAction}
-          canFeed={canFeed}
-          canPlay={canPlay}
-        />
-      </PopoverContent>
-    </Popover>
+        </PopoverTrigger>
+
+        <PopoverContent
+          side="top"
+          className="p-0 w-auto"
+          sideOffset={8}
+        >
+          <EmpireInteractionMenu
+            cat={cat}
+            onAction={handleAction}
+            canFeed={canFeed}
+            canPlay={canPlay}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }

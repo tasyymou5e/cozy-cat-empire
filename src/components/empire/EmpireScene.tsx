@@ -2,7 +2,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Cat, HouseSize, GameState } from '@/types/game';
 import { EmpireInteraction } from '@/types/empire';
-import { ENHANCED_EMPIRE_ZONES } from '@/config/empire';
+import { ENHANCED_EMPIRE_ZONES, ROAMING_CAT_LIMITS } from '@/config/empire';
+import { useDeviceType } from '@/hooks/use-mobile';
 import { useRoamingCats } from '@/hooks/empire/useRoamingCats';
 import { useParallax } from '@/hooks/empire/useParallax';
 import { useGraphicsSettings } from '@/hooks/useGraphicsSettings';
@@ -79,8 +80,17 @@ export function EmpireScene({
   const microDepthEnabled = parallaxEnabled && settings.enableMicroDepthParallax;
   const parallaxOffset = useParallax(parallaxEnabled, 35, 0.1);
   
+  // Cap how many cats roam at once based on viewport size (each one owns a timer)
+  const { deviceType } = useDeviceType();
+  const roamingLimit = ROAMING_CAT_LIMITS[deviceType];
+  const roamingCats = useMemo(
+    () => (cats.length > roamingLimit ? cats.slice(0, roamingLimit) : cats),
+    [cats, roamingLimit]
+  );
+  const hiddenCatCount = cats.length - roamingCats.length;
+
   // Roaming cats with prop attraction
-  const { positions, setInteracting, summonCatsToProp, attractionZones } = useRoamingCats(cats, zone.props);
+  const { positions, setInteracting, summonCatsToProp, attractionZones } = useRoamingCats(roamingCats, zone.props);
   
   // Track props that are currently summoning cats (for visual feedback)
   const [summoningProps, setSummoningProps] = useState<Set<string>>(new Set());
@@ -292,7 +302,7 @@ export function EmpireScene({
         enabled={parallaxEnabled && !microDepthEnabled} // Disable layer parallax when micro-depth is active
         zIndex={40}
       >
-        {cats.map((cat) => {
+        {roamingCats.map((cat) => {
           const position = positions.get(cat.id);
           if (!position) return null;
 
@@ -353,6 +363,11 @@ export function EmpireScene({
         <Badge variant="secondary" className="bg-background/80 backdrop-blur shadow-sm">
           🐱 {cats.length} cats
         </Badge>
+        {hiddenCatCount > 0 && (
+          <Badge variant="outline" className="bg-background/80 backdrop-blur shadow-sm text-xs">
+            👀 {roamingCats.length} roaming
+          </Badge>
+        )}
         <Badge variant="secondary" className="bg-background/80 backdrop-blur shadow-sm">
           {zone.name}
         </Badge>
