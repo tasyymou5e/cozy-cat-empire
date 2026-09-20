@@ -9,6 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
+import { triggerScheduledJob } from '@/lib/jobs/triggerJob.functions';
+
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
