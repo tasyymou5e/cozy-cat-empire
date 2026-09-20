@@ -169,7 +169,7 @@ export function MobileGameDrawer({
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground mb-2 px-1">Pages</h3>
               <div className="grid grid-cols-2 gap-2">
-                {EXTERNAL_LINKS.map((link) => (
+                {externalLinks.map((link) => (
                   <Link
                     key={link.href}
                     to={link.href}
